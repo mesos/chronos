@@ -64,12 +64,13 @@
             <version>${scala.version}</version>
         </dependency>
 
-        <!-- Note: this is not yet available in a public maven repo. -->
-        <!-- If you use the installer, we'll replace this with a compiled version-->
+        <!-- Note: this is not yet available in a public maven repo.
+             If you use the installer, the version will be replaced
+             with the compiled version-->
         <dependency>
             <groupId>org.apache.mesos</groupId>
             <artifactId>mesos</artifactId>
-            <version>0.12.0-SNAPSHOT_JDK1.7</version>
+            <version>0.12.0-SNAPSHOT</version>
         </dependency>
 
         <!-- Everything else -->

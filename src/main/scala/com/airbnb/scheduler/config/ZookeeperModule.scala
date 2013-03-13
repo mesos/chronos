@@ -13,6 +13,8 @@ import com.twitter.common.quantity.Time
 import com.twitter.common.zookeeper._
 import org.apache.mesos.state.ZooKeeperState
 import org.apache.zookeeper.ZooDefs
+import org.apache.zookeeper.server.{NIOServerCnxn, ZooKeeperServer}
+import java.io.File
 
 /**
  * Guice glue-code for zookeeper related things.
@@ -27,15 +29,9 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   @Inject
   @Singleton
   @Provides
-  def provideZookeeperClient(): ZooKeeperClient = {
-    val zkServers = new ListBuffer[InetSocketAddress]
-    config.zookeeperServers.split(",").map({
-      x =>
-        require(x.split(":").size == 2, "Error, zookeeper servers must be provided in the form host1:port2,host2:port2")
-        zkServers += new InetSocketAddress(x.split(":")(0), x.split(":")(1).toInt)
-    })
+  def provideZookeeperClient(zkServer: Option[NIOServerCnxn.Factory]): ZooKeeperClient = {
     import collection.JavaConversions._
-    new ZooKeeperClient(Amount.of(config.zookeeperTimeoutMs, Time.MILLISECONDS), zkServers)
+    new ZooKeeperClient(Amount.of(config.zookeeperTimeoutMs, Time.MILLISECONDS), parseZkServers)
   }
 
   @Inject
@@ -45,7 +41,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
     log.info("Providing MesosStatePersistenceStore")
     ZooKeeperUtils.ensurePath(zk, ZooDefs.Ids.OPEN_ACL_UNSAFE, config.zookeeperStateZnode)
     new MesosStatePersistenceStore(zk, config, new ZooKeeperState(
-      config.zookeeperServers, config.zookeeperTimeoutMs, TimeUnit.MILLISECONDS, config.zookeeperStateZnode))
+      getZkServerString, config.zookeeperTimeoutMs, TimeUnit.MILLISECONDS, config.zookeeperStateZnode))
   }
 
   @Inject
@@ -59,5 +55,66 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
           "%s:%d".format(config.hostname, config.getHttpConfiguration.getPort).getBytes
         }
       })
+  }
+
+  //This is only provided for local mode operation when no zk is given
+  //TODO(FL): Cleanup.
+  @Inject
+  @Singleton
+  @Provides
+  def provideZookeeperServer(): Option[NIOServerCnxn.Factory] = {
+    if (isInProcess) {
+      log.warning("Using in-process zookeeper!")
+      val tickTime = 10000
+      val dataDirectory = System.getProperty("java.io.tmpdir")
+      val dir = new File(dataDirectory, "chronos-zookeeper").getAbsoluteFile()
+      if (!dir.exists()) {
+        require(dir.mkdir(), "Cannot create directory for internal zookeeper:" + dir.toString)
+      } else {
+        require(dir.isDirectory, "File %s is not a directory!".format(dir.toString))
+      }
+      val server = new ZooKeeperServer(dir, dir, tickTime)
+      val zkServers = parseZkServers
+      val standaloneServerFactory = new NIOServerCnxn.Factory(
+        new InetSocketAddress(zkServers(0).getPort))
+      standaloneServerFactory.startup(server)
+      Some(standaloneServerFactory)
+    } else {
+      log.info("Using external zookeeper.")
+      None
+    }
+  }
+
+  private def isInProcess(): Boolean = {
+    log.info(config.zookeeperServers)
+    val servers = config.zookeeperServers.split(",")
+    return servers.size == 1 && servers(0).split(":")(0) == "-"
+  }
+
+  private def getZkServerString(): String = {
+    if (isInProcess()) {
+      config.zookeeperServers.replaceAll("-", "localhost")
+    } else {
+      config.zookeeperServers
+    }
+  }
+
+  private def parseZkServers(): List[InetSocketAddress] = {
+    val servers = config.zookeeperServers.split(",")
+    if (isInProcess) {
+      //TODO(FL): Refactor this code.
+      List(new InetSocketAddress("localhost", servers(0).split(":")(1).toInt))
+    } else {
+    servers.map({
+      x =>
+        require(x.split(":").size == 2, "Error, zookeeper servers must be provided in the form host1:port2,host2:port2")
+        if (x(0) == "-") {
+          new InetSocketAddress("localhost", x.split(":")(1).toInt)
+        } else {
+          new InetSocketAddress(x.split(":")(0), x.split(":")(1).toInt)
+        }
+
+    }).toList
+    }
   }
 }
