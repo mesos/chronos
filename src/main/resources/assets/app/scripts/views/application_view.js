@@ -5,18 +5,11 @@
 define([
   'jquery',
   'backbone',
-  'views/graph_view',
-  'views/graph',
-  'models/job',
-  'components/fuzzy_matcher',
-  'jquery/select2'
+  'models/job'
 ],
 function($,
          Backbone,
-         GraphView,
-         Graph,
-         JobModel,
-         FuzzyJobMatcher) {
+         JobModel) {
 
   var ApplicationView;
 
@@ -27,6 +20,7 @@ function($,
     events: {
       'click .new-job': 'newJob',
       'click .view-graph': 'showGraph',
+      'click .view-alt-graph': 'showGraph',
       'click .total-jobs': 'showAll'
     },
 
@@ -57,23 +51,13 @@ function($,
     },
 
     showGraph: function(e) {
-      var graphView, targetName, $target, related;
+      var graphView, targetName, $target, related, graphType;
       e && e.preventDefault() && e.stopPropagation() && e.stopImmediatePropagation();
 
       $target    = $(e.currentTarget);
       targetName = $target.data('job-id');
-      graphView  = new GraphView({});
-
-      app.lightbox
-        .addClass('graph-wrapper')
-        .content(graphView)
-        .open();
-
-      if (!!targetName) {
-        graphView.setTarget(targetName);
-      }
-
-      graphView.showGraph();
+      graphType = $target.hasClass('view-alt-graph') ? 'static' : 'dynamic';
+      app.lightbox.showGraphView(graphType, targetName);
     },
 
     showAll: function() {
