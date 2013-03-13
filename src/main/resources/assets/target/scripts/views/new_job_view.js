@@ -1,0 +1,1 @@
+define(["views/job_detail_view"],function(e){var t;return t=e.extend({className:"job-details-wrapper create-job"}),t});

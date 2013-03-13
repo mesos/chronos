@@ -1,0 +1,566 @@
+package com.airbnb.scheduler.jobs
+
+import annotation.tailrec
+import collection.mutable.ListBuffer
+import java.util.concurrent.{Future, Executors}
+import java.util.concurrent.atomic.{AtomicReference, AtomicBoolean}
+import java.util.logging.Logger
+
+import com.airbnb.notification.MailClient
+import com.airbnb.scheduler.graph.JobGraph
+import com.airbnb.scheduler.state.PersistenceStore
+import com.airbnb.scheduler.mesos.MesosDriverFactory
+import com.google.inject.Inject
+import com.twitter.common.zookeeper.Candidate.Leader
+import com.twitter.common.base.ExceptionalCommand
+import com.twitter.common.zookeeper.Group.JoinException
+import com.twitter.common.zookeeper.Candidate
+import com.yammer.dropwizard.lifecycle.Managed
+import org.joda.time.{DateTimeZone, Period, DateTime}
+import org.joda.time.format.DateTimeFormat
+
+/**
+ * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
+ * The schedule horizon represents the advance-time the schedule is constructed.
+ *
+ * A lot of the methods in this class are broken into small pieces to allow for better unit testing.
+ * @author Florian Leibert (flo@leibert.de)
+ */
+//TODO(FL): Modify the candidate to be an Option!
+class JobScheduler @Inject()(val scheduleHorizon: Period,
+                             val taskManager: TaskManager,
+                             val jobGraph: JobGraph,
+                             val persistenceStore: PersistenceStore,
+                             val mesosDriver: MesosDriverFactory = null,
+                             val candidate: Candidate = null,
+                             val mailClient: Option[MailClient] = None)
+//Allows us to let Dropwizard manage the lifecycle of this class.
+  extends Managed
+  with Leader {
+
+  case class Elected()
+
+  case class Defeated()
+
+  private[this] val log = Logger.getLogger(getClass.getName)
+
+  val executor = Executors.newFixedThreadPool(1)
+  val schedulerThreadFuture = new AtomicReference[Future[_]]
+
+  //TODO(FL): Take some methods out of this class.
+  //TODO(FL): Cleanup the constructor!
+  val failOverMaxTimeInMs = 1000
+
+  //This acts as the lock
+  val lock = new Object
+  val running = new AtomicBoolean(false)
+
+  val leader = new AtomicBoolean(false)
+  var streams: List[ScheduleStream] = List()
+  var abdicateCmd: ExceptionalCommand[JoinException] = null
+
+  def isLeader: Boolean = return leader.get
+
+  def getLeader: String = return new String(candidate.getLeaderData)
+
+  def sendNotification(job: BaseJob, message: String) {
+    if (!mailClient.isEmpty) {
+      log.info("Sending mail notification to:%s for job %s".format(job.owner, job.name))
+      mailClient.get !(job.owner, message, None)
+    }
+    log.info(message)
+  }
+
+  def isTaskAsync(taskId: String): Boolean = {
+    val TaskUtils.taskIdPattern(jobName, _, _) = taskId
+    jobGraph.lookupVertex(jobName).get.async
+  }
+
+  def replaceJob(oldJob: BaseJob, newJob: BaseJob) {
+    assert(newJob.getClass == oldJob.getClass,
+      "Can only update job attributes, not the type of a job!")
+    lock.synchronized {
+      jobGraph.replaceVertex(oldJob, newJob)
+      persistenceStore.persistJob(newJob)
+    }
+  }
+
+  /**
+   * Update
+   * @param oldJob
+   * @param newJob
+   */
+  def updateJob(oldJob: BaseJob, newJob: BaseJob) {
+    assert(newJob.getClass == oldJob.getClass,
+      "Can only update job attributes, not the type of a job!")
+
+    if (oldJob.isInstanceOf[ScheduleBasedJob]) {
+      lock.synchronized {
+        val scheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
+        val newStreams = List(JobUtils.makeScheduleStream(scheduleBasedJob, DateTime.now(DateTimeZone.UTC)))
+          .filter(_.nonEmpty).map(_.get)
+        if (newStreams.nonEmpty) {
+          log.info("updating ScheduleBasedJob:" + newJob.toString)
+          val tmpStreams = streams.filter(_.head._2 != newJob.name)
+          streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
+        }
+      }
+    }
+    replaceJob(oldJob, newJob)
+  }
+
+  def reset(purgeQueue: Boolean = false) {
+    lock.synchronized {
+      streams = List()
+      jobGraph.reset()
+      if (purgeQueue) {
+        log.warning("Purging locally queued tasks!")
+        taskManager.flush()
+      }
+    }
+  }
+
+  def registerJob(job: BaseJob, persist: Boolean, dateTime: DateTime) {
+    registerJob(List(job), persist, dateTime)
+  }
+
+  /**
+   * This method should be used to register schedule based jobs.
+   */
+  def registerJob(jobs: List[BaseJob], persist: Boolean = false, dateTime: DateTime = DateTime.now(DateTimeZone.UTC)) {
+    lock.synchronized {
+      require(isLeader, "Cannot register a job with this scheduler, not the leader!")
+      val scheduleBasedJobs = ListBuffer[ScheduleBasedJob]()
+      val dependencyBasedJobs = ListBuffer[DependencyBasedJob]()
+
+      jobs.foreach {
+        x =>
+          if (x.isInstanceOf[DependencyBasedJob]) {
+            dependencyBasedJobs += x.asInstanceOf[DependencyBasedJob]
+          } else {
+            scheduleBasedJobs += x.asInstanceOf[ScheduleBasedJob]
+          }
+      }
+
+      if (scheduleBasedJobs.nonEmpty) {
+        val newStreams = scheduleBasedJobs.map(JobUtils.makeScheduleStream(_, dateTime)).filter(_.nonEmpty).map(_.get)
+        if (newStreams.nonEmpty) {
+          scheduleBasedJobs.foreach({
+            job =>
+              jobGraph.addVertex(job)
+              if (persist) {
+                log.info("Persisting job:" + job.name)
+                persistenceStore.persistJob(job)
+              }
+          })
+          addSchedule(dateTime, newStreams.toList)
+        }
+      }
+
+      if (dependencyBasedJobs.nonEmpty) {
+        dependencyBasedJobs.foreach({
+          job =>
+            val parents = jobGraph.parentJobs(job)
+            log.info("Job parent: [ %s ], name: %s, command: %s".format(job.parents.mkString(","), job.name, job.command))
+            jobGraph.addVertex(job)
+            parents.map(x => jobGraph.addDependency(x.name, job.name))
+            if (persist) {
+              log.info("Persisting job:" + job.name)
+              persistenceStore.persistJob(job)
+            }
+        })
+      }
+    }
+  }
+
+  def deregisterJob(job: BaseJob, persist: Boolean = false, forceCascade: Boolean = false) {
+    require(isLeader, "Cannot deregister a job with this scheduler, not the leader!")
+    lock.synchronized {
+      log.info("Removing vertex")
+      val orphans = jobGraph.getChildren(job.name)
+        .map(c => jobGraph.lookupVertex(c).get.asInstanceOf[DependencyBasedJob])
+        .filter(j => j.parents.size == 1)
+
+      require(orphans.size == 0 || forceCascade,
+        "The job %s has children and won't be removed unless the force-cascade is given".format(job))
+
+      orphans.foreach({
+        x =>
+          log.warning("Removing orphan: %s".format(x.name))
+          deregisterJob(x, persist, forceCascade)
+      })
+
+      jobGraph.getChildren(job.name)
+        .map(x => jobGraph.lookupVertex(x).get.asInstanceOf[DependencyBasedJob])
+        .filter(x => x.parents.size > 1)
+        .foreach({
+        childJob =>
+          log.info("Updating job %s".format(job.name))
+          val copy = childJob.copy(parents = childJob.parents.filter(_ != job.name))
+          updateJob(childJob, copy)
+      })
+
+      jobGraph.removeVertex(job)
+      job match {
+        case scheduledJob: ScheduleBasedJob => {
+          removeSchedule(scheduledJob)
+          log.info("Removed schedule based job")
+          log.info("Size of streams:" + streams.size)
+        }
+        case dependencyBasedJob: DependencyBasedJob => {
+          //TODO(FL): Check if there are empty edges.
+          log.info("Job removed from dependency graph.")
+        }
+        case _: Any =>
+          throw new IllegalArgumentException("Cannot handle the job type")
+      }
+
+      taskManager.cancelTasks(job)
+      taskManager.removeTasks(job)
+
+      if (persist) {
+        log.info("Removing job from underlying state abstraction:" + job.name)
+        persistenceStore.removeJob(job)
+      }
+    }
+  }
+
+  /**
+   * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
+   * launch tasks for dependent jobs
+   * @param taskId
+   */
+  def handleFinishedTask(taskId: String) {
+    if (!TaskUtils.isValidVersion(taskId)) {
+      log.warning("Found old or invalid task, ignoring!")
+      return
+    }
+    val jobName = TaskUtils.getJobNameForTaskId(taskId)
+    val jobOption = jobGraph.lookupVertex(jobName)
+
+    if (jobOption.isEmpty) {
+      log.warning("Job '%s' no longer registered.".format(jobName))
+    } else {
+      val (_, start, _) = TaskUtils.parseTaskId(taskId)
+      JobUtils.updateJobStat(jobName, DateTime.now(DateTimeZone.UTC).getMillis - start)
+      val job = jobOption.get
+
+      val newJob = {
+        //TODO(FL): Refactor this section and handle the two job types separately.
+        if (job.isInstanceOf[ScheduleBasedJob]) {
+          job.asInstanceOf[ScheduleBasedJob].copy(successCount = job.successCount + 1,
+            lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+        } else if (job.isInstanceOf[DependencyBasedJob]) {
+          job.asInstanceOf[DependencyBasedJob].copy(successCount = job.successCount + 1,
+            lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+        } else
+          throw new IllegalArgumentException("Cannot handle unknown task type")
+      }
+      replaceJob(job, newJob)
+      val dependents = jobGraph.getExecutableChildren(jobOption.get.name)
+      if (!dependents.isEmpty) {
+        log.fine("%s has dependents: %s .".format(jobName, dependents.mkString(",")))
+        dependents.map({
+          //TODO(FL): Ensure that the job for the given x exists. Lock.
+          x =>
+            val dependentJob = jobGraph.getJobForName(x).get
+            taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
+              DateTime.now(DateTimeZone.UTC)))
+
+            log.fine("Enqueued depedent job." + x)
+        })
+      } else {
+        log.fine("%s does not have any ready dependents.".format(jobName))
+      }
+
+      log.fine("Cleaning up finished task '%s'".format(taskId))
+
+      /* TODO(FL): Fix.
+         Cleanup potentially exhausted job. Note, if X tasks were fired within a short period of time (~ execution time
+        of the job, the first returning Finished-task may trigger deletion of the job! This is a known limitation and
+        needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
+        in between */
+      if (job.isInstanceOf[ScheduleBasedJob]) {
+        val (recurrences, nextDate, period) = Iso8601Expressions.parse(job.asInstanceOf[ScheduleBasedJob].schedule)
+        if (recurrences == 0) {
+          log.info("Removing job that reached a zero-recurrence count!")
+          persistenceStore.removeJob(job)
+        }
+      }
+    }
+  }
+
+  def handleFailedTask(taskId: String) {
+    if (!TaskUtils.isValidVersion(taskId)) {
+      log.warning("Found old or invalid task, ignoring!")
+    } else {
+      val (jobName, due, attempt) = TaskUtils.parseTaskId(taskId)
+      log.warning("Task of job: %s failed.".format(jobName))
+      val jobOption = jobGraph.lookupVertex(jobName)
+      jobOption match {
+        case Some(job) => {
+          val newJob = {
+            if (job.isInstanceOf[ScheduleBasedJob]) {
+              job.asInstanceOf[ScheduleBasedJob].copy(errorCount = job.errorCount + 1,
+                lastError = DateTime.now(DateTimeZone.UTC).toString)
+            } else if (job.isInstanceOf[DependencyBasedJob]) {
+              job.asInstanceOf[DependencyBasedJob].copy(errorCount = job.errorCount + 1,
+                lastError = DateTime.now(DateTimeZone.UTC).toString)
+            } else
+              throw new IllegalArgumentException("Cannot handle unknown task type")
+          }
+          replaceJob(job, newJob)
+
+          if (attempt < job.retries) {
+            log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
+            val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt + 1)
+            taskManager.persistTask(taskId, newJob)
+            taskManager.enqueue(newTaskId)
+          } else {
+            log.warning("Job failed beyond retries!")
+            sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
+              .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
+          }
+        }
+        case None =>
+          log.warning("Could not find job for task: %s Job may have been deleted while task was in flight!"
+            .format(taskId))
+      }
+    }
+  }
+
+  /**
+   * Iterates through the stream for the given DateTime and a list of schedules, removing old schedules and acting on
+   * the available schedules.
+   * @param dateTime
+   * @param schedules
+   * @return
+   */
+  def iteration(dateTime: DateTime, schedules: List[ScheduleStream]): List[ScheduleStream] = {
+    log.info("Checking schedules with time horizon:%s".format(scheduleHorizon.toString))
+    return removeOldSchedules(schedules.map(s => scheduleStream(dateTime, s)))
+  }
+
+  def run(dateSupplier: Function0[DateTime]) {
+    log.info("Starting run loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
+    while (running.get) {
+      lock.synchronized {
+        log.info("Size of streams: %d".format(streams.size))
+        streams = iteration(dateSupplier(), streams)
+      }
+      Thread.sleep(scheduleHorizon.toStandardDuration.getMillis)
+      //TODO(FL): This can be inaccurate if the horizon >= 1D on daylight savings day and when leap seconds are introduced.
+    }
+    log.info("No longer running.")
+  }
+
+  /**
+   * Given a stream and a DateTime(@see org.joda.DateTime), this method returns a 2-tuple with a ScheduleTask and
+   * a clipped schedule stream in case that the ScheduleTask was not none. Returns no task and the input stream,
+   * if nothing needs scheduling within the time horizon.
+   * @param now
+   * @param stream
+   * @return
+   */
+  @tailrec
+  final def next(now: DateTime, stream: ScheduleStream): (Option[ScheduledTask], Option[ScheduleStream]) = {
+    val (schedule, jobName) = stream.head()
+
+    log.info("Calling next for stream: %s, jobname: %s".format(stream.schedule, jobName))
+    assert(schedule != null && !schedule.equals(""), "No valid schedule found: " + schedule)
+    assert(jobName != null, "BaseJob cannot be null")
+
+    //TODO(FL): wrap with lock.
+    val jobOption = jobGraph.lookupVertex(jobName)
+    if (jobOption.isEmpty) {
+      log.warning("-----------------------------------")
+      log.warning("Warning, no job found in graph for:" + jobName)
+      log.warning("-----------------------------------")
+      //This might happen during loading stage in case of failover.
+      return (None, None)
+    }
+
+    val (recurrences, nextDate, _) = Iso8601Expressions.parse(schedule)
+    log.finest("Recurrences: '%d', next date: '%s'".format(recurrences, stream.schedule))
+    //nextDate has to be > (now - epsilon) & < (now + timehorizon) , for it to be scheduled!
+    if (recurrences == 0) {
+      log.info("Finished all recurrences of job '%s'".format(jobName))
+      //We're not removing the job here because it may still be required if a pending task fails.
+      return (None, None)
+    } else {
+      val job = jobOption.get
+      if (nextDate.isAfter(now.minus(job.epsilon)) && nextDate.isBefore(now.plus(scheduleHorizon))) {
+        log.info("Task ready for scheduling: %s".format(nextDate))
+        //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
+        val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
+        return (Some(task), stream.tail)
+      }
+      //The nextDate has passed already beyond epsilon.
+      //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
+      if (!nextDate.isBefore(now)) {
+        return (None, Some(stream))
+      }
+      //Needs to be scheduled at a later time, after schedule horizon.
+      log.fine("No need to work on schedule: '%s' yet".format(nextDate))
+      if (stream.tail.isEmpty) {
+        //TODO(FL): Verify that this can go.
+        persistenceStore.removeJob(job)
+        log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
+        return (None, None)
+      }
+      else log.info("tail:" + stream.tail().get.schedule)
+      return next(now, stream.tail.get)
+    }
+  }
+
+  // Generates a new ScheduleStream based on a DateTime and a ScheduleStream. Side effects of this method
+  // are that a new Job may be persisted in the underlying persistence store and a task might get dispatched.
+  @tailrec
+  private final def scheduleStream(now: DateTime, s: ScheduleStream): Option[ScheduleStream] = {
+    val (taskOption, stream) = next(now, s)
+    if (taskOption.isEmpty) {
+      return stream
+    } else {
+      val encapsulatedJob = taskOption.get.job
+      log.info("Scheduling:" + taskOption.get.job.name)
+      taskManager.scheduleDelayedTask(taskOption.get, taskManager.getMillisUntilExecution(taskOption.get.due), true)
+      /*TODO(FL): This needs some refactoring. Ideally, the task should only be persisted once it has been submitted
+                  to mesos, however if we were to do this with the current design, there could be missed tasks if
+                  the scheduler went down before having fired off the jobs, since we're scheduling ahead of time.
+
+                  Instead we persist the tasks right away, which also has the disadvantage of us maybe executing a job
+                  twice IFF the scheduler goes down after the jobs have been submitted to mesos and stored in the queue
+                  and us still being unavailable before the failover timeout. Thus we set the failover timeout to one
+                  week. This means we should receive a mesos message of a successful task as long as we're not down for
+                  more than a week for the above mentioned scenario.
+
+                  E.g. Schedule 5seconds into the future
+                  j1 -> R10/20:00:00/PT1S
+                  19:00:56: queue(j1t1, j1t2, j1t3, j1t4, j1t5)
+                  19:00:56: persist(R5/20:00:05/PT1S)
+                  19:00:56: persist(j1t1, j1t2, j1t3, j1t4, j1t5)
+                  19:00:57: DOWN
+                  19:00:58: UP
+                  ...
+       */
+
+
+      /* TODO(FL): The invocation count only represents the number of job invocations, not the number of successful
+         executions. When a scheduler starts up, it needs to verify that there are no pending tasks.
+         This isn't really transactional but should be sufficiently reliable for most usecases. To outline why it is not
+         really transactional. To fix this, we need to add a new state into ZK that stores the successful tasks.
+       */
+      val updatedJob = encapsulatedJob.asInstanceOf[ScheduleBasedJob].copy(stream.get.schedule)
+
+      log.info("Saving updated job:" + updatedJob)
+      persistenceStore.persistJob(updatedJob)
+      jobGraph.replaceVertex(encapsulatedJob, updatedJob)
+
+      if (stream.isEmpty) {
+        return stream
+      }
+      return scheduleStream(now, stream.get)
+    }
+  }
+
+  private def removeOldSchedules(scheduleStreams: List[Option[ScheduleStream]]): List[ScheduleStream] = {
+    log.fine("Filtering out empty streams")
+    scheduleStreams.filter(s => !s.isEmpty && !s.get.tail().isEmpty).map(_.get)
+  }
+
+  /**
+   * Adds a List of ScheduleStream and runs a iteration at the current time.
+   * @param now
+   * @param newStreams
+   */
+  private def addSchedule(now: DateTime, newStreams: List[ScheduleStream]) {
+    log.info("Adding schedule for time:" + now.toString(DateTimeFormat.fullTime()))
+    lock.synchronized {
+      log.fine("Starting iteration")
+      streams = iteration(now, newStreams ++ streams)
+      log.fine("Size of streams: %d".format(streams.size))
+    }
+  }
+
+  private def removeSchedule(deletedStream: BaseJob) {
+    lock.synchronized {
+      log.fine("Removing schedules: ")
+      streams = streams.filter(_.jobName != deletedStream.name)
+      log.fine("Size of streams: %d".format(streams.size))
+    }
+  }
+
+  //Begin Managed interface
+  override def start() {
+    assert(!running.get, "This scheduler is already running!")
+    log.info("Trying to become leader.")
+    candidate.offerLeadership(this)
+  }
+
+  override def stop() {
+    running.set(false)
+    log.info("Shutting down job scheduler")
+
+    if (abdicateCmd != null) {
+      log.info("Abdicating.")
+      abdicateCmd.execute
+      abdicateCmd = null
+    }
+  }
+
+  //End Managed interface
+
+  //Begin Leader interface, which is required for CandidateImpl.
+  def onDefeated() {
+    mesosDriver.close
+
+    log.info("Defeated. Not the current leader.")
+    if (abdicateCmd != null) {
+      log.warning("Abdicate command present.")
+      abdicateCmd = null
+    }
+    running.set(false)
+    schedulerThreadFuture.get.cancel(true)
+    reset()
+
+    candidate.offerLeadership(this)
+  }
+
+  def onElected(cmd: ExceptionalCommand[JoinException]) {
+    log.info("Elected as leader.")
+    if (abdicateCmd != null) {
+      log.warning("Abdicate command exists already!")
+    }
+    abdicateCmd = cmd
+    leader.set(true)
+    running.set(true)
+    lock.synchronized {
+      //It's important to load the tasks first, otherwise a job that's due will trigger a task right away.
+      log.info("Loading tasks")
+      TaskUtils.loadTasks(taskManager, persistenceStore)
+
+      log.info("Loading jobs")
+      JobUtils.loadJobs(this, persistenceStore)
+    }
+
+    val jobScheduler = this
+    //Consider making this a background thread or control via an executor.
+
+    val f = executor.submit(
+      new Thread() {
+        override def run {
+          log.info("Running background thread")
+          val dateSupplier = () => {
+            DateTime.now(DateTimeZone.UTC)
+          }
+          jobScheduler.run(dateSupplier)
+        }
+      })
+
+    schedulerThreadFuture.set(f)
+    log.info("Starting mesos driver")
+    mesosDriver.get.start()
+  }
+
+  //End Leader interface
+}

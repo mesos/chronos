@@ -1,0 +1,23 @@
+/**
+ * Copyright 2012 Craig Campbell
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Mousetrap is a simple keyboard shortcut library for Javascript with
+ * no external dependencies
+ *
+ * @version 1.2.2
+ * @url craig.is/killing/mice
+ */
+
+(function(){function h(e,t,n){if(e.addEventListener){e.addEventListener(t,n,!1);return}e.attachEvent("on"+t,n)}function p(n){return n.type=="keypress"?String.fromCharCode(n.which):e[n.which]?e[n.which]:t[n.which]?t[n.which]:String.fromCharCode(n.which).toLowerCase()}function d(e,t){return e.sort().join(",")===t.sort().join(",")}function v(e,t){e=e||{};var n=!1,r;for(r in u){if(e[r]&&u[r]>t){n=!0;continue}u[r]=0}n||(l=!1)}function m(e,t,n,r,i){var o,a,f=[],l=n.type;if(!s[e])return[];l=="keyup"&&E(e)&&(t=[e]);for(o=0;o<s[e].length;++o){a=s[e][o];if(a.seq&&u[a.seq]!=a.level)continue;if(l!=a.action)continue;if(l=="keypress"&&!n.metaKey&&!n.ctrlKey||d(t,a.modifiers))r&&a.combo==i&&s[e].splice(o,1),f.push(a)}return f}function g(e){var t=[];return e.shiftKey&&t.push("shift"),e.altKey&&t.push("alt"),e.ctrlKey&&t.push("ctrl"),e.metaKey&&t.push("meta"),t}function y(e,t,n){if(L.stopCallback(t,t.target||t.srcElement,n))return;e(t,n)===!1&&(t.preventDefault&&t.preventDefault(),t.stopPropagation&&t.stopPropagation(),t.returnValue=!1,t.cancelBubble=!0)}function b(e,t){var n=m(e,g(t),t),r,i={},s=0,o=!1;for(r=0;r<n.length;++r){if(n[r].seq){o=!0,s=Math.max(s,n[r].level),i[n[r].seq]=1,y(n[r].callback,t,n[r].combo);continue}!o&&!l&&y(n[r].callback,t,n[r].combo)}t.type==l&&!E(e)&&v(i,s)}function w(e){typeof e.which!="number"&&(e.which=e.keyCode);var t=p(e);if(!t)return;if(e.type=="keyup"&&f==t){f=!1;return}b(t,e)}function E(e){return e=="shift"||e=="ctrl"||e=="alt"||e=="meta"}function S(){clearTimeout(a),a=setTimeout(v,1e3)}function x(){if(!i){i={};for(var t in e){if(t>95&&t<112)continue;e.hasOwnProperty(t)&&(i[e[t]]=t)}}return i}function T(e,t,n){return n||(n=x()[e]?"keydown":"keypress"),n=="keypress"&&t.length&&(n="keydown"),n}function N(e,t,n,r){u[e]=0,r||(r=T(t[0],[]));var i=function(t){l=r,++u[e],S()},s=function(t){y(n,t,e),r!=="keyup"&&(f=p(t)),setTimeout(v,10)},o;for(o=0;o<t.length;++o)C(t[o],o<t.length-1?i:s,r,e,o)}function C(e,t,i,o,u){e=e.replace(/\s+/g," ");var a=e.split(" "),f,l,c,h=[];if(a.length>1){N(e,a,t,i);return}c=e==="+"?["+"]:e.split("+");for(f=0;f<c.length;++f)l=c[f],r[l]&&(l=r[l]),i&&i!="keypress"&&n[l]&&(l=n[l],h.push("shift")),E(l)&&h.push(l);i=T(l,h,i),s[l]||(s[l]=[]),m(l,h,{type:i},!o,e),s[l][o?"unshift":"push"]({callback:t,modifiers:h,action:i,seq:o,level:u,combo:e})}function k(e,t,n){for(var r=0;r<e.length;++r)C(e[r],t,n)}var e={8:"backspace",9:"tab",13:"enter",16:"shift",17:"ctrl",18:"alt",20:"capslock",27:"esc",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",45:"ins",46:"del",91:"meta",93:"meta",224:"meta"},t={106:"*",107:"+",109:"-",110:".",111:"/",186:";",187:"=",188:",",189:"-",190:".",191:"/",192:"`",219:"[",220:"\\",221:"]",222:"'"},n={"~":"`","!":"1","@":"2","#":"3",$:"4","%":"5","^":"6","&":"7","*":"8","(":"9",")":"0",_:"-","+":"=",":":";",'"':"'","<":",",">":".","?":"/","|":"\\"},r={option:"alt",command:"meta","return":"enter",escape:"esc"},i,s={},o={},u={},a,f=!1,l=!1;for(var c=1;c<20;++c)e[111+c]="f"+c;for(c=0;c<=9;++c)e[c+96]=c;h(document,"keypress",w),h(document,"keydown",w),h(document,"keyup",w);var L={bind:function(e,t,n){return k(e instanceof Array?e:[e],t,n),o[e+":"+n]=t,this},unbind:function(e,t){return o[e+":"+t]&&(delete o[e+":"+t],this.bind(e,function(){},t)),this},trigger:function(e,t){return o[e+":"+t](),this},reset:function(){return s={},o={},this},stopCallback:function(e,t,n){return(" "+t.className+" ").indexOf(" mousetrap ")>-1?!1:t.tagName=="INPUT"||t.tagName=="SELECT"||t.tagName=="TEXTAREA"||t.contentEditable&&t.contentEditable=="true"}};window.Mousetrap=L,typeof define=="function"&&define.amd&&define(L)})();

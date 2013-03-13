@@ -1,0 +1,30 @@
+<div class="alert alert-block fade in {{#alertClass}}{{.}}{{/alertClass}}">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+
+  {{#create}}
+  <h4>Error creating job '{{jobName}}'</h4>
+  {{/create}}
+  {{#save}}
+  <h4>Error updating job '{{jobName}}'</h4>
+  {{/save}}
+  {{#delete}}
+  <h4>Error deleting job '{{jobName}}'</h4>
+  {{/delete}}
+
+  <p>
+  {{#serverError}}
+  {{#if text}}
+    Server responded with <strong>{{text}}</strong>.
+  {{else}}
+    Server responded with an unspecified <strong>{{status}}</strong> error.
+  {{/if}}
+  {{/serverError}}
+  {{#if validationErrors}}
+    <ul class="validation-errors">
+      {{#each validationErrors}}
+        <li>Error in <span class="invalid-field" data-form-field="{{field}}">{{name}}</span></li>
+      {{/each}}
+    </ul>
+  {{/if}}
+  </p>
+</div>
