@@ -58,19 +58,38 @@
     </div>
 
     <div class="row-fluid job-detail-row">
-      <div class="span6 control-group job-detail job-detail-tooltip"
-           data-toggle="tooltip"
-           data-title="Owner's email address<br>The owner will be emailed in the event of a job failure or disruption."
-           data-html="true"
-           data-placement="bottom">
-        <div class="detail">Owner</div>
-        <div class="display hightlight line-height job-name owner"
-             data-rv-text="job.owner">{{owner}}</div>
-        <div class="field cmd">
-          <input class="job-input" value="{{owner}}" name="owner" tabindex="4"
-                 data-rv-value="job.owner">
+      <div class="span6">
+        <div class="control-group job-detail job-detail-tooltip"
+             data-toggle="tooltip"
+             data-title="Owner's email address<br>The owner will be emailed in the event of a job failure or disruption."
+             data-html="true"
+             data-placement="bottom">
+          <div class="detail">Owner</div>
+          <div class="display hightlight line-height job-name owner"
+               data-rv-text="job.owner">{{owner}}</div>
+          <div class="field cmd">
+            <input class="job-input" value="{{owner}}" name="owner" tabindex="4"
+                   data-rv-value="job.owner">
+          </div>
+          <span class="help-inline"></span>
         </div>
-        <span class="help-inline"></span>
+
+        <div class="control-group job-detail job-detail-tooltip"
+             data-title="This is the mesos executor to use. Note, this can be a path that needs to be available on the mesos slave or it can be left blank in which case the shell-executor is assumed. The executor will receive the string specified in the command field."
+             data-toggle="tooltip"
+             data-placement="bottom">
+          <div class="detail">Executor</div>
+          <div class="display hightlight cmd executor"
+               data-rv-text="job.executor | orNone">{{orNone executor}}</div>
+          <div class="field cmd">
+            <input class="job-input"
+                   data-rv-value="job.executor"
+                   value="{{executor}}"
+                   name="executor"
+                   placeholder="/custom/executor"
+                   tabindex="5">
+          </div>
+        </div>
       </div>
 
       {{#persisted}}
@@ -128,7 +147,7 @@
            data-rv-text="job.schedule">{{schedule}}</div>
       <div class="field cmd small-input repeats control-group">
         <label for="repeats" class="control-label">R</label>
-        <input class="job-input" value="{{repeats}}" name="repeats" tabindex="5"
+        <input class="job-input" value="{{repeats}}" name="repeats" tabindex="6"
          data-rv-value="job.repeats"
          placeholder="∞" data-placeholder="∞"
          data-title="Number of Repetitions<br>Blank for Infinite (∞), 0 for none."
@@ -141,7 +160,7 @@
       <div class="field cmd small-input control-group">
         <input class="job-input datepicker" value="{{startDate}}"
           data-rv-value="job.startDate"
-          name="startDate" tabindex="6"
+          name="startDate" tabindex="7"
           data-title="Date to start the job."
           data-toggle="tooltip">
       </div>
@@ -149,7 +168,7 @@
       <div class="small-input break">T</div>
 
       <div class="field cmd small-input bootstrap-timepicker control-group">
-        <input class="job-input timepicker" value="{{startTime}}" name="startTime" tabindex="7"
+        <input class="job-input timepicker" value="{{startTime}}" name="startTime" tabindex="8"
           data-rv-value="job.startTime"
           data-title="Time to start the job."
           data-toggle="tooltip"
@@ -163,7 +182,7 @@
 
       <div class="field cmd small-input period control-group">
         <label for="duration" class="control-label">P</label>
-        <input class="job-input" value="{{duration}}" name="duration" tabindex="8"
+        <input class="job-input" value="{{duration}}" name="duration" tabindex="9"
           data-rv-value="job.duration"
           data-title="Duration<br>The job will execute every after every passing of duration from start time."
           data-html="true"
@@ -178,7 +197,7 @@
         <div class="detail">Epsilon</div>
         <div class="display highlight cmd epsilon">{{epsilon}}</div>
         <div class="field cmd epsilon control-group">
-          <input class="job-input" value="{{epsilon}}" name="epsilon" tabindex="9"
+          <input class="job-input" value="{{epsilon}}" name="epsilon" tabindex="10"
             data-rv-value="job.epsilon"
             data-title="Epsilon<br>Amount of time after a failure within which to retry the job."
             data-html="true"
@@ -216,23 +235,7 @@
       </div>
     </div>
 
-    <div class="row-fluid job-detail-row job-detail job-detail-tooltip bottom-row"
-         data-title="This is the mesos executor to use. Note, this can be a path that needs to be available on the mesos slave or it can be left blank in which case the shell-executor is assumed. The executor will receive the string specified in the command field."
-         data-toggle="tooltip"
-         data-placement="bottom">
-      <div class="detail">Executor</div>
-      <div class="display hightlight cmd executor"
-           data-rv-text="job.executor | orNone">{{orNone executor}}</div>
-      <div class="field cmd">
-        <div class="input-append">
-          <input class="job-input span8"
-                 data-rv-value="job.executor"
-                 value="{{executor}}"
-                 name="executor"
-                 placeholder="/custom/executor"
-                 tabindex="11">
-        </div>
-      </div>
+    <div class="row-fluid job-detail-row job-detail job-detail-tooltip bottom-row stats-row">
     </div>
   </div>
 </form>

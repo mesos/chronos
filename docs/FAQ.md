@@ -2,6 +2,7 @@
 ## Table of Contents
 1. [[osx] making mesos fails on `warning: 'JNI_CreateJavaVM' is deprecated`](#osx-making-mesos-fails-on-deprecated-warning)
 2. [My Web UI is not showing up!](#my-web-ui-is-not-showing-up)
+3. [When running jobs locally I get an error like `Failed to execute 'chown -R'`](#when-running-jobs-locally-i-get-an-error-like-failed-to-execute-chown--r)
 
 
 ## [osx] Making mesos fails on deprecated header warning
@@ -25,4 +26,15 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 `JAVA_CPPFLAGS='-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/' ../configure`
 
 ## My Web UI is not showing up!
-See 
+See [docs/WEBUI.md](/airbnb/chronos/blob/master/docs/WEBUI.md).
+
+## When running jobs locally I get an error like `Failed to execute 'chown -R'`
+
+If you get an error such as:
+
+		Failed to execute 'chown -R 0:0 '/tmp/mesos/slaves/executors/...' ... Undefined error: 0
+		Failed to launch executor`
+
+You can try starting your mesos slaves with switch users disabled. To do this, start your slaves in the following manner:  
+
+		MESOS_SWITCH_USER=0 bin/mesos-slave.sh --master=zk://localhost:2181/mesos --resources="cpus:8,mem:68551;disk:803394"

@@ -7,6 +7,7 @@ define([
   'backbone',
   'underscore',
   'views/job_detail_header_view',
+  'views/job_detail_stats',
   'views/bound_view',
   'components/tooltip_view',
   'components/fuzzy_select2',
@@ -24,6 +25,7 @@ function($,
          Backbone,
          _,
          JobDetailHeaderView,
+         JobDetailStatsView,
          BoundView,
          TooltipView,
          FuzzySelect2,
@@ -115,6 +117,7 @@ function($,
       this.addRivets();
       this.renderHeader();
       this.renderParents();
+      this.renderStats();
       this.trigger('render');
 
       if (this.$el.hasClass('edit-job')) {
@@ -157,6 +160,22 @@ function($,
         });
       }
       return view.setElement(this.$('.job-detail-nav-view')).render();
+    },
+
+    renderStats: function() {
+      var view = this.statsView;
+      if (!view) {
+        try {
+        view = new JobDetailStatsView({
+          model: this.model
+        });
+
+        this.statsView = view;
+        } catch (e) {
+        }
+      }
+      if (!view) { return; }
+      return view.setElement(this.$('.stats-row')).render();
     },
 
     renderParents: function() {

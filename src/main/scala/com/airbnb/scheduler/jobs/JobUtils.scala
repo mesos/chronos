@@ -24,7 +24,7 @@ object JobUtils {
   val stats = new mutable.HashMap[String, DescriptiveStatistics]()
   val maxValues = 100
 
-  //The object mapper, which is according the the docs Threadsafe once configured.
+  //The object mapper, which is, according to the docs, Threadsafe once configured.
   val objectMapper = new ObjectMapper
   val mod =  new SimpleModule("JobModule")
 

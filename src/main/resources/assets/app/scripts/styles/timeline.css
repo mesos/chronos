@@ -2,10 +2,6 @@ svg {
   font: 10px sans-serif;
 }
 
-path {
-  fill: steelblue;
-}
-
 .axis path,
 .axis line {
   fill: none;

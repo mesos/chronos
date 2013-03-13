@@ -1,5 +1,5 @@
 /**
- * Job Detail View
+ * Job Detail Header View
  *
  */
 define([

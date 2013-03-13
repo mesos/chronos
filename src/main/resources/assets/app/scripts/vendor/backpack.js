@@ -21,9 +21,15 @@ define(['jquery', 'backbone', 'underscore'], function($, Backbone, _) {
       this.set('open', true);
     },
 
-    close: function(){
+    close: function() {
+      var view = this.get('content');
       this.set('open', false);
       this.trigger('close');
+
+      if (view) {
+        view.trigger('close');
+        if (_.isFunction(view.close)) { view.close(); }
+      }
     },
 
     dismiss: function(){
@@ -48,7 +54,6 @@ define(['jquery', 'backbone', 'underscore'], function($, Backbone, _) {
 
   Backpack.Models.Lightbox = LightboxModel;
 
-  console.log('underscore _', _, this, Backbone, Backpack);
   Lightbox = Backbone.View.extend({
 
     template:  _.template([
@@ -65,9 +70,11 @@ define(['jquery', 'backbone', 'underscore'], function($, Backbone, _) {
     },
 
     bindings: function(){
-      this.model.on('change:open', this.toggle, this);
-      this.model.on('change:content', this.updateContent, this);
-      this.model.on('change:backgroundColor', this.updateColor, this);
+      this.listenTo(this.model, {
+        'change:open': this.toggle,
+        'change:content': this.updateContent,
+        'change:backgroundColor': this.updateColor
+      });
     },
 
     initialize: function(){
