@@ -23,9 +23,8 @@ You must not remove this notice, or any other, from this software.
 ## Core contributors
 
 * Florian Leibert ([@flo](http://twitter.com/flo))
-* Andy Kramolisch ([@xumingming](https://github.com/andykram))
-* Harry Shoff ([@jason_j](https://github.com/hshoff))
-
+* Andy Kramolisch ([@andykram](https://github.com/andykram))
+* Harry Shoff ([@hshoff](https://github.com/hshoff))
 
 ## The API
 
