@@ -1,0 +1,21 @@
+scheduleHorizonSeconds: 60
+master: local
+zookeeperServers: -:28281
+
+assets:
+  overrides:
+    /scripts: src/main/resources/assets/app/scripts
+    /stubs: src/main/resources/assets/app/stubs
+    /images: src/main/resources/assets/app/images
+    /: src/main/resources/assets/app/index.html
+
+http:
+
+    adminPort: 4401
+    port: 4400
+    rootPath: "/scheduler/*"
+
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
