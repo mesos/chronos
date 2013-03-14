@@ -1,14 +1,14 @@
 # Chronos
 
 Chronos is AirBnB's replacement for `cron`.
-It is a distributed, fault-tolerant system which runs on top of [Mesos](http://incubator.apache.org/mesos/).
+It is a distributed, fault-tolerant system which runs on top of [mesos](http://incubator.apache.org/mesos/).
 
 Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][] time specifications, which enables more flexibility in job scheduling.
 Chronos also supports the definition of jobs which depend on other jobs to complete successfully first.
 
 **Reference**
-> [Mesos](http://incubator.apache.org/mesos/) @ [http://incubator.apache.org/mesos/](http://incubator.apache.org/mesos/)
+> [mesos](http://incubator.apache.org/mesos/) @ [http://incubator.apache.org/mesos/](http://incubator.apache.org/mesos/)
 > [ISO8601](http://en.wikipedia.org/wiki/ISO_8601) @ [http://en.wikipedia.org/wiki/ISO_8601](http://en.wikipedia.org/wiki/ISO_8601)
 
 ## License
@@ -26,6 +26,15 @@ You must not remove this notice, or any other, from this software.
 * Andy Kramolisch ([@andykram](https://github.com/andykram))
 * Harry Shoff ([@hshoff](https://github.com/hshoff))
 
+## Getting started
+
+There is a file called 'installer.bash' that can be found in the bin directory of the repo. Upon execution, this file will compile and install mesos and Chronos.
+After successful installation a local version of Chronos with a built-in ZK server is started.
+
+You will need Maven 3.X, a JDK and build tools to get up and running.
+
+If you get an error while compiling [mesos][], please consult
+
 ## The API
 
 You can communicate with Chronos using a RESTful [JSON][] API over HTTP.
@@ -36,38 +45,6 @@ All examples in this section assume that you've found a running leader at `chron
 
 When you have multiple Chronos nodes running, only one of them will be elected as the leader.
 The leader is the only node that responds to API requests, but if you attempt to talk to a non-leader your request will automatically be redirected to a leader.
-
-### Finding a Node to Talk To
-
-First, you need to determine the name of the Chronos leader.
-
-#### Using Zoneify
-
-```bash
-abbsrv chronos.g
-```
-
-Or if you don't have abbsrv:
-
-```bash
-dig +short +tcp _*._*.chronos.g.aws.airbnb.com SRV | cut -d' ' -f 4
-```
-
-To find the slave without abbsrv:
-
-```bash
-dig +short +tcp _*._*.mesos-slave.g.aws.airbnb.com SRV | cut -d' ' -f 4
-```
-
-#### Using Zookeeper
-
-Chronos registers itself with [Zookeeper][] at the location `/airbnb/service/chronos`.
-Framework masters are in the subpath `candidates`.
-Get the value of any member node under `candidates` to get a Chronos framework node.
-You an query any of those nodes -- non-leaders will redirect your request to the current leader automatically.
-
-[json]: http://www.json.org/
-[Zookeeper]: http://zookeeper.apache.org/
 
 ### Listing Jobs
 
@@ -239,3 +216,38 @@ You can do so by either setting the `java.library.path` to the build mesos libra
 Also, you have to set `MESOS_LAUNCHER_DIR` to the src of the build of mesos such that the shell executor can be found. (e.g. `/Users/florian/airbnb_code/mesos/build/src`)
 
 Also set `MESOS_KILLTREE` to the location of the killtree.sh script - `/Users/florian/airbnb_code/mesos/src/scripts/killtree.sh`
+
+## Appendix
+
+### Finding a Node to Talk To
+
+As we mentioned, Chronos is designed (not required) to run with multiple nodes of which one is elected master.
+First, you need to determine the name of the Chronos leader.
+
+#### Using Zoneify
+
+```bash
+abbsrv chronos.g
+```
+
+Or if you don't have abbsrv:
+
+```bash
+dig +short +tcp _*._*.chronos.g.aws.airbnb.com SRV | cut -d' ' -f 4
+```
+
+To find the slave without abbsrv:
+
+```bash
+dig +short +tcp _*._*.mesos-slave.g.aws.airbnb.com SRV | cut -d' ' -f 4
+```
+
+#### Using Zookeeper
+
+Chronos registers itself with [Zookeeper][] at the location `/airbnb/service/chronos`.
+Framework masters are in the subpath `candidates`.
+Get the value of any member node under `candidates` to get a Chronos framework node.
+You an query any of those nodes -- non-leaders will redirect your request to the current leader automatically.
+
+[json]: http://www.json.org/
+[Zookeeper]: http://zookeeper.apache.org/
