@@ -129,16 +129,15 @@
             <artifactId>client</artifactId>
             <version>0.0.18</version>
         </dependency>
-        <!-- TODO(FL): Replace this with th -->
         <dependency>
             <groupId>com.twitter.common.zookeeper</groupId>
             <artifactId>candidate</artifactId>
-            <version>0.23-SNAPSHOT</version>
+            <version>0.0.27</version>
         </dependency>
         <dependency>
             <groupId>com.twitter.common.zookeeper</groupId>
             <artifactId>group</artifactId>
-            <version>0.0.23</version>
+            <version>0.0.27</version>
         </dependency>
         <dependency>
             <groupId>com.twitter.common</groupId>

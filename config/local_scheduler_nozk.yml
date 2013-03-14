@@ -1,5 +1,7 @@
 scheduleHorizonSeconds: 60
 master: local
+# When the server name is specified via '-', an internal ZK Server is started on this port.
+# Do not use this setting in production, it does not persist the data in any reliable way.
 zookeeperServers: -:28281
 
 assets:
