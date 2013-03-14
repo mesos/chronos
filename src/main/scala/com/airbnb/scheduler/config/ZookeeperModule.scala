@@ -67,7 +67,8 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
       log.warning("Using in-process zookeeper!")
       val tickTime = 10000
       val dataDirectory = System.getProperty("java.io.tmpdir")
-      val dir = new File(dataDirectory, "chronos-zookeeper").getAbsoluteFile()
+      val tmpTime = System.currentTimeMillis()
+      val dir = new File(dataDirectory, "chronos-zookeeper-%d".format(tmpTime)).getAbsoluteFile()
       if (!dir.exists()) {
         require(dir.mkdir(), "Cannot create directory for internal zookeeper:" + dir.toString)
       } else {
