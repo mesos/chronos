@@ -40,7 +40,7 @@ function install_mesos {
 function install_chronos {
 
   pushd "$mesos_installation"
-  local mesos_jar_file=$(find . -name "mesos-*.jar")
+  local mesos_jar_file=$(find . -name "mesos-*.jar" | grep -v sources)
   local mesos_version="$(echo $mesos_jar_file | sed -e 's/^.*mesos-//g' | sed -e 's/\.jar//g')"
   local mesos_version_string="${mesos_version}-SNAPSHOT"
   if [[ -z "$mesos_version" ]] ; then
