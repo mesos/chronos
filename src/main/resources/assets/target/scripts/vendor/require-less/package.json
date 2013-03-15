@@ -1,8 +1,0 @@
-{
-  "volo": {
-    "type": "directory",
-    "dependencies": {
-      "require-css": "guybedford/require-css/master"
-    }
-  }
-}

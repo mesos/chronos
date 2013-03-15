@@ -1,7 +1,0 @@
-/**
- * @license RequireJS order 1.0.0 Copyright (c) 2010-2011, The Dojo Foundation All Rights Reserved.
- * Available via the MIT or new BSD license.
- * see: http://github.com/jrburke/requirejs for details
- */
-
-(function(){function a(e){var t=e.currentTarget||e.srcElement,n,o,u;if(e.type==="load"||r.test(t.readyState)){o=t.getAttribute("data-requiremodule"),s[o]=!0;for(n=0;u=i[n];n++){if(!s[u.name])break;u.req([u.name],u.onLoad)}n>0&&i.splice(0,n),setTimeout(function(){t.parentNode.removeChild(t)},15)}}function f(e){var t,n,r;e.setAttribute("data-orderloaded","loaded");for(t=0;r=u[t];t++){n=o[r];if(!n||n.getAttribute("data-orderloaded")!=="loaded")break;delete o[r],require.addScriptToDom(n)}t>0&&u.splice(0,t)}var e=typeof document!="undefined"&&typeof window!="undefined"&&document.createElement("script"),t=e&&(e.async||window.opera&&Object.prototype.toString.call(window.opera)==="[object Opera]"||"MozAppearance"in document.documentElement.style),n=e&&e.readyState==="uninitialized",r=/^(complete|loaded)$/,i=[],s={},o={},u=[];e=null,define({version:"1.0.0",load:function(e,r,s,l){var c=r.nameToUrl(e,null),h,p;require.s.skipAsync[c]=!0,t||l.isBuild?r([e],s):n?(p=require.s.contexts._,!p.urlFetched[c]&&!p.loaded[e]&&(p.urlFetched[c]=!0,require.resourcesReady(!1),p.scriptCount+=1,h=require.attach(c,p,e,null,null,f),o[e]=h,u.push(e)),r([e],s)):r.specified(e)?r([e],s):(i.push({name:e,req:r,onLoad:s}),require.attach(c,null,e,a,"script/cache"))}})})();
