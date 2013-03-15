@@ -27,7 +27,6 @@ require.config({
     'propertyParser'        : 'vendor/requirejs-plugins/src/propertyParser',
     'font'                  : 'vendor/requirejs-plugins/src/font',
     'mousetrap'             : 'vendor/mousetrap',
-    'benchmark'             : 'vendor/benchmark',
     'mocha'                 : 'vendor/tests/mocha',
     'chai'                  : 'vendor/tests/chai',
     'chai-jquery'           : 'vendor/tests/chai-jquery',
@@ -65,10 +64,6 @@ require.config({
     'jquery/select2': {
       deps: ['jquery'],
       exports: 'jQuery.fn.select2'
-    },
-    'benchmark': {
-      deps: [],
-      exports: 'Benchmark'
     },
     'jquery/fastLiveFilter': {
       deps: ['jquery'],
@@ -108,7 +103,7 @@ require.config({
       deps: ['backbone', 'underscore'],
       exports: 'Backbone.Validations.Model'
     }
-  },
+  }
 });
 
 require(['styles', 'fonts'], function(){});

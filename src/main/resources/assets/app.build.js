@@ -19,12 +19,17 @@
       loggingLevel: 'WARNING'
     },
     fileExclusionRegExp: /^\.|spec/,
+    generateSourceMaps: true,
+    preserveLicenseComments: false,
     modules: [
       {
         name: "main",
         include: [
           "jquery",
           "styles"
+        ],
+        excludeShallow: [
+          'spec_runner'
         ]
       },
       {

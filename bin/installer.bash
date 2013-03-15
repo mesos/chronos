@@ -54,8 +54,6 @@ function install_chronos {
   sed -i '' -e "s/$DEFAULT_MESOS_JAR_STRING/$mesos_version_string/g" "$BIN_DIRECTORY/../pom.xml"
   popd
   pushd "$BIN_DIRECTORY" ; cd ..
-  echo "Building chronos assets"
-  mvn requirejs:optimize -P requirejs
   echo "Installing chronos"
   mvn package
   popd
