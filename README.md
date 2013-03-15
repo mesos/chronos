@@ -26,7 +26,6 @@ Chronos also supports the definition of jobs which depend on other jobs to compl
   - <a href="#Finding a Node to Talk to">Finding a Node to Talk to</a>
   - <a href="#Zookeeper">Zookeeper</a>
 
-
 ## Quick Start
 
 There is a file called 'installer.bash' that can be found in the bin directory of the repo. It will compile and install mesos and Chronos.
