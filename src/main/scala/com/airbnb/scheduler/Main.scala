@@ -3,6 +3,7 @@ package com.airbnb.scheduler
 import java.util.logging.Logger
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.airbnb.dropwizard.assets.ConfiguredAssetsBundle
 import com.airbnb.scheduler.api._
 import com.airbnb.scheduler.config.{ZookeeperModule, MainModule, SchedulerConfiguration}
 import com.airbnb.scheduler.jobs.JobScheduler
@@ -11,7 +12,6 @@ import com.google.inject.{Injector, Guice}
 import com.yammer.dropwizard.ScalaService
 import com.yammer.dropwizard.config.{Bootstrap, Environment}
 import com.yammer.dropwizard.bundles.ScalaBundle
-import com.airbnb.dropwizard.assets.ConfiguredAssetsBundle
 
 /**
  * Main entry point to chronos using the Dropwizard framework.
