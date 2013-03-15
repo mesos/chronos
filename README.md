@@ -1,11 +1,11 @@
 # Chronos
 
 Chronos is AirBnB's replacement for `cron`.
-It is a distributed, fault-tolerant system which runs on top of [][mesos].
+It is a distributed, fault-tolerant system which runs on top of [mesos][mesos].
 
 Chronos has a number of advantages over regular cron.
-It allows you to schedule your jobs using [][ISO8601] time specifications, which enables more flexibility in job scheduling.
-Chronos also supports the definition of jobs which depend on other jobs to complete successfully first.
+It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
+Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
 * <a href="#Quick Start">Quick Start</a>
 * <a href="#License">License</a>
