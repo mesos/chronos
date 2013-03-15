@@ -145,12 +145,12 @@ The JSON hash you send to Chronos should contain the following fields:
 Here is an example job hash:
 ```json
 {
-  _"schedule"_:"R10/2012-10-01T05:52:00Z/PT2S",
-  _"name"_:"SAMPLE_JOB1",
-  _"epsilon"_:"PT15M",
-  _"command"_:"echo 'FOO' >> /tmp/JOB1_OUT",
-  _"owner"_:"bob@airbnb.com",
-  _"async"_:false
+  "schedule": "R10/2012-10-01T05:52:00Z/PT2S",
+  "name": "SAMPLE_JOB1",
+  "epsilon": "PT15M",
+  "command": "echo 'FOO' >> /tmp/JOB1_OUT",
+  "owner": "bob@airbnb.com",
+  "async": false
 }
 ```
 
