@@ -60,7 +60,7 @@ You must not remove this notice, or any other, from this software.
 
 Chronos comes with a UI which can be used to add, delete, list, modify and run jobs. It can also show a graph of job dependencies.
 
-![Chronos UI screenshot](https://github.com/airbnb/chronos/raw/master/doc/chronos_ui-1.png  "Image call example")
+![Chronos UI screenshot](https://raw.github.com/airbnb/chronos/master/docs/chronos_ui-1.png "Image call example")
 
 ## API
 
