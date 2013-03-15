@@ -50,7 +50,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   def provideCandidate(zk: ZooKeeperClient): Candidate = {
     log.info("Using hostname:" + config.hostname)
     return new CandidateImpl(new Group(zk, ZooDefs.Ids.OPEN_ACL_UNSAFE, config.zookeeperCandidateZnode),
-      CandidateImpl.MOST_RECENT_JUDGE, new Supplier[Array[Byte]] {
+      new Supplier[Array[Byte]] {
         def get() = {
           "%s:%d".format(config.hostname, config.getHttpConfiguration.getPort).getBytes
         }
@@ -89,7 +89,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   private def isInProcess(): Boolean = {
     log.info(config.zookeeperServers)
     val servers = config.zookeeperServers.split(",")
-    return servers.size == 1 && servers(0).split(":")(0) == "-"
+    return servers.size == 1 && servers(0).split(":")(0) == "--"
   }
 
   private def getZkServerString(): String = {
@@ -109,7 +109,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
     servers.map({
       x =>
         require(x.split(":").size == 2, "Error, zookeeper servers must be provided in the form host1:port2,host2:port2")
-        if (x(0) == "-") {
+        if (x(0) == "--") {
           new InetSocketAddress("localhost", x.split(":")(1).toInt)
         } else {
           new InetSocketAddress(x.split(":")(0), x.split(":")(1).toInt)
