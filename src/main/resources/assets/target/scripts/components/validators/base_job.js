@@ -1,1 +1,0 @@
-define(["backbone","underscore","models/base_job"],function(e,t,n){return{name:function(e){this.should("have non-default name",function(){var t=n.prototype.defaults.call(null);return t.name!==e});debugger;this.should("have unique name",function(){return this.withCollection(function(t){return!t.some(function(t){return t.get("name")===e})})})}}});

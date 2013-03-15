@@ -1,1 +1,0 @@
-define(["underscore","components/functor"],function(e,t){function n(n){return e.isArray(n)?e.object(n,e.times(n.length,t(!0))):{}}return n});
