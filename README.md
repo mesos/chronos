@@ -1,5 +1,12 @@
 # Chronos
 
+Chronos is AirBnB's replacement for `cron`.
+It is a distributed, fault-tolerant system which runs on top of [][mesos].
+
+Chronos has a number of advantages over regular cron.
+It allows you to schedule your jobs using [][ISO8601] time specifications, which enables more flexibility in job scheduling.
+Chronos also supports the definition of jobs which depend on other jobs to complete successfully first.
+
 * <a href="#Quick Start">Quick Start</a>
 * <a href="#License">License</a>
 * <a href="#Contributors">Contributors</a>
@@ -20,18 +27,6 @@
   - <a href="#Zookeeper">Zookeeper</a>
 
 
-
-
-Chronos is AirBnB's replacement for `cron`.
-It is a distributed, fault-tolerant system which runs on top of [][mesos].
-
-Chronos has a number of advantages over regular cron.
-It allows you to schedule your jobs using [][ISO8601] time specifications, which enables more flexibility in job scheduling.
-Chronos also supports the definition of jobs which depend on other jobs to complete successfully first.
-
-[mesos]: http://incubator.apache.org/mesos/ "Apache Mesos"
-[ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
-
 ## Quick Start
 
 There is a file called 'installer.bash' that can be found in the bin directory of the repo. It will compile and install mesos and Chronos.
@@ -42,9 +37,7 @@ This is how you run this installer:
     $./bin/installer.bash
 
 
-
 If you get an error while compiling [][mesos], please consult the FAQ.
-
 
 ## License
 
@@ -74,9 +67,9 @@ The leader is the only node that responds to API requests, but if you attempt to
 
 ### Listing Jobs
 
-* Endpoint: /scheduler/jobs
-* Method: GET
-* Example: `curl chronos-leader:4400/scheduler/jobs`
+* Endpoint: __/scheduler/jobs__
+* Method: __GET__
+* Example: `curl curl -L -X GET chronos-node:4400/scheduler/jobs`
 * Response: JSON data
 
 A job listing returns a JSON list containing all of the jobs.
@@ -93,27 +86,27 @@ If there is a `parents` field there will be no `schedule` field and vice-versa.
 
 Get a job name from the job listing above. Then:
 
-* Endpoint: /scheduler/job/jobName
-* Method: DELETE
-* Example: `curl -X DELETE chronos-leader:4400/scheduler/job/request_event_counter_hourly`
+* Endpoint: __/scheduler/job/jobName__
+* Method: __DELETE__
+* Example: `curl -L -X DELETE chronos-node:4400/scheduler/job/request_event_counter_hourly`
 * Response: HTTP 204
 
 ### Deleting All Jobs
 
 Note: *don't do this*.
 
-* Endpoint: /scheduler/jobs
-* Method: DELETE
-* Example: `curl -X DELETE chronos-leader:4400/scheduler/jobs`
+* Endpoint: __/scheduler/jobs__
+* Method: __DELETE__
+* Example: `curl -L -X DELETE chronos-node:4400/scheduler/jobs`
 * Response: HTTP 204
 
 ### Manually Starting a Job
 
 You can manually start a job by issuing an HTTP request.
 
-* Endpoint: /scheduler/job
-* Method: PUT
-* Example: `http PUT chronos-leader:4400/scheduler/job/request_event_counter_hourly`
+* Endpoint: __/scheduler/job__
+* Method: __PUT__
+* Example: `curl -L chronos-node:4400/scheduler/job/request_event_counter_hourly`
 * Response: HTTP 204
 
 ### Adding a Scheduled Job
@@ -133,17 +126,21 @@ The JSON hash you send to Chronos should contain the following fields:
 Here is an example job hash:
 ```json
 {
-  "schedule":"R10/2012-10-01T05:52:00Z/PT2S","name":"SAMPLE_JOB1","epsilon":"PT15M",
-    "command":"echo 'FOO' >> /tmp/s99","owner":"bob@airbnb.com","async":false}
+  "schedule":"R10/2012-10-01T05:52:00Z/PT2S",
+  "name":"SAMPLE_JOB1",
+  "epsilon":"PT15M",
+  "command":"echo 'FOO' >> /tmp/s99",
+  "owner":"bob@airbnb.com","async":false
+}
 ```
 
 Once you've generated the hash, send it to Chronos like so:
 
-* Endpoint: /scheduler/iso8601
+* Endpoint: __/scheduler/iso8601__
 * Method: POST
 * Example:
 ```bash
-     curl -X POST -H 'Content-Type: application/json' -d '{json hash}' chronos-leader:4400/scheduler/iso8601
+     curl -L -H 'Content-Type: application/json' -X POST -H 'Content-Type: application/json' -d '{json hash}' chronos-node:4400/scheduler/iso8601
 ```
 * Response: HTTP 204
 
@@ -153,11 +150,11 @@ A dependent job takes the same JSON format as a scheduled job.
 However, instead of the `schedule` field, it will accept a `parents` field.
 This should be a JSON list of all jobs which must run at least once before this job will run.
 
-* Endpoint: /scheduler/dependency
-* Method: POST
+* Endpoint: __/scheduler/dependency__
+* Method: __POST__
 * Example:
 ```bash
-    curl -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-leader:4400/scheduler/iso8601
+    curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:4400/scheduler/iso8601
 ```
 
 ### Asynchronous Jobs
@@ -172,12 +169,12 @@ In this case, you need to do two things:
 If you forget to do (2), your job will never run again because Chronos will think that it is still running.
 Reporting job completion to Chronos is done via another API call:
 
-    * Endpoint: /scheduler/task/*task id*
-    * Method: PUT
-    * Example:
-    ```bash
+* Endpoint: __/scheduler/task/*task id*__
+* Method: __PUT__
+* Example:
+```bash
     curl -X PUT -H "Content-Type: application/json" -d '{"statusCode":0}' chronos-leader:4400/scheduler/task/my_job_run_555_882083xkj302
-    ```
+```
 
 The task id is auto-generated by chronos.
 It will be available in your job's environment as `$mesos_task_id`.
@@ -238,6 +235,8 @@ Get the value of any member node under `candidates` to get a Chronos framework n
 You an query any of those nodes -- non-leaders will redirect your request to the current leader automatically.
 
 [arx]: https://github.com/solidsnack/arx
+[ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [json]: http://www.json.org/
+[mesos]: http://incubator.apache.org/mesos/ "Apache Mesos"
 [logging]: http://dropwizard.codahale.com/manual/core/#logging
 [Zookeeper]: http://zookeeper.apache.org/
