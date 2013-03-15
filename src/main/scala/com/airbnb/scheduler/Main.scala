@@ -14,17 +14,11 @@ import com.yammer.dropwizard.bundles.ScalaBundle
 import com.airbnb.dropwizard.assets.ConfiguredAssetsBundle
 
 /**
- * Main entry point to the scheduler using the Dropwizard framework.
+ * Main entry point to chronos using the Dropwizard framework.
  * @author Florian Leibert (flo@leibert.de)
  */
 object Main extends ScalaService[SchedulerConfiguration] {
   private[this] val log = Logger.getLogger(getClass.getName)
-
-  //For development, it might be more convenient to uncomment the following line and comment out the asset bundle.
-  //that way, html-files can be changed without having to repackage.
-//  addBundle(new FileAssetsBundle())
-  //  Uncomment for release
-
 
   //TODO(FL): This is somewhat bad as the injector now carries state. Redo the guice/dw wiring.
   var injector: Injector = null
@@ -33,10 +27,7 @@ object Main extends ScalaService[SchedulerConfiguration] {
   def initialize(bootstrap: Bootstrap[SchedulerConfiguration]) {
     bootstrap.setName("chronos")
     bootstrap.addBundle(new ScalaBundle)
-
-    //bootstrap.addBundle(new AssetsBundle("/assets/target/", "/", "./index.html"))
     bootstrap.addBundle(new ConfiguredAssetsBundle("/assets/build/", "/"))
-    //bootstrap.addBundle(new FileAssetsBundle())
   }
 
   def run(configuration: SchedulerConfiguration, environment: Environment) {
