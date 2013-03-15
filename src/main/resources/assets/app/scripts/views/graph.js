@@ -309,7 +309,7 @@ function($, d3, moment) {
       attributes: {}
     }, (options || {}));
 
-    classes = opts.attributes.class || '';
+    classes = opts.attributes['class'] || '';
     opts.attributes = _.omit(opts.attributes, 'class');
 
     _.each(['shadow', ''], function(className) {
