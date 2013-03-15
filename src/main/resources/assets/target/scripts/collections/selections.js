@@ -1,1 +1,0 @@
-define(["backbone","underscore"],function(e,t){var n,r;return n=e.Model.extend({}),r=e.Collection.extend({sync:function(){},create:function(){throw new Error("Selections can't be created.")}}),r});
