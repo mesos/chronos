@@ -94,7 +94,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
 
   private def getZkServerString(): String = {
     if (isInProcess()) {
-      config.zookeeperServers.replaceAll("-", "localhost")
+      config.zookeeperServers.replaceAll("--", "localhost")
     } else {
       config.zookeeperServers
     }
