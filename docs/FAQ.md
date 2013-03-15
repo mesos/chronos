@@ -1,6 +1,7 @@
 # Chronos FAQ
 ## Table of Contents
 1. [[osx] making mesos fails on `warning: 'JNI_CreateJavaVM' is deprecated`](#osx-making-mesos-fails-on-deprecated-warning)
+2. [My Web UI is not showing up!](#my-web-ui-is-not-showing-up)
 
 
 ## [osx] Making mesos fails on deprecated header warning
@@ -22,3 +23,6 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 
 **Example:**  
 `JAVA_CPPFLAGS='-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/' ../configure`
+
+## My Web UI is not showing up!
+See 

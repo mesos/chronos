@@ -11,39 +11,39 @@ Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
 Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
-* <a href="#Quick Start">Quick Start</a>
-* <a href="#License">License</a>
-* <a href="#Contributors">Contributors</a>
-* <a href="#GUI">GUI</a>
-* <a href="#API">API</a>
-  - <a href="#Leaders">Leaders</a>
-  - <a href="#Listing Jobs">Listing Jobs</a>
-  - <a href="#Deleting a Job">Deleting a Job</a>
-  - <a href="#Deleting All Jobs">Deleting All Jobs</a>
-  - <a href="#Manually Starting a Job">Manually Starting a Job</a>
-  - <a href="#Adding a Scheduled Job">Adding a Scheduled Job</a>
-  - <a href="#Adding a Dependent Job">Adding a Dependent Job</a>
-  - <a href="#Describing the Dependency Graph">Describing the Dependency Graph</a>
-  - <a href="#Asynchronous Jobs">Asynchronous Jobs</a>
-  - <a href="#Obtaining Remote Executables">Obtaining Remote Executables</a>
-* <a href="#Debugging Chronos Jobs">Debugging Chronos Jobs</a>
-* <a href="#Notes">Notes</a>
-* <a href="#Notes">Appendix</a>
-  - <a href="#Finding a Node to Talk to">Finding a Node to Talk to</a>
-  - <a href="#Zookeeper">Zookeeper</a>
+* [Quick Start](#quick-start)
+* [License](#license)
+* [Contributors](#contributors)
+* [GUI](#gui)
+* [API](#api)
+  - [Leader](#leaders)
+  - [Listing Jobs](#listing-jobs)
+  - [Deleting a Job](#deleting-a-job)
+  - [Deleting All Jobs](#deleting-all-jobs)
+  - [Manually Starting a Job](#manually-starting-a-job)
+  - [Adding a Scheduled Job](#adding-a-scheduled-job)
+  - [Adding a Dependent Job](#adding-a-dependent-job)
+  - [Describing the Dependency Graph](#describing-the-dependency-graph)
+  - [Asynchronous Jobs](#asynchronous-jobs)
+  - [Obtaining Remote Executables](#obtaining-remote-executables)
+* [Debugging Chronos Jobs](#debugging-chronos-jobs)
+* [Notes](#notes)
+* [Appendix](#appendix)
+  - [Finding a Node to Talk To](#finding-a-node-to-talk-to)
+  - [Zookeeper](#zookeeper)
 
 
 ## Quick Start
 
 There is a file called 'installer.bash' that can be found in the bin directory of the repo. It will compile and install mesos and Chronos.
-After successful installation a local version of Chronos with a built-in ZK server is started. You will need Maven 3.X, a JDK and build tools to get up and running.
+After successful installation, a local version of Chronos with a built-in ZK server is started. You will need Maven 3.X, a JDK and build tools to get up and running.
 This is how you run this installer:
 
 
     $./bin/installer.bash
 
 
-If you get an error while compiling [][mesos], please consult the [FAQ](https://github.com/airbnb/chronos/blob/master/docs/FAQ.md).
+If you get an error while compiling [mesos][mesos], please consult the [FAQ](https://github.com/airbnb/chronos/blob/master/docs/FAQ.md).
 
 ## License
 
@@ -283,7 +283,7 @@ If you use the cURL command line tool, you can use the "-L" flag and hit any Chr
 
 ### Zookeeper
 
-Chronos registers itself with [][Zookeeper] at the location `/airbnb/service/chronos`. This value can be changed via the configuration file.
+Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/service/chronos`. This value can be changed via the configuration file.
 
 
 [arx]: https://github.com/solidsnack/arx
