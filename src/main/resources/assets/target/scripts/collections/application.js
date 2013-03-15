@@ -1,1 +1,0 @@
-define(["backbone","models/application"],function(e,t){var n;return n=e.Collection.extend({model:t}),n});
