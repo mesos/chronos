@@ -5,7 +5,7 @@ It is a distributed and fault-tolerant scheduler which runs on top of [mesos][me
 [mesos][mesos] executors as well as the default command executor. Thus by default, chronos executes SH (on most systems BASH) scripts.
 Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if the mesos slaves on which execution happens
 do not have Hadoop installed. Included wrapper scripts allow transfering files and executing them on a remote machine in the background
-and using asynchroneous callbacks to notify chronos of job completion or failures. 
+and using asynchroneous callbacks to notify chronos of job completion or failures.
 
 Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
@@ -60,11 +60,18 @@ You must not remove this notice, or any other, from this software.
 * Andy Kramolisch ([@andykram](https://github.com/andykram))
 * Harry Shoff ([@hshoff](https://github.com/hshoff))
 
+## Sample Architecture
+
+![architecture](https://raw.github.com/airbnb/chronos/master/docs/emr_use_case.png "sample architecture")
+
 ## UI
 
 Chronos comes with a UI which can be used to add, delete, list, modify and run jobs. It can also show a graph of job dependencies.
+The screenshot should give you a good idea of what chronos can do.
 
-![Chronos UI screenshot](https://raw.github.com/airbnb/chronos/master/docs/chronos_ui-1.png "Image call example")
+![Chronos UI screenshot](https://raw.github.com/airbnb/chronos/master/docs/chronos_ui-1.png "Chronos UI overview")
+
+![Chronos UI screenshot new job](https://raw.github.com/airbnb/chronos/master/docs/chronos_ui-new-job.png "Chronos UI new job")
 
 ## API
 
