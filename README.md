@@ -5,7 +5,7 @@ It is a distributed and fault-tolerant scheduler which runs on top of [mesos][me
 [mesos][mesos] executors as well as the default command executor. Thus by default, Chronos executes SH (on most systems BASH) scripts.
 Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if the mesos slaves on which execution happens
 do not have Hadoop installed. Included wrapper scripts allow transfering files and executing them on a remote machine in the background
-and using asynchroneous callbacks to notify Chronos of job completion or failures.
+and using asynchronous callbacks to notify Chronos of job completion or failures.
 
 Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
