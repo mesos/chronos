@@ -1,11 +1,15 @@
 # Chronos
 
 Chronos is AirBnB's replacement for `cron`.
-It is a distributed, fault-tolerant system which runs on top of [][mesos].
+It is a distributed and fault-tolerant scheduler which runs on top of [mesos][mesos]. It's a framework and supports custom
+[mesos][mesos] executors as well as the default command executor. Thus by default, chronos executes SH (on most systems BASH) scripts.
+Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if the mesos slaves on which execution happens
+do not have Hadoop installed. Included wrapper scripts allow transfering files and executing them on a remote machine in the background
+and using asynchroneous callbacks to notify chronos of job completion or failures. 
 
 Chronos has a number of advantages over regular cron.
-It allows you to schedule your jobs using [][ISO8601] time specifications, which enables more flexibility in job scheduling.
-Chronos also supports the definition of jobs which depend on other jobs to complete successfully first.
+It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
+Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
 * <a href="#Quick Start">Quick Start</a>
 * <a href="#License">License</a>
@@ -251,6 +255,7 @@ If you use the cURL command line tool, you can use the "-L" flag and hit any chr
 ### Zookeeper
 
 Chronos registers itself with [][Zookeeper] at the location `/airbnb/service/chronos`. This value can be changed via the configuration file.
+
 
 [arx]: https://github.com/solidsnack/arx
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
