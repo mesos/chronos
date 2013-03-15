@@ -252,6 +252,7 @@ If you use the cURL command line tool, you can use the "-L" flag and hit any chr
 
 Chronos registers itself with [][Zookeeper] at the location `/airbnb/service/chronos`. This value can be changed via the configuration file.
 
+
 [arx]: https://github.com/solidsnack/arx
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [json]: http://www.json.org/
