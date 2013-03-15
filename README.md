@@ -1,6 +1,6 @@
 # Chronos
 
-Chronos is AirBnB's replacement for `cron`.
+Chronos is airbnb's replacement for `cron`.
 It is a distributed and fault-tolerant scheduler which runs on top of [mesos][mesos]. It's a framework and supports custom
 [mesos][mesos] executors as well as the default command executor. Thus by default, chronos executes SH (on most systems BASH) scripts.
 Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if the mesos slaves on which execution happens
