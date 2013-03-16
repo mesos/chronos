@@ -206,7 +206,7 @@ function($,
       var xhr = data.xhr || {};
 
       this.renderMessage('error', JobPersistenceErrorTpl, {
-        delete: true,
+        'delete': true,
         jobName: this.model.get('name'),
         serverError: {
           text: xhr.responseText,

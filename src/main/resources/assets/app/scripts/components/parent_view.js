@@ -60,13 +60,15 @@ function(_) {
   }
 
   function RemoveOne(model) {
-    var views = get(this, 'views'),
-        view  = views[model.cid];
+    var _views = get(this, 'views'),
+        view  = views[model.cid],
+        views;
 
     if (!view) { return; }
 
-    views[model.cid] = null;
-    delete[views[model.cid]];
+    _views[model.cid] = null;
+    views = _.omit(_views, model.cid);
+    set(this, 'views', views);
 
     if (_.isFunction(view.terminate)) {
       return view.terminate();
