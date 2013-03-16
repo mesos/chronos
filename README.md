@@ -323,5 +323,5 @@ Follow these steps to install Chronos on Amazon Linux:
 	cd chronos
 	git checkout remotes/origin/smarter-assets
 	mvn package
-	java -cp target/chronos*.jar com.airbnb.scheduler.Main server config/	local_scheduler_nozk.yml
+	java -cp target/chronos*.jar com.airbnb.scheduler.Main server config/local_scheduler_nozk.yml
 
