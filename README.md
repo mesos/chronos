@@ -88,7 +88,7 @@ The leader is the only node that responds to API requests, but if you attempt to
 
 * Endpoint: __/scheduler/jobs__
 * Method: __GET__
-* Example: `curl curl -L -X GET chronos-node:4400/scheduler/jobs`
+* Example: `curl -L -X GET chronos-node:4400/scheduler/jobs`
 * Response: JSON data
 
 A job listing returns a JSON list containing all of the jobs.
