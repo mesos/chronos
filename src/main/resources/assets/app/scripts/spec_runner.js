@@ -24,7 +24,6 @@ require.config({
     'font'                  : 'vendor/requirejs-plugins/src/font',
     'json'                  : 'vendor/requirejs-plugins/src/json',
     'mousetrap'             : 'vendor/mousetrap',
-    'benchmark'             : 'vendor/benchmark',
     'mocha'                 : 'vendor/tests/mocha',
     'chai'                  : 'vendor/tests/chai',
     'chai-jquery'           : 'vendor/tests/chai-jquery',
@@ -43,10 +42,6 @@ require.config({
     'jquery/select2': {
       deps: ['jquery'],
       exports: 'jQuery.fn.select2'
-    },
-    'benchmark': {
-      deps: [],
-      exports: 'Benchmark'
     },
     'jquery/fastLiveFilter': {
       deps: ['jquery'],

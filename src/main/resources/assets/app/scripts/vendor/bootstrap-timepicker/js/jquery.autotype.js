@@ -10,21 +10,21 @@
  * Licensed under terms of the MIT License (README.markdown)
  */
 (function($){
-    
+
     // code type constants
     var CHARACTER = 1,
         NON_CHARACTER = 2,
         MODIFIER_BEGIN = 3,
         MODIFIER_END = 4,
         isNullOrEmpty = function(val) { return val === null || val.length === 0; },
-        isUpper = function(char) { return char.toUpperCase() === char; },
-        isLower = function(char) { return char.toLowerCase() === char; },
+        isUpper = function(c) { return c.toUpperCase() === c; },
+        isLower = function(c) { return c.toLowerCase() === c; },
         areDifferentlyCased = function(char1,char2) {
                 return (isUpper(char1) && isLower(char2)) ||
                     (isLower(char1) && isUpper(char2));
             },
-        convertCase = function(char) {
-                return isUpper(char) ? char.toLowerCase() : char.toUpperCase();
+        convertCase = function(c) {
+                return isUpper(c) ? c.toLowerCase() : c.toUpperCase();
             },
         parseCodes = function(value, codeMap) {
                 // buffer to hold a collection of key/char code pairs corresponding to input string value
@@ -50,8 +50,8 @@
                     pushCode({
                         keyCode: codeMap[modifierName],
                         charCode: 0,
-                        char: '',
-                        type: MODIFIER_BEGIN                        
+                        'char': '',
+                        'type': MODIFIER_BEGIN                        
                     });     
                 },
                 pushModifierEndCode = function(modifierName) {
@@ -59,8 +59,8 @@
                     pushCode({
                         keyCode: codeMap[modifierName],
                         charCode: 0,
-                        char: '',
-                        type: MODIFIER_END
+                        'char': '',
+                        'type': MODIFIER_END
                     });
                 };
             
@@ -103,8 +103,8 @@
                         pushCode({
                             keyCode: codeMap[currentControlKey],
                             charCode: 0,
-                            char: '',
-                            type: NON_CHARACTER,
+                            'char': '',
+                            'type': NON_CHARACTER,
                             controlKeyName: currentControlKey
                         });
                     }
@@ -148,8 +148,8 @@
                         // nope, this isn't ideal by any means.
                         keyCode: codeMap[character] || character.charCodeAt(0),
                         charCode: character.charCodeAt(0),
-                        char: character,
-                        type: CHARACTER
+                        'char': character,
+                        'type': CHARACTER
                     };
                     
                     // modify the current character if there are active modifiers
@@ -157,10 +157,10 @@
                         activeModifiers.ctrl ||
                         activeModifiers.meta) {
                         // alt, ctrl, meta make it so nothing is typed
-                        code.char = '';
+                        code['char'] = '';
                     }
                     pushCode(code); 
-                    if(code.char !== '') { previousChar = code.char; }
+                    if(code['char'] !== '') { previousChar = code['char']; }
                 }
             }
             return codes;        
@@ -177,9 +177,9 @@
             };
 
             // build out 3 event instances for all the steps of a key entry
-            var keyDownEvent = $.extend($.Event(), evnt, {type:'keydown', keyCode: code.keyCode, charCode: 0, which: code.keyCode});
-            var keyPressEvent = $.extend($.Event(), evnt, {type:'keypress', keyCode: 0, charCode: code.charCode, which: code.charCode || code.keyCode});
-            var keyUpEvent = $.extend($.Event(), evnt, {type:'keyup', keyCode: code.keyCode, charCode: 0, which: code.keyCode});
+            var keyDownEvent = $.extend($.Event(), evnt, {'type':'keydown', keyCode: code.keyCode, charCode: 0, which: code.keyCode});
+            var keyPressEvent = $.extend($.Event(), evnt, {'type':'keypress', keyCode: 0, charCode: code.charCode, which: code.charCode || code.keyCode});
+            var keyUpEvent = $.extend($.Event(), evnt, {'type':'keyup', keyCode: code.keyCode, charCode: 0, which: code.keyCode});
         
             // go ahead and trigger the first 2 (down and press)         
             // a keyup of a modifier shouldn't also re-trigger a keydown       
@@ -206,7 +206,7 @@
                             break;
                     }
                 } else {
-                    field.val(field.val() + code.char);                    
+                    field.val(field.val() + code['char']);                    
                 }
             }
         
