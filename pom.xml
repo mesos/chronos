@@ -188,6 +188,19 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>1.7R4</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.google.javascript</groupId>
+            <artifactId>closure-compiler</artifactId>
+            <version>r2388</version>
+            <type>jar</type>
+        </dependency>
+
 
         <!-- Maven scope -->
         <dependency>
@@ -288,6 +301,12 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>1.6</version>
                 <configuration>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>org.mozilla:rhino</exclude>
+                            <exclude>com.google.javascript:closure-compiler</exclude>
+                        </excludes>
+                    </artifactSet>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
@@ -385,6 +404,49 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>src/main/resources/assets</directory>
+                            <includes>
+                                <include>build/**</include>
+                                <include>build</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>ant-run-requirejs</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property name="compile_classpath" refid="maven.compile.classpath"/>
+                                <property name="configFile" value="${assetsdir}/app.build.js"/>
+                                <property name="optimizerFile" value="${assetsdir}/r.js"/>
+                                <property name="buildDir" value="${assetsdir}/build"/>
+                                <ant antfile="${basedir}/build.xml">
+                                    <target name="generateAssets"/>
+                                </ant>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -419,46 +481,6 @@
                     </plugins>
                 </pluginManagement>
             </build>
-        </profile>
-        <profile>
-          <id>requirejs</id>
-          <activation>
-            <activeByDefault>false</activeByDefault>
-          </activation>
-          <build>
-              <pluginManagement>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.mcheely</groupId>
-                        <artifactId>requirejs-maven-plugin</artifactId>
-                        <version>1.1.0</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>optimize</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <!-- path to optimizer json config file -->
-                            <configFile>
-                                ${assetsdir}/app.build.js
-                            </configFile>
-                            <!-- optional path to optimizer executable -->
-                            <optimizerFile>
-                                ${assetsdir}/r.js
-                            </optimizerFile>
-                            <filterConfig>
-                                false
-                            </filterConfig>
-                            <skip>
-                                false
-                            </skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-              </pluginManagement>
-          </build>
         </profile>
     </profiles>
     <reporting>

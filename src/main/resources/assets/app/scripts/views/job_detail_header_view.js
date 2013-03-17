@@ -61,7 +61,7 @@ function($,
       this.trigger('create', e);
     },
 
-    delete: function() {
+    'delete': function() {
       var model = this.model,
           view  = this,
           destroy = confirm('Are you sure you want to destroy: ' + model.get('name') + '?');
@@ -101,7 +101,7 @@ function($,
     toggle: function(e) {
       var $el = $(e.target);
 
-      if ($el.hasClass('nav-item') || $el.is('i')) { return; }
+      if ($el.hasClass('nav-item') || $el.is('i')) { return null; }
 
       e && e.preventDefault();
       this.trigger('toggle', e);
@@ -131,7 +131,7 @@ function($,
       app.detailsCollection.unshift(copy, {
         validate: false
       });
-    },
+    }
   });
 
   return JobDetailHeaderView;
