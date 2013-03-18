@@ -28,9 +28,11 @@ Chronos also supports the definition of jobs triggered by the completion of othe
   - [Obtaining Remote Executables](#obtaining-remote-executables)
 * [Debugging Chronos Jobs](#debugging-chronos-jobs)
 * [Notes](#notes)
+  - [Environment Variables Mesos Looks For](#environment-variables-mesos-looks-for)
 * [Appendix](#appendix)
   - [Finding a Node to Talk To](#finding-a-node-to-talk-to)
   - [Zookeeper](#zookeeper)
+  - [Install Chronos on Amazon Linux](#install-chronos-on-amazon-linux)
 
 
 ## Quick Start
@@ -214,9 +216,9 @@ Chronos allows to describe the dependency graph and has an endpoint to return th
 If your job is long-running, you may want to run it asynchronously.
 In this case, you need to do two things:
 
-1: When adding your job, add `#async` to the name
-2: Add an `executor` field to your job hash and set it to `/srv/mesos/utils/async-executor.arx`
-3: Your job when complete should report it's completion status to Chronos.
+1. When adding your job, add `#async` to the name
+2. Add an `executor` field to your job hash and set it to `/srv/mesos/utils/async-executor.arx`
+3. Your job when complete should report it's completion status to Chronos.
 
 If you forget to do (2), your job will never run again because Chronos will think that it is still running.
 Reporting job completion to Chronos is done via another API call:
@@ -267,9 +269,11 @@ Signed URLs can be used to publish arx files (e.g. on s3).
 To start a new scheduler you have to give the JVM access to the native mesos library.
 You can do so by either setting the `java.library.path` to the build mesos library or create an environment variable `MESOS_NATIVE_LIBRARY` and set it to the `mesoslib.dylib` / `mesoslib.so` file
 
-Also, you have to set `MESOS_LAUNCHER_DIR` to the src of the build of mesos such that the shell executor can be found (e.g. `/Users/florian/airbnb_code/mesos/build/src`).
+### Environment Variables Mesos Looks For
 
-Also set `MESOS_KILLTREE` to the location of the killtree.sh script - `/Users/florian/airbnb_code/mesos/src/scripts/killtree.sh`
+* `MESOS_NATIVE_LIBRARY`: Absolute path to the native mesos library. This is usually `/usr/local/lib/libmesos.so` on Linux and `/usr/local/lib/libmesos.dylib` on OSX.
+* `MESOS_LAUNCHER_DIR`: Absolute path to the src subdirectory of your mesos build, such that the shell executor can be found (e.g. If mesos was built in `/Users/florian/airbnb_code/mesos/build` then the value for this variable would be `/Users/florian/airbnb_code/mesos/build/src`).
+* `MESOS_KILLTREE`: Absolute path to the location of the `killtree.sh` script. (e.g. `/Users/florian/airbnb_code/mesos/src/scripts/killtree.sh`)
 
 If you're using the installer script this should be setup for you.
 
@@ -298,16 +302,21 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/se
 
 Follow these steps to install Chronos on Amazon Linux:
 
-##### Build and Install Mesos
+##### Install Dependencies
     
-    # Debian Linux:
+###### Debian Linux:
     sudo apt-get install autoconf make gcc cpp patch python-dev git libtool default-jdk default-jdk-builddep default-jre gzip libghc-zlib-dev libcurl4-openssl-dev
-    # Fedora Linux:
-	sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel
+    
+###### Fedora Linux:
+    sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel
+
+##### Build and Install Mesos
 
 	git clone https://github.com/apache/mesos.git
 
 	cd mesos/
+	
+	git checkout 0.12.x
 
 	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/
 
@@ -324,7 +333,6 @@ Follow these steps to install Chronos on Amazon Linux:
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so 
 	git clone https://github.com/airbnb/chronos.git
 	cd chronos
-	git checkout remotes/origin/smarter-assets
 	mvn package
 	java -cp target/chronos*.jar com.airbnb.scheduler.Main server config/local_scheduler_nozk.yml
 
