@@ -298,8 +298,11 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/se
 
 Follow these steps to install Chronos on Amazon Linux:
 
-#####Build and Install Mesos
-
+##### Build and Install Mesos
+    
+    # Debian Linux:
+    sudo apt-get install autoconf make gcc cpp patch python-dev git libtool default-jdk default-jdk-builddep default-jre gzip libghc-zlib-dev libcurl4-openssl-dev
+    # Fedora Linux:
 	sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel
 
 	git clone https://github.com/apache/mesos.git
@@ -316,7 +319,7 @@ Follow these steps to install Chronos on Amazon Linux:
 
 	sudo make install
 
-#####Build Chronos
+##### Build Chronos
 
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so 
 	git clone https://github.com/airbnb/chronos.git
