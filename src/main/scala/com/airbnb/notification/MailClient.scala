@@ -20,7 +20,6 @@ class MailClient(
   extends Actor {
 
   private[this] val log = Logger.getLogger(getClass.getName)
-  private[this] val dateFormat = new SimpleDateFormat
   private[this] val split = """(.*):([0-9]*)""".r
   private[this] val split(mailHost, mailPortStr) = mailServerString
 
@@ -29,17 +28,23 @@ class MailClient(
     val email = new SimpleEmail
     email.setHostName(mailHost)
 
-    if (!mailUser.isEmpty && !password.isEmpty)
+    if (!mailUser.isEmpty && !password.isEmpty) {
       email.setAuthenticator(new DefaultAuthenticator(mailUser.get, password.get))
+    }
 
     email.addTo(to)
     email.setFrom(fromUser)
 
     email.setSubject(subject)
-    if (!message.isEmpty) email.setMsg(message.get)
+
+    if (!message.isEmpty) {
+      email.setMsg(message.get)
+    }
+
     email.setSSL(true)
     email.setSmtpPort(mailPort)
-    log.info("Sending email, response:" + email.send())
+    val response = email.send
+    log.info("Sent email to '%s' with subject: '%s', got response '%s'".format(to, subject, response))
   }
 
   def act() {
