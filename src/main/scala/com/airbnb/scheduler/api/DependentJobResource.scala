@@ -9,10 +9,8 @@ import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
-import com.yammer.metrics.annotation.Timed
-import java.lang.String
-import scala.Predef.String
 import com.google.common.base.Charsets
+import com.yammer.metrics.annotation.Timed
 
 /**
  * The REST API for adding job-dependencies to the scheduler.
@@ -61,7 +59,7 @@ class DependentJobResource @Inject()(
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
 
       val oldJob = oldJobOpt.get.asInstanceOf[DependencyBasedJob]
-      require(oldJob.getClass == job.getClass, "To update a job, the new job must be of the same type!")
+      require(oldJob.getClass == newJob.getClass, "To update a job, the new job must be of the same type!")
       require(newJob.parents.nonEmpty, "Error, parent does not exist")
 
       log.info("Received replace request for job:" + newJob.toString)
@@ -70,7 +68,7 @@ class DependentJobResource @Inject()(
       val parents = jobGraph.parentJobs(newJob)
       val oldParents = jobGraph.parentJobs(oldJob)
       oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
-      log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), job.name, job.command))
+      log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
       jobGraph.replaceVertex(oldJob, newJob)
 
       log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
