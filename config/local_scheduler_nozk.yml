@@ -4,13 +4,6 @@ master: local
 # Do not use this setting in production, it does not persist the data in any reliable way.
 zookeeperServers: --:28281
 
-assets:
-  overrides:
-    /scripts: src/main/resources/assets/app/scripts
-    /stubs: src/main/resources/assets/app/stubs
-    /images: src/main/resources/assets/app/images
-    /: src/main/resources/assets/app/index.html
-
 http:
 
     adminPort: 4401
