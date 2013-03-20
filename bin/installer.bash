@@ -19,7 +19,7 @@ function install_mesos {
         echo "Trying to create ${dest_dir}"
         mkdir -p "$dest_dir"
         local esc_dest_dir="${dest_dir//\//\\/}"
-        sed -i '' -e "s/service_dir=.*\$/service_dir=$esc_dest_dir/" "${BIN_DIRECTORY}/install_mesos.bash"
+        sed -i -e "s/service_dir=.*\$/service_dir=$esc_dest_dir/" "${BIN_DIRECTORY}/install_mesos.bash"
         bash "${BIN_DIRECTORY}/install_mesos.bash"
         echo "Installed mesos in: ${dest_dir}"
         mesos_installation="$dest_dir"
