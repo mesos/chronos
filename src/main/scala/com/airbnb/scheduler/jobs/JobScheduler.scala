@@ -38,18 +38,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   extends Managed
   with Leader {
 
-  case class Elected()
-
-  case class Defeated()
-
   private[this] val log = Logger.getLogger(getClass.getName)
 
   val executor = Executors.newFixedThreadPool(1)
   val schedulerThreadFuture = new AtomicReference[Future[_]]
 
   //TODO(FL): Take some methods out of this class.
-  //TODO(FL): Cleanup the constructor!
-  val failOverMaxTimeInMs = 1000
 
   //This acts as the lock
   val lock = new Object
