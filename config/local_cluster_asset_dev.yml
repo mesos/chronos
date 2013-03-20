@@ -1,0 +1,24 @@
+scheduleHorizonSeconds: 60
+master: zk://localhost:2181/mesos
+zookeeperServers: localhost:2181
+zookeeperStateZnode: "/airbnb/service/chronos/state"
+zookeeperLeaderZnode: "/airbnb/service/chronos/leader"
+zookeeperCandidateZnode: "/airbnb/service/chronos/candidate"
+
+assets:
+  overrides:
+    /scripts: src/main/resources/assets/app/scripts
+    /stubs: src/main/resources/assets/app/stubs
+    /images: src/main/resources/assets/app/images
+    /: src/main/resources/assets/app/index.html
+
+http:
+
+    adminPort: 4401
+    port: 4400
+    rootPath: "/scheduler/*"
+
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
