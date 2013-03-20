@@ -10,6 +10,9 @@ import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
 import com.yammer.metrics.annotation.Timed
+import java.lang.String
+import scala.Predef.String
+import com.google.common.base.Charsets
 
 /**
  * The REST API for adding job-dependencies to the scheduler.
@@ -52,25 +55,30 @@ class DependentJobResource @Inject()(
 
   @PUT
   @Timed
-  def put(job: DependencyBasedJob): Response = {
+  def put(newJob: DependencyBasedJob): Response = {
     try {
-      val oldJobOpt = jobGraph.lookupVertex(job.name)
+      val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
 
       val oldJob = oldJobOpt.get.asInstanceOf[DependencyBasedJob]
       require(oldJob.getClass == job.getClass, "To update a job, the new job must be of the same type!")
-      if (job.parents.isEmpty) throw new Exception("Error, parent does not exist")
+      require(newJob.parents.nonEmpty, "Error, parent does not exist")
 
-      log.info("Received replace request for job:" + job.toString)
-      require(!jobGraph.lookupVertex(job.name).isEmpty, "Job '%s' not found".format(job.name))
+      log.info("Received replace request for job:" + newJob.toString)
+      require(!jobGraph.lookupVertex(newJob.name).isEmpty, "Job '%s' not found".format(newJob.name))
       //TODO(FL): Put all the logic for registering, deregistering and replacing dependency based jobs into one place.
-      val parents = jobGraph.parentJobs(job)
+      val parents = jobGraph.parentJobs(newJob)
       val oldParents = jobGraph.parentJobs(oldJob)
       oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
-      log.info("Job parent: [ %s ], name: %s, command: %s".format(job.parents.mkString(","), job.name, job.command))
-      jobGraph.replaceVertex(oldJob, job)
-      parents.map(x => jobGraph.addDependency(x.name, job.name))
-      log.info("Added job")
+      log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), job.name, job.command))
+      jobGraph.replaceVertex(oldJob, newJob)
+
+      log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
+        newJob.name,
+        new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
+        new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
+
+      parents.map(x => jobGraph.addDependency(x.name, newJob.name))
       Response.noContent().build()
     } catch {
       case ex: IllegalArgumentException => {

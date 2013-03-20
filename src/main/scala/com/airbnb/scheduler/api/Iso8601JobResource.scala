@@ -12,6 +12,7 @@ import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
 import com.yammer.metrics.annotation.Timed
+import com.google.common.base.Charsets
 
 /**
  * The REST API to the iso8601 (timed, cron-like) component of the scheduler.
@@ -68,7 +69,11 @@ class Iso8601JobResource @Inject()(
       if (!Iso8601Expressions.canParse(newJob.schedule)) return Response.status(Response.Status.BAD_REQUEST).build()
       jobScheduler.updateJob(oldJob, newJob)
 
-      log.info("Replaced job: " + newJob.name)
+      log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
+        newJob.name,
+        new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
+        new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
+
       Response.noContent().build()
     } catch {
       case ex: IllegalArgumentException => {

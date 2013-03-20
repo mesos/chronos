@@ -107,14 +107,14 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
       List(new InetSocketAddress("localhost", servers(0).split(":")(1).toInt))
     } else {
     servers.map({
-      x =>
-        require(x.split(":").size == 2, "Error, zookeeper servers must be provided in the form host1:port2,host2:port2")
-        if (x(0) == "--") {
-          new InetSocketAddress("localhost", x.split(":")(1).toInt)
+      server =>
+        require(server.split(":").size == 2, "Error, zookeeper servers must be provided in the form host1:port2,host2:port2")
+        if (server.startsWith("--")) {
+          log.warning("Replacing '--' with 'localhost', using in-process zookeeper.")
+          new InetSocketAddress("localhost", server.split(":")(1).toInt)
         } else {
-          new InetSocketAddress(x.split(":")(0), x.split(":")(1).toInt)
+          new InetSocketAddress(server.split(":")(0), server.split(":")(1).toInt)
         }
-
     }).toList
     }
   }
