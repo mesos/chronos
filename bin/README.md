@@ -2,7 +2,7 @@
 
 Various support scripts.
 
-## `install_mesos.bash``
+## `install_mesos.bash`
 
 Installs mesos, currently setup to work for os-x (development mode).
 
@@ -27,4 +27,4 @@ Starts chronos making some assumptions such as that the `installer.bash` script 
 
 ## `run`
 
-Run script intended to be used with runit. This reflects the production setup of airbnb and is specifically setup to work on ec2.
+Run script intended to be used with [runit](http://smarden.org/runit/). This reflects the production setup of airbnb and is specifically setup to work on ec2.
