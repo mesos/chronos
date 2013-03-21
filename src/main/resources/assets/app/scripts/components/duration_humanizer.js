@@ -38,7 +38,7 @@ function(_) {
       var k = _.chain(val).keys().first().value(),
           v = val[k];
 
-      return [v, k].join(' ');
+      return [v.toFixed(3), k].join(' ');
     });
 
     return fmt.join(', ');
