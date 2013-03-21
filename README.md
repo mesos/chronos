@@ -20,6 +20,7 @@ Chronos also supports the definition of jobs triggered by the completion of othe
   - [Listing Jobs](#listing-jobs)
   - [Deleting a Job](#deleting-a-job)
   - [Deleting All Jobs](#deleting-all-jobs)
+		- [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
   - [Manually Starting a Job](#manually-starting-a-job)
   - [Adding a Scheduled Job](#adding-a-scheduled-job)
   - [Adding a Dependent Job](#adding-a-dependent-job)
@@ -119,6 +120,15 @@ Note: *don't do this*.
 * Endpoint: __/scheduler/jobs__
 * Method: __DELETE__
 * Example: `curl -L -X DELETE chronos-node:4400/scheduler/jobs`
+* Response: HTTP 204
+
+### Deleting All Tasks for a Job
+
+Deleting tasks for a job is useful if a job gets stuck. Get a job name from the job listing above. Then:
+
+* Endpoint: __/scheduler/task/kill/jobName__
+* Method: __DELETE__
+* Example: `curl -L -X DELETE chronos-node:4400/scheduler/task/kill/request_event_counter_hourly`
 * Response: HTTP 204
 
 ### Manually Starting a Job
