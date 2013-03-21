@@ -20,7 +20,7 @@ function($,
       PercentileKeys;
 
   PercentileKeys = {
-    'Median': '50th',
+    'median': '50th',
     '75thPercentile': '75th',
     '95thPercentile': '95th',
     '99thPercentile': '99th'
