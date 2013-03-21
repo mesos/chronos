@@ -8,7 +8,7 @@ src/main/resources/**/build
 .DS_Store
 .rvmrc
 node_modules
-src/main/resources/**/components
+src/main/resources/assets/components
 chronos.arx
 chronos.tbz
 .classpath.txt
