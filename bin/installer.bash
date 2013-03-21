@@ -19,7 +19,7 @@ function install_mesos {
         echo "Trying to create ${dest_dir}"
         mkdir -p "$dest_dir"
         local esc_dest_dir="${dest_dir//\//\\/}"
-        sed -i '' -e "s/service_dir=.*\$/service_dir=$esc_dest_dir/" "${BIN_DIRECTORY}/install_mesos.bash"
+        sed -i -e "s/service_dir=.*\$/service_dir=$esc_dest_dir/" "${BIN_DIRECTORY}/install_mesos.bash"
         bash "${BIN_DIRECTORY}/install_mesos.bash"
         echo "Installed mesos in: ${dest_dir}"
         mesos_installation="$dest_dir"
@@ -51,7 +51,7 @@ function install_chronos {
   echo "Installing snapshot of mesos version $mesos_version into local mvn repository"
   mvn install:install-file -DgroupId=org.apache.mesos -DartifactId=mesos -Dversion="$mesos_version_string" -Dpackaging=jar  -Dfile="$mesos_jar_file"
   echo "Replacing pom.xml mesos dependency"
-  sed -i '' -e "s/$DEFAULT_MESOS_JAR_STRING/$mesos_version_string/g" "$BIN_DIRECTORY/../pom.xml"
+  sed -i -e "s/$DEFAULT_MESOS_JAR_STRING/$mesos_version_string/g" "$BIN_DIRECTORY/../pom.xml"
   popd
   pushd "$BIN_DIRECTORY" ; cd ..
   echo "Installing chronos"
@@ -62,8 +62,8 @@ function install_chronos {
   local esc_project_dir="${project_dir//\//\\/}"
   esc_project_dir="${esc_project_dir//./\.}"
   echo "Updating the start-chronos script in ${BIN_DIRECTORY} to point to your installation at ${mesos_installation}"
-  sed -i '' -e "s/MESOS_HOME=.*\$/MESOS_HOME=$esc_mesos_dir/" "${BIN_DIRECTORY}/start-chronos.bash"
-  sed -i '' -e "s/CHRONOS_HOME=.*\$/CHRONOS_HOME=$esc_project_dir/" "${BIN_DIRECTORY}/start-chronos.bash"
+  sed -i -e "s/MESOS_HOME=.*\$/MESOS_HOME=$esc_mesos_dir/" "${BIN_DIRECTORY}/start-chronos.bash"
+  sed -i -e "s/CHRONOS_HOME=.*\$/CHRONOS_HOME=$esc_project_dir/" "${BIN_DIRECTORY}/start-chronos.bash"
 }
 
 echo ; echo "Welcome to the interactive chronos installation. This script will first install mesos and then chronos." ; echo
