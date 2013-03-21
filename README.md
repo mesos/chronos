@@ -20,7 +20,7 @@ Chronos also supports the definition of jobs triggered by the completion of othe
   - [Listing Jobs](#listing-jobs)
   - [Deleting a Job](#deleting-a-job)
   - [Deleting All Jobs](#deleting-all-jobs)
-		- [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
+  - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
   - [Manually Starting a Job](#manually-starting-a-job)
   - [Adding a Scheduled Job](#adding-a-scheduled-job)
   - [Adding a Dependent Job](#adding-a-dependent-job)
