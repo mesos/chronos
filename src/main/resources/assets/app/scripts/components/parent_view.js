@@ -61,7 +61,7 @@ function(_) {
 
   function RemoveOne(model) {
     var _views = get(this, 'views'),
-        view  = views[model.cid],
+        view  = _views[model.cid],
         views;
 
     if (!view) { return; }

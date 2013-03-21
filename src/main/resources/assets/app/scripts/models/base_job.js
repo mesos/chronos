@@ -10,7 +10,18 @@ define([
 ],
 function(Backbone, _, moment, BaseJobValidations) {
 
-  var BaseWhiteList, BaseJobModel;
+  var slice = Array.prototype.slice,
+      BaseWhiteList,
+      BaseJobModel;
+
+  function Route() {
+    var args = slice.call(arguments),
+        encoded;
+
+    encoded = _.map(args, function(arg) { return encodeURIComponent(arg); });
+    encoded.unshift('');
+    return encoded.join('/');
+  }
 
   BaseWhiteList = [
     'name', 'command', 'owner', 'async', 'epsilon', 'executor'
@@ -44,7 +55,7 @@ function(Backbone, _, moment, BaseJobValidations) {
 
     url: function(action) {
       if (action === 'put') {
-        return '/scheduler/job/' + encodeURIComponent(this.get('name'));
+        return Route('scheduler', 'job', this.get('name'));
       }
     },
 
@@ -66,6 +77,30 @@ function(Backbone, _, moment, BaseJobValidations) {
         'change:startDate': this.updateSchedule,
         'change:duration': this.updateSchedule,
         'change:lastRunStatus': this.updateLastRunInfo
+      });
+    },
+
+    fetchStats: function() {
+      var url = Route('scheduler', 'job', 'stat', this.get('name')),
+          model = this;
+
+      var formatStats = function(stats) {
+        return _.reduce(stats, function(memo, v, k) {
+          var key = k;
+          /*
+          if (k.toLocaleLowerCase().indexOf('percentile') >= 0) {
+            key = [
+              k.split('th')[0], 'th', ' Percentile'
+            ].join('');
+          }
+          */
+          memo[key] = v;
+          return memo;
+        }, {});
+      };
+      $.getJSON(url, function(data) {
+        if (!data || !data.count) { return null; }
+        model.set({stats: formatStats(data)});
       });
     },
 

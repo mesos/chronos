@@ -15,8 +15,6 @@ function(Backbone, _, BaseJob) {
         return defaults.name !== name;
       });
 
-      debugger
-
       this.should("have unique name", function() {
         return this.withCollection(function(collection) {
           return !collection.some(function(model) {

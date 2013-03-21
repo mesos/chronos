@@ -5,6 +5,7 @@
 .select2-container-multi .select2-choices .select2-search-field input {
   outline: 0;
   .box-shadow(none);
+  border-width: 1px;
 }
 
 .details-wrapper .select2-container .select2-search-field {
@@ -96,7 +97,7 @@
 @graphColor3: darken(@graphColor03, @darkenAmount);
 @graphColor4: darken(@graphColor04, @darkenAmount);
 
-.graph-area .select2-container-multi .select2-choices .select2-search-choice {
+.lb-graph .select2-container-multi .select2-choices .select2-search-choice {
   background-color: rgba(255, 255, 255, 0.15);
   color: #fff;
   .border-radius(4px);
@@ -138,8 +139,14 @@
   }
 }
 
-#filter-graph .select2-search-field input {
-  border: 1px solid rgba(255,255,255,0.25);
+#filter-graph .select2-search-field {
+  input,
+  .select2-input,
+  .select2-focused {
+    &, &:focus {
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+  }
 }
 
 .fuzzy-select2-dropdown,
@@ -154,7 +161,7 @@
   }
 }
 
-.graph-area {
+.lb-graph {
   .fuzzy-select2-dropdown,
   .select2-drop-multi.fuzzy-select2-dropdown {
     background-color: transparent;

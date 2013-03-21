@@ -9,8 +9,8 @@ define([
          'views/application_view',
          'views/jobs_collection_view',
          'views/job_detail_collection_view',
-         'views/graph_view',
-         'backpack'
+         'views/main_menu',
+         'views/graphbox_view'
        ],
        function($,
                 Backbone,
@@ -18,8 +18,8 @@ define([
                 ApplicationView,
                 JobsCollectionView,
                 JobDetailCollectionView,
-                GraphView,
-                Backpack) {
+                MainMenuView,
+                GraphboxView) {
 
   var ApplicationRouter;
 
@@ -35,7 +35,7 @@ define([
       _.extend(window.app, {
         applicationView: new ApplicationView({
           collection: window.app.jobsCollection
-        }),
+        }).render(),
 
         jobsCollectionView: new JobsCollectionView({
           collection: window.app.resultsCollection
@@ -43,39 +43,24 @@ define([
 
         detailsCollectionView: new JobDetailCollectionView({
           collection: window.app.detailsCollection
-        })
+        }),
+
+        mainMenuView: new MainMenuView({
+          collection: window.app.jobsCollection
+        }).render()
       });
 
-      window.app.resultsCollection.on('change', function() {
-        $('.failed-jobs-count').html(this.errorCount);
-        $('.fresh-jobs-count').html(this.freshCount);
-      }, window.app.resultsCollection).trigger('reset')
+      window.app.lightbox = new GraphboxView();
+      window.app.resultsCollection.trigger('reset');
+    },
 
-      window.app.lightbox = new Backpack.Lightbox();
-
-      $('.all-jobs-count').html(window.app.resultsCollection.size()); 
-
-      $('#search-form').on('submit', function(event){
-        event.preventDefault();
-        return false;
-      });
+    navigateJob: function(jobName) {
+      this.navigate('jobs/' + jobName, {trigger: true});
     },
 
     index: function() {
       app.detailsCollection.reset();
       app.resultsCollection.reset(app.jobsCollection.models);
-    },
-
-    graph: function() {
-      console.log('graph')
-      var graphView = new GraphView();
-
-      app.lightbox
-        .addClass('graph-wrapper')
-        .content(graphView)
-        .open();
-
-      app.graph.init();
     },
 
     showJob: function(path) {

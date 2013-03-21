@@ -1,6 +1,6 @@
 /*!
  * Lo-Dash 1.0.0-rc.3 (Custom Build) <http://lodash.com>
- * Build: `lodash backbone plus="random,template,uniq,times,object,omit,range,memoize,flatten,merge,compact,isNull,isUndefined,isNumber,pluck" settings="{interpolate : /{{([\s\S]+?)}}/g}"`
+ * Build: `lodash backbone plus="random,template,uniq,times,object,omit,range,memoize,flatten,merge,compact,isNull,isUndefined,isNumber,pluck,invert" settings="{interpolate : /{{([\s\S]+?)}}/g}"`
  * (c) 2012 John-David Dalton <http://allyoucanleet.com/>
  * Based on Underscore.js 1.4.3 <http://underscorejs.org>
  * (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
@@ -951,7 +951,7 @@
   };
 
   /** Used to convert HTML entities to characters */
-  var htmlUnescapes = {'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#x27;':"'"};
+  var htmlUnescapes = invert(htmlEscapes);
 
   /*--------------------------------------------------------------------------*/
 
@@ -1120,6 +1120,27 @@
    */
   function has(object, property) {
     return object ? hasOwnProperty.call(object, property) : false;
+  }
+
+  /**
+   * Creates an object composed of the inverted keys and values of the given `object`.
+   *
+   * @static
+   * @memberOf _
+   * @category Objects
+   * @param {Object} object The object to invert.
+   * @returns {Object} Returns the created inverted object.
+   * @example
+   *
+   *  _.invert({ 'first': 'Moe', 'second': 'Larry', 'third': 'Curly' });
+   * // => { 'Moe': 'first', 'Larry': 'second', 'Curly': 'third' } (order is not guaranteed)
+   */
+  function invert(object) {
+    var result = {};
+    forOwn(object, function(value, key) {
+      result[value] = key;
+    });
+    return result;
   }
 
   /**
@@ -3554,6 +3575,7 @@
   lodash.functions = functions;
   lodash.groupBy = groupBy;
   lodash.initial = initial;
+  lodash.invert = invert;
   lodash.invoke = invoke;
   lodash.keys = keys;
   lodash.map = map;
