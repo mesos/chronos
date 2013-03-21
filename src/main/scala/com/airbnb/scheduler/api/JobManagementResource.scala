@@ -35,9 +35,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
       require(jobGraph.getChildren(jobName).isEmpty || force,
-        "The job '%s' has children, you cannot delete it without deleting it's children first".format(jobName))
+      "The job '%s' has children, you cannot delete it without deleting it's children first".format(jobName))
+      val job = jobGraph.lookupVertex(jobName).get
+      jobScheduler.sendNotification(job, "[CHRONOS] - Your job '%s' was deleted!".format(jobName))
+      if (force) {
+        log.warning("Force deleting job '%s'".format(jobName))
+        jobScheduler.sendNotification(job, "[CHRONOS] - WARNING!",
+          Some(
+            ("You may have corrupted the state by force deleting '%s'." +
+             "Make sure you forward this messsage to an administrator unless you know what you're doing!")
+              .format(jobName)))
+      }
 
-      jobScheduler.deregisterJob(jobGraph.lookupVertex(jobName).get, true, force)
+      jobScheduler.deregisterJob(job, true, force)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException => {
