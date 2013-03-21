@@ -38,9 +38,13 @@
   z-index: 1;
 }
 
+.span3.graph-filter-container,
+.graph-toggle {
+  z-index: 2;
+}
+
 .span3.graph-filter-container {
   position: fixed;
-  z-index: 2;
 }
 
 /**
@@ -62,59 +66,129 @@
   opacity: 0.0;
 }
 
-.node text {
-  pointer-events: none;
-  font: 18px @sansFontFamily;
-  fill: #FFFFFF;
-}
+.graph-area {
+  .node text {
+    pointer-events: none;
+    font: 18px @sansFontFamily;
+    fill: #FFFFFF;
+  }
 
-.node text.subtitle {
-  display: none;
-}
-.node text.inv-subtitle {
-  display: block;
-}
-
-.node text.inv-subtitle,
-.node text.subtitle {
-  font-size: 13px;
-}
-
-.node.hover {
-  text.subtitle {
+  .node text.subtitle {
+    display: none;
+  }
+  .node text.inv-subtitle {
     display: block;
   }
 
-  text.inv-subtitle {
-    display: none;
+  .node text.inv-subtitle,
+  .node text.subtitle {
+    font-size: 13px;
   }
 
+  .node.hover {
+    text.subtitle {
+      display: block;
+    }
 
+    text.inv-subtitle {
+      display: none;
+    }
+  }
+
+  .node.hover text.shadow {
+    display: block;
+  }
+
+  .node circle {
+    fill: #24343F;
+  }
+
+  .node .fail {
+    fill: red;
+  }
+
+  .node:hover circle {
+    border: #000;
+    border-width: 2px;
+  }
 }
 
-.node text.shadow {
-  stroke: #333;
-  stroke-width: 4px;
-  stroke-opacity: 0.6;
+svg path.area {
+  opacity: 0.4
 }
 
-.node.hover text.shadow {
-  display: block;
+.graph-viz-view {
+
+  text {
+    font-family: @sansFontFamily;
+    font-size: 14px;
+  }
+
+  .node {
+    cursor: pointer;
+  }
+
+  text.last-run-time,
+  .node ellipse {
+    fill: #fff;
+  }
+
+  .node.success {
+    ellipse {
+      fill: green;
+    }
+  }
+
+  .node.fail {
+    ellipse {
+      fill: red;
+    }
+
+    text {
+    }
+  }
+
+  @myWhite: rgba(255, 255, 255, 0.6);
+  g.edge {
+    path,
+    polygon {
+      stroke: @myWhite;
+    }
+
+    polygon {
+      fill: @myWhite;
+    }
+  }
 }
 
-.node circle {
-  fill: #24343F;
+.graph-area,
+.graph-viz-view {
+  .node text.shadow {
+    stroke: #333;
+    stroke-width: 4px;
+    stroke-opacity: 0.6;
+  }
 }
 
-.node .fail {
-  fill: red;
-}
-
-.node:hover circle {
-  border: #000;
-  border-width: 2px;
+.graph-viz-view .node text.shadow {
+  stroke: #000;
+  stroke-opacity: 0.8;
 }
 
 .graph-wrapper .search-wrapper {
   .makeColumn(2);
+}
+
+svg.box {
+  height: 50px;
+
+  line,
+  rect {
+    fill: none;
+    stroke: #000;
+  }
+
+  text {
+    fill: #fff;
+  }
 }

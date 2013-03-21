@@ -1,24 +1,49 @@
 define([
   'jquery',
+  'backbone',
   'underscore',
   'cs!vendor/rivets'
-], function($, _, rivets) {
+], function($, Backbone, _, rivets) {
+
+  var collectionEvents = 'add remove reset';
+
+  function isColl(o) {
+    return o instanceof Backbone.Collection;
+  }
 
   rivets.configure({
     preloadData: false,
     prefix: 'rv',
     adapter: {
       subscribe: function(obj, keypath, callback) {
-        obj.on('change:' + keypath, callback)
+        if (isColl(obj)) {
+          obj.on(collectionEvents, callback).
+            on('change:' + keypath, callback);
+        } else {
+          obj.on('change:' + keypath, callback)
+        }
       },
       unsubscribe: function(obj, keypath, callback) {
-        obj.off('change:' + keypath, callback)
+        if (isColl(obj)) {
+          obj.off(collectionEvents, callback).
+            off('change:' + keypath, callback);
+        } else {
+          obj.off('change:' + keypath, callback)
+        }
       },
       read: function(obj, keypath) {
-        return obj.get(keypath)
+        if (isColl(obj)) {
+          return obj[keypath] || obj;
+        } else {
+          return obj.get(keypath);
+        };
       },
       publish: function(obj, keypath, value) {
-        obj.set(keypath, value)
+        if (isColl(obj)) {
+          obj[keypath] = value;
+        } else {
+          obj.set(keypath, value);
+        };
       }
     }
   });
@@ -58,6 +83,23 @@ define([
       read: function(val) {
         return !val ? 'none' : val;
       }
+    },
+
+    filterBy: function(c, prop) {
+      return c.filter(function(m) {
+        var propVal = rivets.config.adapter.read(m, prop);
+        return !!propVal;
+      });
+    },
+
+    mapToList: function(map) {
+      var list = _.reduce(map, function(memo, v, k) {
+        return memo.concat({
+          key: k,
+          value: v
+        });
+      }, []);
+      return list;
     }
 
   });

@@ -20,6 +20,10 @@ define(['backbone', 'underscore', 'models/base_job'],
 
     hasSchedule: function() {
       return true;
+    },
+
+    fetchStats: function() {
+      return false;
     }
   });
 

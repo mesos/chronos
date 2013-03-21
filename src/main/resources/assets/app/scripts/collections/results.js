@@ -5,7 +5,7 @@
 define([
          'backbone',
          'underscore',
-         'collections/jobs'
+         'collections/base_jobs'
        ], function(Backbone, _, JobsCollection) {
 
   var ResultsCollection;
@@ -27,10 +27,6 @@ define([
     updateErrorCount: function() {
       var count = 0,
           errors = this.where({'lastRunStatus': 'failure'});
-
-      // _.each(errors, function(d) {
-      //   count = count + d;
-      // });
 
       this.errorCount = errors.length;
     }
