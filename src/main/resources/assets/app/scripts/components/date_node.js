@@ -214,7 +214,6 @@ function(_, Backbone, moment) {
       var moments = this.mapParts(function(v) {
         return v.toMoment();
       });
-      //debugger
     },
 
     add: function(val) {
@@ -229,8 +228,6 @@ function(_, Backbone, moment) {
         inc = _.reduce(val.getParts(), function(memo, part, partName) {
           return memo.add(partName, part);
         }, m);
-
-        //debugger
 
         return new DateTime({
           date: null,
@@ -252,8 +249,6 @@ function(_, Backbone, moment) {
         inc = _.reduce(val.getParts(), function(memo, part, partName) {
           return memo.subtract(partName, part);
         }, m);
-
-        //debugger
 
         return new DateTime({
           date: null,
@@ -323,7 +318,6 @@ function(_, Backbone, moment) {
       var strValues = _.chain(this.getToStrFields()).compact().map(function(field) {
         return field.toString();
       }).flatten().value();
-      //debugger;
       return strValues.join(this.delimeter);
     },
     getToStrFields: function() {
@@ -378,7 +372,6 @@ function(_, Backbone, moment) {
         }
       }
 
-      //debugger
       return vals;
     }
   });

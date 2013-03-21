@@ -12,6 +12,7 @@ function($,
          FuzzyJobMatcher,
          Select2ChoiceTpl,
          PresenceMap) {
+  'use strict';
 
   var methods = {},
       nsKey   = 'airbnb',

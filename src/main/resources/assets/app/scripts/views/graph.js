@@ -1,9 +1,15 @@
 define([
   'jquery',
+  'underscore',
   'd3',
-  'moment'
+  'moment',
+  'components/d3_shadowed_text'
 ],
-function($, d3, moment) {
+function($,
+         _,
+         d3,
+         moment,
+         shadowedText) {
   'use strict';
   var svg,
       force1,
@@ -288,7 +294,7 @@ function($, d3, moment) {
 
     function click(node) {
       app.lightbox.close();
-      app.router.navigate('jobs/'+node.name, {trigger: true});
+      app.router.navigateJob(node.name);
     }
 
     function rightClick(data, i) {
@@ -301,25 +307,6 @@ function($, d3, moment) {
       return false;
     }
 
-  }
-
-  function shadowedText(selection, options) {
-    var opts, $el, classes;
-    opts = _.merge({
-      attributes: {}
-    }, (options || {}));
-
-    classes = opts.attributes['class'] || '';
-    opts.attributes = _.omit(opts.attributes, 'class');
-
-    _.each(['shadow', ''], function(className) {
-      selection.append('svg:text').text(opts.text || _.identity).
-        attr('class', [classes, className].join(' ')).
-        each(function(d, i) {
-          $el = d3.select(this);
-          _.each(opts.attributes, function(v, k) { $el.attr(k, v); });
-        });
-    });
   }
 
   function stop() {

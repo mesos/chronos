@@ -35,6 +35,8 @@ function($,
           if (!(data && data.childView)) { return null; }
           if (data.childView.model.isNew()) {
             data.childView.setNew();
+          } else {
+            data.childView.model.fetchStats();
           }
         }
       });
