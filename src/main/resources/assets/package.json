@@ -54,8 +54,6 @@
       "backbone.validations": "github:n-time/backbone.validations/master",
       "raphael": "github:DmitryBaranovskiy/raphael/v2.1.0",
       "morris": "github:oesmith/morris.js/0.4.1",
-      "rickshaw": "github:shutterstock/rickshaw/v1.2.1",
-      "underscore": "github:amdjs/underscore/1.4.4"
     }
   }
 }
