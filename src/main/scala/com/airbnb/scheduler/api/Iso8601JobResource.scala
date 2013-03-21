@@ -63,10 +63,13 @@ class Iso8601JobResource @Inject()(
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
-
       val oldJob = oldJobOpt.get
       require(oldJob.getClass == newJob.getClass, "To update a job, the new job must be of the same type!")
-      if (!Iso8601Expressions.canParse(newJob.schedule)) return Response.status(Response.Status.BAD_REQUEST).build()
+
+      if (!Iso8601Expressions.canParse(newJob.schedule)) {
+        return Response.status(Response.Status.BAD_REQUEST).build()
+      }
+
       jobScheduler.updateJob(oldJob, newJob)
 
       log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(

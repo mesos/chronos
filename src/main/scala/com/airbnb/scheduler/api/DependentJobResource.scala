@@ -59,6 +59,10 @@ class DependentJobResource @Inject()(
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
 
       val oldJob = oldJobOpt.get.asInstanceOf[DependencyBasedJob]
+
+      //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
+      assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
+
       require(oldJob.getClass == newJob.getClass, "To update a job, the new job must be of the same type!")
       require(newJob.parents.nonEmpty, "Error, parent does not exist")
 

@@ -57,12 +57,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   def getLeader: String = return new String(candidate.getLeaderData)
 
-  def sendNotification(job: BaseJob, message: String) {
+  def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
     if (!mailClient.isEmpty) {
       log.info("Sending mail notification to:%s for job %s".format(job.owner, job.name))
-      mailClient.get !(job.owner, message, None)
+      mailClient.get !(job.owner, subject, message)
     }
-    log.info(message)
+
+    log.info(subject)
   }
 
   def isTaskAsync(taskId: String): Boolean = {
@@ -87,6 +88,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   def updateJob(oldJob: BaseJob, newJob: BaseJob) {
     assert(newJob.getClass == oldJob.getClass,
       "Can only update job attributes, not the type of a job!")
+
+    //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
+    assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
 
     if (oldJob.isInstanceOf[ScheduleBasedJob]) {
       lock.synchronized {
