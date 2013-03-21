@@ -12,6 +12,7 @@ class DescriptiveStatisticsSerializer extends JsonSerializer[DescriptiveStatisti
 
   def serialize(stat: DescriptiveStatistics , json: JsonGenerator, provider: SerializerProvider) {
     json.writeStartObject()
+
     json.writeFieldName("75thPercentile")
     json.writeNumber(stat.getPercentile(75))
 

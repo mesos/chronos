@@ -14,14 +14,15 @@ require.config({
     'bootstrap/button'      : 'vendor/bootstrap/js/bootstrap-button',
     'bootstrap/dropdown'    : 'vendor/bootstrap/js/bootstrap-dropdown',
     'bootstrap/timepicker'  : 'vendor/bootstrap-timepicker/js/bootstrap-timepicker',
-    'jquery/autotype'       : 'vendor/bootstrap-timepicker/js/jquery.autotype',
     'd3'                    : 'vendor/d3.v3',
     'underscore'            : 'vendor/lodash',
     'moment'                : 'vendor/moment',
     'backpack'              : 'vendor/backpack',
+    'jquery/autotype'       : 'vendor/bootstrap-timepicker/js/jquery.autotype',
     'jquery/select2'        : 'vendor/select2',
     'jquery/pickadate'      : 'vendor/pickadate',
-    'jquery/fastLiveFilter' : 'vendor/jquery.fastLiveFilter',
+    'jquery/visibility'     : 'vendor/jquery/jquery.visibility',
+    'jquery/fastLiveFilter' : 'vendor/jquery/jquery.fastLiveFilter',
     'coffee-script'         : 'vendor/coffee-script',
     'cs'                    : 'vendor/cs',
     'propertyParser'        : 'vendor/requirejs-plugins/src/propertyParser',
@@ -72,6 +73,10 @@ require.config({
     'jquery/pickadate': {
       deps: ['jquery'],
       exports: 'jQuery.fn.pickadate'
+    },
+    'jquery/visibility': {
+      deps: ['jquery'],
+      exports: 'jQuery.fn._pageVisibility'
     },
     'bootstrap/tooltip': {
       deps: ['jquery'],
@@ -181,12 +186,8 @@ function($,
 
     init: function() {
       window.app || (window.app = {});
-      var jobsCollection;
+      var jobsCollection = new JobsCollection();
 
-      jobsCollection = new JobsCollection();
-      jobsCollection.on('all', function() {
-        //console.log.apply(console, ['jobsCollection event'].concat(arguments).concat(this));
-      });
       jobsCollection.fetch().done(function() {
         jobsCollection.each(function(job) {
           job.set({persisted: true}, {silent: true});
@@ -196,9 +197,6 @@ function($,
         window.app.resultsCollection = new ResultsCollection(jobsCollection.models)
         window.app.jobsGraphCollection = new JobGraphCollection();
 
-        window.app.jobsGraphCollection.on('all', function() {
-          //console.log('jobsGraphCollection event', arguments, this);
-        });
         window.app.jobsGraphCollection.registerAccessoryCollection(
           jobsCollection).fetch();
 

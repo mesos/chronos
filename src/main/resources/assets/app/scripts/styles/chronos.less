@@ -40,12 +40,14 @@ html > body {
 }
 
 .new-job,
+.view-alt-graph,
 .view-graph {
   margin-top: 12px;
   position: relative;
   left: 10px;
 }
 
+.nav-item.view-alt-graph,
 .nav-item.view-graph {
   margin-top: 0;
   position: static;
@@ -128,4 +130,50 @@ html > body .tooltip,
 
 #job-form label.radio input {
   width: auto;
+}
+
+// Stats graph styles
+@statsYAxisWidth: 35px;
+.graph-container {
+  position: relative;
+
+  .graph-stats {
+    position: relative;
+    left: @statsYAxisWidth;
+  }
+
+  line.median {
+    stroke-width: 3px;
+    stroke: #000;
+  }
+
+  &.stats-graph {
+    div svg path {
+      &, &.domain {
+        stroke: #fff;
+        opacity: 0.0;
+      }
+    }
+    div svg text {
+      opacity: 1.0;
+      fill: #fff;
+    }
+  }
+
+  .graph-y-axis {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: @statsYAxisWidth;
+  }
+  .graph-x-axis {
+    position: relative;
+    left: @statsYAxisWidth;
+    height: @statsYAxisWidth;
+  }
+}
+
+.badge-percentile {
+  background: rgba(0,0,0,0.4);
+  color: rgba(255,255,255,0.4);
 }

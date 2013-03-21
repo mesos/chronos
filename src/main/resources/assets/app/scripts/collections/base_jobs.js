@@ -83,6 +83,11 @@ define([
       this.countSuccessDirection = reverse ? 'down' : 'up';
     },
 
+    errCount: function() {
+      var ec = this.where({'lastRunStatus': 'failure'}).length;
+      return ec;
+    },
+
     toggleCountError: function() {
       var reverse = this.countErrorDirection === 'up'
       this.setComparator(this.makeComparatorByAttribute('errorCount', reverse));
