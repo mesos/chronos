@@ -12,6 +12,7 @@ It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval 
 Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
 * [Quick Start](#quick-start)
+* [Features](#features)
 * [License](#license)
 * [Contributors](#contributors)
 * [GUI](#gui)
@@ -47,6 +48,16 @@ This is how you run this installer:
 
 
 If you get an error while compiling [mesos][mesos], please consult the [FAQ](https://github.com/airbnb/chronos/blob/master/docs/FAQ.md).
+
+## Features
+
+* Web UI
+* 8601 Repeating Interval Notation
+* Handles dependencies
+* Job Stats (e.g. 50th, 75th, 95th and 99th percentile timing, failure/success) 
+* Fault Tolerance (Hot Master)
+* Configurable Retries
+* Multiple Workers (i.e. Mesos Slaves)
 
 ## License
 
