@@ -54,7 +54,7 @@ If you get an error while compiling [mesos][mesos], please consult the [FAQ](htt
 * Web UI
 * 8601 Repeating Interval Notation
 * Handles dependencies
-* Job Stats (e.g. 50th, 75th, 95th and 99th percentile timing, failure/success) 
+* Job Stats (e.g. 50th, 75th, 95th and 99th percentile timing, failure/success)
 * Fault Tolerance (Hot Master)
 * Configurable Retries
 * Multiple Workers (i.e. Mesos Slaves)
@@ -324,19 +324,22 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/se
 Follow these steps to install Chronos on Amazon Linux:
 
 ##### Install Dependencies
-    
+
 ###### Debian Linux:
     sudo apt-get install autoconf make gcc cpp patch python-dev git libtool default-jdk default-jdk-builddep default-jre gzip libghc-zlib-dev libcurl4-openssl-dev
-    
+
 ###### Fedora Linux:
     sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel
 
 ##### Build and Install Mesos
 
+Please note, some versions of OpenJDK 1.6 have a bug which prevents you from building chronos. If you encounter an error while building that seems to not stem
+from Chronos code but rather from some Scala classes, consider upgrading to OpenJDK 1.7.
+
 	git clone https://github.com/apache/mesos.git
 
 	cd mesos/
-	
+
 	git checkout 0.12.x
 
 	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/
@@ -351,7 +354,7 @@ Follow these steps to install Chronos on Amazon Linux:
 
 ##### Build Chronos
 
-	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so 
+	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 	git clone https://github.com/airbnb/chronos.git
 	cd chronos
 	mvn package
