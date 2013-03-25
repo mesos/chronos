@@ -4,11 +4,21 @@ Various support scripts.
 
 ## `install_mesos.bash`
 
-Installs mesos, currently setup to work for os-x (development mode).
+Installs mesos.
+
+### Currently supported environments:
+* Mac OSX
+
+_Feel free to pull request support for additional environments!_
 
 ## `installer.bash`
 
-Installer for mesos & chronos that brings up a local chronos. uses `installer_mesos.bash`
+Installs mesos & chronos then boots a local chronos. Uses `installer_mesos.bash`.
+
+### Currently supported environments:
+* Mac OSX
+
+_Feel free to pull request support for additional environments!_
 
 ## `run-emr.bash`
 
