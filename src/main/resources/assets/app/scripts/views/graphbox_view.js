@@ -11,11 +11,13 @@ define([
             Backpack,
             GraphView,
             GraphVizView) {
+  'use strict';
 
   var GraphboxView,
       lbInitialize,
       lbEvents,
       lbRender,
+      lbClose,
       slice = Array.prototype.slice;
 
   lbInitialize = Backpack.Lightbox.prototype.initialize;
@@ -55,19 +57,23 @@ define([
       if (view) { view.trigger('close'); }
     },
 
-    showGraphView: function(graphType, targetId) {
+    showGraphView: function(graphType, targetId, options) {
       var model = this.model,
           oldView = model ? model.get('content') : null,
           newViewClass = this.getRegisteredGraphType(graphType),
           isOpen = model && model.get('open'),
+          options = (_(options).isObject() ? options : {}),
+          transferSelection = (oldView && isOpen && !targetId),
           newView,
           collection;
 
-      collection = (oldView && isOpen && !targetId) ? oldView.getSelections() : null;
+      collection = transferSelection ? oldView.getSelections() : null;
       this.closeGraphView();
 
       if (!!newViewClass) {
-        newView = new newViewClass({selections: collection});
+        newView = new newViewClass(_.extend({}, {
+          selections: collection
+        }, options));
         if (collection) { collection.trigger('reset', collection, {}); }
         else if (!!targetId) { newView.setTarget(targetId); }
 
@@ -79,10 +85,12 @@ define([
     },
 
     toggleGraph: function(e) {
-      var $target = $(e.currentTarget);
-      e.preventDefault();
+      var $target = $(e.currentTarget),
+          jobType = $target.data('job-type'),
+          options = $target.data('job-options');
 
-      this.showGraphView($target.data('job-type'));
+      e.preventDefault();
+      this.showGraphView(jobType, null, options);
     },
 
     getRegisteredGraphType: function(name) {

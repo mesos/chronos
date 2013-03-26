@@ -211,24 +211,8 @@ function(Backbone, _, moment, BaseJobValidations) {
       });
     },
 
-    updateLeaf: function() {
-      return true;
-      this.set('leaf', !this.get('parents').length);
-      return this;
-    },
-
     getWhitelist: function() {
       return [];
-    },
-
-    nextDate: function() {
-      var duration = this.get('duration'),
-          currentDate = this.get('currentDate'),
-          nextDate = xsdurationjs.add(duration, currentDate);
-
-      this.set('currentDate', nextDate);
-
-      return nextDate;
     },
 
     parentsList: function(parents) {
@@ -249,25 +233,6 @@ function(Backbone, _, moment, BaseJobValidations) {
 
     parseSchedule: function() {
       return this;
-      /*
-      var schedule = this.get('schedule'),
-          parts;
-
-      if (!schedule) {
-        return this;
-      }
-
-      parts = schedule.split('/');
-
-      this.set({
-        repeats: this.parseRepeats(parts[0]),
-        startDate: this.parseStartDate(parts[1]),
-        startTime: this.parseStartTime(parts[1]),
-        duration: this.parseDuration(parts[2])
-      }, {silent: true});
-
-      return this;
-     */
     }
   }, {
     getWhitelist: function() {

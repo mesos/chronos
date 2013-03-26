@@ -2,7 +2,8 @@ define([
   'underscore'
 ],
 function(_) {
-  var namespace = "_pollable";
+  var namespace = "_pollable",
+      defaultInterval = 10000;
 
   function get(t, k) {
     if (!(t[namespace] && t[namespace][k])) { return null; }
@@ -24,7 +25,7 @@ function(_) {
     },
 
     poll: function(interval) {
-      interval || (interval = 5000);
+      interval || (interval = defaultInterval);
       var coll = this;
 
       set(this, 'lastTimeout', setTimeout(function() {
