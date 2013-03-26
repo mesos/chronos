@@ -16,9 +16,28 @@
   </div>
 
   <div class="btn-group graph-toggle" data-toggle="buttons-radio">
-    <button type="button" class="btn active"
+    <button type="button"
+            class="btn {{active currentView 'dynamic'}}"
             data-job-type="dynamic">Dynamic</button>
-    <button type="button" class="btn"
+    <button type="button"
+            class="btn {{active currentView 'static'}}"
             data-job-type="static">Static</button>
+    <button type="button"
+            class="btn {{active currentView 'static-stats'}}"
+            data-job-type="static"
+            data-job-options='{"decorator": "stats"}'>Stats</button>
+    <!--
+    <button class="btn dropdown-toggle {{active currentView 'static'}}"
+            data-toggle="dropdown">
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      <li class="" data-job-type="dynamic">
+        <a href="#">Stats View</a>
+      </li>
+      <li class="" data-job-type="dynamic">
+        <a href="#">Time View</a>
+      </li>
+    </ul> //-->
   </div>
 </div>
