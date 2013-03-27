@@ -15,7 +15,7 @@ Chronos also supports the definition of jobs triggered by the completion of othe
 * [Features](#features)
 * [License](#license)
 * [Contributors](#contributors)
-* [GUI](#gui)
+* [Chronos UI](#chronos-ui)
 * [API](#api)
   - [Leader](#leaders)
   - [Listing Jobs](#listing-jobs)
@@ -78,7 +78,7 @@ You must not remove this notice, or any other, from this software.
 
 ![architecture](https://raw.github.com/airbnb/chronos/master/docs/emr_use_case.png "sample architecture")
 
-## GUI
+## Chronos UI
 
 Chronos comes with a UI which can be used to add, delete, list, modify and run jobs. It can also show a graph of job dependencies.
 The screenshot should give you a good idea of what Chronos can do.
