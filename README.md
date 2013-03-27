@@ -15,6 +15,7 @@ Chronos also supports the definition of jobs triggered by the completion of othe
 * [Features](#features)
 * [License](#license)
 * [Contributors](#contributors)
+* [Video Introduction](#video-introduction)
 * [Chronos UI](#chronos-ui)
 * [API](#api)
   - [Leader](#leaders)
@@ -73,6 +74,10 @@ You must not remove this notice, or any other, from this software.
 * Florian Leibert ([@flo](http://twitter.com/flo))
 * Andy Kramolisch ([@andykram](https://github.com/andykram))
 * Harry Shoff ([@hshoff](https://twitter.com/hshoff))
+
+## Video Introduction
+
+* Replacing Cron & Building Scalable Data Pipelines: [YouTube](http://www.youtube.com/watch?v=FLqURrtS8IA)
 
 ## Sample Architecture
 
