@@ -15,7 +15,8 @@ Chronos also supports the definition of jobs triggered by the completion of othe
 * [Features](#features)
 * [License](#license)
 * [Contributors](#contributors)
-* [GUI](#gui)
+* [Video Introduction](#video-introduction)
+* [Chronos UI](#chronos-ui)
 * [API](#api)
   - [Leader](#leaders)
   - [Listing Jobs](#listing-jobs)
@@ -72,13 +73,17 @@ You must not remove this notice, or any other, from this software.
 
 * Florian Leibert ([@flo](http://twitter.com/flo))
 * Andy Kramolisch ([@andykram](https://github.com/andykram))
-* Harry Shoff ([@hshoff](https://github.com/hshoff))
+* Harry Shoff ([@hshoff](https://twitter.com/hshoff))
+
+## Video Introduction
+
+* Replacing Cron & Building Scalable Data Pipelines: [YouTube](http://www.youtube.com/watch?v=FLqURrtS8IA)
 
 ## Sample Architecture
 
 ![architecture](https://raw.github.com/airbnb/chronos/master/docs/emr_use_case.png "sample architecture")
 
-## GUI
+## Chronos UI
 
 Chronos comes with a UI which can be used to add, delete, list, modify and run jobs. It can also show a graph of job dependencies.
 The screenshot should give you a good idea of what Chronos can do.
