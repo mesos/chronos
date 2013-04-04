@@ -9,7 +9,7 @@ declare -r DEFAULT_MESOS_JAR_STRING="0.12.0-SNAPSHOT_JDK1.7"
 detected_os="$(uname)"
 case $detected_os in
   Linux)
-    sed_in_place() { 
+    sed_in_place() {
       sed -i $@
     }
   ;;
