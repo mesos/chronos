@@ -53,13 +53,6 @@ function chronos_build {
   mvn package
 }
 
-tmp=/tmp/chronos-build."$(hasher "$prefix" "$chronos_ref" "$mesos_ref")" 
-function tmp {
-  [[ ! -d "$tmp" ]] || msg "Recycling build in $tmp"
-  mkdir -p "$tmp"
-  cd "$tmp"
-}
-
 function debs {
   DEBIAN_FRONTEND=noninteractive apt-get install --yes "$@"
 }
@@ -84,6 +77,13 @@ function hasher {
     err "No hashing program found!"
   fi
   "$hasher" <<<"$*" | cut -d' ' -f1
+}
+
+tmp=/tmp/chronos-build."$(hasher "$prefix" "$chronos_ref" "$mesos_ref")" 
+function tmp {
+  [[ ! -d "$tmp" ]] || msg "Recycling build in $tmp"
+  mkdir -p "$tmp"
+  cd "$tmp"
 }
 
 function build_wrapper {
