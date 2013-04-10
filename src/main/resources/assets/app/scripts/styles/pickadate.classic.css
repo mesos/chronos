@@ -1,13 +1,3 @@
-
-
-/**
- * Classic styling for pickadate.js
- * Demo: http://amsul.github.com/pickadate.js/themes.htm#classic
- */
-
-/**
- * The picker holder
- */
 .pickadate__holder {
 
     /* The base font-size */
@@ -24,9 +14,6 @@
 }
 
 
-/**
- * The frame that bounds the calendar
- */
 .pickadate__frame {
     position: relative;
     max-width: 420px;
@@ -39,10 +26,6 @@
             transition: all .15s ease-out;
 }
 
-
-/**
- * When the calendar opens
- */
 .pickadate__holder--opened .pickadate__frame {
     top: .5em;
     max-height: 25em;
@@ -51,11 +34,6 @@
        -moz-box-shadow: 0 6px 18px 1px rgba(0,0,0,.12);
             box-shadow: 0 6px 18px 1px rgba(0,0,0,.12);
 }
-
-
-/**
- * The calendar itself
- */
 
 .pickadate__calendar {
     color: #000;
@@ -72,11 +50,6 @@
             border-radius: 6px;
 }
 
-
-
-/**
- * The calendar table of dates
- */
 .pickadate__table {
     text-align: center;
     border-collapse: collapse;
@@ -87,17 +60,11 @@
     margin-top: .75em;
 }
 
-/* Remove browser stylings on a table cell */
 .pickadate__table td {
     margin: 0;
     padding: 0;
 }
 
-
-
-/**
- * The header containing the month and year tags/selectors
- */
 .pickadate__header {
     text-align: center;
     position: relative;
@@ -156,11 +123,6 @@
 }
 
 
-
-
-/**
- * The weekday labels
- */
 .pickadate__weekday {
     width: 14.285714286%; /* 100/7 */
     font-size: .75em;
@@ -170,9 +132,6 @@
 }
 
 
-/**
- * The days on the calendar
- */
 .pickadate__day {
     padding: .33em 0 .25em;
     font-weight: 100;
@@ -180,9 +139,6 @@
     margin-bottom: 1px;
 }
 
-/**
- * The various states of a day
- */
 .pickadate__day--today {
     color: #0089ec;
     position: relative;
@@ -216,11 +172,6 @@
          opacity: .75;
 }
 
-
-
-/**
- * The footer containing the "today" and "clear" buttons
- */
 .pickadate__footer {
     text-align: center;
     margin: .5em 0 -.5em;
@@ -267,10 +218,6 @@
 
 
 
-
-/**
- * The hover effect on any buttons
- */
 .pickadate__day--infocus:hover,
 .pickadate__day--outfocus:hover,
 .pickadate__nav--prev:hover,
