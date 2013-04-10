@@ -66,7 +66,7 @@ function github_tgz {
 
 function tgz_into {
   mkdir -p "$1"
-  tar -xz -C "$1" --strip-components 1 # Yes, this is portable.
+  tar -xz -C "$1" -k --strip-components 1 # Yes, this is portable.
 }
 
 declare hasher
