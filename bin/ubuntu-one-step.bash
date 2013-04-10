@@ -80,9 +80,14 @@ function hasher {
   "$hasher" <<<"$*" | cut -d' ' -f1
 }
 
+tmp_msg=false
 tmp=/tmp/chronos-build."$(hasher "$prefix" "$chronos_ref" "$mesos_ref")" 
 function tmp {
-  [[ ! -d "$tmp" ]] || msg "Recycling build in $tmp"
+  if [[ -d "$tmp" ]] && ! $tmp_msg
+  then
+    msg "Recycling build in $tmp"
+    tmp_msg=true
+  fi
   mkdir -p "$tmp"
   cd "$tmp"
 }
