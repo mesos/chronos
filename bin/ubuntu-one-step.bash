@@ -18,18 +18,19 @@ function main {
 ubuntu_debs=( autoconf make gcc g++ cpp patch python-dev libtool
               default-jdk default-jdk-builddep default-jre gzip
               libghc-zlib-dev libcurl4-openssl-dev )
-function ubuntu {
-  debs "${ubuntu_debs[@]}"
+function ubuntu {(
+  tmp
+  task_wrapper debs "${ubuntu_debs[@]}"
   mesos
   chronos
-}
+)}
 
 mesos_ref=0.12.x
 function mesos {(
   tmp
   github_tgz apache/mesos "$mesos_ref" | tgz_into mesos
   cd mesos
-  build_wrapper mesos_build
+  task_wrapper mesos_build
 )}
 
 function mesos_build {
@@ -45,7 +46,7 @@ function chronos {(
   tmp
   github_tgz airbnb/chronos "$chronos_ref" | tgz_into chronos
   cd chronos
-  build_wrapper chronos_build
+  task_wrapper chronos_build
 )}
 
 function chronos_build {
@@ -86,18 +87,18 @@ function tmp {
   cd "$tmp"
 }
 
-function build_wrapper {
+function task_wrapper {
   local dir="$(pwd -P)"
   local t0="$(date +%T)"
-  msg "$1 $t0 Building..."
-  if "$1" 1>build.out 2>build.err
+  msg "$1 $t0 Starting..."
+  if "$@" 1>task.out 2>task.err
   then msg "$1 $t0/$(date +%T)"
   else
     local x=$?
-    msg "==== tail -n20 $dir/build.out"
-    tail -n20 "$dir"/build.out >&2
-    msg "==== tail -n20 $dir/build.err"
-    tail -n20 "$dir"/build.err >&2
+    msg "==== tail -n20 $dir/task.out"
+    tail -n20 "$dir"/task.out >&2
+    msg "==== tail -n20 $dir/task.err"
+    tail -n20 "$dir"/task.err >&2
     msg "$1 $t0/$(date +%T) failed in $dir."
     return $(( $x == 0 ? 1 : $x ))
   fi
