@@ -9,7 +9,8 @@ define([
   'components/mixable_view',
   'components/filterable',
   'hbs!templates/graph_view',
-  'bootstrap/tooltip'
+  'bootstrap/tooltip',
+  'bootstrap/dropdown'
 ],
 function(Backbone,
          _,
@@ -19,26 +20,6 @@ function(Backbone,
          GraphViewTpl) {
 
   var GraphView;
-
-  /*
-   * RenderChildren renders related elements into select2 results.
-   * this should be bound to a Backbone view.
-   *
-   * @params {Integer} resultId The ID (name) of a query result.
-   * @params {Array}  related A list of related jobs.
-   *
-   * @returns this
-   */
-  function RenderChildren(resultId, related) {
-    var sel = ['[data-select2-id="', resultId, '"]'].join(''),
-        relatedNames = _.chain(related).keys().without(resultId).value();
-
-    this.$(sel).find('ul.children').html(Select2ChildTpl({
-      children: relatedNames
-    }));
-
-    return this;
-  }
 
   GraphView = MixableView.extend({
     mixins: {
@@ -59,11 +40,18 @@ function(Backbone,
       });
     },
 
+    getTemplateData: function() {
+      return {
+        currentView: 'dynamic'
+      };
+    },
+
     render: function() {
-      var html = this.template();
+      var html = this.template(this.getTemplateData());
 
       this.$el.html(html);
       this.trigger('render');
+      this.$('[data-toggle="dropdown"]').dropdown();
 
       return this;
     },
