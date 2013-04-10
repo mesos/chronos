@@ -60,10 +60,10 @@ function debs {
 function github_tgz {
   local repo="$1" ; shift
   local ref="$1" ; shift
-  curl -fL https://api.github.com/repos/"$repo"/tarball/"$branch" "$@"
+  curl -fL https://api.github.com/repos/"$repo"/tarball/"$ref" "$@"
 }
 
-function tgz_to {
+function tgz_into {
   mkdir -p "$1"
   tar -xz -C "$1" --strip-components 1 # Yes, this is portable.
 }
