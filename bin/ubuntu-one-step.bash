@@ -60,6 +60,17 @@ function chronos_download {
 function chronos_build {
   export MESOS_NATIVE_LIBRARY="$prefix"/lib/libmesos.so
   mvn package
+  rsync -ai ./ "$prefix"/chronos
+  chronos_runner
+}
+
+function chronos_runner {
+cat > /usr/local/bin/chronos <<EOF
+export MESOS_NATIVE_LIBRARY="$prefix"/lib/libmesos.so
+java -cp "$prefix"/chronos/target/chronos*.jar com.airbnb.scheduler.Main \
+     server "$prefix"/chronos/config/local_scheduler_nozk.yml
+EOF
+chmod ug+x /usr/local/bin/chronos
 }
 
 function debs {
