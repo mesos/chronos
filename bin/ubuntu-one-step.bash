@@ -22,19 +22,21 @@ function main {
       *)      err "Not able to ID your system from /etc/issue." ;;
     esac
   fi
-  if which sw_vers &>/dev/null
+  if exists sw_vers
   then cmd=( os_x )
   fi
   "${cmd[@]}"
 }
 
+jdk_link=http://www.oracle.com/technetwork/java/javase/downloads/index.html
 function os_x {(
   tmp
-  for cmd in g++ gcc java brew
-  do
-    which "$cmd" &>/dev/null || err "Please install: $cmd"
-  done
-  #task_wrapper brew install maven
+  exists brew || err "Please install Homebrew."
+  exists g++  || err "Please install the Apple developer tools."
+  exists gcc  || err "Please install the Apple developer tools."
+  ( exists java && java -version 2>&1 | fgrep -q 1.7. ) ||
+    err "Please install: JDK 1.7\n  $jdk_link"
+  exists mvn  || err "Please install Maven (\`brew install maven' will work)."
   mesos
   chronos
 )}
@@ -148,6 +150,10 @@ function task_wrapper {
     msg "$1 $t0/$(date +%T) failed in $dir"
     return $(( $x == 0 ? 1 : $x ))
   fi
+}
+
+function exists {
+  which "$1" &>/dev/null
 }
 
 function msg { out "$*" >&2 ;}
