@@ -2,8 +2,8 @@
 set -o errexit -o nounset -o pipefail
 function -h {
 cat <<USAGE
- USAGE: one-shot.bash
-        one-shot.bash os_x|ubuntu|...
+ USAGE: one-step.bash
+        one-step.bash os_x|ubuntu|...
 
   Installs Chronos in one step. With no arguments, auto detects your OS and
   performs appropriate installation.
@@ -30,8 +30,11 @@ function main {
 
 function os_x {(
   tmp
-  # Check for g++, autoconf, Java, Homebrew. Error if not found.
-  # Install Maven.
+  for cmd in g++ gcc java brew
+  do
+    which "$cmd" &>/dev/null || err "Please install: $cmd"
+  done
+  #task_wrapper brew install maven
   mesos
   chronos
 )}
@@ -106,7 +109,7 @@ function github_tgz {
 
 function tgz_into {
   mkdir -p "$1"
-  tar -xz -C "$1" -k --strip-components 1 # Yes, this is portable.
+  tar -xz -C "$1" --strip-components 1 # Yes, this is portable.
 }
 
 declare hasher
