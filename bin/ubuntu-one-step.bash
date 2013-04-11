@@ -16,8 +16,8 @@ function main {
 }
 
 ubuntu_debs=( autoconf make gcc g++ cpp patch python-dev libtool
-              default-jdk default-jdk-builddep default-jre gzip
-              libghc-zlib-dev libcurl4-openssl-dev )
+              default-jdk default-jdk-builddep default-jre maven 
+              gzip libghc-zlib-dev libcurl4-openssl-dev )
 function ubuntu {(
   tmp
   task_wrapper debs "${ubuntu_debs[@]}"
