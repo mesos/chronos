@@ -28,26 +28,34 @@ function ubuntu {(
 mesos_ref=0.12.x
 function mesos {(
   tmp
-  github_tgz apache/mesos "$mesos_ref" | tgz_into mesos
+  task_wrapper mesos_download
   cd mesos
   task_wrapper mesos_build
 )}
 
+function mesos_download {
+  github_tgz apache/mesos "$mesos_ref" | tgz_into mesos
+}
+
 function mesos_build {
-  ./bootstrap
+  [[ -f ./configure ]] || ./bootstrap
   ./configure --prefix="$prefix" \
     --with-webui --with-included-zookeeper --disable-perftools
-  make || make # Always fails the first time.
+  make
   make install
 }
 
 chronos_ref=master
 function chronos {(
   tmp
-  github_tgz airbnb/chronos "$chronos_ref" | tgz_into chronos
+  task_wrapper chronos_download
   cd chronos
   task_wrapper chronos_build
 )}
+
+function chronos_download {
+  github_tgz airbnb/chronos "$chronos_ref" | tgz_into chronos
+}
 
 function chronos_build {
   export MESOS_NATIVE_LIBRARY="$prefix"/lib/libmesos.so
