@@ -2,9 +2,11 @@
 set -o errexit -o nounset -o pipefail
 function -h {
 cat <<USAGE
- USAGE: ...
+ USAGE: one-shot.bash
+        one-shot.bash os_x|ubuntu|...
 
-  Installs Chronos in one step.
+  Installs Chronos in one step. With no arguments, auto detects your OS and
+  performs appropriate installation.
 
 USAGE
 }; function --help { -h ;}
@@ -12,8 +14,27 @@ USAGE
 prefix=/usr/local
 
 function main {
-  ubuntu
+  local cmd=()
+  if [[ -f /etc/issue ]]
+  then
+    case "$(cut -d' ' -f1 < /etc/issue)" in
+      Ubuntu) cmd=( ubuntu ) ;;
+      *)      err "Not able to ID your system from /etc/issue." ;;
+    esac
+  fi
+  if which sw_vers &>/dev/null
+  then cmd=( os_x )
+  fi
+  "${cmd[@]}"
 }
+
+function os_x {(
+  tmp
+  # Check for g++, autoconf, Java, Homebrew. Error if not found.
+  # Install Maven.
+  mesos
+  chronos
+)}
 
 ubuntu_debs=( autoconf make gcc g++ cpp patch python-dev libtool
               default-jdk default-jdk-builddep default-jre maven 
@@ -70,7 +91,7 @@ export MESOS_NATIVE_LIBRARY="$prefix"/lib/libmesos.so
 java -cp "$prefix"/chronos/target/chronos*.jar com.airbnb.scheduler.Main \
      server "$prefix"/chronos/config/local_scheduler_nozk.yml
 EOF
-chmod ug+x /usr/local/bin/chronos
+chmod ug+x "$prefix"/bin/chronos
 }
 
 function debs {
@@ -102,11 +123,8 @@ function hasher {
 tmp_msg=false
 tmp=/tmp/chronos-build."$(hasher "$prefix" "$chronos_ref" "$mesos_ref")" 
 function tmp {
-  if [[ -d "$tmp" ]] && ! $tmp_msg
-  then
-    msg "Recycling build in $tmp"
-    tmp_msg=true
-  fi
+  $tmp_msg || msg "Building in $tmp"
+  tmp_msg=true
   mkdir -p "$tmp"
   cd "$tmp"
 }
