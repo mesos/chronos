@@ -91,7 +91,7 @@ export MESOS_NATIVE_LIBRARY="$prefix"/lib/libmesos.so
 java -cp "$prefix"/chronos/target/chronos*.jar com.airbnb.scheduler.Main \
      server "$prefix"/chronos/config/local_scheduler_nozk.yml
 EOF
-chmod ug+x "$prefix"/bin/chronos
+chmod a+rx "$prefix"/bin/chronos
 }
 
 function debs {
