@@ -135,16 +135,17 @@ function tmp {
 function task_wrapper {
   local dir="$(pwd -P)"
   local t0="$(date +%T)"
-  msg "$1 $t0 Starting..."
+  msg "$1 $t0 start..."
   if "$@" 1>task.out 2>task.err
-  then msg "$1 $t0/$(date +%T)"
+  then msg "$1 $t0/$(date +%T) ...finish"
   else
     local x=$?
     msg "==== tail -n20 $dir/task.out"
     tail -n20 "$dir"/task.out >&2
+    echo
     msg "==== tail -n20 $dir/task.err"
     tail -n20 "$dir"/task.err >&2
-    msg "$1 $t0/$(date +%T) failed in $dir."
+    msg "$1 $t0/$(date +%T) failed in $dir"
     return $(( $x == 0 ? 1 : $x ))
   fi
 }
