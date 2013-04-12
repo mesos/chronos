@@ -6,6 +6,9 @@ cat <<USAGE
 
   Installs Chronos in one step.
 
+  Installs all deb packages, downloads and builds Mesos and Chronos from
+  Github and then installs a Chronos wrapper in $prefix/bin.
+
 USAGE
 }; function --help { -h ;}
 
