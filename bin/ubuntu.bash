@@ -153,12 +153,12 @@ function task_wrapper {
   local dir="$(pwd -P)"
   local t0="$(date +%T)"
   msg "$1 $t0 start..."
-  set +o errexit
-  ( set -o errexit
-    "$@" 1>task.out 2>task.err
-    set +o errexit )
-  local code=$?
-  set -o errexit
+  set +o errexit               ## Fancy error code capturing is portable
+  ( set -o errexit             ## across old and new versions of Bash and
+    "$@" 1>task.out 2>task.err ## works with calls to Bash functions as
+    set +o errexit )           ## well as external commands.
+  local code=$?                ####
+  set -o errexit               ####
   if [[ $code -eq 0 ]]
   then
     msg "$1 $t0/$(date +%T) ...finish"
