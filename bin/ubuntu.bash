@@ -95,10 +95,19 @@ function chronos_build {
 }
 
 function chronos_runner {
-cat > /usr/local/bin/chronos <<EOF
-export MESOS_NATIVE_LIBRARY="$prefix"/lib/libmesos.so
-java -cp "$prefix"/chronos/target/chronos*.jar com.airbnb.scheduler.Main \
-     server "$prefix"/chronos/config/local_scheduler_nozk.yml
+cat > "$prefix"/bin/chronos <<EOF
+export MESOS_NATIVE_LIBRARY='$prefix'/lib/libmesos.so
+default='$prefix'/chronos/config/local_scheduler_nozk.yml
+if [ "\$1" = "-h" ]
+then
+cat <<USAGE
+ USAGE: chronos
+        chronos /path/to/config
+USAGE
+else
+  java -cp '$prefix'/chronos/target/chronos*.jar com.airbnb.scheduler.Main \
+       server "\${1:-\$default}"
+fi
 EOF
 chmod a+rx "$prefix"/bin/chronos
 }
