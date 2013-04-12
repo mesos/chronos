@@ -2,11 +2,9 @@
 set -o errexit -o nounset -o pipefail
 function -h {
 cat <<USAGE
- USAGE: one-step.bash
-        one-step.bash os_x|ubuntu|...
+ USAGE: ubuntu.bash
 
-  Installs Chronos in one step. With no arguments, auto detects your OS and
-  performs appropriate installation.
+  Installs Chronos in one step.
 
 USAGE
 }; function --help { -h ;}
