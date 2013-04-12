@@ -42,7 +42,7 @@ function os_x {(
 )}
 
 ubuntu_debs=( autoconf make gcc g++ cpp patch python-dev libtool
-              default-jdk default-jdk-builddep default-jre maven 
+              default-jdk default-jdk-builddep default-jre maven
               gzip libghc-zlib-dev libcurl4-openssl-dev )
 function ubuntu {(
   tmp
@@ -60,7 +60,10 @@ function mesos {(
 )}
 
 function mesos_download {
-  github_tgz apache/mesos "$mesos_ref" | tgz_into mesos
+  if [[ -d mesos ]]
+  then msg "Already downloaded Mesos."
+  else github_tgz apache/mesos "$mesos_ref" | tgz_into mesos
+  fi
 }
 
 function mesos_build {
@@ -80,7 +83,10 @@ function chronos {(
 )}
 
 function chronos_download {
-  github_tgz airbnb/chronos "$chronos_ref" | tgz_into chronos
+  if [[ -d chronos ]]
+  then msg "Already downloaded Chronos."
+  else github_tgz airbnb/chronos "$chronos_ref" | tgz_into chronos
+  fi
 }
 
 function chronos_build {
@@ -110,8 +116,10 @@ function github_tgz {
 }
 
 function tgz_into {
-  mkdir -p "$1"
-  tar -xz -C "$1" --strip-components 1 # Yes, this is portable.
+  local rand="$1"."$(printf '%04x%04x\n' $RANDOM $RANDOM)"
+  mkdir -p "$rand"
+  tar -xz -C "$rand" --strip-components 1 # Yes, this last option is portable.
+  mv "$rand" "$1"
 }
 
 declare hasher
@@ -126,7 +134,7 @@ function hasher {
 }
 
 tmp_msg=false
-tmp=/tmp/chronos-build."$(hasher "$prefix" "$chronos_ref" "$mesos_ref")" 
+tmp=/tmp/chronos-build."$(hasher "$prefix" "$chronos_ref" "$mesos_ref")"
 function tmp {
   $tmp_msg || msg "Building in $tmp"
   tmp_msg=true
