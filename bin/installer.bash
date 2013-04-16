@@ -30,6 +30,24 @@ function install_mesos {
       no)
         echo "Type the target directory (absolute path) where you would like mesos to be installed followed by [ENTER]:"
         read dest_dir
+        if [[ -d "$dest_dir/src" ]]; then
+          echo "A Mesos install already exists in this directory, would you like to delete it? Type 'yes' or 'no' followed by [ENTER]"
+          read delete_dest_dir
+          case $delete_dest_dir in
+            no)
+              echo "Error: Mesos already exists in this directory. Aborting."
+              exit 1
+              ;;
+            yes)
+              echo "Removing $dest_dir/src"
+              rm -rf $dest_dir/src
+              ;;
+            *)
+              echo "Error: Input not understood. Please answer with 'yes' or 'no'."
+              install_mesos
+              ;;
+          esac
+        fi
         echo "Trying to create ${dest_dir}"
         mkdir -p "$dest_dir"
         local esc_dest_dir="${dest_dir//\//\\/}"
@@ -88,4 +106,3 @@ install_mesos
 install_chronos
 echo "Starting chronos..."
 bash "${BIN_DIRECTORY}/start-chronos.bash"
-
