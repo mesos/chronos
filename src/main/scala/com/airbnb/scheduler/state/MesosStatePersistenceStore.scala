@@ -85,7 +85,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
     JobUtils.fromBytes(bytes.value)
   }
 
-  def getJobs(): Iterator[BaseJob] = {
+  def getJobs: Iterator[BaseJob] = {
 
     import scala.collection.JavaConversions._
 
@@ -118,7 +118,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
     results.toList
   }
 
-  def getTasks(): Map[String, Array[Byte]] = {
+  def getTasks: Map[String, Array[Byte]] = {
     lock.synchronized {
       val results = new mutable.HashMap[String, Array[Byte]]
 

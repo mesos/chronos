@@ -172,7 +172,7 @@ class JobGraph {
     val exporter = new DOTExporter[String, DefaultEdge](new IntegerNameProvider,new StringNameProvider, null)
     exporter.export(stw, dag)
     stw.flush()
-    val result = stw.getBuffer.toString;
+    val result = stw.getBuffer.toString
     stw.close()
     result
   }

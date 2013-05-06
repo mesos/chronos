@@ -88,14 +88,15 @@ object TaskUtils {
       taskManager.removeTask(key)
       if (due == 0L) {
         log.info("Enqeueuing at once")
-        taskManager.scheduleTask(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt), job, true)
+        taskManager.scheduleTask(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt), job, persist = true)
       } else if (due > 0L) {
         log.info("Enqueuing later")
         val newDueTime = DateTime.now(DateTimeZone.UTC).plus(due)
         taskManager.scheduleDelayedTask(
-          new ScheduledTask(TaskUtils.getTaskId(job, newDueTime, attempt), newDueTime, job, taskManager), due, true)
+          new ScheduledTask(TaskUtils.getTaskId(job, newDueTime, attempt), newDueTime, job, taskManager), due, persist = true)
       } else {
-        log.info("Filtering out old task '%s' overdue by '%d' ms and removing from store.".format(key, due))
+        log.info(("Filtering out old task '" +
+          "%s' overdue by '%d' ms and removing from store.").format(key, due))
       }
     })
   }

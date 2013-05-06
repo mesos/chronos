@@ -51,9 +51,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     if (baseJob.isInstanceOf[DependencyBasedJob]) {
       val depJob = baseJob.asInstanceOf[DependencyBasedJob]
       json.writeFieldName("parents")
-      json.writeStartArray
+      json.writeStartArray()
       depJob.parents.foreach(json.writeString(_))
-      json.writeEndArray
+      json.writeEndArray()
     } else if (baseJob.isInstanceOf[ScheduleBasedJob]) {
       val schedJob = baseJob.asInstanceOf[ScheduleBasedJob]
       json.writeFieldName("schedule")
@@ -62,7 +62,7 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }
 
-    json.writeEndObject
-    json.close
+    json.writeEndObject()
+    json.close()
   }
 }

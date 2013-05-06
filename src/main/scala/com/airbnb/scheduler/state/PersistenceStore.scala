@@ -59,11 +59,11 @@ trait PersistenceStore {
    * Gets all tasks from the underlying store
    * @return
    */
-  def getTasks(): Map[String, Array[Byte]]
+  def getTasks: Map[String, Array[Byte]]
 
   /**
    * Returns all jobs from the underlying store
    * @return
    */
-  def getJobs(): Iterator[BaseJob]
+  def getJobs: Iterator[BaseJob]
 }

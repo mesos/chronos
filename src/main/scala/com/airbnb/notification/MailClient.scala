@@ -41,7 +41,7 @@ class MailClient(
       email.setMsg(message.get)
     }
 
-    email.setSSL(true)
+    email.setSSLOnConnect(true)
     email.setSmtpPort(mailPort)
     val response = email.send
     log.info("Sent email to '%s' with subject: '%s', got response '%s'".format(to, subject, response))

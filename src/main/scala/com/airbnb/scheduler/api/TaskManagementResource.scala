@@ -53,7 +53,7 @@ class TaskManagementResource @Inject()(
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
     }
   }
@@ -71,7 +71,7 @@ class TaskManagementResource @Inject()(
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
     }
   }
@@ -83,15 +83,15 @@ class TaskManagementResource @Inject()(
     log.info("Task purge request received")
     try {
       persistenceStore.purgeTasks()
-      taskManager.queue.clear
+      taskManager.queue.clear()
       return Response.noContent().build()
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
     }
   }
 }
 
-case class TaskNotification(@JsonProperty @BeanProperty val statusCode: Int)
+case class TaskNotification(@JsonProperty @BeanProperty statusCode: Int)
