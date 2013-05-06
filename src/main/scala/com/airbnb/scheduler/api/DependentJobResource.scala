@@ -33,10 +33,10 @@ class DependentJobResource @Inject()(
       log.info("Received request for job:" + job.toString)
 
       require(JobUtils.isValidJobName(job.name),
-        "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString))
+        "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
       if (job.parents.isEmpty) throw new Exception("Error, parent does not exist")
 
-      jobScheduler.registerJob(List(job), true)
+      jobScheduler.registerJob(List(job), persist = true)
       Response.noContent().build()
     } catch {
       case ex: IllegalArgumentException => {

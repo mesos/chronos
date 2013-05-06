@@ -11,7 +11,6 @@ import jobs.JobScheduler
 class SchedulerHealthCheck @Inject()(val jobScheduler: JobScheduler) extends HealthCheck("scheduler-health") {
 
   //TODO(FL): Implement
-  override def check(): Result = {
-    return Result.healthy
-  }
+  override def check(): Result =
+    Result.healthy
 }

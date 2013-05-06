@@ -33,7 +33,7 @@ object JobUtils {
   mod.addSerializer(classOf[DescriptiveStatistics], new DescriptiveStatisticsSerializer)
   objectMapper.registerModule(mod)
 
-  def updateJobStat(jobName: String, timeMs: Long) = {
+  def updateJobStat(jobName: String, timeMs: Long) {
     val stat = stats.getOrElseUpdate(jobName, new DescriptiveStatistics(maxValues))
     stat.addValue(timeMs)
   }
@@ -43,10 +43,8 @@ object JobUtils {
     objectMapper.writeValueAsString(snapshot)
   }
 
-  def toBytes[T <: BaseJob](job: T): Array[Byte] = {
-    val strVal = objectMapper.writeValueAsString(job)
-    return strVal.getBytes(Charsets.UTF_8)
-  }
+  def toBytes[T <: BaseJob](job: T): Array[Byte] =
+    objectMapper.writeValueAsString(job).getBytes(Charsets.UTF_8)
 
   def fromBytes(data: Array[Byte]): BaseJob = {
     //TODO(FL): Fix this, as it is very inefficient since we're parsing twice.
@@ -77,7 +75,7 @@ object JobUtils {
     val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
     import scala.collection.JavaConversions._
 
-    val jobs = store.getJobs()
+    val jobs = store.getJobs
 
     jobs.foreach {
       case d: DependencyBasedJob => dependencyBasedJobs += d

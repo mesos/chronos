@@ -46,8 +46,8 @@ class MesosJobFramework @Inject()(
   def resourceOffers(schedulerDriver: SchedulerDriver, offers: java.util.List[Offer]) {
     log.info("Received resource offer\n")
     import scala.collection.JavaConverters._
-    for (val offer: Offer <- offers.asScala) {
-      val opt: Option[(String, BaseJob)] = taskManager.getTask()
+    for (offer: Offer <- offers.asScala) {
+      val opt: Option[(String, BaseJob)] = taskManager.getTask
       opt match {
         case Some((x, j)) => {
           log.info("Task '%s' scheduled for slave '%s' on host '%s' with offerId: '%s'"
@@ -56,7 +56,7 @@ class MesosJobFramework @Inject()(
         }
         case None =>  {
           log.info("No task scheduled! Declining offer:" + offer.getId)
-          mesosDriver.get.declineOffer(offer.getId)
+          mesosDriver.get().declineOffer(offer.getId)
         }
       }
     }
@@ -114,7 +114,7 @@ class MesosJobFramework @Inject()(
   @Override
   def error(schedulerDriver: SchedulerDriver, message: String) {
     log.info("Error: " + message)
-    scheduler.stop
+    scheduler.stop()
   }
 
   /* END Overridden methods from MesosScheduler */
@@ -144,7 +144,7 @@ class MesosJobFramework @Inject()(
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
 
     import scala.collection.JavaConverters._
-    val status: Protos.Status = mesosDriver.get.launchTasks(offer.getId, List(mesosTask).asJava, filters)
+    val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
     if (status == Protos.Status.DRIVER_RUNNING) {
       val deleted = taskManager.removeTask(taskId)
       log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"

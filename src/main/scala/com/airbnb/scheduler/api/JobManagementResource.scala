@@ -47,7 +47,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               .format(jobName)))
       }
 
-      jobScheduler.deregisterJob(job, true, force)
+      jobScheduler.deregisterJob(job, persist = true, forceCascade = force)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException => {
@@ -120,7 +120,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
     }
   }

@@ -40,7 +40,7 @@ class Iso8601JobResource @Inject()(
       if (!Iso8601Expressions.canParse(job.schedule)) return Response.status(Response.Status.BAD_REQUEST).build()
 
       //TODO(FL): Create a wrapper class that handles adding & removing jobs!
-      jobScheduler.registerJob(List(job), true)
+      jobScheduler.registerJob(List(job), persist = true)
       iso8601JobSubmissions.incrementAndGet()
       log.info("Added job to JobGraph")
       Response.noContent().build()

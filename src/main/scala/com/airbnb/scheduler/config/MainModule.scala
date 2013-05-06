@@ -46,9 +46,8 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Inject
   @Singleton
   @Provides
-  def provideMesosSchedulerDriverFactory(mesosScheduler: Scheduler, frameworkInfo: FrameworkInfo): MesosDriverFactory = {
-    return new MesosDriverFactory(mesosScheduler, frameworkInfo, config)
-  }
+  def provideMesosSchedulerDriverFactory(mesosScheduler: Scheduler, frameworkInfo: FrameworkInfo): MesosDriverFactory =
+    new MesosDriverFactory(mesosScheduler, frameworkInfo, config)
 
   @Inject
   @Singleton

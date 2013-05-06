@@ -8,7 +8,7 @@ import org.joda.time.format.{ISODateTimeFormat, ISOPeriodFormat}
  * @author Florian Leibert (flo@leibert.de)
  */
 object Iso8601Expressions {
-  private[this] val formatter = ISODateTimeFormat.dateTime;
+  private[this] val formatter = ISODateTimeFormat.dateTime
   val iso8601ExpressionRegex = """(R[0-9]*)/(.*)/(P.*)?""".r
 
   /**
@@ -37,12 +37,11 @@ object Iso8601Expressions {
    * @param input
    * @return
    */
-  def canParse(input: String): Boolean = {
+  def canParse(input: String): Boolean =
     input match {
-      case iso8601ExpressionRegex(repeatStr, startStr, periodStr) => return true
-      case _ => return false
+      case iso8601ExpressionRegex(repeatStr, startStr, periodStr) => true
+      case _ => false
     }
-  }
 
   /**
    * Creates a valid Iso8601Expression based on the input parameters.
