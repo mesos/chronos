@@ -99,7 +99,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           .filter(_.nonEmpty).map(_.get)
         if (newStreams.nonEmpty) {
           log.info("updating ScheduleBasedJob:" + newJob.toString)
-          val tmpStreams = streams.filter(_.head._2 != newJob.name)
+          val tmpStreams = streams.filter(_.head()._2 != newJob.name)
           streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
         }
       }
@@ -339,7 +339,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     return removeOldSchedules(schedules.map(s => scheduleStream(dateTime, s)))
   }
 
-  def run(dateSupplier: Function0[DateTime]) {
+  def run(dateSupplier: () => DateTime) {
     log.info("Starting run loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
     while (running.get) {
       lock.synchronized {
@@ -391,7 +391,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         log.info("Task ready for scheduling: %s".format(nextDate))
         //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
         val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
-        return (Some(task), stream.tail)
+        return (Some(task), stream.tail())
       }
       //The nextDate has passed already beyond epsilon.
       //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
@@ -400,14 +400,14 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       }
       //Needs to be scheduled at a later time, after schedule horizon.
       log.fine("No need to work on schedule: '%s' yet".format(nextDate))
-      if (stream.tail.isEmpty) {
+      if (stream.tail().isEmpty) {
         //TODO(FL): Verify that this can go.
         persistenceStore.removeJob(job)
         log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
         return (None, None)
       }
       else log.info("tail:" + stream.tail().get.schedule)
-      return next(now, stream.tail.get)
+      return next(now, stream.tail().get)
     }
   }
 
@@ -421,7 +421,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     } else {
       val encapsulatedJob = taskOption.get.job
       log.info("Scheduling:" + taskOption.get.job.name)
-      taskManager.scheduleDelayedTask(taskOption.get, taskManager.getMillisUntilExecution(taskOption.get.due), true)
+      taskManager.scheduleDelayedTask(taskOption.get, taskManager.getMillisUntilExecution(taskOption.get.due), persist = true)
       /*TODO(FL): This needs some refactoring. Ideally, the task should only be persisted once it has been submitted
                   to mesos, however if we were to do this with the current design, there could be missed tasks if
                   the scheduler went down before having fired off the jobs, since we're scheduling ahead of time.
@@ -501,7 +501,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
     if (abdicateCmd != null) {
       log.info("Abdicating.")
-      abdicateCmd.execute
+      abdicateCmd.execute()
       abdicateCmd = null
     }
   }
@@ -510,7 +510,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   //Begin Leader interface, which is required for CandidateImpl.
   def onDefeated() {
-    mesosDriver.close
+    mesosDriver.close()
 
     log.info("Defeated. Not the current leader.")
     if (abdicateCmd != null) {
@@ -546,7 +546,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
     val f = executor.submit(
       new Thread() {
-        override def run {
+        override def run() {
           log.info("Running background thread")
           val dateSupplier = () => {
             DateTime.now(DateTimeZone.UTC)
@@ -557,7 +557,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
     schedulerThreadFuture.set(f)
     log.info("Starting mesos driver")
-    mesosDriver.get.start()
+    mesosDriver.get().start()
   }
 
   //End Leader interface

@@ -31,7 +31,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   @Provides
   def provideZookeeperClient(zkServer: Option[NIOServerCnxn.Factory]): ZooKeeperClient = {
     import collection.JavaConversions._
-    new ZooKeeperClient(Amount.of(config.zookeeperTimeoutMs, Time.MILLISECONDS), parseZkServers)
+    new ZooKeeperClient(Amount.of(config.zookeeperTimeoutMs, Time.MILLISECONDS), parseZkServers())
   }
 
   @Inject
@@ -68,14 +68,14 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
       val tickTime = 10000
       val dataDirectory = System.getProperty("java.io.tmpdir")
       val tmpTime = System.currentTimeMillis()
-      val dir = new File(dataDirectory, "chronos-zookeeper-%d".format(tmpTime)).getAbsoluteFile()
+      val dir = new File(dataDirectory, "chronos-zookeeper-%d".format(tmpTime)).getAbsoluteFile
       if (!dir.exists()) {
         require(dir.mkdir(), "Cannot create directory for internal zookeeper:" + dir.toString)
       } else {
         require(dir.isDirectory, "File %s is not a directory!".format(dir.toString))
       }
       val server = new ZooKeeperServer(dir, dir, tickTime)
-      val zkServers = parseZkServers
+      val zkServers = parseZkServers()
       val standaloneServerFactory = new NIOServerCnxn.Factory(
         new InetSocketAddress(zkServers(0).getPort))
       standaloneServerFactory.startup(server)
@@ -86,14 +86,14 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
     }
   }
 
-  private def isInProcess(): Boolean = {
+  private def isInProcess: Boolean = {
     log.info(config.zookeeperServers)
     val servers = config.zookeeperServers.split(",")
     return servers.size == 1 && servers(0).split(":")(0) == "--"
   }
 
-  private def getZkServerString(): String = {
-    if (isInProcess()) {
+  private def getZkServerString: String = {
+    if (isInProcess) {
       config.zookeeperServers.replaceAll("--", "localhost")
     } else {
       config.zookeeperServers

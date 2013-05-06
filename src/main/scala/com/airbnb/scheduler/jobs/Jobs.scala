@@ -39,7 +39,7 @@ trait BaseJob {
 
 @JsonDeserialize(using = classOf[JobsDeserializer])
 case class ScheduleBasedJob(
-    @JsonProperty val schedule: String,
+    @JsonProperty schedule: String,
     @JsonProperty override val name: String,
     @JsonProperty override val command: String,
     @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,
@@ -56,7 +56,7 @@ case class ScheduleBasedJob(
 
 
 @JsonDeserialize(using = classOf[JobsDeserializer])
-case class DependencyBasedJob(@JsonProperty val parents: List[String],
+case class DependencyBasedJob(@JsonProperty parents: List[String],
     @JsonProperty override val name: String,
     @JsonProperty override val command: String,
     @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,

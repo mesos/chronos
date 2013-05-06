@@ -10,7 +10,7 @@ import scala.Array
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.jobs.graph.Exporter
-import com.airbnb.scheduler.graph.{JobGraph}
+import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
 import com.yammer.metrics.annotation.Timed
 
@@ -38,7 +38,7 @@ class GraphManagementResource @Inject()(
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
     }
   }
@@ -55,7 +55,7 @@ class GraphManagementResource @Inject()(
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
     }
   }

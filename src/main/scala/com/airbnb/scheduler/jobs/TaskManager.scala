@@ -42,7 +42,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * Returns the first task in the job queue
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
    */
-  def getTask(): Option[(String, BaseJob)] = {
+  def getTask: Option[(String, BaseJob)] = {
     val taskId = queue.poll()
     if (taskId == null) {
       log.fine("Queue empty")
@@ -80,6 +80,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
           x => x._1 != task.taskId
         }))
       }
+      case _ =>
     }
   }
 
@@ -87,7 +88,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * Cancels all tasks that are delay scheduled with the underlying executor.
    */
   def flush() {
-    taskMapping.clone.values.map({
+    taskMapping.clone().values.map({
       f =>
         f.foreach({
           (f) =>
@@ -174,6 +175,6 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       .filter(_._2 == TaskState.TASK_RUNNING)
       .foreach({ x =>
       log.warning("Killing task '%s'".format(x._1))
-      mesosDriver.get.killTask(TaskID.newBuilder().setValue(x._1).build()) })
+      mesosDriver.get().killTask(TaskID.newBuilder().setValue(x._1).build()) })
   }
 }

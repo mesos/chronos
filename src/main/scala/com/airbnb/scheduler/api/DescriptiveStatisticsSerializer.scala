@@ -34,7 +34,7 @@ class DescriptiveStatisticsSerializer extends JsonSerializer[DescriptiveStatisti
     json.writeFieldName("count")
     json.writeNumber(stat.getN)
 
-    json.writeEndObject
-    json.close
+    json.writeEndObject()
+    json.close()
   }
 }
