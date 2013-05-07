@@ -28,7 +28,7 @@
         <jgrapht.version>0.8.3</jgrapht.version>
         <joda-convert.version>1.3.1</joda-convert.version>
         <joda-time.version>2.2</joda-time.version>
-        <protobuf.version>2.5.0</protobuf.version>
+        <protobuf.version>2.4.1</protobuf.version>
 
         <!-- build deps versions -->
         <closure-compiler.version>v20130411</closure-compiler.version>
