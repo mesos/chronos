@@ -53,9 +53,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   var streams: List[ScheduleStream] = List()
   var abdicateCmd: ExceptionalCommand[JoinException] = null
 
-  def isLeader: Boolean = return leader.get
+  def isLeader: Boolean = leader.get
 
-  def getLeader: String = return new String(candidate.getLeaderData)
+  def getLeader: String = new String(candidate.getLeaderData)
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
     if (!mailClient.isEmpty) {
@@ -68,7 +68,10 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   def isTaskAsync(taskId: String): Boolean = {
     val TaskUtils.taskIdPattern(jobName, _, _) = taskId
-    jobGraph.lookupVertex(jobName).get.async
+    jobGraph.lookupVertex(jobName) match {
+      case Some(baseJob: BaseJob) => baseJob.async
+      case _ => false
+    }
   }
 
   def replaceJob(oldJob: BaseJob, newJob: BaseJob) {
@@ -279,7 +282,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
         in between */
       if (job.isInstanceOf[ScheduleBasedJob]) {
-        val (recurrences, nextDate, period) = Iso8601Expressions.parse(job.asInstanceOf[ScheduleBasedJob].schedule)
+        val (recurrences, _, _) = Iso8601Expressions.parse(job.asInstanceOf[ScheduleBasedJob].schedule)
         if (recurrences == 0) {
           log.info("Removing job that reached a zero-recurrence count!")
           persistenceStore.removeJob(job)
@@ -292,7 +295,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
     } else {
-      val (jobName, due, attempt) = TaskUtils.parseTaskId(taskId)
+      val (jobName, _, attempt) = TaskUtils.parseTaskId(taskId)
       log.warning("Task of job: %s failed.".format(jobName))
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
