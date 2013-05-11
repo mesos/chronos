@@ -40,7 +40,7 @@ class TaskManagementResource @Inject()(
   def updateStatus(@PathParam("id") id: String, taskNotification: TaskNotification): Response = {
     log.info("Update request received")
     try {
-      log.info("Received update for asynchroneous taskId: %s, statusCode: %d".format(id, taskNotification.statusCode))
+      log.info("Received update for asynchronous taskId: %s, statusCode: %d".format(id, taskNotification.statusCode))
 
       if (taskNotification.statusCode == 0) {
         log.info("Task completed successfully '%s'".format(id))

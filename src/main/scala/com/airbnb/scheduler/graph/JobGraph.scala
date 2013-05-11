@@ -136,7 +136,7 @@ class JobGraph {
             edgeInvocationCount.put(currentEdge, edgeInvocationCount.get(currentEdge).get + 1)
           }
           val count = edgeInvocationCount.get(currentEdge).get
-          var min = edgesToChild.map(edgeInvocationCount.getOrElse(_, 0L)).min
+          val min = edgesToChild.map(edgeInvocationCount.getOrElse(_, 0L)).min
           if (count == min)
             results += child
         }
