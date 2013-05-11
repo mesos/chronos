@@ -26,7 +26,7 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 `JAVA_CPPFLAGS='-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/' ../configure`
 
 ## My Web UI is not showing up!
-See [docs/WEBUI.md](/airbnb/chronos/blob/master/docs/WEBUI.md).
+See [docs/WEBUI.md](/docs/WEBUI.md).
 
 ## When running jobs locally I get an error like `Failed to execute 'chown -R'`
 
