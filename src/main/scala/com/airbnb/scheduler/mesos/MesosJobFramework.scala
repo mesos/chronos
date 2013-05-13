@@ -136,7 +136,7 @@ class MesosJobFramework @Inject()(
             Protos.Value.Scalar.newBuilder()
               .setValue(x.getScalar.getValue / math.max(x.getScalar.getValue, 1))).setName(x.getName))
       } else {
-        log.warning("Ignoring offered resource:" + x.getType)
+        log.warning("Ignoring offered resource: %s".format(x.getType.toString))
       })
 
     val mesosTask = taskInfoTemplate.setSlaveId(offer.getSlaveId).build()
