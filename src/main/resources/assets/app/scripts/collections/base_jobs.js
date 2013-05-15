@@ -124,9 +124,8 @@ define([
      * count increments the count of jobs
      * on a given date
      *
-     * @params {Int} dayYear
-     *    Equals day [0,366] + year (2012). 
-     *    See app.Helpers.dayYear
+     * @param {Int} dayYear Equals day [0,366] + year (2012)
+     * @see app.Helpers.dayYear
      * @returns this
      */
     count: function(dayYear) {
