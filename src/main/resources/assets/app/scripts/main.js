@@ -16,7 +16,7 @@ require.config({
     'bootstrap/timepicker'  : 'vendor/bootstrap-timepicker/js/bootstrap-timepicker',
     'd3'                    : 'vendor/d3.v3',
     'underscore'            : 'vendor/lodash',
-    'moment'                : 'vendor/moment',
+    'moment'                : 'vendor/moment.min',
     'backpack'              : 'vendor/backpack',
     'jquery/autotype'       : 'vendor/bootstrap-timepicker/js/jquery.autotype',
     'jquery/select2'        : 'vendor/select2',

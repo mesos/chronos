@@ -16,10 +16,11 @@
     closure: {
       CompilerOptions: {},
       CompilationLevel: 'SIMPLE_OPTIMIZATIONS',
-      loggingLevel: 'WARNING'
+      loggingLevel: 'SEVERE'
     },
-    fileExclusionRegExp: /^\.|spec/,
-    generateSourceMaps: true,
+    fileExclusionRegExp: /^\.|spec|tests/,
+    optimizeCss: "standard.keepLines",
+    generateSourceMaps: false,
     preserveLicenseComments: false,
     modules: [
       {
