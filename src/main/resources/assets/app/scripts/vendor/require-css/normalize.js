@@ -21,11 +21,6 @@
  * url('*')
  * url("*")
  * 
- * @import '*'
- * @import "*"
- *
- * (and so also @import url(*) variations)
- *
  * For urls needing normalization
  *
  */
