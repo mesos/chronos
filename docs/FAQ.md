@@ -7,7 +7,8 @@
 
 ## [osx] Making mesos fails on deprecated header warning
 Error message such as:
-`conftest.cpp:7: warning: 'JNI_CreateJavaVM' is deprecated (declared at /System/Library/Frameworks/JavaVM.framework/Headers/jni.h:1937)`
+
+    conftest.cpp:7: warning: 'JNI_CreateJavaVM' is deprecated (declared at /System/Library/Frameworks/JavaVM.framework/Headers/jni.h:1937)
 
 This error is the result of OSX shipping with an outdated version of the JDK and associated libraries. To resolve this issue, do the following.
 
@@ -22,8 +23,9 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 * `$JAVA_HOME` in this example is `/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home`
 * The current working directory is `mesos/build` as advised by the [mesos README](https://github.com/apache/mesos/blob/trunk/README#L13)  
 
-**Example:**  
-`JAVA_CPPFLAGS='-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/' ../configure`
+**Example:**
+
+    JAVA_CPPFLAGS='-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/' ../configure
 
 ## My Web UI is not showing up!
 See [docs/WEBUI.md](/docs/WEBUI.md).
