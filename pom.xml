@@ -23,6 +23,7 @@
         <!-- runtime deps versions -->
         <commons-math3.version>3.2</commons-math3.version>
         <dropwizard.version>0.6.2</dropwizard.version>
+        <dropwizard.configurable-assets-bundle.version>0.1.10</dropwizard.configurable-assets-bundle.version>
         <guava.version>14.0.1</guava.version>
         <guice.version>3.0</guice.version>
         <jgrapht.version>0.8.3</jgrapht.version>
@@ -135,7 +136,7 @@
         <dependency>
             <groupId>com.bazaarvoice.dropwizard</groupId>
             <artifactId>dropwizard-configurable-assets-bundle</artifactId>
-            <version>0.1.9</version>
+            <version>${dropwizard.configurable-assets-bundle.version}</version>
         </dependency>
         <dependency>
             <groupId>net.sf.jgrapht</groupId>
@@ -278,6 +279,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
                     <jvmArgs>
                         <jvmArg>-Xmx2G</jvmArg>
                     </jvmArgs>
@@ -366,22 +368,6 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>${scala-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                </configuration>
-            </plugin>
             <!-- TODO: Add maven/scalastyle-check -->
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
