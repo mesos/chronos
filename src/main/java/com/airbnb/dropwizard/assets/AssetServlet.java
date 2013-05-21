@@ -60,6 +60,7 @@ class AssetServlet extends HttpServlet {
         AssetLoader loader = new AssetLoader(resourcePath, uriPath, indexFile, overrides);
         this.cache = CacheBuilder.from(spec).weigher(new AssetSizeWeigher()).build(loader);
         this.mimeTypes = new MimeTypes();
+        this.mimeTypes.addMimeMapping("js", "application/javascript");
     }
 
     /**
@@ -118,7 +119,7 @@ class AssetServlet extends HttpServlet {
             if (mimeType != null) {
                 try {
                     mediaType = MediaType.parse(mimeType.toString());
-                    if (defaultCharset != null && mediaType.is(MediaType.ANY_TEXT_TYPE)) {
+                    if (defaultCharset != null && !mediaType.charset().isPresent()) {
                         mediaType = mediaType.withCharset(defaultCharset);
                     }
                 } catch (IllegalArgumentException ignore) {}

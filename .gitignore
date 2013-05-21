@@ -12,3 +12,4 @@ src/main/resources/assets/components
 chronos.arx
 chronos.tbz
 .classpath.txt
+dependency-reduced-pom.xml

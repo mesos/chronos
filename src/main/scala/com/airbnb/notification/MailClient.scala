@@ -1,6 +1,5 @@
 package com.airbnb.notification
 
-import java.text.SimpleDateFormat
 import java.util.logging.{Level, Logger}
 import scala.actors.{Exit, Actor}
 
