@@ -89,7 +89,8 @@ define([
     } else if (typeof java !== "undefined" && typeof java.io !== "undefined") {
         fetchText = function(path, callback) {
             var f = new java.io.File(path);
-            var is = new java.io.FileReader(f);
+            var fis = new java.io.FileInputStream(f);
+            var is = new java.io.InputStreamReader(fis, java.nio.charset.Charset.forName('UTF-8'));
             var reader = new java.io.BufferedReader(is);
             var line;
             var text = "";

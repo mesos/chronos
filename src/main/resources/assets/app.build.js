@@ -14,7 +14,9 @@
     findNestedDependencies: true,
     optimize: "closure",
     closure: {
-      CompilerOptions: {},
+      CompilerOptions: {
+      },
+      charset: 'UTF-8',
       CompilationLevel: 'SIMPLE_OPTIMIZATIONS',
       loggingLevel: 'SEVERE'
     },
