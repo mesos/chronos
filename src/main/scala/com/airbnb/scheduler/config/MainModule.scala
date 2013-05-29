@@ -60,7 +60,8 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       candidate: Candidate,
       mailClient: Option[MailClient]): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds).toPeriod, taskManager,
-      dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient)
+      dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient,
+      config.failureRetryDelay)
   }
 
   @Inject
