@@ -56,7 +56,8 @@ case class ScheduleBasedJob(
 
 
 @JsonDeserialize(using = classOf[JobsDeserializer])
-case class DependencyBasedJob(@JsonProperty parents: List[String],
+case class DependencyBasedJob(
+    @JsonProperty parents: Set[String],
     @JsonProperty override val name: String,
     @JsonProperty override val command: String,
     @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,

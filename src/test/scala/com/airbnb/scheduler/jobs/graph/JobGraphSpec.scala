@@ -10,8 +10,8 @@ class JobGraphSpec extends SpecificationWithJUnit with Mockito {
 
   "JobGraph" should {
     "Adding a parent and child to the graph works as expected" in {
-      val a = new DependencyBasedJob(List(), "A", "noop")
-      val b = new DependencyBasedJob(List(), "B", "noop")
+      val a = new DependencyBasedJob(Set(), "A", "noop")
+      val b = new DependencyBasedJob(Set(), "B", "noop")
       val g = new JobGraph()
       g.addVertex(a)
       g.addVertex(b)
@@ -20,9 +20,9 @@ class JobGraphSpec extends SpecificationWithJUnit with Mockito {
     }
 
     "Adding a circular dependency should not be allowed" in {
-      val a = new DependencyBasedJob(List(), "A", "noop")
-      val b = new DependencyBasedJob(List(), "B", "noop")
-      val c = new DependencyBasedJob(List(), "C", "noop")
+      val a = new DependencyBasedJob(Set(), "A", "noop")
+      val b = new DependencyBasedJob(Set(), "B", "noop")
+      val c = new DependencyBasedJob(Set(), "C", "noop")
       val g = new JobGraph()
       g.addVertex(a)
       g.addVertex(b)
@@ -33,26 +33,26 @@ class JobGraphSpec extends SpecificationWithJUnit with Mockito {
     }
 
     "Adding nodes with the same name should not be allowed" in {
-      val a = new DependencyBasedJob(List(), "A", "noop")
-      val b = new DependencyBasedJob(List(), "A", "noop")
+      val a = new DependencyBasedJob(Set(), "A", "noop")
+      val b = new DependencyBasedJob(Set(), "A", "noop")
       val g = new JobGraph()
       g.addVertex(a)
       g.addVertex(b) must throwA[Exception]
     }
 
     "Adding the same edge twice is idempotent" in {
-      val a = new DependencyBasedJob(List(), "A", "noop")
-      val b = new DependencyBasedJob(List(), "A", "noop")
+      val a = new DependencyBasedJob(Set(), "A", "noop")
+      val b = new DependencyBasedJob(Set(), "A", "noop")
       val g = new JobGraph()
       g.addVertex(a)
       g.addVertex(b) must throwA[Exception]
     }
 
     "Adding dependencies should create proper edges" in {
-      val a = new DependencyBasedJob(List(), "A", "noop")
-      val b = new DependencyBasedJob(List(), "B", "noop")
-      val c = new DependencyBasedJob(List(), "C", "noop")
-      val d = new DependencyBasedJob(List(), "D", "noop")
+      val a = new DependencyBasedJob(Set(), "A", "noop")
+      val b = new DependencyBasedJob(Set(), "B", "noop")
+      val c = new DependencyBasedJob(Set(), "C", "noop")
+      val d = new DependencyBasedJob(Set(), "D", "noop")
       val g = new JobGraph()
       g.addVertex(a)
       g.addVertex(b)
@@ -73,11 +73,11 @@ class JobGraphSpec extends SpecificationWithJUnit with Mockito {
        *      /
        * C --
        */
-      val a = new DependencyBasedJob(List(), "A", "noop")
-      val b = new DependencyBasedJob(List(), "B", "noop")
-      val c = new DependencyBasedJob(List(), "C", "noop")
-      val d = new DependencyBasedJob(List(), "D", "noop")
-      val e = new DependencyBasedJob(List(), "E", "noop")
+      val a = new DependencyBasedJob(Set(), "A", "noop")
+      val b = new DependencyBasedJob(Set(), "B", "noop")
+      val c = new DependencyBasedJob(Set(), "C", "noop")
+      val d = new DependencyBasedJob(Set(), "D", "noop")
+      val e = new DependencyBasedJob(Set(), "E", "noop")
       val graph = new JobGraph()
       graph.addVertex(a)
       graph.addVertex(b)
@@ -109,10 +109,10 @@ class JobGraphSpec extends SpecificationWithJUnit with Mockito {
     }
 
     "Replacing a vertex works" in {
-      val a = new DependencyBasedJob(List(), "A", "noopA")
-      val b = new DependencyBasedJob(List(), "B", "noopB")
-      val c = new DependencyBasedJob(List(), "C", "noopC")
-      val d = new DependencyBasedJob(List(), "C", "noopD")
+      val a = new DependencyBasedJob(Set(), "A", "noopA")
+      val b = new DependencyBasedJob(Set(), "B", "noopB")
+      val c = new DependencyBasedJob(Set(), "C", "noopC")
+      val d = new DependencyBasedJob(Set(), "C", "noopD")
 
       val graph = new JobGraph()
       graph.addVertex(a)
