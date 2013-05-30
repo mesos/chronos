@@ -16,7 +16,7 @@ import com.twitter.common.base.ExceptionalCommand
 import com.twitter.common.zookeeper.Group.JoinException
 import com.twitter.common.zookeeper.Candidate
 import com.yammer.dropwizard.lifecycle.Managed
-import org.joda.time.{DateTimeZone, Period, DateTime}
+import org.joda.time.{DateTimeZone, Period, DateTime, Duration}
 import org.joda.time.format.DateTimeFormat
 
 /**
@@ -33,7 +33,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val persistenceStore: PersistenceStore,
                              val mesosDriver: MesosDriverFactory = null,
                              val candidate: Candidate = null,
-                             val mailClient: Option[MailClient] = None)
+                             val mailClient: Option[MailClient] = None,
+                             val failureRetryDelay: Long = 60000)
 //Allows us to let Dropwizard manage the lifecycle of this class.
   extends Managed
   with Leader {
@@ -314,7 +315,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
           if (attempt < job.retries) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
-            val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt + 1)
+            /* Schedule the retry up to 60 seconds in the future */
+            val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC).plus(new Duration(failureRetryDelay)), attempt + 1)
             taskManager.persistTask(taskId, newJob)
             taskManager.enqueue(newTaskId)
           } else {
