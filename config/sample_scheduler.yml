@@ -5,6 +5,7 @@ mailUser: "AWSACCESSKEY"
 mailPassword: "AWSSECRET"
 mailServer: "email-smtp.us-east-1.amazonaws.com:25"
 mailFrom: "alerts@yourcompany.com"
+failureRetryDelay: 60000
 
 http:
     rootPath: /scheduler/*
