@@ -13,29 +13,31 @@ Chronos also supports the definition of jobs triggered by the completion of othe
 
 * [Quick Start](#quick-start)
 * [Features](#features)
+* [Running Chronos](#running-chronos)
+* [Configuring Chronos](#configuring-chronos)
 * [License](#license)
 * [Contributors](#contributors)
 * [Video Introduction](#video-introduction)
 * [Chronos UI](#chronos-ui)
 * [API](#api)
-  - [Leader](#leaders)
-  - [Listing Jobs](#listing-jobs)
-  - [Deleting a Job](#deleting-a-job)
-  - [Deleting All Jobs](#deleting-all-jobs)
-  - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
-  - [Manually Starting a Job](#manually-starting-a-job)
-  - [Adding a Scheduled Job](#adding-a-scheduled-job)
-  - [Adding a Dependent Job](#adding-a-dependent-job)
-  - [Describing the Dependency Graph](#describing-the-dependency-graph)
-  - [Asynchronous Jobs](#asynchronous-jobs)
-  - [Obtaining Remote Executables](#obtaining-remote-executables)
+    - [Leader](#leaders)
+    - [Listing Jobs](#listing-jobs)
+    - [Deleting a Job](#deleting-a-job)
+    - [Deleting All Jobs](#deleting-all-jobs)
+    - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
+    - [Manually Starting a Job](#manually-starting-a-job)
+    - [Adding a Scheduled Job](#adding-a-scheduled-job)
+    - [Adding a Dependent Job](#adding-a-dependent-job)
+    - [Describing the Dependency Graph](#describing-the-dependency-graph)
+    - [Asynchronous Jobs](#asynchronous-jobs)
+    - [Obtaining Remote Executables](#obtaining-remote-executables)
 * [Debugging Chronos Jobs](#debugging-chronos-jobs)
 * [Notes](#notes)
-  - [Environment Variables Mesos Looks For](#environment-variables-mesos-looks-for)
+    - [Environment Variables Mesos Looks For](#environment-variables-mesos-looks-for)
 * [Appendix](#appendix)
-  - [Finding a Node to Talk To](#finding-a-node-to-talk-to)
-  - [Zookeeper](#zookeeper)
-  - [Install Chronos on Amazon Linux](#install-chronos-on-amazon-linux)
+    - [Finding a Node to Talk To](#finding-a-node-to-talk-to)
+    - [Zookeeper](#zookeeper)
+    - [Install Chronos on Amazon Linux](#install-chronos-on-amazon-linux)
 
 
 ## Quick Start
@@ -59,6 +61,30 @@ If you get an error while compiling [mesos][mesos], please consult the [FAQ](htt
 * Fault Tolerance (Hot Master)
 * Configurable Retries
 * Multiple Workers (i.e. Mesos Slaves)
+
+## Running Chronos
+
+We've included some [example run scripts](#example-run-scripts), but the
+basic syntax for launching chronos is:
+
+    java -cp chronos.jar -server com.airbnb.scheduler.Main server config.yml
+
+For more information on configuration options, please see [configuring
+chronos](#configuring-chronos).
+
+### Example Run Scripts
+
+* Example [runit](http://smarden.org/runit/) run script
+
+    [bin/run](/airbnb/chronos/blob/master/bin/run)
+
+* Example local run script
+
+    [bin/start-chronos.bash](/airbnb/chronos/blob/master/bin/start-chronos.bash)
+
+## Configuring Chronos
+
+For information on configuring chronos, please see [config/README.md](/airbnb/chronos/blob/master/config/README.md).
 
 ## License
 
