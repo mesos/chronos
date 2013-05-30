@@ -74,7 +74,7 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   val assets: Option[AssetsConfiguration] = None
 
   @JsonProperty
-  val failureRetryDelay: Int = 60000
+  val failureRetryDelay: Long = 60000
 
   def getAssetsConfiguration: AssetsConfiguration = assets match {
     case Some(assetsConf: AssetsConfiguration) => assetsConf

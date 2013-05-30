@@ -34,7 +34,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val mesosDriver: MesosDriverFactory = null,
                              val candidate: Candidate = null,
                              val mailClient: Option[MailClient] = None,
-                             val failureRetryDelay: Int = 60000)
+                             val failureRetryDelay: Long = 60000)
 //Allows us to let Dropwizard manage the lifecycle of this class.
   extends Managed
   with Leader {
