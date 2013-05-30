@@ -243,7 +243,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1S", jobName)
     val scheduler = new JobScheduler(Period.hours(1), mock[TaskManager], mockGraph, store)
 
-    var startTime = DateTime.parse("2012-01-01T00:00:00.000Z")
+    val startTime = DateTime.parse("2012-01-01T00:00:00.000Z")
     var t: DateTime = startTime
     var stream = scheduler.iteration(startTime, List(jobStream))
     t = t.plus(Period.millis(1).toPeriod)
@@ -256,10 +256,10 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
   "Recursive removing of jobs works" in {
     val epsilon = Seconds.seconds(60).toPeriod
     val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "job1", "CMD", epsilon)
-    val job2 = new DependencyBasedJob(List("job1"), name = "job2", command = "CMD")
-    val job3 = new DependencyBasedJob(List("job2"), name = "job3", command = "CMD")
-    val job4 = new DependencyBasedJob(List("job3"), name = "job4", command = "CMD")
-    val job5 = new DependencyBasedJob(List("job4"), name = "job5", command = "CMD")
+    val job2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD")
+    val job3 = new DependencyBasedJob(Set("job2"), name = "job3", command = "CMD")
+    val job4 = new DependencyBasedJob(Set("job3"), name = "job4", command = "CMD")
+    val job5 = new DependencyBasedJob(Set("job4"), name = "job5", command = "CMD")
 
     val mockTaskManager = mock[TaskManager]
     val jobGraph = new JobGraph
@@ -288,10 +288,10 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
   "Removing a dependency of another job throws an exception without the force method" in {
     val epsilon = Seconds.seconds(60).toPeriod
     val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "job1", "CMD", epsilon)
-    val job2 = new DependencyBasedJob(List("job1"), name = "job2", command = "CMD")
-    val job3 = new DependencyBasedJob(List("job2"), name = "job3", command = "CMD")
-    val job4 = new DependencyBasedJob(List("job3"), name = "job4", command = "CMD")
-    val job5 = new DependencyBasedJob(List("job4"), name = "job5", command = "CMD")
+    val job2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD")
+    val job3 = new DependencyBasedJob(Set("job2"), name = "job3", command = "CMD")
+    val job4 = new DependencyBasedJob(Set("job3"), name = "job4", command = "CMD")
+    val job5 = new DependencyBasedJob(Set("job4"), name = "job5", command = "CMD")
 
     val mockTaskManager = mock[TaskManager]
     val jobGraph = new JobGraph
@@ -316,9 +316,9 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     val epsilon = Seconds.seconds(60).toPeriod
     val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "job1", "CMD", epsilon)
     val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "job2", "CMD", epsilon)
-    val job3 = new DependencyBasedJob(List("job2"), name = "job3", command = "CMD")
-    val job4 = new DependencyBasedJob(List("job1"), name = "job4", command = "CMD")
-    val job5 = new DependencyBasedJob(List("job1", "job3"), name = "job5", command = "CMD")
+    val job3 = new DependencyBasedJob(Set("job2"), name = "job3", command = "CMD")
+    val job4 = new DependencyBasedJob(Set("job1"), name = "job4", command = "CMD")
+    val job5 = new DependencyBasedJob(Set("job1", "job3"), name = "job5", command = "CMD")
 
     val mockTaskManager = mock[TaskManager]
     val jobGraph = new JobGraph
@@ -340,7 +340,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     scheduler.jobGraph.lookupVertex("job2")  must_== None
     scheduler.jobGraph.lookupVertex("job3")  must_== None
     scheduler.jobGraph.lookupVertex("job5").get.asInstanceOf[DependencyBasedJob].parents.size must_== 1
-    scheduler.jobGraph.lookupVertex("job5").get.asInstanceOf[DependencyBasedJob].parents must_== List("job1")
+    scheduler.jobGraph.lookupVertex("job5").get.asInstanceOf[DependencyBasedJob].parents must_== Set("job1")
   }
 
   "Missed executions have to be skipped" in {

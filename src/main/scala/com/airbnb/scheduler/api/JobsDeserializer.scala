@@ -4,6 +4,7 @@ import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDeserializer}
 import org.joda.time.Period
+import scala.collection.JavaConversions._
 
 /**
  * Custom JSON deserializer for jobs.
@@ -60,16 +61,15 @@ class JobsDeserializer extends JsonDeserializer[BaseJob] {
 
     var parentList = scala.collection.mutable.ListBuffer[String]()
     if (node.has("parents")) {
-      import scala.collection.JavaConversions._
       for (parent <- node.path("parents")) {
         parentList += parent.asText
       }
-      return new DependencyBasedJob(parents = parentList.toList,
+      new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async)
     } else if (node.has("schedule")) {
-      return new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
+      new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async)
