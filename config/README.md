@@ -113,6 +113,12 @@ The mail server to use to send notification emails.
 
 The user to send mail as.
 
+### mailSslOn
+
+*Default*: false
+
+Whether or not to enable SSL to send notification emails.
+
 ### master
 
 *Default*: `local`

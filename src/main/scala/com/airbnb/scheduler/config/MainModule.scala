@@ -72,7 +72,7 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       log.warning("No mailFrom or mailServer configured. Email Notfications are disabled!")
       None
     } else {
-      val mailClient = new MailClient(config.mailServer.get, config.mailFrom.get, config.mailUser, config.mailPassword)
+      val mailClient = new MailClient(config.mailServer.get, config.mailFrom.get, config.mailUser, config.mailPassword, config.mailSSLOn)
       log.warning("Starting mail client.")
       mailClient.start()
       Some(mailClient)
