@@ -82,7 +82,8 @@ to retry.
 
 *Default*: `"localhost"`
 
-The hostname registered in zookeeper for the given Chronos node.
+The hostname registered in zookeeper for the given Chronos node. This is necessary
+for redirects to work.
 
 **Note**: It's most likely that you want to override this at the command
 line in order to properly set each Chronos box's hostname. See
