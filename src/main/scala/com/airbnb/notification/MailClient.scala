@@ -7,7 +7,7 @@ import org.apache.commons.mail.{DefaultAuthenticator, SimpleEmail}
 
 /**
  * A very simple mail client that works out of the box with providers such as Amazon SES.
- * TODO(FL): Test with other providers and adjust configuration to allow disabling SSL, etc.
+ * TODO(FL): Test with other providers.
 
  * @author Florian Leibert (flo@leibert.de)
  */
@@ -15,7 +15,8 @@ class MailClient(
     val mailServerString : String,
     val fromUser : String,
     val mailUser : Option[String],
-    val password : Option[String])
+    val password : Option[String],
+    val ssl : Boolean)
   extends Actor {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -40,7 +41,7 @@ class MailClient(
       email.setMsg(message.get)
     }
 
-    email.setSSLOnConnect(true)
+    email.setSSLOnConnect(ssl)
     email.setSmtpPort(mailPort)
     val response = email.send
     log.info("Sent email to '%s' with subject: '%s', got response '%s'".format(to, subject, response))
