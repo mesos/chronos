@@ -60,7 +60,7 @@ and want to see your updates reflected immediately.
 
 Default recipient of all mail notifications.
 
-**Note**: You probably want to change this, as it's doubtful that Flo
+**Note**: You probably want to change this, as it's doubtful that @florianleibert
 wants his inbox spammed.
 
 ### failoverTimeoutSeconds
