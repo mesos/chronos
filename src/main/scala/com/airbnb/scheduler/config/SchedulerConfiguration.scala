@@ -71,7 +71,7 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   val mailFrom: Option[String] = None
 
   @JsonProperty
-  val mailSSLOn: Boolean = false
+  val mailSslOn: Boolean = false
 
   @JsonProperty
   val assets: Option[AssetsConfiguration] = None

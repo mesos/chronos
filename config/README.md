@@ -113,7 +113,7 @@ The mail server to use to send notification emails.
 
 The user to send mail as.
 
-### mailSSLOn
+### mailSslOn
 
 *Default*: false
 
