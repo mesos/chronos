@@ -13,7 +13,7 @@
 
     <properties>
         <encoding>UTF-8</encoding>
-        <assetsdir>${basedir}/src/main/resources/assets</assetsdir>
+        <assets.dir>${basedir}/src/main/resources/assets</assets.dir>
 
         <!-- language versions -->
         <java.abi>1.6</java.abi>
@@ -400,9 +400,10 @@
                         <configuration>
                             <target>
                                 <property name="compile_classpath" refid="maven.compile.classpath"/>
-                                <property name="configFile" value="${assetsdir}/app.build.js"/>
-                                <property name="optimizerFile" value="${assetsdir}/r.js"/>
-                                <property name="buildDir" value="${assetsdir}/build"/>
+                                <property name="configFile" value="${assets.dir}/app.build.js"/>
+                                <property name="optimizerFile" value="${assets.dir}/r.js"/>
+                                <property name="buildDir" value="${assets.dir}/build"/>
+                                <property name="failOnError" value="true"/>
                                 <ant antfile="${basedir}/build.xml">
                                     <target name="generateAssets"/>
                                 </ant>

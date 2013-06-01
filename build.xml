@@ -3,7 +3,7 @@
 
     <!-- Inspired by: https://gist.github.com/millermedeiros/825117 -->
     <target name="-optimize" description="Combine and minify files.">
-        <java classname="org.mozilla.javascript.tools.shell.Main">
+        <java classname="org.mozilla.javascript.tools.shell.Main" failonerror="true">
             <classpath path="${compile_classpath}" />
             <arg value="${requirejs.optimizer.script}"/>
             <arg value="-o"/>
