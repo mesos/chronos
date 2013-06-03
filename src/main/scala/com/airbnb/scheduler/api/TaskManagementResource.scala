@@ -42,6 +42,10 @@ class TaskManagementResource @Inject()(
     try {
       log.info("Received update for asynchronous taskId: %s, statusCode: %d".format(id, taskNotification.statusCode))
 
+      if (TaskUtils.getJobNameForTaskId(id) == "") {
+        log.log(Level.WARNING, "Received update for asynchronous taskId: %s, that doesn't exist!".format(id))
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+      }
       if (taskNotification.statusCode == 0) {
         log.info("Task completed successfully '%s'".format(id))
         jobScheduler.handleFinishedTask(id)
