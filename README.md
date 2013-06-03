@@ -51,7 +51,7 @@ This is how you run this installer:
     $./bin/installer.bash
 
 
-If you get an error while compiling [mesos][mesos], please consult the [FAQ](https://github.com/airbnb/chronos/blob/master/docs/FAQ.md).
+If you get an error while compiling [mesos][mesos], please consult the [FAQ](docs/FAQ.md).
 
 ## Features
 
@@ -77,15 +77,15 @@ chronos](#configuring-chronos).
 
 * Example [runit](http://smarden.org/runit/) run script
 
-    [bin/run](/airbnb/chronos/blob/master/bin/run)
+    [bin/run](bin/run)
 
 * Example local run script
 
-    [bin/start-chronos.bash](/airbnb/chronos/blob/master/bin/start-chronos.bash)
+    [bin/start-chronos.bash](bin/start-chronos.bash)
 
 ## Configuring Chronos
 
-For information on configuring chronos, please see [config/README.md](/airbnb/chronos/blob/master/config/README.md).
+For information on configuring chronos, please see [config/README.md](config/README.md).
 
 ## License
 
