@@ -21,21 +21,21 @@ The following is a list of configuration parameters for Chronos, what
 they do and when you should specify them.
 
 * [assets](#assets)
-* [defaultJobOwner](#defaultJobOwner)
-* [failoverTimeoutSeconds](#failoverTimeoutSeconds)
-* [failureRetryDelay](#failureRetryDelay)
+* [defaultJobOwner](#defaultjobowner)
+* [failoverTimeoutSeconds](#failovertimeoutseconds)
+* [failureRetryDelay](#failureretrydelay)
 * [hostname](#hostname)
-* [mailFrom](#mailFrom)
-* [mailPassword](#mailPassword)
-* [mailServer](#mailServer)
-* [mailUser](#mailUser)
+* [mailFrom](#mailfrom)
+* [mailPassword](#mailpassword)
+* [mailServer](#mailserver)
+* [mailUser](#mailuser)
 * [master](#master)
-* [scheduleHorizonSeconds](#scheduleHorizonSeconds)
+* [scheduleHorizonSeconds](#schedulehorizonseconds)
 * [user](#user)
-* [zookeeperCandidateZnode](#zookeeperCandidateZnode)
-* [zookeeperServers](#zookeeperServers)
-* [zookeeperStateZnode](#zookeeperStateZnode)
-* [zookeeperTimeoutMs](#zookeeperTimeoutMs)
+* [zookeeperCandidateZnode](#zookeepercandidateznode)
+* [zookeeperServers](#zookeeperservers)
+* [zookeeperStateZnode](#zookeeperstateznode)
+* [zookeeperTimeoutMs](#zookeepertimeoutms)
 
 ### assets
 
