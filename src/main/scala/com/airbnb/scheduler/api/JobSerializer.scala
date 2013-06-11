@@ -48,6 +48,8 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("lastError")
     json.writeString(baseJob.lastError)
 
+    json.writeFieldName("disabled")
+    json.writeBoolean(baseJob.disabled)
     if (baseJob.isInstanceOf[DependencyBasedJob]) {
       val depJob = baseJob.asInstanceOf[DependencyBasedJob]
       json.writeFieldName("parents")
