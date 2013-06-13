@@ -46,22 +46,28 @@ class MesosJobFramework @Inject()(
   //          entire task stream.
   @Override
   def resourceOffers(schedulerDriver: SchedulerDriver, offers: java.util.List[Offer]) {
-    log.info("Received resource offer\n")
+    log.info("Received resource offers\n")
     import scala.collection.JavaConverters._
-    for (offer: Offer <- offers.asScala) {
-      val opt: Option[(String, BaseJob)] = taskManager.getTask
-      opt match {
+    def getNextTask(offers: List[Offer]) {
+      taskManager.getTask match {
         case Some((x, j)) => {
-          log.info("Task '%s' scheduled for slave '%s' on host '%s' with offerId: '%s'"
-            .format(x, offer.getSlaveId.getValue, offer.getHostname, offer.getId.getValue))
-          processTask(x, j, offer)
+          (offers.toIterator.map {
+            offer => buildTask(x, j, offer) }.find(_._1)) match {
+            case Some((sufficient, taskBuilder, offer)) =>
+              processTask(x, j, offer, taskBuilder)
+              getNextTask(offers.filter( x => x.getId != offer.getId))
+            case _ =>
+              log.warning("No sufficient offers found for task '%s'".format(x))
+              offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
+          }
         }
-        case None =>  {
-          log.info("No task scheduled! Declining offer:" + offer.getId)
-          mesosDriver.get().declineOffer(offer.getId)
+        case None => {
+          log.info("No tasks scheduled! Declining offers")
+          offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
         }
       }
     }
+    getNextTask(offers.asScala.toList)
   }
 
   @Override
@@ -119,22 +125,18 @@ class MesosJobFramework @Inject()(
     scheduler.stop()
   }
 
-  /* END Overridden methods from MesosScheduler */
-  /**
-   * Processes a task from the local queue.
-   * @param taskId
-   * @param offer
-   */
-  def processTask(taskId: String, job: BaseJob, offer: Offer) {
+  def buildTask(taskId: String, job: BaseJob, offer: Offer) : (Boolean, TaskInfo.Builder, Offer) = {
     val taskInfoTemplate = MesosUtils.getMesosTaskInfoBuilder(taskId, job)
     log.fine("Job %s ready for launch at time: %d".format(taskInfoTemplate.getTaskId.getValue,
       System.currentTimeMillis))
     import collection.JavaConversions._
 
-    offer.getResourcesList.map(x =>
+    var sufficient = true
+
+    offer.getResourcesList.foreach(x =>
         x.getType match {
           case Value.Type.SCALAR =>
-            val value = x.getName match {
+            (x.getName match {
               case "mem" =>
                 config.mesosTaskMem
               case "cpus" =>
@@ -143,15 +145,23 @@ class MesosJobFramework @Inject()(
                 config.mesosTaskDisk
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
+            }) match {
+              case value if value <= x.getScalar.getValue =>
+                taskInfoTemplate.addResources(
+                  Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
+                    Protos.Value.Scalar.newBuilder()
+                      .setValue(value)).setName(x.getName))
+              case value =>
+                log.warning("Insufficient offer, needed %s offered %s: ".format(value.toString, x.getScalar.getValue.toString) + offer)
+                sufficient = false
             }
-            taskInfoTemplate.addResources(
-              Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
-                Protos.Value.Scalar.newBuilder()
-                  .setValue(value)).setName(x.getName))
           case _ =>
             log.warning("Ignoring offered resource: %s".format(x.getType.toString))
       })
+    (sufficient, taskInfoTemplate, offer)
+  }
 
+  def processTask(taskId: String, job: BaseJob, offer: Offer, taskInfoTemplate: TaskInfo.Builder) {
     val mesosTask = taskInfoTemplate.setSlaveId(offer.getSlaveId).build()
 
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
