@@ -7,6 +7,13 @@ mailServer: "email-smtp.us-east-1.amazonaws.com:25"
 mailFrom: "alerts@yourcompany.com"
 failureRetryDelay: 60000
 
+# Amount of memory, in MiB, per Mesos task
+mesosTaskMem: 1024
+# Number of CPUs per Mesos task
+mesosTaskCpu: 1.0
+# Amount of disk space, in MiB, required per Mesos task
+mesosTaskDisk: 1024
+
 http:
     rootPath: /scheduler/*
     adminPort: 4401

@@ -30,6 +30,9 @@ they do and when you should specify them.
 * [mailServer](#mailserver)
 * [mailUser](#mailuser)
 * [master](#master)
+* [mesosTaskCpu](#mesostaskcpu)
+* [mesosTaskDisk](#mesostaskdisk)
+* [mesosTaskMem](#mesostaskmem)
 * [scheduleHorizonSeconds](#schedulehorizonseconds)
 * [user](#user)
 * [zookeeperCandidateZnode](#zookeepercandidateznode)
@@ -138,6 +141,24 @@ in [src/java/src/org/apache/mesos/MesosSchedulerDriver.java](https://github.com/
 
 **Note**: This should be the same configuration you used to boot your
 mesos slaves and masters.
+
+### mesosTaskCpu
+
+Number of CPUs per Mesos task
+
+*Default*: 1.0
+
+### mesosTaskDisk
+
+Amount of disk space, in MiB, required per Mesos task
+
+*Default*: 1024
+
+### mesosTaskMem
+
+Amount of memory, in MiB, per Mesos task
+
+*Default*: 1024
 
 ### scheduleHorizonSeconds
 
