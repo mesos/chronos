@@ -79,6 +79,15 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   @JsonProperty
   val failureRetryDelay: Long = 60000
 
+  @JsonProperty
+  val mesosTaskMem: Int = 1024
+
+  @JsonProperty
+  val mesosTaskCpu: Double = 1
+
+  @JsonProperty
+  val mesosTaskDisk: Int = 1024
+
   def getAssetsConfiguration: AssetsConfiguration = assets match {
     case Some(assetsConf: AssetsConfiguration) => assetsConf
     case None => new AssetsConfiguration
