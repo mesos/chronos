@@ -4,6 +4,7 @@ import java.util.logging.Logger
 import scala.Some
 
 import com.airbnb.scheduler.jobs._
+import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.google.inject.Inject
 import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
@@ -15,7 +16,8 @@ import org.apache.mesos.Protos._
 class MesosJobFramework @Inject()(
     val mesosDriver: MesosDriverFactory,
     val scheduler: JobScheduler,
-    val taskManager: TaskManager)
+    val taskManager: TaskManager,
+    val config: SchedulerConfiguration)
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -130,18 +132,31 @@ class MesosJobFramework @Inject()(
     import collection.JavaConversions._
 
     offer.getResourcesList.map(x =>
-      if (x.getType == Value.Type.SCALAR) {
-        taskInfoTemplate.addResources(
-          Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
-            Protos.Value.Scalar.newBuilder()
-              .setValue(x.getScalar.getValue / math.max(x.getScalar.getValue, 1))).setName(x.getName))
-      } else {
-        log.warning("Ignoring offered resource: %s".format(x.getType.toString))
+        x.getType match {
+          case Value.Type.SCALAR =>
+            val value = x.getName match {
+              case "mem" =>
+                config.mesosTaskMem
+              case "cpus" =>
+                config.mesosTaskCpu
+              case "disk" =>
+                config.mesosTaskDisk
+              case _ =>
+                x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
+            }
+            taskInfoTemplate.addResources(
+              Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
+                Protos.Value.Scalar.newBuilder()
+                  .setValue(value)).setName(x.getName))
+          case _ =>
+            log.warning("Ignoring offered resource: %s".format(x.getType.toString))
       })
 
     val mesosTask = taskInfoTemplate.setSlaveId(offer.getSlaveId).build()
 
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
+
+    log.info("Launching task with offer: " + mesosTask)
 
     import scala.collection.JavaConverters._
     val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
