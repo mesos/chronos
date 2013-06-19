@@ -57,8 +57,11 @@ class MesosJobFramework @Inject()(
               processTask(x, j, offer, taskBuilder)
               getNextTask(offers.filter( x => x.getId != offer.getId))
             case _ =>
-              log.warning("No sufficient offers found for task '%s'".format(x))
+              log.warning("No sufficient offers found for task '%s', will append to queue".format(x))
               offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
+
+              /* Put the task back into the queue */
+              taskManager.enqueue(x)
           }
         }
         case None => {
