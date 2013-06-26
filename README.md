@@ -214,9 +214,9 @@ Once you've generated the hash, send it to Chronos like so:
 * Endpoint: __/scheduler/iso8601__
 * Method: POST
 * Example:
-```bash
-     curl -L -H 'Content-Type: application/json' -X POST -H 'Content-Type: application/json' -d '{json hash}' chronos-node:4400/scheduler/iso8601
-```
+
+        curl -L -H 'Content-Type: application/json' -X POST -H 'Content-Type: application/json' -d '{json hash}' chronos-node:4400/scheduler/iso8601
+
 * Response: HTTP 204
 
 ### Adding a Dependent Job
@@ -228,9 +228,8 @@ This should be a JSON list of all jobs which must run at least once before this 
 * Endpoint: __/scheduler/dependency__
 * Method: __POST__
 * Example:
-```bash
-    curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:4400/scheduler/iso8601
-```
+
+        curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:4400/scheduler/iso8601
 
 Here is a more elaborate example for a dependency job hash:
 
