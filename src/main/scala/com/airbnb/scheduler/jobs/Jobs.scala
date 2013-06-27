@@ -35,6 +35,7 @@ trait BaseJob {
   def lastSuccess: String = ""
   def lastError: String = ""
   def async: Boolean = false
+  def disabled: Boolean = false
 }
 
 @JsonDeserialize(using = classOf[JobsDeserializer])
@@ -51,7 +52,8 @@ case class ScheduleBasedJob(
     @JsonProperty override val owner: String = "",
     @JsonProperty override val lastSuccess: String = "",
     @JsonProperty override val lastError: String = "",
-    @JsonProperty override val async: Boolean = false)
+    @JsonProperty override val async: Boolean = false,
+    @JsonProperty override val disabled: Boolean = false)
   extends BaseJob
 
 
@@ -69,5 +71,6 @@ case class DependencyBasedJob(
     @JsonProperty override val owner: String = "",
     @JsonProperty override val lastSuccess: String = "",
     @JsonProperty override val lastError: String = "",
-    @JsonProperty override val async: Boolean = false)
+    @JsonProperty override val async: Boolean = false,
+    @JsonProperty override val disabled: Boolean = false)
   extends BaseJob

@@ -361,7 +361,10 @@ function($,
             return v.trim();
           });
           if (val[0] == '') val = [];
-        }
+        } else if (name == 'disabled') {
+          if (!$el.is(':checked')) { return; }
+
+          val = !(parseInt(val, 10) === 0);}
 
         model.set(name, val);
 
