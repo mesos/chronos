@@ -364,8 +364,10 @@ function($,
         } else if (name == 'disabled') {
           if (!$el.is(':checked')) { return; }
 
-          val = !(parseInt(val, 10) === 0);}
+          val = (parseInt(val, 10) === 0);
+        }
 
+        console.log("setting model", model, "name", name, "to", val);
         model.set(name, val);
 
       });

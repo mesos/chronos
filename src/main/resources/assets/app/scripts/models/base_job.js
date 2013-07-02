@@ -124,8 +124,6 @@ function(Backbone, _, moment, BaseJobValidations) {
       ];
       schedule = parts.join('/');
 
-      console.log('schedule', schedule);
-
       this.set({schedule: schedule}, {silent: true});
     },
 

@@ -206,7 +206,7 @@
         </div>
       </div>
 
-      <div class="span6">
+      <div class="span3">
         <div class="detail">Asynchronous</div>
 
         <div class="display hightlight cmd async"
@@ -232,11 +232,11 @@
           </label>
         </div>
       </div>
-      <div class="span6">
+      <div class="span3">
         <div class="detail">Job Status</div>
 
         <div class="display hightlight cmd async"
-             data-rv-text="job.disabled | boolEnabled">{{boolEnabled enabled}}</div>
+             data-rv-text="job.disabled | boolDisabled">{{boolDisabled disabled}}</div>
         <div class="pseudo-field hightlight cmd async">
           <label class="radio">
             <input type="radio"
@@ -244,7 +244,7 @@
                    name="disabled"
                    id="disabled-off"
                    value="0"
-                   {{^disabled}}checked{{/disabled}}>
+                   {{#disabled}}checked{{/disabled}}>
             Disable
           </label>
           <label class="radio">
@@ -253,7 +253,7 @@
                    name="disabled"
                    id="disabled-on"
                    value="1"
-                  {{#disabled}}checked{{/disabled}}>
+                  {{^disabled}}checked{{/disabled}}>
             Enable
           </label>
         </div>
