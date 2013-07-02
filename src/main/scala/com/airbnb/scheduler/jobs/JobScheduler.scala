@@ -293,10 +293,19 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
         in between */
       if (job.isInstanceOf[ScheduleBasedJob]) {
-        val (recurrences, _, _) = Iso8601Expressions.parse(job.asInstanceOf[ScheduleBasedJob].schedule)
+        val scheduleBasedJob: ScheduleBasedJob = job.asInstanceOf[ScheduleBasedJob]
+        val (recurrences, _, _) = Iso8601Expressions.parse(scheduleBasedJob.schedule)
         if (recurrences == 0) {
-          log.info("Removing job that reached a zero-recurrence count!")
-          persistenceStore.removeJob(job)
+          log.info("Disabling job that reached a zero-recurrence count!")
+
+          val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
+          sendNotification(
+            job,
+            "job '%s' disabled".format(job.name),
+            Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
+                    |Please consider either removing your job, or updating its schedule and re-enabling it.
+                  """.stripMargin.format(job.name)))
+          replaceJob(scheduleBasedJob, disabledJob)
         }
       }
     }
