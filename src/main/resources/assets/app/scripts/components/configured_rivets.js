@@ -57,6 +57,10 @@ define([
       return !!val ? 'Enabled' : 'Disabled';
     },
 
+    boolDisabled: function(val) {
+      return !!val ? 'Disabled' : 'Enabled';
+    },
+
     inverse: function(val) {
       return !val;
     },

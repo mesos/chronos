@@ -68,8 +68,33 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       graph.lookupVertex(jobName).get.successCount must_== 2
       graph.lookupVertex(jobName).get.errorCount must_== 1
+    }
 
+    "Tests that a disabled job does not run and does not execute dependant children." in {
+      val epsilon = Minutes.minutes(20).toPeriod
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+        name = "job1", command = "fooo", epsilon = epsilon, disabled=true)
+      val job2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD", disabled=true)
 
+      val horizon = Minutes.minutes(5).toPeriod
+      val mockTaskManager = mock[TaskManager]
+      val graph = new JobGraph()
+      val mockPersistenceStore = mock[PersistenceStore]
+
+      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
+      scheduler.leader.set(true)
+      scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.registerJob(job2, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.run(() => { DateTime.parse("2012-01-01T00:05:01.000Z")})
+/*
+      scheduler.handleFinishedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+      scheduler.handleFinishedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+      scheduler.handleFailedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+*/
+      graph.lookupVertex("job1").get.successCount must_== 0
+      graph.lookupVertex("job1").get.errorCount must_== 0
+      graph.lookupVertex("job2").get.successCount must_== 0
+      graph.lookupVertex("job2").get.errorCount must_== 0
     }
   }
 }
