@@ -99,12 +99,20 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     if (oldJob.isInstanceOf[ScheduleBasedJob]) {
       lock.synchronized {
         val scheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
-        val newStreams = List(JobUtils.makeScheduleStream(scheduleBasedJob, DateTime.now(DateTimeZone.UTC)))
-          .filter(_.nonEmpty).map(_.get)
-        if (newStreams.nonEmpty) {
+
+        if (!newJob.disabled) {
+          val newStreams = List(JobUtils.makeScheduleStream(scheduleBasedJob, DateTime.now(DateTimeZone.UTC)))
+            .filter(_.nonEmpty).map(_.get)
+          if (newStreams.nonEmpty) {
+            log.info("updating ScheduleBasedJob:" + newJob.toString)
+            val tmpStreams = streams.filter(_.head()._2 != newJob.name)
+            streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
+          }
+        }
+        else {
           log.info("updating ScheduleBasedJob:" + newJob.toString)
           val tmpStreams = streams.filter(_.head()._2 != newJob.name)
-          streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
+          streams = iteration(DateTime.now(DateTimeZone.UTC), tmpStreams)
         }
       }
     }
@@ -145,16 +153,16 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       }
 
       if (scheduleBasedJobs.nonEmpty) {
-        val newStreams = scheduleBasedJobs.map(JobUtils.makeScheduleStream(_, dateTime)).filter(_.nonEmpty).map(_.get)
+        val newStreams = scheduleBasedJobs.filter(!_.disabled).map(JobUtils.makeScheduleStream(_, dateTime)).filter(_.nonEmpty).map(_.get)
+        scheduleBasedJobs.foreach({
+          job =>
+            jobGraph.addVertex(job)
+            if (persist) {
+              log.info("Persisting job:" + job.name)
+              persistenceStore.persistJob(job)
+            }
+        })
         if (newStreams.nonEmpty) {
-          scheduleBasedJobs.foreach({
-            job =>
-              jobGraph.addVertex(job)
-              if (persist) {
-                log.info("Persisting job:" + job.name)
-                persistenceStore.persistJob(job)
-              }
-          })
           addSchedule(dateTime, newStreams.toList)
         }
       }
@@ -266,10 +274,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           //TODO(FL): Ensure that the job for the given x exists. Lock.
           x =>
             val dependentJob = jobGraph.getJobForName(x).get
-            taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
-              DateTime.now(DateTimeZone.UTC)))
+            if (!dependentJob.disabled) {
+              taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
+                DateTime.now(DateTimeZone.UTC)))
 
-            log.fine("Enqueued depedent job." + x)
+              log.fine("Enqueued depedent job." + x)
+            }
         })
       } else {
         log.fine("%s does not have any ready dependents.".format(jobName))

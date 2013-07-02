@@ -43,6 +43,10 @@ class JobsDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("async") && node.get("async") != null) node.get("async").asBoolean
       else false
 
+    val disabled =
+      if (node.has("disabled") && node.get("disabled") != null) node.get("disabled").asBoolean
+      else false
+    
     val successCount =
       if (node.has("successCount") && node.get("successCount") != null) node.get("successCount").asLong
       else 0L
@@ -67,12 +71,12 @@ class JobsDeserializer extends JsonDeserializer[BaseJob] {
       new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async)
+        lastSuccess = lastSuccess, async = async, disabled = disabled)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async)
+        lastSuccess = lastSuccess, async = async, disabled = disabled)
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }

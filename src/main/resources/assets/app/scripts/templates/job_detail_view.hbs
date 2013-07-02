@@ -232,6 +232,32 @@
           </label>
         </div>
       </div>
+      <div class="span6">
+        <div class="detail">Job Status</div>
+
+        <div class="display hightlight cmd async"
+             data-rv-text="job.disabled | boolEnabled">{{boolEnabled enabled}}</div>
+        <div class="pseudo-field hightlight cmd async">
+          <label class="radio">
+            <input type="radio"
+                   class="job-input"
+                   name="disabled"
+                   id="disabled-off"
+                   value="0"
+                   {{^disabled}}checked{{/disabled}}>
+            Disable
+          </label>
+          <label class="radio">
+            <input type="radio"
+                   class="job-input"
+                   name="disabled"
+                   id="disabled-on"
+                   value="1"
+                  {{#disabled}}checked{{/disabled}}>
+            Enable
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="row-fluid job-detail-row job-detail job-detail-tooltip bottom-row stats-row">
