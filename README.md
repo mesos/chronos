@@ -7,6 +7,9 @@ Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if
 do not have Hadoop installed. Included wrapper scripts allow transfering files and executing them on a remote machine in the background
 and using asynchronous callbacks to notify Chronos of job completion or failures.
 
+For questions and discussions around Chronos, please use the Google Group "chronos-scheduler": 
+[Chronos Scheduler Group](https://groups.google.com/forum/#!forum/chronos-scheduler).
+
 Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
 Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
