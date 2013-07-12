@@ -330,25 +330,27 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) => {
-          val newJob = {
-            if (job.isInstanceOf[ScheduleBasedJob]) {
-              job.asInstanceOf[ScheduleBasedJob].copy(errorCount = job.errorCount + 1,
-                lastError = DateTime.now(DateTimeZone.UTC).toString)
-            } else if (job.isInstanceOf[DependencyBasedJob]) {
-              job.asInstanceOf[DependencyBasedJob].copy(errorCount = job.errorCount + 1,
-                lastError = DateTime.now(DateTimeZone.UTC).toString)
-            } else
-              throw new IllegalArgumentException("Cannot handle unknown task type")
-          }
-          replaceJob(job, newJob)
-
-          if (attempt < job.retries) {
+          if (attempt < job.retries &&
+            (job.lastError.length == 0 || (job.lastError.length > 0 && job.lastSuccess.length > 0 &&
+            DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis() >= 0))) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
             /* Schedule the retry up to 60 seconds in the future */
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC).plus(new Duration(failureRetryDelay)), attempt + 1)
-            taskManager.persistTask(taskId, newJob)
+            taskManager.persistTask(taskId, job)
             taskManager.enqueue(newTaskId)
           } else {
+            val newJob = {
+                if (job.isInstanceOf[ScheduleBasedJob]) {
+                    job.asInstanceOf[ScheduleBasedJob].copy(errorCount = job.errorCount + 1,
+                            lastError = DateTime.now(DateTimeZone.UTC).toString)
+                } else if (job.isInstanceOf[DependencyBasedJob]) {
+                    job.asInstanceOf[DependencyBasedJob].copy(errorCount = job.errorCount + 1,
+                            lastError = DateTime.now(DateTimeZone.UTC).toString)
+                } else
+                    throw new IllegalArgumentException("Cannot handle unknown task type")
+            }
+            replaceJob(job, newJob)
+
             log.warning("Job failed beyond retries!")
             sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
               .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
