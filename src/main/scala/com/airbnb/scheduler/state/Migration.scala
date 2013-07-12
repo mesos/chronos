@@ -27,7 +27,7 @@ class Migration(val persistenceStore: MesosStatePersistenceStore) {
     for (f: String <- persistenceStore.state.names.get) {
       if (f.startsWith(persistenceStore.jobPrefix)) {
         log.log(Level.INFO, "Found job in state abstraction: %s".format(f))
-        val job = JobUtils.fromBytes(persistenceStore.state.get(f).get.value)
+        val job = JobUtils.fromBytes(persistenceStore.state.fetch(f).get.value)
         if (job.isInstanceOf[ScheduleBasedJob]) {
           //TODO(FL): (IMPORTANT!) this is a hack to handle a persistence error of the executor.
           val scheduledJob = job.asInstanceOf[ScheduleBasedJob].copy(owner = "flo@airbnb.com")
