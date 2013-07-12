@@ -81,7 +81,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
   }
 
   def getJob(name: String): BaseJob = {
-    val bytes = state.get(jobName(name)).get
+    val bytes = state.fetch(jobName(name)).get
     JobUtils.fromBytes(bytes.value)
   }
 
@@ -91,7 +91,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
 
     state.names.get.filter(_.startsWith(jobPrefix))
       .map({
-      x: String => JobUtils.fromBytes(state.get(x).get.value)
+      x: String => JobUtils.fromBytes(state.fetch(x).get.value)
     })
   }
 
@@ -126,7 +126,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
       for (f: String <- state.names.get) {
         if (f.startsWith(taskPrefix)) {
           if (TaskUtils.isValidVersion(f)) {
-            val data = state.get(f).get.value
+            val data = state.fetch(f).get.value
             val taskId = f.substring(taskPrefix.size)
             results += (taskId -> data)
           } else {
@@ -140,7 +140,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
   }
 
   private def persistData(name: String, data: Array[Byte]): Boolean = {
-    val existingVar = state.get(name).get
+    val existingVar = state.fetch(name).get
 
     if (existingVar.value.size == 0) {
       log.info("State %s does not exist yet. Adding to state".format(name))
@@ -148,7 +148,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
       log.info("Key for state exists already: %s".format(name))
     }
 
-    val newVar = state.set(existingVar.mutate(data))
+    val newVar = state.store(existingVar.mutate(data))
 
     val success = (newVar.get.value.deep == data.deep)
 
