@@ -6,6 +6,7 @@ package com.airbnb.scheduler.api
 object PathConstants {
   final val iso8601JobPath = "/iso8601"
   final val dependentJobPath = "/dependency"
+  final val infoPath = "/info"
 
   final val jobBasePath = "/"
   final val jobPatternPath = "job/{jobName}"

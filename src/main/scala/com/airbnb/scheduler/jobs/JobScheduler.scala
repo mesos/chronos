@@ -4,7 +4,7 @@ import annotation.tailrec
 import collection.mutable.ListBuffer
 import java.util.concurrent.{Future, Executors}
 import java.util.concurrent.atomic.{AtomicReference, AtomicBoolean}
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import com.airbnb.notification.MailClient
 import com.airbnb.scheduler.graph.JobGraph
@@ -56,7 +56,17 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   def isLeader: Boolean = leader.get
 
-  def getLeader: String = new String(candidate.getLeaderData.get)
+  def getLeader: String = {
+    try {
+      new String(candidate.getLeaderData.get())
+    } catch {
+      case e : Exception => {
+        log.log(Level.SEVERE, "Error trying to talk to zookeeper. Exiting.", e)
+        System.exit(1)
+        null
+      }
+    }
+  }
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
     if (!mailClient.isEmpty) {
