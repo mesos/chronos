@@ -19,15 +19,15 @@ object TaskUtils {
   private[this] val log = Logger.getLogger(getClass.getName)
 
   //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT
-  val taskIdTemplate = "ct:%s:%d:%d"
-  val taskIdPattern = """ct:%s:(\d+):(\d+)""".format(JobUtils.jobNamePattern).r
+  val taskIdTemplate = "ct:%d:%d:%s"
+  val taskIdPattern = """ct:(\d+):(\d+):%s""".format(JobUtils.jobNamePattern).r
 
   def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
-   taskIdTemplate.format(job.name, due.getMillis, attempt)
+   taskIdTemplate.format(due.getMillis, attempt, job.name)
   }
 
   def parseTaskId(id: String): (String, Long, Int) = {
-    val taskIdPattern(jobName, due, attempt) = id
+    val taskIdPattern(due, attempt, jobName) = id
     (jobName, due.toLong, attempt.toInt)
   }
 
@@ -43,7 +43,7 @@ object TaskUtils {
   def getJobNameForTaskId(taskId: String): String = {
     require(taskId != null, "taskId cannot be null")
     try {
-      val TaskUtils.taskIdPattern(jobName, _, _) = taskId
+      val TaskUtils.taskIdPattern(_, _, jobName) = taskId
       jobName
     } catch {
       case t: Throwable =>
