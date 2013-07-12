@@ -48,6 +48,15 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("lastError")
     json.writeString(baseJob.lastError)
 
+    json.writeFieldName("cpus")
+    json.writeNumber(baseJob.cpus)
+
+    json.writeFieldName("disk")
+    json.writeNumber(baseJob.disk)
+
+    json.writeFieldName("mem")
+    json.writeNumber(baseJob.mem)
+
     json.writeFieldName("disabled")
     json.writeBoolean(baseJob.disabled)
     if (baseJob.isInstanceOf[DependencyBasedJob]) {

@@ -43,13 +43,11 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     bind(classOf[JobGraph]).asEagerSingleton()
   }
 
-  @Inject
   @Singleton
   @Provides
   def provideMesosSchedulerDriverFactory(mesosScheduler: Scheduler, frameworkInfo: FrameworkInfo): MesosDriverFactory =
     new MesosDriverFactory(mesosScheduler, frameworkInfo, config)
 
-  @Inject
   @Singleton
   @Provides
   def provideTaskScheduler(
@@ -64,7 +62,6 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       config.failureRetryDelay)
   }
 
-  @Inject
   @Singleton
   @Provides
   def provideMailClient(): Option[MailClient] = {
@@ -79,7 +76,6 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     }
   }
 
-  @Inject
   @Singleton
   @Provides
   def provideListeningExecutorService(): ListeningScheduledExecutorService = {

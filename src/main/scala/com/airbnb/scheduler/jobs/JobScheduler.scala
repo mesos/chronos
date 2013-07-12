@@ -56,7 +56,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   def isLeader: Boolean = leader.get
 
-  def getLeader: String = new String(candidate.getLeaderData)
+  def getLeader: String = new String(candidate.getLeaderData.get)
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
     if (!mailClient.isEmpty) {

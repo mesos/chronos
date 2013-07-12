@@ -55,7 +55,7 @@ class MesosJobFramework @Inject()(
             offer => buildTask(x, j, offer) }.find(_._1)) match {
             case Some((sufficient, taskBuilder, offer)) =>
               processTask(x, j, offer, taskBuilder)
-              getNextTask(offers.filter( x => x.getId != offer.getId))
+              getNextTask(offers.filter(x => x.getId != offer.getId))
             case _ =>
               log.warning("No sufficient offers found for task '%s', will append to queue".format(x))
               offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
@@ -128,6 +128,14 @@ class MesosJobFramework @Inject()(
     scheduler.stop()
   }
 
+  /**
+   * Builds a task
+   * @param taskId
+   * @param job
+   * @param offer
+   * @return and returns a tuple containing a boolean indicating if sufficient
+   *         resources where offered, the TaskBuilder and the offer.
+   */
   def buildTask(taskId: String, job: BaseJob, offer: Offer) : (Boolean, TaskInfo.Builder, Offer) = {
     val taskInfoTemplate = MesosUtils.getMesosTaskInfoBuilder(taskId, job)
     log.fine("Job %s ready for launch at time: %d".format(taskInfoTemplate.getTaskId.getValue,
@@ -141,11 +149,11 @@ class MesosJobFramework @Inject()(
           case Value.Type.SCALAR =>
             (x.getName match {
               case "mem" =>
-                config.mesosTaskMem
+                if (job.mem == 0) config.mesosTaskMem else job.mem
               case "cpus" =>
-                config.mesosTaskCpu
+                if (job.cpus == 0) config.mesosTaskCpu else job.cpus
               case "disk" =>
-                config.mesosTaskDisk
+                if (job.disk == 0) config.mesosTaskDisk else job.disk
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
             }) match {
@@ -155,7 +163,8 @@ class MesosJobFramework @Inject()(
                     Protos.Value.Scalar.newBuilder()
                       .setValue(value)).setName(x.getName))
               case value =>
-                log.warning("Insufficient offer, needed %s offered %s: ".format(value.toString, x.getScalar.getValue.toString) + offer)
+                log.warning("Insufficient offer, needed %s offered %s: "
+                  .format(value.toString, x.getScalar.getValue.toString) + offer)
                 sufficient = false
             }
           case _ =>
