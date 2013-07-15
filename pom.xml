@@ -57,6 +57,11 @@
             <url>http://maven.twttr.com/</url>
         </repository>
         <repository>
+            <id>mesosphere-public-repo</id>
+            <name>Mesosphere Public Snapshot Repo</name>
+            <url>http://s3.amazonaws.com/mesosphere-maven-public/snapshot/</url>
+        </repository>
+        <repository>
             <id>libs-folder</id>
             <url>file://${basedir}/lib</url>
         </repository>
@@ -94,7 +99,7 @@
         <dependency>
             <groupId>org.apache.mesos</groupId>
             <artifactId>mesos</artifactId>
-            <version>0.14.0</version>
+            <version>0.0.14-SNAPSHOT</version>
         </dependency>
 
         <!-- Everything else -->
@@ -151,12 +156,7 @@
         <dependency>
             <groupId>com.twitter.common.zookeeper</groupId>
             <artifactId>candidate</artifactId>
-            <version>0.0.31</version>
-        </dependency>
-        <dependency>
-            <groupId>com.twitter.common.zookeeper</groupId>
-            <artifactId>group</artifactId>
-            <version>0.0.31</version>
+            <version>0.0.43</version>
         </dependency>
 
         <dependency>
