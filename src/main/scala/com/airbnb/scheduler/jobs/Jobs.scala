@@ -35,6 +35,9 @@ trait BaseJob {
   def lastSuccess: String = ""
   def lastError: String = ""
   def async: Boolean = false
+  def cpus: Double = 0
+  def disk: Int = 0
+  def mem: Int = 0
   def disabled: Boolean = false
 }
 
@@ -53,6 +56,9 @@ case class ScheduleBasedJob(
     @JsonProperty override val lastSuccess: String = "",
     @JsonProperty override val lastError: String = "",
     @JsonProperty override val async: Boolean = false,
+    @JsonProperty override val cpus: Double = 0,
+    @JsonProperty override val disk: Int = 0,
+    @JsonProperty override val mem: Int = 0,
     @JsonProperty override val disabled: Boolean = false)
   extends BaseJob
 
@@ -72,5 +78,8 @@ case class DependencyBasedJob(
     @JsonProperty override val lastSuccess: String = "",
     @JsonProperty override val lastError: String = "",
     @JsonProperty override val async: Boolean = false,
+    @JsonProperty override val cpus: Double = 0,
+    @JsonProperty override val disk: Int = 0,
+    @JsonProperty override val mem: Int = 0,
     @JsonProperty override val disabled: Boolean = false)
   extends BaseJob
