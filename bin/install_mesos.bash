@@ -22,7 +22,7 @@ function all {
     fi
     popd
   else
-    git clone git@github.com:apache/incubator-mesos.git $source_dir
+    git clone https://github.com/apache/incubator-mesos.git $source_dir
     (cd $source_dir
       git checkout $git_revision -b $branch_name
     )
