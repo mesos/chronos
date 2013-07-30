@@ -59,7 +59,7 @@
         <repository>
             <id>mesosphere-public-repo</id>
             <name>Mesosphere Public Snapshot Repo</name>
-            <url>http://s3.amazonaws.com/mesosphere-maven-public/snapshot/</url>
+            <url>http://s3.amazonaws.com/mesosphere-maven-public/</url>
         </repository>
         <repository>
             <id>libs-folder</id>
