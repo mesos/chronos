@@ -14,6 +14,12 @@ mesosTaskCpu: 1.0
 # Amount of disk space, in MiB, required per Mesos task
 mesosTaskDisk: 1024
 
+# This is the Mesos role, used by resource reservations
+mesosRole: "chronos"
+
+# This can be used to enable checkpointing for this framework
+mesosCheckpoint: false
+
 http:
     rootPath: /scheduler/*
     adminPort: 4401
