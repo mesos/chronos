@@ -30,8 +30,14 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     bind(classOf[Scheduler]).to(classOf[MesosJobFramework]).asEagerSingleton()
     bind(classOf[FrameworkInfo]).toInstance(
       //TODO(FL): Make the name configurable.
-      FrameworkInfo.newBuilder().setName("chronos" + System.currentTimeMillis()).setId(FrameworkID.newBuilder()
-        .setValue("chronos").build())
+      FrameworkInfo.newBuilder()
+        .setName("chronos" + System.currentTimeMillis())
+        .setCheckpoint(config.mesosCheckpoint)
+        .setRole(config.mesosRole)
+        .setId(
+          FrameworkID.newBuilder()
+            .setValue("chronos").build()
+          )
         .setFailoverTimeout(config.failoverTimeoutSeconds).setUser(config.user).build()
     )
 
