@@ -88,6 +88,12 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   @JsonProperty
   val mesosTaskDisk: Int = 1024
 
+  @JsonProperty
+  val mesosCheckpoint: Boolean = false
+
+  @JsonProperty
+  val mesosRole: String = "*"
+
   def getAssetsConfiguration: AssetsConfiguration = assets match {
     case Some(assetsConf: AssetsConfiguration) => assetsConf
     case None => new AssetsConfiguration

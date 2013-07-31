@@ -9,6 +9,8 @@ import com.google.inject.Inject
 import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 
+import scala.collection.mutable.HashSet
+
 /**
  * Provides the interface to mesos. Receives callbacks from mesos when resources are offered, declined etc.
  * @author Florian Leibert (flo@leibert.de)
@@ -21,6 +23,7 @@ class MesosJobFramework @Inject()(
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
+  private var runningJobs = new HashSet[String]
 
   val frameworkName = "chronos"
 
@@ -82,6 +85,14 @@ class MesosJobFramework @Inject()(
   @Override
   def statusUpdate(schedulerDriver: SchedulerDriver, taskStatus: TaskStatus) {
      taskManager.taskCache.put(taskStatus.getTaskId.getValue, taskStatus.getState)
+
+    val (jobName, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
+    taskStatus.getState match {
+      case TaskState.TASK_RUNNING =>
+        runningJobs.add(jobName)
+      case _ =>
+        runningJobs.remove(jobName)
+    }
 
     //TOOD(FL): Add statistics for jobs
     taskStatus.getState match {
@@ -181,14 +192,19 @@ class MesosJobFramework @Inject()(
     log.info("Launching task with offer: " + mesosTask)
 
     import scala.collection.JavaConverters._
-    val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
-    if (status == Protos.Status.DRIVER_RUNNING) {
-      val deleted = taskManager.removeTask(taskId)
-      log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
-        .format(taskId, deleted))
-    }
+    if (runningJobs.contains(job.name)) {
+      log.info("Task '%s' not launched because it appears to be runing".format(taskId))
+    } else {
+      val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
+      if (status == Protos.Status.DRIVER_RUNNING) {
+        val deleted = taskManager.removeTask(taskId)
+        log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
+          .format(taskId, deleted))
+        runningJobs.add(job.name)
+      }
 
-    //TODO(FL): Handle case if mesos can't launch the task.
-    log.info("Task '%s' launched, status: '%s'".format(taskId, status.toString))
+      //TODO(FL): Handle case if mesos can't launch the task.
+      log.info("Task '%s' launched, status: '%s'".format(taskId, status.toString))
+    }
   }
 }
