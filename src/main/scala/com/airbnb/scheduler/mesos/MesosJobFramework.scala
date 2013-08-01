@@ -172,7 +172,7 @@ class MesosJobFramework @Inject()(
                 taskInfoTemplate.addResources(
                   Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
                     Protos.Value.Scalar.newBuilder()
-                      .setValue(value)).setName(x.getName))
+                      .setValue(value)).setName(x.getName).setRole(x.getRole))
               case value =>
                 log.warning("Insufficient offer, needed %s offered %s: "
                   .format(value.toString, x.getScalar.getValue.toString) + offer)
