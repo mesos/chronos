@@ -67,7 +67,7 @@ class MesosJobFramework @Inject()(
               taskManager.enqueue(x)
           }
         }
-        case None => {
+        case _ => {
           log.info("No tasks scheduled! Declining offers")
           offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
         }
