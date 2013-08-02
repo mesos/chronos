@@ -153,7 +153,7 @@ class MesosJobFramework @Inject()(
       System.currentTimeMillis))
     import collection.JavaConversions._
 
-    var sufficient = true
+    var sufficient = scala.collection.mutable.Map[String,Boolean]().withDefaultValue(false)
 
     offer.getResourcesList.foreach(x =>
         x.getType match {
@@ -168,20 +168,19 @@ class MesosJobFramework @Inject()(
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
             }) match {
-              case value if value <= x.getScalar.getValue =>
+              case value if value <= x.getScalar.getValue && !sufficient(x.getName) =>
                 taskInfoTemplate.addResources(
                   Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
                     Protos.Value.Scalar.newBuilder()
                       .setValue(value)).setName(x.getName).setRole(x.getRole))
-              case value =>
-                log.warning("Insufficient offer, needed %s offered %s: "
-                  .format(value.toString, x.getScalar.getValue.toString) + offer)
-                sufficient = false
+                sufficient(x.getName) = true
+              case _ =>
+                // not sufficient, skip
             }
           case _ =>
             log.warning("Ignoring offered resource: %s".format(x.getType.toString))
       })
-    (sufficient, taskInfoTemplate, offer)
+    (sufficient("cpus") && sufficient("mem") && sufficient("disk"), taskInfoTemplate, offer)
   }
 
   def processTask(taskId: String, job: BaseJob, offer: Offer, taskInfoTemplate: TaskInfo.Builder) {
