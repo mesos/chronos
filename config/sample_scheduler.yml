@@ -15,7 +15,7 @@ mesosTaskCpu: 1.0
 mesosTaskDisk: 1024
 
 # This is the Mesos role, used by resource reservations
-mesosRole: "chronos"
+mesosRole: "*"
 
 # This can be used to enable checkpointing for this framework
 mesosCheckpoint: false
