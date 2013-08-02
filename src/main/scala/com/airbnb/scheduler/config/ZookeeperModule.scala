@@ -20,7 +20,7 @@ import java.io.File
  * Guice glue-code for zookeeper related things.
  * @author Florian Leibert (flo@leibert.de)
  */
-//TODO(FL): Consider using Sindi or Subcat for DI.
+//TODO(FL): Consider using Sindi or Subcut for DI.
 class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule {
   private val log = Logger.getLogger(getClass.getName)
 

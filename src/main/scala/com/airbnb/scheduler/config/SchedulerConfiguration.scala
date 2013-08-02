@@ -94,6 +94,15 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   @JsonProperty
   val mesosRole: String = "*"
 
+  @JsonProperty
+  val gangliaHostPort: Option[String] = None
+
+  @JsonProperty
+  val gangliaReportIntervalSeconds: Long = 60L
+
+  @JsonProperty
+  val gangliaGroupPrefix: String = ""
+
   def getAssetsConfiguration: AssetsConfiguration = assets match {
     case Some(assetsConf: AssetsConfiguration) => assetsConf
     case None => new AssetsConfiguration
