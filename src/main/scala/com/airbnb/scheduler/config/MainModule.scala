@@ -6,7 +6,7 @@ import java.util.logging.{Level, Logger}
 
 import com.airbnb.scheduler.mesos.{MesosDriverFactory, MesosJobFramework}
 import com.airbnb.scheduler.SchedulerHealthCheck
-import com.airbnb.scheduler.jobs.{TaskManager, JobScheduler}
+import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.notification.MailClient
@@ -62,10 +62,11 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       persistenceStore: PersistenceStore,
       mesosSchedulerDriver: MesosDriverFactory,
       candidate: Candidate,
-      mailClient: Option[MailClient]): JobScheduler = {
+      mailClient: Option[MailClient],
+      metrics: JobMetrics): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds).toPeriod, taskManager,
       dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient,
-      config.failureRetryDelay)
+      config.failureRetryDelay, metrics)
   }
 
   @Singleton

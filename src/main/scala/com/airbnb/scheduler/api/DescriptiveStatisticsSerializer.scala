@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonGenerator
  * Serializes a subset of the fields of DescriptiveStatistics
  * @author Florian Leibert (flo@leibert.de)
  */
+@Deprecated
 class DescriptiveStatisticsSerializer extends JsonSerializer[DescriptiveStatistics] {
 
   def serialize(stat: DescriptiveStatistics , json: JsonGenerator, provider: SerializerProvider) {

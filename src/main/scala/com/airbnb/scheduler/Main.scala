@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.airbnb.dropwizard.assets.ConfiguredAssetsBundle
 import com.airbnb.scheduler.api._
-import com.airbnb.scheduler.config.{ZookeeperModule, MainModule, SchedulerConfiguration}
-import com.airbnb.scheduler.jobs.JobScheduler
+import com.airbnb.scheduler.config.{JobMetricsModule, ZookeeperModule, MainModule, SchedulerConfiguration}
+import com.airbnb.scheduler.jobs.{JobScheduler}
 import com.google.common.collect.ImmutableList
 import com.google.inject.{Injector, Guice}
 import com.yammer.dropwizard.ScalaService
@@ -35,7 +35,11 @@ object Main extends ScalaService[SchedulerConfiguration] {
     log.info("Initializing chronos.")
     log.info("---------------------")
     //All Modules need to be added to this list
-    injector = Guice.createInjector(ImmutableList.of(new MainModule(configuration), new ZookeeperModule(configuration)))
+    injector = Guice.createInjector(ImmutableList.of(
+      new MainModule(configuration),
+      new ZookeeperModule(configuration),
+      new JobMetricsModule(configuration)
+    ))
     val filter = injector.getInstance(classOf[RedirectFilter])
 
     environment.addFilter(filter, "/*")
@@ -49,5 +53,6 @@ object Main extends ScalaService[SchedulerConfiguration] {
     environment.addResource(injector.getInstance(classOf[GraphManagementResource]))
 
     environment.manage(injector.getInstance(classOf[JobScheduler]))
+    environment.manage(injector.getInstance(classOf[JobMetricsModule]))
   }
 }

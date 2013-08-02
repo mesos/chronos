@@ -34,7 +34,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val mesosDriver: MesosDriverFactory = null,
                              val candidate: Candidate = null,
                              val mailClient: Option[MailClient] = None,
-                             val failureRetryDelay: Long = 60000)
+                             val failureRetryDelay: Long = 60000,
+                             val jobMetrics: JobMetrics)
 //Allows us to let Dropwizard manage the lifecycle of this class.
   extends Managed
   with Leader {
@@ -262,7 +263,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       log.warning("Job '%s' no longer registered.".format(jobName))
     } else {
       val (_, start, _) = TaskUtils.parseTaskId(taskId)
-      JobUtils.updateJobStat(jobName, DateTime.now(DateTimeZone.UTC).getMillis - start)
+      jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
+      jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
 
       val newJob = {
@@ -330,9 +332,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) => {
-          if (attempt < job.retries &&
-            (job.lastError.length == 0 || (job.lastError.length > 0 && job.lastSuccess.length > 0 &&
-            DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis() >= 0))) {
+          val hasAttemptsLeft: Boolean = attempt < job.retries
+
+          val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&
+            (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
+
+          if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
             /* Schedule the retry up to 60 seconds in the future */
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC).plus(new Duration(failureRetryDelay)), attempt + 1)
@@ -340,20 +345,22 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             taskManager.enqueue(newTaskId)
           } else {
             val newJob = {
-                if (job.isInstanceOf[ScheduleBasedJob]) {
-                    job.asInstanceOf[ScheduleBasedJob].copy(errorCount = job.errorCount + 1,
-                            lastError = DateTime.now(DateTimeZone.UTC).toString)
-                } else if (job.isInstanceOf[DependencyBasedJob]) {
-                    job.asInstanceOf[DependencyBasedJob].copy(errorCount = job.errorCount + 1,
-                            lastError = DateTime.now(DateTimeZone.UTC).toString)
-                } else
-                    throw new IllegalArgumentException("Cannot handle unknown task type")
+                job match {
+                  case job: ScheduleBasedJob =>
+                    job.copy(errorCount = job.errorCount + 1,
+                      lastError = DateTime.now(DateTimeZone.UTC).toString)
+                  case job: DependencyBasedJob =>
+                    job.copy(errorCount = job.errorCount + 1,
+                      lastError = DateTime.now(DateTimeZone.UTC).toString)
+                  case _ => throw new IllegalArgumentException("Cannot handle unknown task type")
+                }
             }
             replaceJob(job, newJob)
 
             log.warning("Job failed beyond retries!")
             sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
               .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
+            jobMetrics.updateJobStatus(jobName, success = false)
           }
         }
         case None =>
