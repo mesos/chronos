@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.airbnb.dropwizard.assets.ConfiguredAssetsBundle
 import com.airbnb.scheduler.api._
 import com.airbnb.scheduler.config.{JobMetricsModule, ZookeeperModule, MainModule, SchedulerConfiguration}
-import com.airbnb.scheduler.jobs.{JobScheduler}
+import com.airbnb.scheduler.jobs.{MetricReporterService, JobScheduler}
 import com.google.common.collect.ImmutableList
 import com.google.inject.{Injector, Guice}
 import com.yammer.dropwizard.ScalaService
@@ -53,6 +53,6 @@ object Main extends ScalaService[SchedulerConfiguration] {
     environment.addResource(injector.getInstance(classOf[GraphManagementResource]))
 
     environment.manage(injector.getInstance(classOf[JobScheduler]))
-    environment.manage(injector.getInstance(classOf[JobMetricsModule]))
+    environment.manage(injector.getInstance(classOf[MetricReporterService]))
   }
 }
