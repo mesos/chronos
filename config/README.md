@@ -31,8 +31,10 @@ they do and when you should specify them.
 * [mailUser](#mailuser)
 * [master](#master)
 * [mesosTaskCpu](#mesostaskcpu)
-* [mesosTaskDisk](#mesostaskdisk)
 * [mesosTaskMem](#mesostaskmem)
+* [mesosTaskDisk](#mesostaskdisk)
+* [mesosRole](#mesosrole)
+* [mesosTaskCheckpoint](#mesoscheckpoint)
 * [scheduleHorizonSeconds](#schedulehorizonseconds)
 * [user](#user)
 * [zookeeperCandidateZnode](#zookeepercandidateznode)
@@ -148,17 +150,29 @@ Number of CPUs per Mesos task
 
 *Default*: 1.0
 
+### mesosTaskMem
+
+Amount of memory, in MiB, per Mesos task
+
+*Default*: 1024
+
 ### mesosTaskDisk
 
 Amount of disk space, in MiB, required per Mesos task
 
 *Default*: 1024
 
-### mesosTaskMem
+### mesosRole
 
-Amount of memory, in MiB, per Mesos task
+The Mesos role to use for this framework.
 
-*Default*: 1024
+*Default*: "*"
+
+### mesosCheckpoint
+
+Enable checkpointing for this framework on Mesos
+
+*Default*: false
 
 ### scheduleHorizonSeconds
 
