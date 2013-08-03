@@ -18,12 +18,12 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     val job = new ScheduleBasedJob(startTime, "sample-name", "sample-command")
     val mockScheduler = mock[JobScheduler]
 
-    mockZKClient.get returns (mockZK)
+    mockZKClient.get returns mockZK
 
     store.persistJob(job)
     JobUtils.loadJobs(mockScheduler, store)
 
-    there was one(mockScheduler).registerJob(List(job), true)
+    there was one(mockScheduler).registerJob(List(job), persist = true)
   }
 
 }

@@ -21,7 +21,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val persistenceStore = mock[PersistenceStore]
       val taskManager = new TaskManager(exec, persistenceStore, jobGraph, null)
 
-      val scheduler = new JobScheduler(epsilon, taskManager, jobGraph, persistenceStore)
+      val scheduler = new JobScheduler(epsilon, taskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics])
       val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
       scheduler.leader.set(true)
       scheduler.registerJob(job1, true, startTime)
@@ -50,14 +50,14 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val epsilon = Minutes.minutes(20).toPeriod
       val jobName = "FOO"
       val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-        name = jobName, command = "fooo", epsilon = epsilon)
+        name = jobName, command = "fooo", epsilon = epsilon, retries = 0)
 
       val horizon = Minutes.minutes(5).toPeriod
       val mockTaskManager = mock[TaskManager]
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
+      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics])
       scheduler.leader.set(true)
       scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
       scheduler.run(() => { DateTime.parse("2012-01-01T00:05:01.000Z")})
@@ -81,7 +81,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
+      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics])
       scheduler.leader.set(true)
       scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
       scheduler.registerJob(job2, true, DateTime.parse("2011-01-01T00:05:01.000Z"))

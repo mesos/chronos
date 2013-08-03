@@ -24,7 +24,8 @@ import org.joda.time.{DateTimeZone, DateTime}
 @Consumes(Array(MediaType.APPLICATION_JSON))
 class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                                       val jobGraph: JobGraph,
-                                      val configuration: SchedulerConfiguration) {
+                                      val configuration: SchedulerConfiguration,
+                                      val jobMetrics: JobMetrics) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
@@ -68,16 +69,16 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
-      return Response.ok(JobUtils.getJsonStats(jobName)).build()
+      Response.ok(jobMetrics.getJsonStats(jobName)).build()
     } catch {
       case ex: IllegalArgumentException => {
         log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
       }
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build
+        Response.serverError().build
       }
     }
   }

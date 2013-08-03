@@ -24,6 +24,9 @@ they do and when you should specify them.
 * [defaultJobOwner](#defaultjobowner)
 * [failoverTimeoutSeconds](#failovertimeoutseconds)
 * [failureRetryDelay](#failureretrydelay)
+* [gangliaHostPort](#gangliahostport)
+* [gangliaReportIntervalSeconds](#gangliareportintervalseconds)
+* [gangliaGroupPrefix](#gangliagroupprefix)
 * [hostname](#hostname)
 * [mailFrom](#mailfrom)
 * [mailPassword](#mailpassword)
@@ -82,6 +85,26 @@ When a task fails, Chronos will wait *up to* this number of milliseconds
 to retry.
 
 **Note**: This parameter should be specified in milliseconds.
+
+### gangliaHostPort
+
+*Default*: `None`
+*Example*: `ganglia.example.com:8649`
+
+If configured, will report metrics to Ganglia at the configured
+interval.
+
+### gangliaReportIntervalSeconds
+
+*Default*: `60`
+
+Metric reporting interval in seconds.
+
+### gangliaGroupPrefix
+
+*Default*: `''`
+
+Group prefix to use for all reported metrics.
 
 ### hostname
 

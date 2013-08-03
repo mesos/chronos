@@ -4,7 +4,7 @@ import collection.mutable
 import collection.mutable.ListBuffer
 import java.util.logging.Logger
 
-import com.airbnb.scheduler.api.{DescriptiveStatisticsSerializer, JobsDeserializer, JobSerializer}
+import com.airbnb.scheduler.api.{JobsDeserializer, JobSerializer}
 import com.airbnb.scheduler.state.PersistenceStore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -30,18 +30,7 @@ object JobUtils {
 
   mod.addSerializer(classOf[BaseJob], new JobSerializer)
   mod.addDeserializer(classOf[BaseJob], new JobsDeserializer)
-  mod.addSerializer(classOf[DescriptiveStatistics], new DescriptiveStatisticsSerializer)
   objectMapper.registerModule(mod)
-
-  def updateJobStat(jobName: String, timeMs: Long) {
-    val stat = stats.getOrElseUpdate(jobName, new DescriptiveStatistics(maxValues))
-    stat.addValue(timeMs)
-  }
-
-  def getJsonStats(jobName: String): String = {
-    val snapshot = stats.get(jobName).getOrElse(new DescriptiveStatistics(maxValues))
-    objectMapper.writeValueAsString(snapshot)
-  }
 
   def toBytes[T <: BaseJob](job: T): Array[Byte] =
     objectMapper.writeValueAsString(job).getBytes(Charsets.UTF_8)
