@@ -193,6 +193,7 @@ class MesosJobFramework @Inject()(
     import scala.collection.JavaConverters._
     if (runningJobs.contains(job.name)) {
       log.info("Task '%s' not launched because it appears to be runing".format(taskId))
+      mesosDriver.get().declineOffer(offer.getId)
     } else {
       val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
       if (status == Protos.Status.DRIVER_RUNNING) {
