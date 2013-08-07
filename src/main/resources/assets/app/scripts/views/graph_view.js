@@ -42,7 +42,7 @@ function(Backbone,
 
     getTemplateData: function() {
       return {
-        currentView: 'dynamic'
+        currentView: 'static-stats'
       };
     },
 
