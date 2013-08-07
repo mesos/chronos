@@ -29,7 +29,6 @@ define([
     initialize: function() {
       lbInitialize.apply(this, slice.call(arguments));
       this._graphTypes = {
-        'dynamic': GraphView,
         'static': GraphVizView
       };
     },
