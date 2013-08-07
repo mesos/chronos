@@ -77,7 +77,8 @@ function(require,
     owner: {
       required: true,
       minlength: 3,
-      pattern: /^.+@.+$/
+      // This pattern is based on the one described at http://www.regular-expressions.info/email.html.
+      pattern: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
     }
   });
 });
