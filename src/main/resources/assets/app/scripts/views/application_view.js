@@ -56,7 +56,7 @@ function($,
 
       $target    = $(e.currentTarget);
       targetName = $target.data('job-id');
-      graphType = $target.hasClass('view-alt-graph') ? 'static' : 'dynamic';
+      graphType = 'static';
       app.lightbox.showGraphView(graphType, targetName);
     },
 
