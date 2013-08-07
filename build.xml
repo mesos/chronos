@@ -1,32 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="chronos">
 
-    <!-- Inspired by: https://gist.github.com/millermedeiros/825117 -->
-    <target name="-optimize" description="Combine and minify files.">
-        <java classname="org.mozilla.javascript.tools.shell.Main" failonerror="true">
-            <classpath path="${compile_classpath}" />
-            <arg value="${requirejs.optimizer.script}"/>
-            <arg value="-o"/>
-            <arg value="${requirejs.optimizer.settings}"/>
-        </java>
-        <echo message="optimized ${requirejs.optimizer.settings}" />
-    </target>
+  <!-- Inspired by: https://gist.github.com/millermedeiros/825117 -->
+  <target name="-optimize" description="Combine and minify files.">
+    <java classname="org.mozilla.javascript.tools.shell.Main" failonerror="true">
+      <classpath path="${compile_classpath}" />
+      <arg value="${requirejs.optimizer.script}"/>
+      <arg value="-o"/>
+      <arg value="${requirejs.optimizer.settings}"/>
+    </java>
+    <echo message="optimized ${requirejs.optimizer.settings}" />
+  </target>
 
-    <target name="assets.exists" depends="buildDir.check" if="buildDir.exists">
-        <echo>${buildDir} exists, skipping asset compilation.</echo>
-    </target>
+  <target name="assets.uptodate" depends="sourceDir.check" if="sourceDir.nochanges">
+    <echo>${sourceDir} Hasn't been updated, skipping asset compilation.</echo>
+  </target>
 
-    <target name="buildDir.check">
-        <condition property="buildDir.exists">
-            <available file="${buildDir}" type="dir"/>
-        </condition>
-    </target>
+  <target name="sourceDir.check">
+    <uptodate property="sourceDir.nochanges">
+      <srcfiles dir="${sourceDir}" includes="**/*" />
+      <mapper type="merge" to="${sourceDir}/build/build.txt" />
+    </uptodate>
+  </target>
 
-    <target name="generateAssets" depends="assets.exists" unless="buildDir.exists">
-        <echo message="Combining and minifying JS files." />
-        <antcall target="-optimize">
-            <param name="requirejs.optimizer.script" value="${optimizerFile}" />
-            <param name="requirejs.optimizer.settings" value="${configFile}" />
-        </antcall>
-    </target>
+  <target name="generateAssets" depends="assets.uptodate" unless="sourceDir.nochanges">
+    <echo message="Combining and minifying JS files." />
+    <antcall target="-optimize">
+      <param name="requirejs.optimizer.script" value="${optimizerFile}" />
+      <param name="requirejs.optimizer.settings" value="${configFile}" />
+    </antcall>
+  </target>
 </project>
