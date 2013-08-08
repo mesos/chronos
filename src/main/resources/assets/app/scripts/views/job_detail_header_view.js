@@ -64,9 +64,9 @@ function($,
     'delete': function() {
       var model = this.model,
           view  = this,
-          destroy = confirm('Are you sure you want to destroy: ' + model.get('name') + '?');
+          destroy = prompt('Are you sure you want to destroy: ' + model.get('name') + '?\n Please enter "yes" to confirm.', '');
 
-      if (destroy) {
+      if (destroy == 'yes') {
         console.log('destroy')
 
         model.destroy({
