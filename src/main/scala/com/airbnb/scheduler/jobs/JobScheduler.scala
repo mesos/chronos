@@ -74,7 +74,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val subowners = job.owner.split("\\s*,\\s*")
       for (subowner <- subowners) {
         log.info("Sending mail notification to:%s for job %s".format(subowner, job.name))
-        mailClient.get !(subowner), subject, message)
+        mailClient.get !(subowner, subject, message)
       }
     }
 
