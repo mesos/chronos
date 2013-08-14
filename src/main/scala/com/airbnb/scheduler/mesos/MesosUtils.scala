@@ -26,13 +26,11 @@ object MesosUtils {
     val taskInfo = TaskInfo.newBuilder()
       .setName(taskNameTemplate.format(job.name))
       .setTaskId(taskId)
-    var environment = Environment.newBuilder()
+    val environment = Environment.newBuilder()
       .addVariables(Variable.newBuilder()
         .setName("mesos_task_id").setValue(taskIdStr))
-    if (!job.owner.isEmpty) {
-      environment = environment.addVariables(Variable.newBuilder()
+      .addVariables(Variable.newBuilder()
         .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
-    }
     if (!job.executor.isEmpty) {
       appendExecutorData(taskInfo, job)
     } else {
