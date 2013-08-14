@@ -71,9 +71,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
     if (!mailClient.isEmpty) {
-      log.info("Sending mail notification to:%s for job %s".format(job.owner, job.name))
       val subowners = job.owner.split(",")
       for (subowner <- subowners) {
+        log.info("Sending mail notification to:%s for job %s".format(subowner.trim(), job.name))
         mailClient.get !(subowner.trim(), subject, message)
       }
     }
