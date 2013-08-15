@@ -32,7 +32,7 @@ function(Backbone, _, moment, BaseJobValidations) {
       var d = new Date();
       return {
         name: '-',
-        owner: 'ateam@airbnb.com',
+        owner: '',
         startTime: moment(d).format('HH:mm:ss'),
         startDate: moment(d).format('YYYY-MM-DD'),
         repeats: '',
@@ -47,7 +47,7 @@ function(Backbone, _, moment, BaseJobValidations) {
         successCount: 0,
         errorCount: 0,
         persisted: false,
-        async: true,
+        async: false,
         disabled: false
       };
     },
