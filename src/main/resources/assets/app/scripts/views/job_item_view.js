@@ -61,7 +61,11 @@ function($,
 
       this.$el.html(html);
       this.trigger('render', {sync: true});
+      if (this.model.get('disabled')) {
+        this.$el.addClass('disabled');
+      }
       this.setActive();
+
 
       return this;
     },
