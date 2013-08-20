@@ -56,7 +56,7 @@ class MesosJobFramework @Inject()(
         case Some((x, j)) => {
           (offers.toIterator.map {
             offer => buildTask(x, j, offer) }.find(_._1)) match {
-            case Some((sufficient, taskBuilder, offer)) =>
+            case Some((isSufficient, taskBuilder, offer)) if isSufficient =>
               processTask(x, j, offer, taskBuilder)
               getNextTask(offers.filter(x => x.getId != offer.getId))
             case _ =>
