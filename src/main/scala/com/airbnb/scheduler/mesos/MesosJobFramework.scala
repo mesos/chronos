@@ -73,7 +73,7 @@ class MesosJobFramework @Inject()(
         }
       }
     }
-    getNextTask(offers.asScala.toList)
+    getNextTask(offers.asScala.toList.sortBy(_.getSlaveLoadHint()))
   }
 
   @Override
