@@ -56,7 +56,7 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   val zookeeperCandidateZnode: String = "/airbnb/service/chronos/candidate"
 
   @JsonProperty
-  val defaultJobOwner: String = "flo@airbnb.com"
+  val defaultJobOwners: Set[String] = Set("flo@airbnb.com")
 
   @JsonProperty
   val mailServer: Option[String] = None

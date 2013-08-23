@@ -30,7 +30,7 @@ class Migration(val persistenceStore: MesosStatePersistenceStore) {
         val job = JobUtils.fromBytes(persistenceStore.state.fetch(f).get.value)
         if (job.isInstanceOf[ScheduleBasedJob]) {
           //TODO(FL): (IMPORTANT!) this is a hack to handle a persistence error of the executor.
-          val scheduledJob = job.asInstanceOf[ScheduleBasedJob].copy(owner = "flo@airbnb.com")
+          val scheduledJob = job.asInstanceOf[ScheduleBasedJob].copy(owners = Set("flo@airbnb.com"))
           //migrate the db
 
           val copy: ScheduleBasedJob = {
@@ -48,7 +48,7 @@ class Migration(val persistenceStore: MesosStatePersistenceStore) {
         } else if (job.isInstanceOf[DependencyBasedJob]) {
           //TODO(FL): (IMPORTANT!) this is a hack to handle a persistence error of the executor.
           val template = job.asInstanceOf[DependencyBasedJob]
-          val dependencyJob = template.copy(owner = "flo@airbnb.com", parents = template.parents.map({
+          val dependencyJob = template.copy(owners = Set("flo@airbnb.com"), parents = template.parents.map({
             parent =>
               parent match {
                 case asyncPattern(jobName, async) => jobName

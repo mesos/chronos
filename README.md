@@ -210,7 +210,7 @@ Here is an example job hash:
   "name": "SAMPLE_JOB1",
   "epsilon": "PT15M",
   "command": "echo 'FOO' >> /tmp/JOB1_OUT",
-  "owner": "bob@airbnb.com",
+  "owners": ["bob@airbnb.com"],
   "async": false
 }
 ```
@@ -248,7 +248,7 @@ Here is a more elaborate example for a dependency job hash:
     "lastError": "",
     "lastSuccess": "2013-03-15T13:02:14.243Z",
     "name": "hostings_earnings_summary",
-    "owner": "bob@airbnb.com",
+    "owners": ["bob@airbnb.com"],
     "parents": [
         "db_export-airbed_hostings",
         "db_export-airbed_reservation2s"

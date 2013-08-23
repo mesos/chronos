@@ -30,8 +30,10 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("retries")
     json.writeNumber(baseJob.retries)
 
-    json.writeFieldName("owner")
-    json.writeString(baseJob.owner)
+    json.writeFieldName("owners")
+    json.writeStartArray()
+    baseJob.owners.foreach(json.writeString(_))
+    json.writeEndArray()
 
     json.writeFieldName("async")
     json.writeBoolean(baseJob.async)

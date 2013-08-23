@@ -21,7 +21,7 @@ The following is a list of configuration parameters for Chronos, what
 they do and when you should specify them.
 
 * [assets](#assets)
-* [defaultJobOwner](#defaultjobowner)
+* [defaultJobOwners](#defaultjobowners)
 * [failoverTimeoutSeconds](#failovertimeoutseconds)
 * [failureRetryDelay](#failureretrydelay)
 * [gangliaHostPort](#gangliahostport)
@@ -62,7 +62,7 @@ and want to see your updates reflected immediately.
 
 **Note**: Overridden paths are relative to `$CLASSPATH`
 
-### defaultJobOwner
+### defaultJobOwners
 
 *Default*: `"flo@airbnb.com"`
 
