@@ -361,6 +361,15 @@ function($,
             return v.trim();
           });
           if (val[0] == '') val = [];
+        } else if(name == 'owners') {
+          val = val.split(',');
+          val = _.map( val, function(v) {
+            return v.trim();
+          });
+          if (val[0] == '') {
+            val = [];
+            console.log("Found an empty owners field.");
+          }
         } else if (name == 'disabled') {
           if (!$el.is(':checked')) { return; }
 

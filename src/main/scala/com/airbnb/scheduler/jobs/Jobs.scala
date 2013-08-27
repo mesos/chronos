@@ -31,7 +31,7 @@ trait BaseJob {
   def executor: String = ""
   def executorFlags: String = ""
   def retries: Int = 2
-  def owner: String = ""
+  def owners: Set[String] = Set()
   def lastSuccess: String = ""
   def lastError: String = ""
   def async: Boolean = false
@@ -52,7 +52,7 @@ case class ScheduleBasedJob(
     @JsonProperty override val executor: String = "",
     @JsonProperty override val executorFlags: String = "",
     @JsonProperty override val retries: Int = 2,
-    @JsonProperty override val owner: String = "",
+    @JsonProperty override val owners: Set[String] = Set(),
     @JsonProperty override val lastSuccess: String = "",
     @JsonProperty override val lastError: String = "",
     @JsonProperty override val async: Boolean = false,
@@ -74,7 +74,7 @@ case class DependencyBasedJob(
     @JsonProperty override val executor: String = "",
     @JsonProperty override val executorFlags: String = "",
     @JsonProperty override val retries: Int = 2,
-    @JsonProperty override val owner: String = "",
+    @JsonProperty override val owners: Set[String] = Set(),
     @JsonProperty override val lastSuccess: String = "",
     @JsonProperty override val lastError: String = "",
     @JsonProperty override val async: Boolean = false,

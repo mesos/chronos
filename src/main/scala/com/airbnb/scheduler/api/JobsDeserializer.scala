@@ -35,9 +35,13 @@ class JobsDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("retries") && node.get("retries") != null) node.get("retries").asInt
       else 2
 
-    val owner =
-      if (node.has("owner") && node.get("owner") != null) node.get("owner").asText
-      else ""
+    // Init as a list buffer here, conversion to set occurs down below during instantation of Job object.
+    val owners = scala.collection.mutable.ListBuffer[String]()
+    if (node.has("owners") && node.get("owners") != null) {
+      for (owner <- node.path("owners")) {
+        owners += owner.asText
+      }
+    }
 
     val async =
       if (node.has("async") && node.get("async") != null) node.get("async").asBoolean
@@ -82,12 +86,12 @@ class JobsDeserializer extends JsonDeserializer[BaseJob] {
       }
       new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
-        executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        executor = executor, executorFlags = executorFlags, retries = retries, owners = owners.toSet, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
-        executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        executorFlags = executorFlags, retries = retries, owners = owners.toSet, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled)
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")

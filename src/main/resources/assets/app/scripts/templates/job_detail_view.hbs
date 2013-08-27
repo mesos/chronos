@@ -64,11 +64,15 @@
              data-html="true"
              data-placement="bottom">
           <div class="detail">Owner(s)</div>
-          <div class="display hightlight line-height job-name owner"
-               data-rv-text="job.owner">{{owner}}</div>
+          <div class="display hightlight line-height job-name owners"
+               data-rv-text="job:ownersList < .owners">{{joinWith owners ', '}}</div>
           <div class="field cmd">
-            <input class="job-input" value="{{owner}}" name="owner" tabindex="4"
-                   data-rv-value="job.owner">
+            <input class="job-input"
+                   value="{{joinWith owners ', '}}"
+                   placeholder="Choose owner(s)..."
+                   data-placeholder="Choose owner(s)..."
+                   name="owners"
+                   tabindex="4">
           </div>
           <span class="help-inline"></span>
         </div>

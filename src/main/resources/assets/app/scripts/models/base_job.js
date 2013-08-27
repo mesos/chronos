@@ -24,7 +24,7 @@ function(Backbone, _, moment, BaseJobValidations) {
   }
 
   BaseWhiteList = [
-    'name', 'command', 'owner', 'async', 'epsilon', 'executor', 'disabled'
+    'name', 'command', 'owners', 'async', 'epsilon', 'executor', 'disabled'
   ];
 
   BaseJobModel = Backbone.Model.extend({
@@ -32,7 +32,7 @@ function(Backbone, _, moment, BaseJobValidations) {
       var d = new Date();
       return {
         name: '-',
-        owner: '',
+        owners: [],
         startTime: moment(d).format('HH:mm:ss'),
         startDate: moment(d).format('YYYY-MM-DD'),
         repeats: '',
@@ -190,6 +190,7 @@ function(Backbone, _, moment, BaseJobValidations) {
 
       return _.extend({}, data, {
         parentsList: this.get('parents').join(', '),
+        ownersList: this.get('owners').join(', '),
         isNew: this.isNew(),
         hasSchedule: this.hasSchedule(),
         lastError: data.lastError || 'none',
@@ -216,6 +217,10 @@ function(Backbone, _, moment, BaseJobValidations) {
 
     parentsList: function(parents) {
       return this.get('parents').join(', ');
+    },
+
+    ownersList: function(owners) {
+      return this.get('owners').join(', ');
     },
 
     parseDisplayName: function() {

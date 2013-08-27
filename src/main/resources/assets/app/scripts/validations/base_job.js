@@ -74,7 +74,7 @@ function(require,
   }, {});
 
   return _.extend(BaseValues, {
-    owner: {
+    owners: {
       required: true,
       minlength: 3,
       // This pattern is based on the one described at http://www.regular-expressions.info/email.html.

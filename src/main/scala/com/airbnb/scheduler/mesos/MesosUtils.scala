@@ -30,7 +30,7 @@ object MesosUtils {
       .addVariables(Variable.newBuilder()
         .setName("mesos_task_id").setValue(taskIdStr))
       .addVariables(Variable.newBuilder()
-        .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
+        .setName("CHRONOS_JOB_OWNER").setValue(job.owners.toString))
     if (!job.executor.isEmpty) {
       appendExecutorData(taskInfo, job)
     } else {
