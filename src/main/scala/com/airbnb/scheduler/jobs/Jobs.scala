@@ -39,6 +39,7 @@ trait BaseJob {
   def disk: Int = 0
   def mem: Int = 0
   def disabled: Boolean = false
+  def errorsSinceLastSuccess: Long = 0L
 }
 
 @JsonDeserialize(using = classOf[JobsDeserializer])
@@ -59,7 +60,8 @@ case class ScheduleBasedJob(
     @JsonProperty override val cpus: Double = 0,
     @JsonProperty override val disk: Int = 0,
     @JsonProperty override val mem: Int = 0,
-    @JsonProperty override val disabled: Boolean = false)
+    @JsonProperty override val disabled: Boolean = false,
+    @JsonProperty override val errorsSinceLastSuccess: Long = 0L)
   extends BaseJob
 
 
@@ -81,5 +83,6 @@ case class DependencyBasedJob(
     @JsonProperty override val cpus: Double = 0,
     @JsonProperty override val disk: Int = 0,
     @JsonProperty override val mem: Int = 0,
-    @JsonProperty override val disabled: Boolean = false)
+    @JsonProperty override val disabled: Boolean = false,
+    @JsonProperty override val errorsSinceLastSuccess: Long = 0L)
   extends BaseJob

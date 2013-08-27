@@ -80,6 +80,9 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   val failureRetryDelay: Long = 60000
 
   @JsonProperty
+  val disableAfterFailures: Long = 0
+
+  @JsonProperty
   val mesosTaskMem: Int = 1024
 
   @JsonProperty
