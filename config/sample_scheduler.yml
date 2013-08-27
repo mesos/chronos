@@ -6,6 +6,7 @@ mailPassword: "AWSSECRET"
 mailServer: "email-smtp.us-east-1.amazonaws.com:25"
 mailFrom: "alerts@yourcompany.com"
 failureRetryDelay: 60000
+disableAfterFailures: 0
 
 # Amount of memory, in MiB, per Mesos task
 mesosTaskMem: 1024

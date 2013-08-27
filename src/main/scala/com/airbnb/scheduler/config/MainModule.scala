@@ -66,7 +66,7 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       metrics: JobMetrics): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds).toPeriod, taskManager,
       dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient,
-      config.failureRetryDelay, metrics)
+      config.failureRetryDelay, config.disableAfterFailures, metrics)
   }
 
   @Singleton
