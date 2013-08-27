@@ -25,7 +25,7 @@ class MesosJobFramework @Inject()(
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
-  private var runningJobs = new HashSet[String]
+  private var runningJobs = new HashMap[String,String]
 
   val frameworkName = "chronos"
 
@@ -92,7 +92,6 @@ class MesosJobFramework @Inject()(
     val (jobName, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
-        runningJobs.add(jobName)
       case _ =>
         runningJobs.remove(jobName)
     }
@@ -127,8 +126,14 @@ class MesosJobFramework @Inject()(
 
   @Override
   def slaveLost(schedulerDriver: SchedulerDriver, slaveID: SlaveID) {
-    //TODO(FL): FIND PENDING TASKS WITH THE GIVEN SLAVE ID
     log.warning("Slave lost")
+
+    // Remove any running jobs from this slave
+    val jobs = runningJobs.filter {
+      case (k, v) =>
+        slaveID.getValue == v
+    }
+    runningJobs --= jobs.keys
   }
 
   @Override
@@ -214,7 +219,7 @@ class MesosJobFramework @Inject()(
         val deleted = taskManager.removeTask(taskId)
         log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
           .format(taskId, deleted))
-        runningJobs.add(job.name)
+        runningJobs.put(job.name, offer.getSlaveId.getValue)
       }
 
       //TODO(FL): Handle case if mesos can't launch the task.
