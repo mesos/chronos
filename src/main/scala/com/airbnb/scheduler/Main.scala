@@ -51,6 +51,7 @@ object Main extends ScalaService[SchedulerConfiguration] {
     environment.addResource(injector.getInstance(classOf[JobManagementResource]))
     environment.addResource(injector.getInstance(classOf[TaskManagementResource]))
     environment.addResource(injector.getInstance(classOf[GraphManagementResource]))
+    environment.addResource(injector.getInstance(classOf[StatsResource]))
 
     environment.manage(injector.getInstance(classOf[JobScheduler]))
     environment.manage(injector.getInstance(classOf[MetricReporterService]))
