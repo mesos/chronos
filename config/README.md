@@ -24,6 +24,7 @@ they do and when you should specify them.
 * [defaultJobOwner](#defaultjobowner)
 * [failoverTimeoutSeconds](#failovertimeoutseconds)
 * [failureRetryDelay](#failureretrydelay)
+* [disableAfterFailures](#disableafterfailures)
 * [gangliaHostPort](#gangliahostport)
 * [gangliaReportIntervalSeconds](#gangliareportintervalseconds)
 * [gangliaGroupPrefix](#gangliagroupprefix)
@@ -85,6 +86,13 @@ When a task fails, Chronos will wait *up to* this number of milliseconds
 to retry.
 
 **Note**: This parameter should be specified in milliseconds.
+
+### disableAfterFailures
+
+*Default*: `0`
+
+If a job has failed after this many attempts since the last success, disable
+the job.  When set to 0, failed jobs are never disabled.
 
 ### gangliaHostPort
 

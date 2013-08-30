@@ -35,6 +35,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val candidate: Candidate = null,
                              val mailClient: Option[MailClient] = None,
                              val failureRetryDelay: Long = 60000,
+                             val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics)
 //Allows us to let Dropwizard manage the lifecycle of this class.
   extends Managed
@@ -274,9 +275,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         //TODO(FL): Refactor this section and handle the two job types separately.
         if (job.isInstanceOf[ScheduleBasedJob]) {
           job.asInstanceOf[ScheduleBasedJob].copy(successCount = job.successCount + 1,
+            errorsSinceLastSuccess = 0,
             lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
         } else if (job.isInstanceOf[DependencyBasedJob]) {
           job.asInstanceOf[DependencyBasedJob].copy(successCount = job.successCount + 1,
+            errorsSinceLastSuccess = 0,
             lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
         } else
           throw new IllegalArgumentException("Cannot handle unknown task type")
@@ -343,26 +346,41 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
             /* Schedule the retry up to 60 seconds in the future */
-            val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC).plus(new Duration(failureRetryDelay)), attempt + 1)
+            val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
+              .plus(new Duration(failureRetryDelay)), attempt + 1)
             taskManager.persistTask(taskId, job)
             taskManager.enqueue(newTaskId)
           } else {
+            val disableJob =
+              (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
+
             val newJob = {
                 job match {
                   case job: ScheduleBasedJob =>
                     job.copy(errorCount = job.errorCount + 1,
-                      lastError = DateTime.now(DateTimeZone.UTC).toString)
+                      errorsSinceLastSuccess = job.errorsSinceLastSuccess + 1,
+                      lastError = DateTime.now(DateTimeZone.UTC).toString, disabled = disableJob)
                   case job: DependencyBasedJob =>
                     job.copy(errorCount = job.errorCount + 1,
-                      lastError = DateTime.now(DateTimeZone.UTC).toString)
+                      errorsSinceLastSuccess = job.errorsSinceLastSuccess + 1,
+                      lastError = DateTime.now(DateTimeZone.UTC).toString, disabled = disableJob)
                   case _ => throw new IllegalArgumentException("Cannot handle unknown task type")
                 }
             }
             replaceJob(job, newJob)
 
-            log.warning("Job failed beyond retries!")
-            sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
-              .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
+            // Handle failure by either disabling the job and notifying the owner,
+            // or just notifying the owner.
+            if (disableJob) {
+              log.warning("Job failed beyond retries! Job will now be disabled after "
+                + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
+              sendNotification(job, "JOB DISABLED: '%s' failed at '%s', %d failures since last success"
+                .format(job.name, DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess))
+            } else {
+              log.warning("Job failed beyond retries!")
+              sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
+                .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
+            }
             jobMetrics.updateJobStatus(jobName, success = false)
           }
         }
