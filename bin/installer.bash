@@ -22,6 +22,11 @@ esac
 
 mesos_installation="/tmp"
 
+function read_dir {
+  read dest_dir
+  eval echo $dest_dir
+}
+
 function install_mesos {
   echo "Do you have mesos installed already? Type 'yes' or 'no' followed by [ENTER]:"
   read installed_already
