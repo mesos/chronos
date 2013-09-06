@@ -41,7 +41,6 @@ function($,
       e && e.preventDefault();
       return false;
     }
-
   });
 
   return MainMenu;
