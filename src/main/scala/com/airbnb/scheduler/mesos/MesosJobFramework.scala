@@ -10,6 +10,7 @@ import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 
 import scala.collection.mutable.HashSet
+import scala.collection.mutable.HashMap
 import mesosphere.mesos.util.FrameworkIdUtil
 
 /**
