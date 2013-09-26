@@ -22,6 +22,13 @@ esac
 
 mesos_installation="/tmp"
 
+# Wait for a user to type in a directory, then evaluate it to expand
+# environment variables, like $HOME, and ~.
+function read_dir {
+  read dest_dir
+  eval echo $dest_dir
+}
+
 function install_mesos {
   echo "Do you have mesos installed already? Type 'yes' or 'no' followed by [ENTER]:"
   read installed_already
@@ -29,7 +36,7 @@ function install_mesos {
   case $installed_already in
       no)
         echo "Type the target directory (absolute path) where you would like mesos to be installed followed by [ENTER]:"
-        read dest_dir
+        dest_dir=$(read_dir)
         if [[ -d "$dest_dir/src" ]]; then
           echo "A Mesos install already exists in this directory, would you like to delete it? Type 'yes' or 'no' followed by [ENTER]"
           read delete_dest_dir
@@ -58,7 +65,7 @@ function install_mesos {
         ;;
       yes)
         echo "Type the path of the compiled mesos installation followed by [ENTER]:"
-        read dest_dir
+        dest_dir=$(read_dir)
         mesos_installation="$dest_dir"
         echo "Skipping mesos installation"
         ;;
