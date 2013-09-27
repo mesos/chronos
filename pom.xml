@@ -359,6 +359,12 @@
                         <include>**/*Test.java</include>
                         <include>**/*Spec.java</include>
                     </includes>
+                    <systemProperties>
+                        <property>
+                            <name>java.util.logging.config.file</name>
+                            <value>src/test/resources/logging.properties</value>
+                        </property>
+                    </systemProperties>
                 </configuration>
             </plugin>
             <!-- TODO(FL): use this plugin to run a local version directly from maven <plugin>-->
