@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="chronos">
 
-  <!-- Inspired by: https://gist.github.com/millermedeiros/825117 -->
   <target name="-optimize" description="Combine and minify files.">
-    <java classname="org.mozilla.javascript.tools.shell.Main" failonerror="true">
-      <classpath path="${compile_classpath}" />
-      <arg value="${requirejs.optimizer.script}"/>
-      <arg value="-o"/>
-      <arg value="${requirejs.optimizer.settings}"/>
-    </java>
-    <echo message="optimized ${requirejs.optimizer.settings}" />
+    <exec executable="node">
+        <arg value="${requirejs.optimizer.script}"/>
+        <arg value="-o"/>
+        <arg value="${requirejs.optimizer.settings}"/>
+    </exec>
+    <echo message="optimized ${requirejs.optimizer.settings} with node" />
   </target>
 
   <target name="assets.uptodate" depends="sourceDir.check" if="sourceDir.nochanges">

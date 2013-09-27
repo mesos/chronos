@@ -34,10 +34,6 @@
         <yammer-metrics.version>2.2.0</yammer-metrics.version>
         <twitter-commons.version>0.0.44</twitter-commons.version>
 
-        <!-- build deps versions -->
-        <closure-compiler.version>v20130411</closure-compiler.version>
-        <rhino.version>1.7R4</rhino.version>
-
         <!-- test deps versions -->
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
@@ -212,20 +208,6 @@
             <artifactId>maven-surefire-report-plugin</artifactId>
             <version>${maven-surefire-plugins.version}</version>
             <scope>test</scope>
-        </dependency>
-
-
-        <!-- Only needed at build time -->
-        <dependency>
-            <groupId>org.mozilla</groupId>
-            <artifactId>rhino</artifactId>
-            <version>${rhino.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.javascript</groupId>
-            <artifactId>closure-compiler</artifactId>
-            <version>${closure-compiler.version}</version>
         </dependency>
     </dependencies>
 
