@@ -6,6 +6,8 @@
 
 ## Compiling Assets
 
+**Node.js is required to build assets**
+
 Assets are automatically compiled when running `mvn package`. If you change assets, and want them updated in your jar, you must either `rm -rf src/main/resources/assets/build` or `mvn clean`.
 
 ## Modifying Assets

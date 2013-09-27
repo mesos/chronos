@@ -12,7 +12,7 @@
       'lessc-server'
     ],
     findNestedDependencies: true,
-    optimize: "closure",
+    optimize: "uglify",
     closure: {
       CompilerOptions: {
       },
