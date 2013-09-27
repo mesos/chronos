@@ -433,6 +433,8 @@ from Chronos code but rather from some Scala classes, consider upgrading to Open
 
 ##### Build Chronos
 
+  # Install node
+  # OSX: brew install node
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 	git clone https://github.com/airbnb/chronos.git
 	cd chronos
