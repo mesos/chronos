@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export JAVA_LIBRARY_PATH="/usr/local/lib:/lib:/usr/lib"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
+config="$1"
+jar_file="$2"
+mesos_master="$( < /etc/mesos/zk)"
+tmp="${mesos_master//zk:\/\/}"
+zk_host="${tmp/\/*}"
+heap=384m
+
+java  -Xmx"$heap" -Xms"$heap" -cp "$jar_file" \
+  -Ddw.http.port="$PORT0" \
+  -Ddw.http.adminPort="$PORT1" \
+  -Ddw.zookeeperServers="$zk_host" \
+  -Ddw.master="$mesos_master" \
+  com.airbnb.scheduler.Main \
+  server "$config"
