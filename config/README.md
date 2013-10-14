@@ -205,6 +205,12 @@ Enable checkpointing for this framework on Mesos
 
 *Default*: false
 
+### mesosFrameworkName
+
+The Mesos framework name to register with.
+
+*Default*: `"chronos" + System.currentTimeMillis()` (ex. `chronos1381601474269`)
+
 ### scheduleHorizonSeconds
 
 *Default*: `10`

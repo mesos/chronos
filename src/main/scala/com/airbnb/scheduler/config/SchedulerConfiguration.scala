@@ -98,6 +98,9 @@ class SchedulerConfiguration extends Configuration with AssetsBundleConfiguratio
   val mesosRole: String = "*"
 
   @JsonProperty
+  val mesosFrameworkName: String = "chronos%d".format(System.currentTimeMillis())
+
+  @JsonProperty
   val gangliaHostPort: Option[String] = None
 
   @JsonProperty
