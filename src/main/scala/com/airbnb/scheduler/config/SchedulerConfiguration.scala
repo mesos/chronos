@@ -9,7 +9,7 @@ import java.net.InetSocketAddress
  * Configuration values that may be parsed from a YAML file.
  * @author Florian Leibert (flo@leibert.de)
  */
-class SchedulerConfiguration extends ScallopConf {
+trait SchedulerConfiguration extends ScallopConf {
 
 
   lazy val master = opt[String]("master",
@@ -208,8 +208,4 @@ class SchedulerConfiguration extends ScallopConf {
   @JsonProperty
   val gangliaGroupPrefix: String = ""
 
-  def getAssetsConfiguration: AssetsConfiguration = assets match {
-    case Some(assetsConf: AssetsConfiguration) => assetsConf
-    case None => new AssetsConfiguration
-  }
 }
