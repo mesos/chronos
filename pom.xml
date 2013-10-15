@@ -4,7 +4,7 @@
 
     <groupId>com.airbnb</groupId>
     <artifactId>chronos</artifactId>
-    <version>1.0.0_mesos-0.14.0-rc4</version>
+    <version>2.0.1_mesos-0.14.0-rc4</version>
     <inceptionYear>2012</inceptionYear>
 
     <prerequisites>
@@ -17,13 +17,13 @@
 
         <!-- language versions -->
         <java.abi>1.6</java.abi>
-        <scala.version>2.9.1</scala.version>
-        <scala.abi>2.9.1</scala.abi>
+        <scala.version>2.10.2</scala.version>
+        <scala.abi>2.10.2</scala.abi>
 
         <!-- runtime deps versions -->
+        <chaos.version>0.4.3</chaos.version>
+        <mesos-utils.version>0.0.4</mesos-utils.version>
         <commons-math3.version>3.2</commons-math3.version>
-        <dropwizard.version>0.6.2</dropwizard.version>
-        <dropwizard.configurable-assets-bundle.version>0.1.10</dropwizard.configurable-assets-bundle.version>
         <guava.version>14.0.1</guava.version>
         <guice.version>3.0</guice.version>
         <jgrapht.version>0.8.3</jgrapht.version>
@@ -31,7 +31,6 @@
         <joda-time.version>2.2</joda-time.version>
         <mesos.version>0.14.1-SNAPSHOT</mesos.version>
         <protobuf.version>2.4.1</protobuf.version>
-        <yammer-metrics.version>2.2.0</yammer-metrics.version>
         <twitter-commons.version>0.0.44</twitter-commons.version>
 
         <!-- test deps versions -->
@@ -100,6 +99,17 @@
             <artifactId>mesos</artifactId>
             <version>${mesos.version}</version>
         </dependency>
+        <dependency>
+            <groupId>mesosphere</groupId>
+            <artifactId>chaos</artifactId>
+            <version>${chaos.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mesosphere</groupId>
+            <artifactId>mesos-utils</artifactId>
+            <version>${mesos-utils.version}</version>
+        </dependency>
 
         <!-- Everything else -->
         <dependency>
@@ -127,37 +137,7 @@
             <artifactId>joda-convert</artifactId>
             <version>${joda-convert.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.yammer.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${yammer-metrics.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yammer.metrics</groupId>
-            <artifactId>metrics-ganglia</artifactId>
-            <version>${yammer-metrics.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yammer.metrics</groupId>
-            <artifactId>metrics-guice</artifactId>
-            <version>${yammer-metrics.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yammer.dropwizard</groupId>
-            <artifactId>dropwizard-core</artifactId>
-            <version>${dropwizard.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yammer.dropwizard</groupId>
-            <artifactId>dropwizard-scala_${scala.abi}</artifactId>
-            <version>${dropwizard.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.bazaarvoice.dropwizard</groupId>
-            <artifactId>dropwizard-configurable-assets-bundle</artifactId>
-            <version>${dropwizard.configurable-assets-bundle.version}</version>
-        </dependency>
-        <dependency>
+       <dependency>
             <groupId>net.sf.jgrapht</groupId>
             <artifactId>jgrapht</artifactId>
             <version>${jgrapht.version}</version>
@@ -172,6 +152,7 @@
             <artifactId>client</artifactId>
             <version>0.0.37</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.apache.commons</groupId>

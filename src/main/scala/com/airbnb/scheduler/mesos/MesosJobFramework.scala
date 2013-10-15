@@ -10,6 +10,7 @@ import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 
 import scala.collection.mutable.HashSet
+import mesosphere.mesos.util.FrameworkIdUtil
 
 /**
  * Provides the interface to mesos. Receives callbacks from mesos when resources are offered, declined etc.
@@ -19,7 +20,8 @@ class MesosJobFramework @Inject()(
     val mesosDriver: MesosDriverFactory,
     val scheduler: JobScheduler,
     val taskManager: TaskManager,
-    val config: SchedulerConfiguration)
+    val config: SchedulerConfiguration,
+    val frameworkIdUtil: FrameworkIdUtil)
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -32,6 +34,7 @@ class MesosJobFramework @Inject()(
   def registered(schedulerDriver: SchedulerDriver, frameworkID: FrameworkID, masterInfo: MasterInfo) {
     log.info("Registered")
     log.info("Master info:" + masterInfo.toString)
+    frameworkIdUtil.store(frameworkID)
   }
 
   /* Overridden methods from MesosScheduler */

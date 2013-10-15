@@ -209,7 +209,7 @@ Enable checkpointing for this framework on Mesos
 
 The Mesos framework name to register with.
 
-*Default*: `"chronos" + System.currentTimeMillis()` (ex. `chronos1381601474269`)
+*Default*: `"chronos-<VERSION>"
 
 ### scheduleHorizonSeconds
 
@@ -276,7 +276,7 @@ We have included sample configuration files for local Chronos development as wel
 [`sample_scheduler.yml`](#sample_scheduleryml)
 
 ## `local_cluster_scheduler.yml`
-This configuration file assumes you have a mesos slave and master running locally. 
+This configuration file assumes you have a mesos slave and master running locally.
 
 ## `local_cluster_asset_dev.yml`
 This configuration file is the same as the above ([`local_cluster_scheduler.yml`](#local_cluster_scheduleryml)), but also specifies asset overrides. Asset overrides should only be in your configuration file if you are modifying assets locally. If asset overrides are present in your production config, you will be unable to use the UI, as unpackaged assets are not included in the jar.

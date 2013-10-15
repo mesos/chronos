@@ -10,12 +10,13 @@ import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.notification.MailClient
-import com.google.inject.{Provides, Singleton, Inject, AbstractModule}
+import com.google.inject.{Inject, Provides, Singleton, AbstractModule}
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, ThreadFactoryBuilder, MoreExecutors}
 import com.twitter.common.zookeeper.Candidate
-import org.apache.mesos.Protos.{FrameworkID, FrameworkInfo}
+import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
+import mesosphere.mesos.util.FrameworkIdUtil
 
 /**
  * Guice glue code of application logic components.
@@ -28,18 +29,6 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     log.info("Wiring up the application")
 
     bind(classOf[Scheduler]).to(classOf[MesosJobFramework]).asEagerSingleton()
-    bind(classOf[FrameworkInfo]).toInstance(
-      FrameworkInfo.newBuilder()
-        .setName(config.mesosFrameworkName)
-        .setCheckpoint(config.mesosCheckpoint)
-        .setRole(config.mesosRole)
-        .setId(
-          FrameworkID.newBuilder()
-            .setValue("chronos").build()
-          )
-        .setFailoverTimeout(config.failoverTimeoutSeconds).setUser(config.user).build()
-    )
-
     bind(classOf[SchedulerHealthCheck]).asEagerSingleton()
     bind(classOf[TaskManager]).asEagerSingleton()
     bind(classOf[SchedulerConfiguration]).toInstance(config)
@@ -47,6 +36,20 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     //TODO(FL): Only bind this if config.dependentJobs is turned on.
     bind(classOf[JobGraph]).asEagerSingleton()
   }
+
+  @Inject
+  @Singleton
+  @Provides
+  def provideFrameworkInfo(frameworkIdUtil: FrameworkIdUtil): FrameworkInfo = {
+    val frameworkInfo = FrameworkInfo.newBuilder()
+      .setName(config.mesosFrameworkName)
+      .setCheckpoint(config.mesosCheckpoint)
+      .setRole(config.mesosRole)
+      .setFailoverTimeout(config.failoverTimeoutSeconds).setUser(config.user)
+    frameworkIdUtil.setIdIfExists(frameworkInfo)
+    frameworkInfo.build()
+  }
+
 
   @Singleton
   @Provides
@@ -56,13 +59,13 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Singleton
   @Provides
   def provideTaskScheduler(
-      taskManager: TaskManager,
-      dependencyScheduler: JobGraph,
-      persistenceStore: PersistenceStore,
-      mesosSchedulerDriver: MesosDriverFactory,
-      candidate: Candidate,
-      mailClient: Option[MailClient],
-      metrics: JobMetrics): JobScheduler = {
+                            taskManager: TaskManager,
+                            dependencyScheduler: JobGraph,
+                            persistenceStore: PersistenceStore,
+                            mesosSchedulerDriver: MesosDriverFactory,
+                            candidate: Candidate,
+                            mailClient: Option[MailClient],
+                            metrics: JobMetrics): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds).toPeriod, taskManager,
       dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient,
       config.failureRetryDelay, config.disableAfterFailures, metrics)

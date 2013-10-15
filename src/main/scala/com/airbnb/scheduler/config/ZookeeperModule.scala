@@ -11,10 +11,11 @@ import com.twitter.common.base.Supplier
 import com.twitter.common.quantity.Amount
 import com.twitter.common.quantity.Time
 import com.twitter.common.zookeeper._
-import org.apache.mesos.state.ZooKeeperState
+import org.apache.mesos.state.{State, ZooKeeperState}
 import org.apache.zookeeper.ZooDefs
 import org.apache.zookeeper.server.{NIOServerCnxn, ZooKeeperServer}
 import java.io.File
+import mesosphere.mesos.util.FrameworkIdUtil
 
 /**
  * Guice glue-code for zookeeper related things.
@@ -37,11 +38,28 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   @Inject
   @Singleton
   @Provides
-  def providePersistencStore(zk: ZooKeeperClient): PersistenceStore = {
-    log.info("Providing MesosStatePersistenceStore")
-    ZooKeeperUtils.ensurePath(zk, ZooDefs.Ids.OPEN_ACL_UNSAFE, config.zookeeperStateZnode)
-    new MesosStatePersistenceStore(zk, config, new ZooKeeperState(
-      getZkServerString, config.zookeeperTimeoutMs, TimeUnit.MILLISECONDS, config.zookeeperStateZnode))
+  def provideState(): State = {
+    new ZooKeeperState(getZkServerString,
+                       config.zookeeperTimeoutMs,
+                       TimeUnit.MILLISECONDS,
+                       config.zookeeperStateZnode)
+  }
+
+  @Inject
+  @Singleton
+  @Provides
+  def provideStore(zk: ZooKeeperClient, state: State): PersistenceStore = {
+    ZooKeeperUtils.ensurePath(zk,
+                              ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                              config.zookeeperStateZnode)
+
+    new MesosStatePersistenceStore(zk, config, state)
+  }
+
+  @Provides
+  @Singleton
+  def provideFrameworkIdUtil(state: State): FrameworkIdUtil = {
+    new FrameworkIdUtil(state)
   }
 
   @Inject
