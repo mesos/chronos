@@ -8,10 +8,70 @@ import com.airbnb.scheduler.api._
 import com.airbnb.scheduler.config.{JobMetricsModule, ZookeeperModule, MainModule, SchedulerConfiguration}
 import com.airbnb.scheduler.jobs.{MetricReporterService, JobScheduler}
 import com.google.common.collect.ImmutableList
-import com.google.inject.{Injector, Guice}
+import com.google.inject.{AbstractModule, Injector, Guice}
 import com.yammer.dropwizard.ScalaService
 import com.yammer.dropwizard.config.{Bootstrap, Environment}
 import com.yammer.dropwizard.bundles.ScalaBundle
+import mesosphere.chaos.{AppConfiguration, App}
+import mesosphere.chaos.http.{HttpService, HttpConf, HttpModule}
+import mesosphere.chaos.metrics.MetricsModule
+import mesosphere.marathon.MarathonModule
+import mesosphere.marathon.api.MarathonRestModule
+import mesosphere.marathon.event.EventModule
+import mesosphere.marathon.event.http.HttpEventModule
+import org.rogach.scallop.ScallopConf
+import mesosphere.marathon.MarathonConfiguration
+import mesosphere.marathon.event.EventConfiguration
+import mesosphere.marathon.event.http.HttpEventConfiguration
+import mesosphere.marathon.MarathonSchedulerService
+
+/**
+ * @author Tobi Knaup
+ */
+object Main extends App {
+
+  val VERSION = "0.1.1-SNAPSHOT"
+
+  val log = Logger.getLogger(getClass.getName)
+
+  def modules() = {
+    Seq(
+      new HttpModule(conf),
+      new MetricsModule,
+      new MainModule(conf),
+      new ZookeeperModule(conf),
+      new JobMetricsModule(conf)
+    )
+  }
+
+  //TODO(*): Rethink how this could be done.
+  def getEventsModule(): Option[AbstractModule] = {
+    if (conf.eventSubscriber.isSupplied) {
+      conf.eventSubscriber() match {
+        case "http_callback" => {
+          log.warning("Using HttpCallbackEventSubscriber for event" +
+            "notification")
+          return Some(new HttpEventModule())
+        }
+        case _ => {
+          log.warning("Event notification disabled.")
+        }
+      }
+    }
+
+    None
+  }
+
+  //TOOD(FL): Make Events optional / wire up.
+  lazy val conf = new ScallopConf(args)
+    with HttpConf with MarathonConfiguration with AppConfiguration
+    with EventConfiguration with HttpEventConfiguration
+
+  run(List(
+    classOf[HttpService],
+    classOf[MarathonSchedulerService]
+  ))
+}
 
 /**
  * Main entry point to chronos using the Dropwizard framework.

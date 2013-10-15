@@ -4,29 +4,107 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.bazaarvoice.dropwizard.assets.{AssetsConfiguration, AssetsBundleConfiguration}
 import com.yammer.dropwizard.config.Configuration
 import org.hibernate.validator.constraints.NotEmpty
+import org.rogach.scallop.ScallopConf
+import java.net.InetSocketAddress
+import mesosphere.marathon.Executor
+
 
 /**
  * Configuration values that may be parsed from a YAML file.
  * @author Florian Leibert (flo@leibert.de)
  */
-class SchedulerConfiguration extends Configuration with AssetsBundleConfiguration {
+class SchedulerConfiguration extends ScallopConf {
 
-  @NotEmpty
-  @JsonProperty
-  val master: String = "local"
+
+    lazy val master = opt[String]("master",
+      descr = "The URL of the Mesos master",
+      default = Some("master"),
+      required = true,
+      noshort = true)
+
+//    lazy val mesosFailoverTimeout = opt[Long]("failover_timeout",
+//      descr = "The failover_timeout for mesos in seconds (default: 1 week)",
+//      default = Some(604800L))
+//
+//    lazy val highlyAvailable = opt[Boolean]("ha",
+//      descr = "Runs Marathon in HA mode with leader election. " +
+//        "Allows starting an arbitrary number of other Marathons but all need " +
+//        "to be started in HA mode. This mode requires a running ZooKeeper",
+//      noshort = true, default = Some(true))
+//
+//    lazy val checkpoint = opt[Boolean]("checkpoint",
+//      descr = "Enable checkpointing of tasks. " +
+//        "Requires checkpointing enabled on slaves. Allows tasks to continue " +
+//        "running during mesos-slave restarts and upgrades",
+//      noshort = true)
+//
+//    lazy val zooKeeperHostString = opt[String]("zk_hosts",
+//      descr = "The list of ZooKeeper servers for storing state",
+//      default = Some("localhost:2181"))
+//
+//    lazy val zooKeeperTimeout = opt[Long]("zk_timeout",
+//      descr = "The timeout for ZooKeeper in milliseconds",
+//      default = Some(10000L))
+//
+//    lazy val zooKeeperPath = opt[String]("zk_state",
+//      descr = "Path in ZooKeeper for storing state",
+//      default = Some("/marathon"))
+//
+//    lazy val localPortMin = opt[Int]("local_port_min",
+//      descr = "Min port number to use when assigning ports to apps",
+//      default = Some(10000))
+//
+//    lazy val localPortMax = opt[Int]("local_port_max",
+//      descr = "Max port number to use when assigning ports to apps",
+//      default = Some(20000))
+//
+//    lazy val defaultExecutor = opt[String]("executor",
+//      descr = "Executor to use when none is specified",
+//      default = Some("//cmd"))
+//
+//    def zooKeeperStatePath = "%s/state".format(zooKeeperPath())
+//
+//    def zooKeeperLeaderPath = "%s/leader".format(zooKeeperPath())
+//
+//    def zooKeeperServerSetPath = "%s/apps".format(zooKeeperPath())
+//
+//    lazy val hostname = opt[String]("hostname",
+//      descr = "The advertised hostname stored in ZooKeeper so another standby " +
+//        "host can redirect to this elected leader",
+//      default = Some("localhost"))
+//
+//    def zooKeeperHostAddresses: Seq[InetSocketAddress] =
+//      for (s <- zooKeeperHostString().split(",")) yield {
+//        val splits = s.split(":")
+//        require(splits.length == 2, "expected host:port for zk servers")
+//        new InetSocketAddress(splits(0), splits(1).toInt)
+//      }
+//
+//    def executor: Executor = Executor.dispatch(defaultExecutor())
+//
+//    lazy val mesosRole = opt[String]("mesos_role",
+//      descr = "Mesos role for this framework",
+//      default = None)
+
+
+  lazy val  staticAssets = opt[Boolean]("static_assets",
+    descr = "Use static assets",
+    default = Some(true))
+
+
+  lazy val  user = opt[String]("user",
+    descr = "The mesos user to run the processes under",
+    default = Some("root"))
+
+  lazy val  failoverTimeoutSeconds = opt[Int]("failover_timeout",
+    descr = "The failover timeout in seconds for Mesos",
+    default = Some(1200))
+
 
   @JsonProperty
-  val staticAssets: Boolean = true
-
-  @NotEmpty
-  @JsonProperty
-  val user: String = "root"
-
-  @JsonProperty
-  val failoverTimeoutSeconds: Int = 1200
-
-  @JsonProperty
-  val scheduleHorizonSeconds: Int = 10
+  val scheduleHorizonSeconds =   opt[Int]("schedule_horizon",
+    descr = "The look-ahead time for scheduling tasks in seconds",
+    default = Some(60))
 
   @JsonProperty
   val zookeeperServers: String = "localhost:2181"
