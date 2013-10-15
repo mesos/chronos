@@ -5,7 +5,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.logging.{Level, Logger}
 
 import com.airbnb.scheduler.mesos.{MesosDriverFactory, MesosJobFramework}
-import com.airbnb.scheduler.SchedulerHealthCheck
 import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
@@ -29,7 +28,6 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     log.info("Wiring up the application")
 
     bind(classOf[Scheduler]).to(classOf[MesosJobFramework]).asEagerSingleton()
-    bind(classOf[SchedulerHealthCheck]).asEagerSingleton()
     bind(classOf[TaskManager]).asEagerSingleton()
     bind(classOf[SchedulerConfiguration]).toInstance(config)
 
