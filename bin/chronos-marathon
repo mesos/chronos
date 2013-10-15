@@ -1,9 +1,16 @@
 #!/bin/bash
+set -o errexit -o nounset -o pipefail
+set -x
 
 export JAVA_LIBRARY_PATH="/usr/local/lib:/lib:/usr/lib"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/lib}"
+export LD_LIBRARY_PATH="$JAVA_LIBRARY_PATH:$LD_LIBRARY_PATH"
+export PORT0="${PORT0:-4400}"
+export PORT1="${PORT1:-4401}"
+
 config="$1"
-jar_file="$2"
+# Find the largest chronos-jar file in the directory (i.e. the all-encompassing jar file)
+jar_file=$(find . -name "chronos*.jar"  -exec ls -l -S {} \;  | sort -k 5 -n | tail -n1 | awk '{ print $9 }')
 mesos_master="$( < /etc/mesos/zk)"
 tmp="${mesos_master//zk:\/\/}"
 zk_host="${tmp/\/*}"
