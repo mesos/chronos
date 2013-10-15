@@ -33,6 +33,7 @@
         <protobuf.version>2.4.1</protobuf.version>
         <twitter-commons.version>0.0.44</twitter-commons.version>
         <metrics.version>3.0.0</metrics.version>
+        <akka.version>2.2.1</akka.version>
 
         <!-- test deps versions -->
         <junit.version>4.11</junit.version>
@@ -157,6 +158,11 @@
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-ganglia</artifactId>
             <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>${akka.version}</version>
         </dependency>
 
 

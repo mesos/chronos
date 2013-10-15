@@ -1,8 +1,7 @@
 package com.airbnb.notification
 
 import java.util.logging.{Level, Logger}
-import scala.actors.{Exit, Actor}
-
+import akka.actor.{Terminated, Actor}
 import org.apache.commons.mail.{DefaultAuthenticator, SimpleEmail}
 
 /**
@@ -47,21 +46,17 @@ class MailClient(
     log.info("Sent email to '%s' with subject: '%s', got response '%s'".format(to, subject, response))
   }
 
-  def act() {
-    loop {
-      react {
-        case (to : String, subject : String, message : Option[String]) => {
-          try {
-            sendNotification(to, subject, message)
-          } catch {
-            case t: Throwable => log.log(Level.WARNING, "Caught a throwable while trying to send mail.", t)
-          }
-        }
-        case Exit (worker: Actor, reason: AnyRef) => {
-          log.warning("Actor has exited, no longer sending out email notifications!")
-        }
-        case _ => log.warning("Couldn't understand message.")
+  def receive = {
+    case (to: String, subject: String, message: Option[String]) => {
+      try {
+        sendNotification(to, subject, message)
+      } catch {
+        case t: Throwable => log.log(Level.WARNING, "Caught a throwable while trying to send mail.", t)
       }
     }
+    case t @ Terminated(actorRef) => {
+      log.warning("Actor has exited, no longer sending out email notifications!")
+    }
+    case _ => log.warning("Couldn't understand message.")
   }
 }
