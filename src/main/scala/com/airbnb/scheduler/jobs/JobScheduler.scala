@@ -15,9 +15,9 @@ import com.twitter.common.zookeeper.Candidate.Leader
 import com.twitter.common.base.ExceptionalCommand
 import com.twitter.common.zookeeper.Group.JoinException
 import com.twitter.common.zookeeper.Candidate
-import com.yammer.dropwizard.lifecycle.Managed
 import org.joda.time.{DateTimeZone, Period, DateTime, Duration}
 import org.joda.time.format.DateTimeFormat
+import com.google.common.util.concurrent.AbstractIdleService
 
 /**
  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
@@ -37,8 +37,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics)
-//Allows us to let Dropwizard manage the lifecycle of this class.
-  extends Managed
+//Allows us to let Chaos manage the lifecycle of this class.
+  extends AbstractIdleService
   with Leader {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -552,14 +552,14 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  //Begin Managed interface
-  override def start() {
+  //Begin Service interface
+  override def startUp() {
     assert(!running.get, "This scheduler is already running!")
     log.info("Trying to become leader.")
     candidate.offerLeadership(this)
   }
 
-  override def stop() {
+  override def shutDown() {
     running.set(false)
     log.info("Shutting down job scheduler")
 
@@ -570,7 +570,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  //End Managed interface
+  //End Service interface
 
   //Begin Leader interface, which is required for CandidateImpl.
   def onDefeated() {
