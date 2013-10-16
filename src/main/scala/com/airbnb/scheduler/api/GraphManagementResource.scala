@@ -12,7 +12,7 @@ import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.jobs.graph.Exporter
 import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
-import com.yammer.metrics.annotation.Timed
+import com.codahale.metrics.annotation.Timed
 
 /**
  * The REST API for managing jobs.

@@ -1,7 +1,7 @@
 package com.airbnb.scheduler.jobs
 
 import com.google.inject.Inject
-import com.yammer.metrics.core.{MetricName, Counter, Histogram, MetricsRegistry}
+import com.codahale.metrics.{Counter, Histogram, MetricRegistry}
 import scala.collection.mutable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -10,7 +10,7 @@ import com.airbnb.scheduler.api.HistogramSerializer
 /**
  * Author: @andykram
  */
-class JobMetrics @Inject() (registry: MetricsRegistry) {
+class JobMetrics @Inject() (registry: MetricRegistry) {
 
   protected val stats = new mutable.HashMap[String, Histogram]()
   protected val statuses = new mutable.HashMap[String, Map[String, Counter]]()
@@ -21,10 +21,10 @@ class JobMetrics @Inject() (registry: MetricsRegistry) {
   objectMapper.registerModule(mod)
 
   protected def mkStat(jobName: String, name: String = "time") = {
-    registry.newHistogram(new MetricName("jobs", "run", name, jobName), false)
+    registry.histogram(MetricRegistry.name("jobs", "run", name, jobName))
   }
   protected def mkCounter(jobName: String, name: String) = {
-    registry.newCounter(new MetricName("jobs", "run", name, jobName))
+    registry.counter(MetricRegistry.name("jobs", "run", name, jobName))
   }
 
   def updateJobStat(jobName: String, timeMs: Long) {

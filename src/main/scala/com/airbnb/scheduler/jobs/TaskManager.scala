@@ -10,8 +10,7 @@ import com.airbnb.scheduler.mesos.MesosDriverFactory
 import com.google.common.util.concurrent.{ListenableFutureTask, ListeningScheduledExecutorService}
 import com.google.inject.Inject
 import com.google.common.cache.CacheBuilder
-import com.yammer.metrics.core.Gauge
-import com.yammer.metrics.Metrics
+import com.codahale.metrics.{MetricRegistry, Gauge}
 import org.apache.mesos.Protos.{TaskID, TaskState}
 import org.joda.time.{DateTimeZone, DateTime}
 
@@ -22,7 +21,8 @@ import org.joda.time.{DateTimeZone, DateTime}
 class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorService,
                              val persistenceStore: PersistenceStore,
                              val jobGraph: JobGraph,
-                             val mesosDriver: MesosDriverFactory) {
+                             val mesosDriver: MesosDriverFactory,
+                             val registry: MetricRegistry) {
 
   val log = Logger.getLogger(getClass.getName)
 
@@ -34,9 +34,11 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   val taskMapping = new mutable.HashMap[String, mutable.ListBuffer[(String, Future[_])]] with
     collection.mutable.SynchronizedMap[String, mutable.ListBuffer[(String, Future[_])]]
 
-  val queueGauge = Metrics.newGauge(classOf[TaskManager], "queueSize", new Gauge[Long] {
-    def value() = queue.size
-  })
+  val queueGauge = registry.register(
+    MetricRegistry.name(classOf[TaskManager], "queueSize"),
+    new Gauge[Long] {
+      def value() = queue.size
+    })
 
   /**
    * Returns the first task in the job queue

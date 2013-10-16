@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
 import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
-import com.yammer.metrics.annotation.Timed
+import com.codahale.metrics.annotation.Timed
 import com.fasterxml.jackson.databind.ObjectMapper
 import scala.collection.JavaConversions._
 /**
