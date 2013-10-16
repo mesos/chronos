@@ -4,7 +4,7 @@ import java.util.logging.Logger
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.airbnb.scheduler.api._
-import com.airbnb.scheduler.config.{JobMetricsModule, ZookeeperModule, MainModule, SchedulerConfiguration}
+import com.airbnb.scheduler.config._
 import com.airbnb.scheduler.jobs.{MetricReporterService, JobScheduler}
 import mesosphere.chaos.{AppConfiguration, App}
 import mesosphere.chaos.http.{HttpService, HttpConf, HttpModule}
@@ -38,6 +38,7 @@ object Main extends App {
 
   lazy val conf = new ScallopConf(args)
     with HttpConf with AppConfiguration with SchedulerConfiguration
+    with GangliaConfiguration
 
   run(Seq(
     classOf[HttpService],

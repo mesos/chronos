@@ -32,7 +32,9 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   @Provides
   def provideZookeeperClient(zkServer: Option[NIOServerCnxn.Factory]): ZooKeeperClient = {
     import collection.JavaConversions._
-    new ZooKeeperClient(Amount.of(config.zookeeperTimeoutMs, Time.MILLISECONDS), parseZkServers())
+    new ZooKeeperClient(
+      Amount.of(config.zookeeperTimeoutMs(), Time.MILLISECONDS),
+      parseZkServers())
   }
 
   @Inject
@@ -40,9 +42,9 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   @Provides
   def provideState(): State = {
     new ZooKeeperState(getZkServerString,
-                       config.zookeeperTimeoutMs,
+                       config.zookeeperTimeoutMs(),
                        TimeUnit.MILLISECONDS,
-                       config.zookeeperStateZnode)
+                       config.zookeeperStateZnode())
   }
 
   @Inject
@@ -51,7 +53,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   def provideStore(zk: ZooKeeperClient, state: State): PersistenceStore = {
     ZooKeeperUtils.ensurePath(zk,
                               ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                              config.zookeeperStateZnode)
+                              config.zookeeperStateZnode())
 
     new MesosStatePersistenceStore(zk, config, state)
   }
@@ -66,11 +68,13 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
   @Singleton
   @Provides
   def provideCandidate(zk: ZooKeeperClient): Candidate = {
-    log.info("Using hostname:" + config.hostname)
-    return new CandidateImpl(new Group(zk, ZooDefs.Ids.OPEN_ACL_UNSAFE, config.zookeeperCandidateZnode),
+    log.info("Using hostname:" + config.hostname())
+    return new CandidateImpl(new Group(zk, ZooDefs.Ids.OPEN_ACL_UNSAFE,
+      config.zookeeperCandidateZnode()),
       new Supplier[Array[Byte]] {
         def get() = {
-          "%s:%d".format(config.hostname, config.getHttpConfiguration.getPort).getBytes
+          "%s:%d".format(config.hostname, 4400).getBytes  // TODO(tk) get
+          // port from http config
         }
       })
   }
@@ -106,20 +110,20 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
 
   private def isInProcess: Boolean = {
     log.info(config.zookeeperServers)
-    val servers = config.zookeeperServers.split(",")
+    val servers = config.zookeeperServers().split(",")
     return servers.size == 1 && servers(0).split(":")(0) == "--"
   }
 
   private def getZkServerString: String = {
     if (isInProcess) {
-      config.zookeeperServers.replaceAll("--", "localhost")
+      config.zookeeperServers().replaceAll("--", "localhost")
     } else {
-      config.zookeeperServers
+      config.zookeeperServers()
     }
   }
 
   private def parseZkServers(): List[InetSocketAddress] = {
-    val servers = config.zookeeperServers.split(",")
+    val servers: String = config.zookeeperServers().split(",")
     if (isInProcess) {
       //TODO(FL): Refactor this code.
       List(new InetSocketAddress("localhost", servers(0).split(":")(1).toInt))

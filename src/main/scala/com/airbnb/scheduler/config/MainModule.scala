@@ -40,10 +40,11 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Provides
   def provideFrameworkInfo(frameworkIdUtil: FrameworkIdUtil): FrameworkInfo = {
     val frameworkInfo = FrameworkInfo.newBuilder()
-      .setName(config.mesosFrameworkName)
-      .setCheckpoint(config.mesosCheckpoint)
-      .setRole(config.mesosRole)
-      .setFailoverTimeout(config.failoverTimeoutSeconds).setUser(config.user)
+      .setName(config.mesosFrameworkName())
+      .setCheckpoint(config.mesosCheckpoint())
+      .setRole(config.mesosRole())
+      .setFailoverTimeout(config.failoverTimeoutSeconds())
+      .setUser(config.user())
     frameworkIdUtil.setIdIfExists(frameworkInfo)
     frameworkInfo.build()
   }
@@ -64,19 +65,22 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
                             candidate: Candidate,
                             mailClient: Option[MailClient],
                             metrics: JobMetrics): JobScheduler = {
-    new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds).toPeriod, taskManager,
-      dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient,
-      config.failureRetryDelay, config.disableAfterFailures, metrics)
+    new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
+      taskManager, dependencyScheduler, persistenceStore,
+      mesosSchedulerDriver, candidate, mailClient, config.failureRetryDelayMs(),
+      config.disableAfterFailures(), metrics)
   }
 
   @Singleton
   @Provides
   def provideMailClient(): Option[MailClient] = {
-    if (config.mailServer.isEmpty || config.mailFrom.isEmpty || !config.mailServer.get.contains(":")) {
+    if (config.mailServer().isEmpty || config.mailFrom().isEmpty ||
+      !config.mailServer().contains(":")) {
       log.warning("No mailFrom or mailServer configured. Email Notfications are disabled!")
       None
     } else {
-      val mailClient = new MailClient(config.mailServer.get, config.mailFrom.get, config.mailUser, config.mailPassword, config.mailSslOn)
+      val mailClient = new MailClient(config.mailServer(), config.mailFrom(),
+        config.mailUser(), config.mailPassword(), config.mailSslOn())
       log.warning("Starting mail client.")
       mailClient.start()
       Some(mailClient)
