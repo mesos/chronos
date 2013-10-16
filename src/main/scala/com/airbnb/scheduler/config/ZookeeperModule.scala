@@ -72,7 +72,7 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
       config.zooKeeperCandidatePath),
       new Supplier[Array[Byte]] {
         def get() = {
-          "%s:%d".format(config.hostname, config.port()).getBytes
+          "%s:%d".format(config.hostname, config.httpPort()).getBytes
         }
       })
   }

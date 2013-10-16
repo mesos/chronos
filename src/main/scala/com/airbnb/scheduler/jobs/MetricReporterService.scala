@@ -25,8 +25,8 @@ class MetricReporterService(config: GangliaConfiguration,
   private[this] var reporter: Option[GangliaReporter] = None
 
   def startUp() {
-    this.reporter = config.gangliaHostPort() match {
-      case MetricReporterService.HostPort(host: String, port: Int) => {
+    this.reporter = config.gangliaHostPort.get match {
+      case Some(MetricReporterService.HostPort(host: String, port: Int)) => {
         val ganglia = new GMetric(host, port, UDPAddressingMode.MULTICAST, 1)
         val reporter = GangliaReporter.forRegistry(registry)
           .prefixedWith(config.gangliaGroupPrefix())

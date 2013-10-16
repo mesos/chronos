@@ -9,6 +9,8 @@ import com.google.inject.Scopes
 
 class ChronosRestModule extends RestModule {
 
+  override val guiceContainerUrl = "/scheduler/*"
+
   protected override def configureServlets() {
     super.configureServlets()
 

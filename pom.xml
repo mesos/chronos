@@ -21,7 +21,7 @@
         <scala.abi>2.10.2</scala.abi>
 
         <!-- runtime deps versions -->
-        <chaos.version>0.4.3</chaos.version>
+        <chaos.version>0.4.5</chaos.version>
         <mesos-utils.version>0.0.4</mesos-utils.version>
         <commons-math3.version>3.2</commons-math3.version>
         <guava.version>14.0.1</guava.version>
@@ -208,10 +208,7 @@
         <resources>
             <resource>
                 <targetPath>assets</targetPath>
-                <directory>src/main/resources/assets</directory>
-                <includes>
-                    <include>build/</include>
-                </includes>
+                <directory>src/main/resources/assets/build</directory>
             </resource>
         </resources>
         <pluginManagement>
