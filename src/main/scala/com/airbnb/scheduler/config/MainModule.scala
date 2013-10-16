@@ -33,10 +33,6 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
         .setName(config.mesosFrameworkName)
         .setCheckpoint(config.mesosCheckpoint)
         .setRole(config.mesosRole)
-        .setId(
-          FrameworkID.newBuilder()
-            .setValue("chronos").build()
-          )
         .setFailoverTimeout(config.failoverTimeoutSeconds).setUser(config.user).build()
     )
 
