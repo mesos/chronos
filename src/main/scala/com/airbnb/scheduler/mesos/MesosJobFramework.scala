@@ -171,7 +171,7 @@ class MesosJobFramework @Inject()(
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
             }) match {
-              case value if value <= x.getScalar.getValue && !sufficient(x.getName) =>
+              case value: Double if value <= x.getScalar.getValue && !sufficient(x.getName) =>
                 taskInfoTemplate.addResources(
                   Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
                     Protos.Value.Scalar.newBuilder()

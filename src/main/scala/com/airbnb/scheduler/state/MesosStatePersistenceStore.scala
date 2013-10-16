@@ -159,7 +159,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
   private def remove(name: String): Boolean = {
     try {
       log.info("Purging entry '%s' via: %s".format(name, state.getClass.getName))
-      val path = "%s/%s".format(config.zookeeperStateZnode, name)
+      val path = "%s/%s".format(config.zooKeeperStatePath, name)
       //Once state supports deletion, we can remove the ZK wiring.
       def fnc(s: String) {
         if (zk.get.exists(path, false)!=null) {

@@ -14,7 +14,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
   "TaskManager" should {
     "Calculate the correct time delay between scheduling and dispatching the job" in {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mock[PersistenceStore],
-        mock[JobGraph], null)
+        mock[JobGraph], null, None)
       val millis = taskManager.getMillisUntilExecution(new DateTime(DateTimeZone.UTC).plus(Hours.ONE))
       val expectedSeconds = scala.math.round(Period.hours(1).toStandardDuration.getMillis / 1000d)
       //Due to startup time / JVM overhead, millis wouldn't be totally accurate.

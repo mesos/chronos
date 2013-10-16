@@ -16,6 +16,9 @@ import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
 import mesosphere.mesos.util.FrameworkIdUtil
+import akka.actor.{ActorRef, ActorSystem, ActorDSL}
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 /**
  * Guice glue code of application logic components.
@@ -63,7 +66,7 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
                             persistenceStore: PersistenceStore,
                             mesosSchedulerDriver: MesosDriverFactory,
                             candidate: Candidate,
-                            mailClient: Option[MailClient],
+                            mailClient: Option[ActorRef],
                             metrics: JobMetrics): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
       taskManager, dependencyScheduler, persistenceStore,
@@ -73,17 +76,19 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
 
   @Singleton
   @Provides
-  def provideMailClient(): Option[MailClient] = {
+  def provideMailClient(): Option[ActorRef] = {
     if (config.mailServer().isEmpty || config.mailFrom().isEmpty ||
       !config.mailServer().contains(":")) {
       log.warning("No mailFrom or mailServer configured. Email Notfications are disabled!")
       None
     } else {
+      implicit val system = ActorSystem("chronos-actors")
+      implicit val timeout = Timeout(36500 days)
       val mailClient = new MailClient(config.mailServer(), config.mailFrom(),
-        config.mailUser(), config.mailPassword(), config.mailSslOn())
+        config.mailUser.get, config.mailPassword.get, config.mailSslOn())
       log.warning("Starting mail client.")
-      mailClient.start()
-      Some(mailClient)
+      val ref = ActorDSL.actor(mailClient)
+      Some(ref)
     }
   }
 

@@ -10,7 +10,7 @@ import com.codahale.metrics.MetricRegistry
 
 
 
-class JobMetricsModule (config: SchedulerConfiguration) extends AbstractModule {
+class JobMetricsModule (config: GangliaConfiguration) extends AbstractModule {
 
   private[this] val registry: MetricRegistry = new MetricRegistry()
 

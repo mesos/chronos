@@ -54,7 +54,7 @@ class MailClient(
         case t: Throwable => log.log(Level.WARNING, "Caught a throwable while trying to send mail.", t)
       }
     }
-    case t @ Terminated(actorRef) => {
+    case Terminated(_) => {
       log.warning("Actor has exited, no longer sending out email notifications!")
     }
     case _ => log.warning("Couldn't understand message.")
