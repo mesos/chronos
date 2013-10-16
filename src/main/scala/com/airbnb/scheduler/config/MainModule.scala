@@ -77,18 +77,16 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Singleton
   @Provides
   def provideMailClient(): Option[ActorRef] = {
-    if (config.mailServer().isEmpty || config.mailFrom().isEmpty ||
-      !config.mailServer().contains(":")) {
-      log.warning("No mailFrom or mailServer configured. Email Notfications are disabled!")
-      None
-    } else {
+    for {
+      server <- config.mailServer.get if !server.isEmpty && server.contains(":")
+      from <- config.mailFrom.get if !from.isEmpty
+    } yield {
       implicit val system = ActorSystem("chronos-actors")
       implicit val timeout = Timeout(36500 days)
-      val mailClient = new MailClient(config.mailServer(), config.mailFrom(),
+      val mailClient = new MailClient(server, from,
         config.mailUser.get, config.mailPassword.get, config.mailSslOn())
       log.warning("Starting mail client.")
-      val ref = ActorDSL.actor(mailClient)
-      Some(ref)
+      ActorDSL.actor(mailClient)
     }
   }
 

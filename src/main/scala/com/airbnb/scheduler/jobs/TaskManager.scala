@@ -22,7 +22,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
                              val persistenceStore: PersistenceStore,
                              val jobGraph: JobGraph,
                              val mesosDriver: MesosDriverFactory,
-                             val registryOption: Option[MetricRegistry]) {
+                             val registry: MetricRegistry) {
 
   val log = Logger.getLogger(getClass.getName)
 
@@ -34,13 +34,12 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   val taskMapping = new mutable.HashMap[String, mutable.ListBuffer[(String, Future[_])]] with
     collection.mutable.SynchronizedMap[String, mutable.ListBuffer[(String, Future[_])]]
 
-  if (registryOption.nonEmpty) {
-    val queueGauge = registryOption.get.register(
-      MetricRegistry.name(classOf[TaskManager], "queueSize"),
-      new Gauge[Long] {
-        def getValue() = queue.size
-      })
-  }
+  val queueGauge = registry.register(
+    MetricRegistry.name(classOf[TaskManager], "queueSize"),
+    new Gauge[Long] {
+      def getValue() = queue.size
+    })
+
 
   /**
    * Returns the first task in the job queue

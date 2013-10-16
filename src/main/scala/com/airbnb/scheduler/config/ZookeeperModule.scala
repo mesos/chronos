@@ -13,13 +13,15 @@ import com.twitter.common.zookeeper._
 import org.apache.mesos.state.{State, ZooKeeperState}
 import org.apache.zookeeper.ZooDefs
 import mesosphere.mesos.util.FrameworkIdUtil
+import mesosphere.chaos.http.HttpConf
 
 /**
  * Guice glue-code for zookeeper related things.
  * @author Florian Leibert (flo@leibert.de)
  */
 //TODO(FL): Consider using Sindi or Subcut for DI.
-class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule {
+class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
+    extends AbstractModule {
   private val log = Logger.getLogger(getClass.getName)
 
   def configure() {}
@@ -70,8 +72,7 @@ class ZookeeperModule(val config: SchedulerConfiguration) extends AbstractModule
       config.zooKeeperCandidatePath),
       new Supplier[Array[Byte]] {
         def get() = {
-          "%s:%d".format(config.hostname, 4400).getBytes // TODO(tk) get
-          // port from http config
+          "%s:%d".format(config.hostname, config.port()).getBytes
         }
       })
   }
