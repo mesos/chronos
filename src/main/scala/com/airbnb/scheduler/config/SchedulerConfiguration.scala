@@ -12,7 +12,7 @@ trait SchedulerConfiguration extends ScallopConf {
 
   lazy val master = opt[String]("master",
     descr = "The URL of the Mesos master",
-    default = Some("master"),
+    default = Some("zk://localhost:2181/mesos"),
     required = true,
     noshort = true)
 
@@ -97,15 +97,15 @@ trait SchedulerConfiguration extends ScallopConf {
 
   lazy val mesosTaskMem = opt[Int]("mesos_task_mem",
     descr = "Amount of memory to request from Mesos for each task (MB)",
-    default = Some(1024))
+    default = Some(128))
 
   lazy val mesosTaskCpu = opt[Double]("mesos_task_cpu",
     descr = "Number of CPUs to request from Mesos for each task",
-    default = Some(1.0))
+    default = Some(0.1))
 
   lazy val mesosTaskDisk = opt[Int]("mesos_task_disk",
     descr = "Amount of disk capacity to request from Mesos for each task (MB)",
-    default = Some(1024))
+    default = Some(256))
 
   lazy val mesosCheckpoint = opt[Boolean]("mesos_checkpoint",
     descr = "Enable checkpointing in Mesos",

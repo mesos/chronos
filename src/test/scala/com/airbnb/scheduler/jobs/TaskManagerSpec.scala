@@ -6,8 +6,6 @@ import org.joda.time._
 import org.specs2.mock._
 import org.specs2.mutable._
 import com.airbnb.scheduler.graph.JobGraph
-import com.airbnb.scheduler.mesos.MesosJobFramework
-import org.apache.mesos.MesosSchedulerDriver
 import com.codahale.metrics.MetricRegistry
 
 class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
