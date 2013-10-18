@@ -2,7 +2,7 @@
 #
 # This is a sample script for starting chronos. If you deploy the service you may want to build custom
 # runit, monit or upstart scripts.
-CHRONOS_HOME=/Users/florian/airbnb_code/chronos_public/bin/../
+CHRONOS_HOME=$(dirname $0)/..
 
 # This setup assumes you started with the mesos source and installed the binaries into
 # the ./build directory of the mesos source. Modify this as needed.
