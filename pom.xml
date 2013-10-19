@@ -17,8 +17,8 @@
 
         <!-- language versions -->
         <java.abi>1.6</java.abi>
-        <scala.version>2.10.2</scala.version>
-        <scala.abi>2.10.2</scala.abi>
+        <scala.version>2.10.3</scala.version>
+        <scala.abi>2.10.3</scala.abi>
 
         <!-- runtime deps versions -->
         <chaos.version>0.4.5</chaos.version>

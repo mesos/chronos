@@ -91,8 +91,8 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "Number of ms between retries",
     default = Some(60000))
 
-  lazy val disableAfterFailures = opt[Long]("disable_time_after_failure",
-    descr = "Disables a job for the time duration after a failure",
+  lazy val disableAfterFailures = opt[Long]("disable_after_failures",
+    descr = "Disables a job after this many failures have occurred",
     default = Some(0))
 
   lazy val mesosTaskMem = opt[Int]("mesos_task_mem",
@@ -115,7 +115,10 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "The Mesos role to run tasks under",
     default = Some("*"))
 
+  // Chronos version
+  lazy val version = "2.0.1"
+
   lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
     descr = "The framework name",
-    default = Some("chronos-1.0.1"))
+    default = Some("chronos-" + version))
 }
