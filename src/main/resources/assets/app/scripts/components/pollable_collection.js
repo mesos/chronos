@@ -3,7 +3,7 @@ define([
 ],
 function(_) {
   var namespace = "_pollable",
-      defaultInterval = 200000;
+      defaultInterval = 8000;
 
   function get(t, k) {
     if (!(t[namespace] && t[namespace][k])) { return null; }

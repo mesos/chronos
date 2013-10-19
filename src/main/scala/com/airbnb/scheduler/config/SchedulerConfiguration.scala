@@ -1,116 +1,124 @@
 package com.airbnb.scheduler.config
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.bazaarvoice.dropwizard.assets.{AssetsConfiguration, AssetsBundleConfiguration}
-import com.yammer.dropwizard.config.Configuration
-import org.hibernate.validator.constraints.NotEmpty
+import org.rogach.scallop.ScallopConf
+import java.net.InetSocketAddress
+
 
 /**
  * Configuration values that may be parsed from a YAML file.
  * @author Florian Leibert (flo@leibert.de)
  */
-class SchedulerConfiguration extends Configuration with AssetsBundleConfiguration {
+trait SchedulerConfiguration extends ScallopConf {
 
-  @NotEmpty
-  @JsonProperty
-  val master: String = "local"
+  lazy val master = opt[String]("master",
+    descr = "The URL of the Mesos master",
+    default = Some("zk://localhost:2181/mesos"),
+    required = true,
+    noshort = true)
 
-  @JsonProperty
-  val staticAssets: Boolean = true
+  lazy val user = opt[String]("user",
+    descr = "The mesos user to run the processes under",
+    default = Some("root"))
 
-  @NotEmpty
-  @JsonProperty
-  val user: String = "root"
+  //TODO(FL): Be consistent and do everything in millis
+  lazy val failoverTimeoutSeconds = opt[Int]("failover_timeout",
+    descr = "The failover timeout in seconds for Mesos",
+    default = Some(1200))
 
-  @JsonProperty
-  val failoverTimeoutSeconds: Int = 1200
+  lazy val scheduleHorizonSeconds = opt[Int]("schedule_horizon",
+    descr = "The look-ahead time for scheduling tasks in seconds",
+    default = Some(60))
 
-  @JsonProperty
-  val scheduleHorizonSeconds: Int = 10
+  lazy val zookeeperServers = opt[String]("zk_hosts",
+    descr = "The list of ZooKeeper servers for storing state",
+    default = Some("localhost:2181"))
 
-  @JsonProperty
-  val zookeeperServers: String = "localhost:2181"
+  def zooKeeperHostAddresses: Seq[InetSocketAddress] =
+    for (s <- zookeeperServers().split(",")) yield {
+      val splits = s.split(":")
+      require(splits.length == 2, "expected host:port for zk servers")
+      new InetSocketAddress(splits(0), splits(1).toInt)
+    }
 
-  @JsonProperty
-  val hostname: String = "localhost"
+  lazy val hostname = opt[String]("hostname",
+    descr = "The advertised hostname stored in ZooKeeper so another standby " +
+      "host can redirect to this elected leader",
+    default = Some("localhost"))
 
-  @JsonProperty
-  val executor: String = "shell"
+  lazy val leaderMaxIdleTimeMs = opt[Int]("leader_max_idle_time",
+    descr = "The look-ahead time for scheduling tasks in milliseconds",
+    default = Some(5000))
 
-  /**
-   * This is the maximum idle time in which a newly elected master doesn't schedule jobs yet.
-   */
-  @JsonProperty
-  val leaderMaxIdleTimeMs: Int = 5000
+  lazy val zooKeeperTimeout = opt[Long]("zk_timeout",
+    descr = "The timeout for ZooKeeper in milliseconds",
+    default = Some(10000L))
 
-  @JsonProperty
-  val zookeeperTimeoutMs: Int = 5000
+  lazy val zooKeeperPath = opt[String]("zk_path",
+    descr = "Path in ZooKeeper for storing state",
+    default = Some("/chronos/state"))
 
-  @JsonProperty
-  val zookeeperStateZnode: String = "/airbnb/service/chronos/state"
+  def zooKeeperStatePath = "%s/state".format(zooKeeperPath())
 
-  @JsonProperty
-  val zookeeperLeaderZnode: String = "/airbnb/service/chronos/leader"
+  def zooKeeperLeaderPath = "%s/leader".format(zooKeeperPath())
 
-  @JsonProperty
-  val zookeeperCandidateZnode: String = "/airbnb/service/chronos/candidate"
+  def zooKeeperCandidatePath = "%s/candidate".format(zooKeeperPath())
 
-  @JsonProperty
-  val defaultJobOwner: String = "flo@airbnb.com"
+  lazy val defaultJobOwner = opt[String]("default_job_owner",
+    descr = "Job Owner",
+    default = Some("flo@mesosphe.re"))
 
-  @JsonProperty
-  val mailServer: Option[String] = None
+  lazy val mailServer = opt[String]("mail_server",
+    descr = "Address of the mailserver",
+    default = None)
 
-  @JsonProperty
-  val mailUser: Option[String] = None
+  lazy val mailUser = opt[String]("mail_user",
+    descr = "Mail user (for auth)",
+    default = None)
 
-  @JsonProperty
-  val mailPassword: Option[String] = None
+  lazy val mailPassword = opt[String]("mail_password",
+    descr = "Mail password (for auth)",
+    default = None)
 
-  @JsonProperty
-  val mailFrom: Option[String] = None
+  lazy val mailFrom = opt[String]("mail_from",
+    descr = "Mail from field",
+    default = None)
 
-  @JsonProperty
-  val mailSslOn: Boolean = false
+  lazy val mailSslOn = opt[Boolean]("mail_ssl",
+    descr = "Mail SSL",
+    default = Some(false))
 
-  @JsonProperty
-  val assets: Option[AssetsConfiguration] = None
+  lazy val failureRetryDelayMs = opt[Long]("failure_retry",
+    descr = "Number of ms between retries",
+    default = Some(60000))
 
-  @JsonProperty
-  val failureRetryDelay: Long = 60000
+  lazy val disableAfterFailures = opt[Long]("disable_after_failures",
+    descr = "Disables a job after this many failures have occurred",
+    default = Some(0))
 
-  @JsonProperty
-  val disableAfterFailures: Long = 0
+  lazy val mesosTaskMem = opt[Int]("mesos_task_mem",
+    descr = "Amount of memory to request from Mesos for each task (MB)",
+    default = Some(128))
 
-  @JsonProperty
-  val mesosTaskMem: Int = 1024
+  lazy val mesosTaskCpu = opt[Double]("mesos_task_cpu",
+    descr = "Number of CPUs to request from Mesos for each task",
+    default = Some(0.1))
 
-  @JsonProperty
-  val mesosTaskCpu: Double = 1
+  lazy val mesosTaskDisk = opt[Int]("mesos_task_disk",
+    descr = "Amount of disk capacity to request from Mesos for each task (MB)",
+    default = Some(256))
 
-  @JsonProperty
-  val mesosTaskDisk: Int = 1024
+  lazy val mesosCheckpoint = opt[Boolean]("mesos_checkpoint",
+    descr = "Enable checkpointing in Mesos",
+    default = Some(false))
 
-  @JsonProperty
-  val mesosCheckpoint: Boolean = false
+  lazy val mesosRole = opt[String]("mesos_role",
+    descr = "The Mesos role to run tasks under",
+    default = Some("*"))
 
-  @JsonProperty
-  val mesosRole: String = "*"
+  // Chronos version
+  lazy val version = "2.0.1"
 
-  @JsonProperty
-  val mesosFrameworkName: String = "chronos%d".format(System.currentTimeMillis())
-
-  @JsonProperty
-  val gangliaHostPort: Option[String] = None
-
-  @JsonProperty
-  val gangliaReportIntervalSeconds: Long = 60L
-
-  @JsonProperty
-  val gangliaGroupPrefix: String = ""
-
-  def getAssetsConfiguration: AssetsConfiguration = assets match {
-    case Some(assetsConf: AssetsConfiguration) => assetsConf
-    case None => new AssetsConfiguration
-  }
+  lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
+    descr = "The framework name",
+    default = Some("chronos-" + version))
 }

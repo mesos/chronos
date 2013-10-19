@@ -10,6 +10,7 @@ import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 
 import scala.collection.mutable.HashSet
+import mesosphere.mesos.util.FrameworkIdUtil
 
 /**
  * Provides the interface to mesos. Receives callbacks from mesos when resources are offered, declined etc.
@@ -19,7 +20,8 @@ class MesosJobFramework @Inject()(
     val mesosDriver: MesosDriverFactory,
     val scheduler: JobScheduler,
     val taskManager: TaskManager,
-    val config: SchedulerConfiguration)
+    val config: SchedulerConfiguration,
+    val frameworkIdUtil: FrameworkIdUtil)
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -32,6 +34,7 @@ class MesosJobFramework @Inject()(
   def registered(schedulerDriver: SchedulerDriver, frameworkID: FrameworkID, masterInfo: MasterInfo) {
     log.info("Registered")
     log.info("Master info:" + masterInfo.toString)
+    frameworkIdUtil.store(frameworkID)
   }
 
   /* Overridden methods from MesosScheduler */
@@ -153,9 +156,10 @@ class MesosJobFramework @Inject()(
       System.currentTimeMillis))
     import collection.JavaConversions._
 
-    var sufficient = scala.collection.mutable.Map[String,Boolean]().withDefaultValue(false)
-
-    offer.getResourcesList.foreach(x =>
+    var sufficient = scala.collection.mutable.Map[String, Boolean]().withDefaultValue(false)
+    logOffer(offer)
+    offer.getResourcesList.foreach({x =>
+        log.info(x.getScalar.getValue.getClass.getName)
         x.getType match {
           case Value.Type.SCALAR =>
             (x.getName match {
@@ -167,19 +171,29 @@ class MesosJobFramework @Inject()(
                 if (job.disk == 0) config.mesosTaskDisk else job.disk
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
-            }) match {
-              case value if value <= x.getScalar.getValue && !sufficient(x.getName) =>
-                taskInfoTemplate.addResources(
-                  Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
-                    Protos.Value.Scalar.newBuilder()
-                      .setValue(value)).setName(x.getName).setRole(x.getRole))
-                sufficient(x.getName) = true
-              case _ =>
+            })
+
+            (x.getScalar.getValue match {
+
+              case value: Double => {
+                log.info(s"<<<>>>>${value}, ${x.getScalar.getValue}, ${sufficient(x.getName)}")
+                if (value.doubleValue() <= x.getScalar.getValue && !sufficient(x.getName)) {
+                  taskInfoTemplate.addResources(
+                    Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
+                     Protos.Value.Scalar.newBuilder()
+                        .setValue(value.doubleValue())).setName(x.getName).setRole(x.getRole))
+                  sufficient(x.getName) = true
+                }
+              }
+              case y => {
+                log.info("not found." + y.getClass.getName)
+              }
+
                 // not sufficient, skip
-            }
+            })
           case _ =>
             log.warning("Ignoring offered resource: %s".format(x.getType.toString))
-      })
+      }})
     (sufficient("cpus") && sufficient("mem") && sufficient("disk"), taskInfoTemplate, offer)
   }
 
@@ -206,5 +220,17 @@ class MesosJobFramework @Inject()(
       //TODO(FL): Handle case if mesos can't launch the task.
       log.info("Task '%s' launched, status: '%s'".format(taskId, status.toString))
     }
+  }
+
+  private def logOffer(offer : Offer) {
+    import collection.JavaConversions._
+    val s = new StringBuilder
+    offer.getResourcesList.foreach({
+      x => s.append(f"Name: ${x.getName}")
+      if (x.hasScalar && x.getScalar.hasValue) {
+        s.append(f"Scalar: ${x.getScalar.getValue}")
+      }
+    })
+
   }
 }

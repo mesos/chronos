@@ -14,7 +14,7 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
   var mesosDriver: Option[MesosSchedulerDriver] = None
 
   def makeDriver() {
-    mesosDriver = Some(new MesosSchedulerDriver( mesosScheduler, frameworkInfo, config.master))
+    mesosDriver = Some(new MesosSchedulerDriver( mesosScheduler, frameworkInfo, config.master()))
   }
 
   def get(): MesosSchedulerDriver = {

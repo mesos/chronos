@@ -5,17 +5,20 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.logging.{Level, Logger}
 
 import com.airbnb.scheduler.mesos.{MesosDriverFactory, MesosJobFramework}
-import com.airbnb.scheduler.SchedulerHealthCheck
 import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.notification.MailClient
-import com.google.inject.{Provides, Singleton, Inject, AbstractModule}
+import com.google.inject.{Inject, Provides, Singleton, AbstractModule}
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, ThreadFactoryBuilder, MoreExecutors}
 import com.twitter.common.zookeeper.Candidate
-import org.apache.mesos.Protos.{FrameworkID, FrameworkInfo}
+import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
+import mesosphere.mesos.util.FrameworkIdUtil
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.util.Timeout
+import scala.concurrent.duration._
 
 /**
  * Guice glue code of application logic components.
@@ -28,25 +31,27 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     log.info("Wiring up the application")
 
     bind(classOf[Scheduler]).to(classOf[MesosJobFramework]).asEagerSingleton()
-    bind(classOf[FrameworkInfo]).toInstance(
-      FrameworkInfo.newBuilder()
-        .setName(config.mesosFrameworkName)
-        .setCheckpoint(config.mesosCheckpoint)
-        .setRole(config.mesosRole)
-        .setId(
-          FrameworkID.newBuilder()
-            .setValue("chronos").build()
-          )
-        .setFailoverTimeout(config.failoverTimeoutSeconds).setUser(config.user).build()
-    )
-
-    bind(classOf[SchedulerHealthCheck]).asEagerSingleton()
     bind(classOf[TaskManager]).asEagerSingleton()
     bind(classOf[SchedulerConfiguration]).toInstance(config)
 
     //TODO(FL): Only bind this if config.dependentJobs is turned on.
     bind(classOf[JobGraph]).asEagerSingleton()
   }
+
+  @Inject
+  @Singleton
+  @Provides
+  def provideFrameworkInfo(frameworkIdUtil: FrameworkIdUtil): FrameworkInfo = {
+    val frameworkInfo = FrameworkInfo.newBuilder()
+      .setName(config.mesosFrameworkName())
+      .setCheckpoint(config.mesosCheckpoint())
+      .setRole(config.mesosRole())
+      .setFailoverTimeout(config.failoverTimeoutSeconds())
+      .setUser(config.user())
+    frameworkIdUtil.setIdIfExists(frameworkInfo)
+    frameworkInfo.build()
+  }
+
 
   @Singleton
   @Provides
@@ -56,29 +61,31 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Singleton
   @Provides
   def provideTaskScheduler(
-      taskManager: TaskManager,
-      dependencyScheduler: JobGraph,
-      persistenceStore: PersistenceStore,
-      mesosSchedulerDriver: MesosDriverFactory,
-      candidate: Candidate,
-      mailClient: Option[MailClient],
-      metrics: JobMetrics): JobScheduler = {
-    new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds).toPeriod, taskManager,
-      dependencyScheduler, persistenceStore, mesosSchedulerDriver, candidate, mailClient,
-      config.failureRetryDelay, config.disableAfterFailures, metrics)
+                            taskManager: TaskManager,
+                            dependencyScheduler: JobGraph,
+                            persistenceStore: PersistenceStore,
+                            mesosSchedulerDriver: MesosDriverFactory,
+                            candidate: Candidate,
+                            mailClient: Option[ActorRef],
+                            metrics: JobMetrics): JobScheduler = {
+    new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
+      taskManager, dependencyScheduler, persistenceStore,
+      mesosSchedulerDriver, candidate, mailClient, config.failureRetryDelayMs(),
+      config.disableAfterFailures(), metrics)
   }
 
   @Singleton
   @Provides
-  def provideMailClient(): Option[MailClient] = {
-    if (config.mailServer.isEmpty || config.mailFrom.isEmpty || !config.mailServer.get.contains(":")) {
-      log.warning("No mailFrom or mailServer configured. Email Notfications are disabled!")
-      None
-    } else {
-      val mailClient = new MailClient(config.mailServer.get, config.mailFrom.get, config.mailUser, config.mailPassword, config.mailSslOn)
+  def provideMailClient(): Option[ActorRef] = {
+    for {
+      server <- config.mailServer.get if !server.isEmpty && server.contains(":")
+      from <- config.mailFrom.get if !from.isEmpty
+    } yield {
+      implicit val system = ActorSystem("chronos-actors")
+      implicit val timeout = Timeout(36500 days)
       log.warning("Starting mail client.")
-      mailClient.start()
-      Some(mailClient)
+      system.actorOf(Props(classOf[MailClient], server, from,
+        config.mailUser.get, config.mailPassword.get, config.mailSslOn()))
     }
   }
 
