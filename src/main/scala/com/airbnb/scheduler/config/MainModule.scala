@@ -16,7 +16,7 @@ import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
 import mesosphere.mesos.util.FrameworkIdUtil
-import akka.actor.{ActorRef, ActorSystem, ActorDSL}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import scala.concurrent.duration._
 
@@ -83,10 +83,9 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
     } yield {
       implicit val system = ActorSystem("chronos-actors")
       implicit val timeout = Timeout(36500 days)
-      val mailClient = new MailClient(server, from,
-        config.mailUser.get, config.mailPassword.get, config.mailSslOn())
       log.warning("Starting mail client.")
-      ActorDSL.actor(mailClient)
+      system.actorOf(Props(classOf[MailClient], server, from,
+        config.mailUser.get, config.mailPassword.get, config.mailSslOn()))
     }
   }
 
