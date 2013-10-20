@@ -3,57 +3,46 @@ package com.airbnb.scheduler
 import java.util.logging.Logger
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.airbnb.dropwizard.assets.ConfiguredAssetsBundle
 import com.airbnb.scheduler.api._
-import com.airbnb.scheduler.config.{JobMetricsModule, ZookeeperModule, MainModule, SchedulerConfiguration}
+import com.airbnb.scheduler.config._
 import com.airbnb.scheduler.jobs.{MetricReporterService, JobScheduler}
-import com.google.common.collect.ImmutableList
-import com.google.inject.{Injector, Guice}
-import com.yammer.dropwizard.ScalaService
-import com.yammer.dropwizard.config.{Bootstrap, Environment}
-import com.yammer.dropwizard.bundles.ScalaBundle
+import mesosphere.chaos.{AppConfiguration, App}
+import mesosphere.chaos.http.{HttpService, HttpConf, HttpModule}
+import mesosphere.chaos.metrics.MetricsModule
+import org.rogach.scallop.ScallopConf
+
 
 /**
- * Main entry point to chronos using the Dropwizard framework.
+ * Main entry point to chronos using the Chaos framework.
  * @author Florian Leibert (flo@leibert.de)
  */
-object Main extends ScalaService[SchedulerConfiguration] {
+object Main extends App {
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  //TODO(FL): This is somewhat bad as the injector now carries state. Redo the guice/dw wiring.
-  var injector: Injector = null
   val isLeader = new AtomicBoolean(false)
 
-  def initialize(bootstrap: Bootstrap[SchedulerConfiguration]) {
-    bootstrap.setName("chronos")
-    bootstrap.addBundle(new ScalaBundle)
-    bootstrap.addBundle(new ConfiguredAssetsBundle("/assets/build/", "/"))
+  def modules() = {
+    Seq(
+      new HttpModule(conf),
+      new ChronosRestModule,
+      new MetricsModule,
+      new MainModule(conf),
+      new ZookeeperModule(conf),
+      new JobMetricsModule(conf)
+    )
   }
 
-  def run(configuration: SchedulerConfiguration, environment: Environment) {
-    log.info("---------------------")
-    log.info("Initializing chronos.")
-    log.info("---------------------")
-    //All Modules need to be added to this list
-    injector = Guice.createInjector(ImmutableList.of(
-      new MainModule(configuration),
-      new ZookeeperModule(configuration),
-      new JobMetricsModule(configuration)
-    ))
-    val filter = injector.getInstance(classOf[RedirectFilter])
+  log.info("---------------------")
+  log.info("Initializing chronos.")
+  log.info("---------------------")
 
-    environment.addFilter(filter, "/*")
-    environment.addHealthCheck(injector.getInstance(classOf[SchedulerHealthCheck]))
+  lazy val conf = new ScallopConf(args)
+    with HttpConf with AppConfiguration with SchedulerConfiguration
+    with GangliaConfiguration
 
-    //Ensures the MesosJobFramework is managed by dropwizard, i.e. is started / stopped before HTTP service.
-    environment.addResource(injector.getInstance(classOf[Iso8601JobResource]))
-    environment.addResource(injector.getInstance(classOf[DependentJobResource]))
-    environment.addResource(injector.getInstance(classOf[JobManagementResource]))
-    environment.addResource(injector.getInstance(classOf[TaskManagementResource]))
-    environment.addResource(injector.getInstance(classOf[GraphManagementResource]))
-    environment.addResource(injector.getInstance(classOf[StatsResource]))
-
-    environment.manage(injector.getInstance(classOf[JobScheduler]))
-    environment.manage(injector.getInstance(classOf[MetricReporterService]))
-  }
+  run(Seq(
+    classOf[HttpService],
+    classOf[JobScheduler],
+    classOf[MetricReporterService]
+  ))
 }

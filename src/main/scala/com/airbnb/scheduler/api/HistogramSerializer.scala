@@ -1,9 +1,9 @@
 package com.airbnb.scheduler.api
 
-import com.yammer.metrics.core.Histogram
+import com.codahale.metrics.Histogram
 import com.fasterxml.jackson.databind.{SerializerProvider, JsonSerializer}
 import com.fasterxml.jackson.core.JsonGenerator
-import com.yammer.metrics.stats.Snapshot
+import com.codahale.metrics.Snapshot
 
 /**
  * Author: @andykram

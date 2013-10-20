@@ -12,7 +12,7 @@ import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.state.PersistenceStore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.inject.Inject
-import com.yammer.metrics.annotation.Timed
+import com.codahale.metrics.annotation.Timed
 
 /**
  * The REST API for managing tasks such as updating the status of an asynchronous task.

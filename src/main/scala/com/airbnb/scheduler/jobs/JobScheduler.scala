@@ -15,9 +15,10 @@ import com.twitter.common.zookeeper.Candidate.Leader
 import com.twitter.common.base.ExceptionalCommand
 import com.twitter.common.zookeeper.Group.JoinException
 import com.twitter.common.zookeeper.Candidate
-import com.yammer.dropwizard.lifecycle.Managed
 import org.joda.time.{DateTimeZone, Period, DateTime, Duration}
 import org.joda.time.format.DateTimeFormat
+import com.google.common.util.concurrent.AbstractIdleService
+import akka.actor.ActorRef
 
 /**
  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
@@ -33,17 +34,17 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val persistenceStore: PersistenceStore,
                              val mesosDriver: MesosDriverFactory = null,
                              val candidate: Candidate = null,
-                             val mailClient: Option[MailClient] = None,
+                             val mailClient: Option[ActorRef] = None,
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics)
-//Allows us to let Dropwizard manage the lifecycle of this class.
-  extends Managed
+//Allows us to let Chaos manage the lifecycle of this class.
+  extends AbstractIdleService
   with Leader {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  val executor = Executors.newFixedThreadPool(1)
+  val localExecutor = Executors.newFixedThreadPool(1)
   val schedulerThreadFuture = new AtomicReference[Future[_]]
 
   //TODO(FL): Take some methods out of this class.
@@ -75,7 +76,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val subowners = job.owner.split("\\s*,\\s*")
       for (subowner <- subowners) {
         log.info("Sending mail notification to:%s for job %s".format(subowner, job.name))
-        mailClient.get !(subowner, subject, message)
+        mailClient.get ! (subowner, subject, message)
       }
     }
 
@@ -552,14 +553,14 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  //Begin Managed interface
-  override def start() {
+  //Begin Service interface
+  override def startUp() {
     assert(!running.get, "This scheduler is already running!")
     log.info("Trying to become leader.")
     candidate.offerLeadership(this)
   }
 
-  override def stop() {
+  override def shutDown() {
     running.set(false)
     log.info("Shutting down job scheduler")
 
@@ -570,7 +571,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  //End Managed interface
+  //End Service interface
 
   //Begin Leader interface, which is required for CandidateImpl.
   def onDefeated() {
@@ -608,7 +609,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     val jobScheduler = this
     //Consider making this a background thread or control via an executor.
 
-    val f = executor.submit(
+    val f = localExecutor.submit(
       new Thread() {
         override def run() {
           log.info("Running background thread")
