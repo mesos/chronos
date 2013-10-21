@@ -6,20 +6,16 @@ export JAVA_LIBRARY_PATH="/usr/local/lib:/lib:/usr/lib"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/lib}"
 export LD_LIBRARY_PATH="$JAVA_LIBRARY_PATH:$LD_LIBRARY_PATH"
 export PORT0="${PORT0:-4400}"
-export PORT1="${PORT1:-4401}"
 
-config="$1"
 # Find the largest chronos-jar file in the directory (i.e. the all-encompassing jar file)
 jar_file=$(find . -name "chronos*.jar"  -exec ls -l -S {} \;  | sort -k 5 -n | tail -n1 | awk '{ print $9 }')
+
+# This assumes there is a file, /etc/mesos/zk that contains the ZK string.
 mesos_master="$( < /etc/mesos/zk)"
 tmp="${mesos_master//zk:\/\/}"
 zk_host="${tmp/\/*}"
 heap=384m
 
 java  -Xmx"$heap" -Xms"$heap" -cp "$jar_file" \
-  -Ddw.http.port="$PORT0" \
-  -Ddw.http.adminPort="$PORT1" \
-  -Ddw.zookeeperServers="$zk_host" \
-  -Ddw.master="$mesos_master" \
   com.airbnb.scheduler.Main \
-  server "$config"
+  --http_port 8080 --http_credentials user:pass
