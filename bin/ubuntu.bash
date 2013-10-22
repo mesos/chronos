@@ -100,7 +100,6 @@ function chronos_build {
 function chronos_runner {
 cat > "$prefix"/bin/chronos <<EOF
 export MESOS_NATIVE_LIBRARY='$prefix'/lib/libmesos.so
-default='$prefix'/chronos/config/local_scheduler_nozk.yml
 if [ "\$1" = "-h" ]
 then
 cat <<USAGE
@@ -108,8 +107,7 @@ cat <<USAGE
         chronos /path/to/config
 USAGE
 else
-  java -cp '$prefix'/chronos/target/chronos*.jar com.airbnb.scheduler.Main \
-       server "\${1:-\$default}"
+  java -cp '$prefix'/chronos/target/chronos*.jar com.airbnb.scheduler.Main"
 fi
 EOF
 chmod a+rx "$prefix"/bin/chronos
