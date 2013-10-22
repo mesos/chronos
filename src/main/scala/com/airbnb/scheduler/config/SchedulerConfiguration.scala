@@ -12,7 +12,7 @@ trait SchedulerConfiguration extends ScallopConf {
 
   lazy val master = opt[String]("master",
     descr = "The URL of the Mesos master",
-    default = Some("zk://localhost:2181/mesos"),
+    default = Some("local"),
     required = true,
     noshort = true)
 
