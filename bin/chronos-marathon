@@ -17,13 +17,13 @@ then
   flags+=( --hostname $public_hostname )
 fi
 
-jar_files=( "$chronos_home"/chronos*.jar )
+jar_files=( "$chronos_home"/target/chronos*.jar )
 echo "Using jar file: $jar_files[0]"
 
 # This assumes there is a file, /etc/mesos/zk that contains the ZK string.
 mesos_master="$( < /etc/mesos/zk)"
 tmp="${mesos_master//zk:\/\/}"
-zk_host="${tmp/\/*}"
+zk_hosts="${tmp/\/*}"
 
 flags+=( --master $mesos_master
          --zk_hosts $zk_hosts )
