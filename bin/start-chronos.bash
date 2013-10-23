@@ -2,7 +2,9 @@
 #
 # This is a sample script for starting chronos. If you deploy the service you may want to build custom
 # runit, monit or upstart scripts.
-CHRONOS_HOME=$(dirname $0)/..
+CHRONOS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+
+echo $CHRONOS_HOME
 
 # This setup assumes you started with the mesos source and installed the binaries into
 # the ./build directory of the mesos source. Modify this as needed.
@@ -10,7 +12,8 @@ CHRONOS_HOME=$(dirname $0)/..
 # TODO(FL): ensure this script runs on *nix as well.
 # TODO(FL): clean-up!
 echo "This script is setup to run on MacOSX right now. Modify it to run on other systems."
-MESOS_HOME=/usr/local/mesos
+default_mesos_home=/usr/local/mesos
+MESOS_HOME=${1:-$default_mesos_home}
 echo "MESOS_HOME is set to: $MESOS_HOME"
 pushd $MESOS_HOME
 libmesos_file=$(find . -name "libmesos.dylib" | head -n1)
@@ -22,4 +25,4 @@ source $build_env
 popd
 
 # Start chronos.
-java -cp "$CHRONOS_HOME"/target/chronos*.jar com.airbnb.scheduler.Main
+java -cp "$CHRONOS_HOME"/target/chronos*.jar com.airbnb.scheduler.Main $@
