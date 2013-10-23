@@ -22,4 +22,4 @@ source $build_env
 popd
 
 # Start chronos.
-java -cp "$CHRONOS_HOME"/target/chronos*.jar com.airbnb.scheduler.Main server "$CHRONOS_HOME"/config/local_scheduler_nozk.yml
+java -cp "$CHRONOS_HOME"/target/chronos*.jar com.airbnb.scheduler.Main
