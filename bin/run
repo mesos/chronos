@@ -16,11 +16,9 @@ echo "$ip" > "$environment_directory"/LIBPROCESS_IP
 
 jvm_options=( -cp "$app_jar" -server -Xmx"$heap" -Xms"$heap"
               -XX:+PrintClassHistogram
-              -Dfile.encoding=UTF-8
-              -Djava.io.tmpdir=/tmp
-              -Ddw.hostname=$public_hostname)
+              )
 
-app_options=( server /etc/chronos.yml )
+app_options=( --hostname $public_hostname )
 
 
 function start {
