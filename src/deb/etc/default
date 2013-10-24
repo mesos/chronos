@@ -1,0 +1,22 @@
+# Chronos environment settings for start up
+# Uncomment to customize your settings
+
+# Chronos storage
+#ZK_HOSTS=localhost:2181
+#ZK_PATH=/chronos/state
+
+# Chronos UI and declaration
+#HOSTNAME=localhost
+#PORT=8080
+
+# Mesos requirement
+#MASTER=zk://localhost:2181/mesos
+#USER=root
+#CPU=0.1
+#MEM=128
+#DISK=256
+#ROLE=*
+#FW_NAME=chronos-2.0.1
+
+# Use $OPTS to add other settings not handled by init script
+#OPTS=
