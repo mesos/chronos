@@ -21,7 +21,7 @@
         <scala.abi>2.10.3</scala.abi>
 
         <!-- runtime deps versions -->
-        <chaos.version>0.4.5</chaos.version>
+        <chaos.version>0.4.6</chaos.version>
         <mesos-utils.version>0.0.4</mesos-utils.version>
         <commons-math3.version>3.2</commons-math3.version>
         <guava.version>14.0.1</guava.version>
