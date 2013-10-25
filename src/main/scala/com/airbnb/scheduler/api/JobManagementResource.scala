@@ -131,6 +131,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def search(@QueryParam("name") name: String,
              @QueryParam("command") command: String,
+             @QueryParam("owner") owner: String,
              @QueryParam("any") any: String,
              @QueryParam("limit") limit: Integer,
              @QueryParam("offset") offset: Integer
@@ -158,15 +159,21 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
 
       val filteredJobs = jobs.filter {
         x =>
-          var valid = true
-          if (name != null && !name.isEmpty && !x.name.toLowerCase.contains(name.toLowerCase)) {
-            valid = false
-          }
-          if (command != null && !command.isEmpty && !x.command.toLowerCase.contains(command.toLowerCase)) {
-            valid = false
-          }
-          if (!valid && any != null && !any.isEmpty &&
-            (x.name.toLowerCase.contains(any.toLowerCase) || x.command.toLowerCase.contains(any.toLowerCase))) {
+          var valid = false
+          if (name == null && command == null && owner == null && any == null) {
+            // no search params specified
+            valid = true
+          } else if (name != null && !name.isEmpty && x.name.toLowerCase.contains(name.toLowerCase)) {
+            valid = true
+          } else if (command != null && !command.isEmpty && x.command.toLowerCase.contains(command.toLowerCase)) {
+            valid = true
+          } else if (owner != null && !owner.isEmpty && x.owner.toLowerCase.contains(owner.toLowerCase)) {
+            valid = true
+          } else if(any != null && !any.isEmpty &&
+             (x.name.toLowerCase.contains(any.toLowerCase) ||
+              x.command.toLowerCase.contains(any.toLowerCase) ||
+              x.owner.toLowerCase.contains(any.toLowerCase)
+              )) {
             valid = true
           }
           // Maybe add some other query parameters?
