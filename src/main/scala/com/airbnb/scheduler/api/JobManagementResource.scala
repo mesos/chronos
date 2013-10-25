@@ -125,4 +125,60 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       }
     }
   }
+
+  @GET
+  @Path(PathConstants.jobSearchPath)
+  @Timed
+  def search(@QueryParam("name") name: String,
+             @QueryParam("command") command: String,
+             @QueryParam("any") any: String,
+             @QueryParam("limit") limit: Integer,
+             @QueryParam("offset") offset: Integer
+             ) = {
+    try {
+      val jobs = ListBuffer[BaseJob]()
+      import scala.collection.JavaConversions._
+      jobGraph.dag.vertexSet().map({
+        job =>
+          jobs += jobGraph.getJobForName(job).get
+      })
+
+      val _limit: Integer = limit match {
+        case x: Integer =>
+          x
+        case _ =>
+          10
+      }
+      val _offset: Integer = offset match {
+        case x: Integer =>
+          x
+        case _ =>
+          0
+      }
+
+      val filteredJobs = jobs.filter {
+        x =>
+          var valid = true
+          if (name != null && !name.isEmpty && !x.name.toLowerCase.contains(name.toLowerCase)) {
+            valid = false
+          }
+          if (command != null && !command.isEmpty && !x.command.toLowerCase.contains(command.toLowerCase)) {
+            valid = false
+          }
+          if (!valid && any != null && !any.isEmpty &&
+            (x.name.toLowerCase.contains(any.toLowerCase) || x.command.toLowerCase.contains(any.toLowerCase))) {
+            valid = true
+          }
+          // Maybe add some other query parameters?
+          valid
+      }.toList.slice(_offset, _offset + _limit)
+      Response.ok(filteredJobs).build
+    } catch {
+      case ex: Throwable => {
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+      }
+    }
+  }
+
 }
