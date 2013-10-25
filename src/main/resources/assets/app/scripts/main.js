@@ -205,7 +205,7 @@ function($,
         app.Helpers.filterList();
 
         jobsCollection.startPolling();
-        window.app.jobsGraphCollection.startPolling();
+        //window.app.jobsGraphCollection.startPolling();
       });
 
       window.app.jobsCollection = jobsCollection;
