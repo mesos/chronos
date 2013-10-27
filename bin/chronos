@@ -20,7 +20,7 @@ echo "==> PERMGEN memory used: $PERMGEN"
 JAVA_OPTS="$JAVA_OPTS -XX:PermSize=$PERMGEN -XX:MaxPermSize=$PERMGEN"
 #
 #- CLASSPATH ------------------------------------------------------------------
-JAVA_OPTS="$JAVA_OPTS -Djava.library.path=/usr/lib/ -cp /etc/chronos:/usr/lib/chronos/chronos.jar:/usr/lib/chronos/lib/*.jar"
+JAVA_OPTS="$JAVA_OPTS -Djava.library.path=${JAVA_LIBPATH:-/usr/lib/} -cp /etc/chronos:/usr/lib/chronos/chronos.jar:/usr/lib/chronos/lib/*.jar"
 #
 #- SpyMemcached logging implementation ----------------------------------------
 JAVA_OPTS="$JAVA_OPTS -Dnet.spy.log.LoggerImpl=net.spy.memcached.compat.log.Log4JLogger"
