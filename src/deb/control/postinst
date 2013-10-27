@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+if [ -x "/etc/init.d/chronos" ]; then
+        update-rc.d chronos defaults 95 10 >/dev/null
+        if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+                invoke-rc.d chronos start || true
+        else
+                /etc/init.d/chronos start || true
+        fi
+fi
