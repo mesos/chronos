@@ -425,31 +425,6 @@
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
-                        <configuration>
-                            <includeArtifactIds>
-                                viadeo-flume-ng-udp-source,
-                                viadeo-event-schema,
-                                viadeo-event-index,
-                                flume-ng-core,
-                                flume-ng-sdk,
-                                jackson-databind,
-                                jackson-core,
-                                jackson-annotations,
-                                joda-time,
-                                elasticsearch,
-                                lucene-core,
-                                lucene-analyzers,
-                                lucene-queries,
-                                lucene-memory,
-                                jest,
-                                httpcore,
-                                httpcore-nio,
-                                httpclient,
-                                httpasyncclient,
-                                gson,
-                                guava
-                            </includeArtifactIds>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -469,7 +444,7 @@
                         <configuration>
                             <dataSet>
                                 <data>
-                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                                    <src>${project.build.directory}/original-${project.build.finalName}.jar</src>
                                     <dst>${deb.lib.directory}/${project.artifactId}.jar</dst>
                                     <type>file</type>
                                 </data>
