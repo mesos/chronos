@@ -130,8 +130,7 @@ function($,
          ApplicationRouter,
          JobsCollection,
          DetailsCollection,
-         ResultsCollection,
-         JobGraphCollection) {
+         ResultsCollection) {
 
   var app;
 
@@ -146,13 +145,22 @@ function($,
         var $jobs = $('.result-jobs-count'),
             $errors = $('.failed-jobs-count');
 
-        $('#search-filter').fastLiveFilter('#job-list' , {
-          callback: function(total, results) {
-            $jobs.html(total);
-            app.resultsCollection.trigger('change');
-            if (!results) return false;
+        $('#search-filter').change(function(){
+          var q = $.trim(this.value);
+          if (q.length > 0) {
+            window.app.jobsCollection.fetch({data: {any: q},
+              success: function() {
+                window.app.router.index();
+              }
+            });
+          } else {
+            window.app.jobsCollection.fetch({
+              success: function() {
+                window.app.router.index();
+              }
+            });
           }
-        });
+       });
       },
 
       makePath: function() {
@@ -195,16 +203,12 @@ function($,
 
         window.app.detailsCollection = new DetailsCollection()
         window.app.resultsCollection = new ResultsCollection(jobsCollection.models)
-        window.app.jobsGraphCollection = new JobGraphCollection();
-
-        window.app.jobsGraphCollection.registerAccessoryCollection(
-          jobsCollection).fetch();
-
         window.app.router = new ApplicationRouter();
         Backbone.history.start();
         app.Helpers.filterList();
 
-        jobsCollection.startPolling();
+        jobsCollection.fetch();
+        //startPolling();
         //window.app.jobsGraphCollection.startPolling();
       });
 
