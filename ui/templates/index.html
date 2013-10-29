@@ -6,21 +6,26 @@
 <script src="{{ url_for('static', filename='tablesorter/js/jquery.tablesorter.min.js') }}"></script>
 <script src="{{ url_for('static', filename='tablesorter/js/jquery.tablesorter.widgets.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chronos_tablesort.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chronos_tooltips.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chronos_buttons.js') }}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="panel panel-default">
-  <div class="panel-heading">Mouseover for command text. Search is fuzzy, Filters can take inequalities as well as equalities! </div>
+  <div class="panel-heading">Mouseover for command text. Search is fuzzy. Filters can handle inequalities as well as equalities. </div>
   <table id="jobtable" class="table tablesorter">
     <thead>
       <tr>
+        <th>Actions</th>
         <th>Name</th>
         <th>Owner</th>
+        <th>Parents</th>
+        <th>Disabled</th>
+        <th>Status</th>
         <th>Successes</th>
         <th>Errors</th>
         <th>Last Success</th>
         <th>Last Error</th>
-        <th>Disabled</th>
         <th>99%</th>
         <th>95%</th>
         <th>75%</th>
@@ -29,22 +34,48 @@
     </thead>
     <tbody>
       {% for entry in entries %}
-      <tr>
+      <tr title="Command: {{entry.command}}">
+        <td>
+          <a class="btn btn-success" id="run.{{entry.name}}" event="{{entry.name}}">Run</a>
+          <a class="btn btn-warning" id="edit.{{entry.name}}">Edit</a>
+          <a class="btn btn-danger" id="delete.{{entry.name}}">&times;</a>
+        </td>
         <td>{{entry.name}}</td>
         <td>{{entry.owner}}</td>
+        <td>{{entry.parents}}</td>
+        <td>{{entry.disabled}}</td>
         <td>{{entry.lastStatus}}</td>
         <td>{{entry.successCount}}</td>
         <td>{{entry.errorCount}}</td>
         <td>{{entry.lastSuccess}}</td>
         <td>{{entry.lastError}}</td>
-        <td>{{entry.disabled}}</td>
         <td>{{entry.stats["99thPercentile"]}}</td>
         <td>{{entry.stats["95thPercentile"]}}</td>
         <td>{{entry.stats["75thPercentile"]}}</td>
-        <td>{{entry.stats["50thPercentile"]}}</td>
+        <td>{{entry.stats["median"]}}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
+  <!-- Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" id="editjob" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Edit</button>
+            <button type="button" id="forcerunjob" class="btn btn-default" data-dismiss="modal" aria-hidden="true">Force Run</button>
+            <button type="button" id="destroyjob" class="btn btn-dange" data-dismiss="modal" aria-hidden="true">Destroy</button>
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          </div>
+          <div class="modal-body">
+            I am putting text in here.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 {% endblock %}

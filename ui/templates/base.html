@@ -7,6 +7,7 @@
       <link rel="stylesheet" href="{{url_for('static', filename='bootstrap/dist/css/bootstrap.min.css')}}">
       <link rel="stylesheet" href="{{url_for('static', filename='bootstrap/dist/css/bootstrap-theme.min.css')}}">
       <link rel="stylesheet" href="{{url_for('static', filename='tablesorter/css/theme.bootstrap.css')}}">
+      <link rel="stylesheet" href="//jquery.bassistance.de/tooltip/jquery.tooltip.css"> 
     {% endblock %}
 
     {% block scripts %}
@@ -14,6 +15,8 @@
     <script src="//code.jquery.com/jquery.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="{{ url_for('static', filename='bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <!-- Include tooltip script for schedule / parents / command details.-->
+    <script src="//jquery.bassistance.de/tooltip/jquery.tooltip.js"></script>
     {% endblock %}
   </head>
   <body>
@@ -21,16 +24,9 @@
 {% block navbar %}
 <nav class="navbar navbar-default" role="navigation">
   <div class="collapse navbar-collapse navbar-ex1-collapse">
-    <a class="brand" href="/"><h1 id="logo">Chronos</h1></a>
-    <form class="navbar-form navbar-left" role="search">
-      <div class="form-group">
-        <input type="text" class="form-control" placeholder="Search">
-      </div>
-      <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
-      <button type="button" class="btn btn-success">New Job</button>
-    </form>
     <ul class="nav navbar-nav">
-      <li><p class="navbar-text">Total Jobs: <span class="label label-info">{{ total_jobs }}</span></p></li>
+      <li><button type="button" class="btn btn-success navbar-btn" id="new_job">New Job</button></li>
+      <li><p class="navbar-text">Total Jobs: <span class="label label-primary">{{ total_jobs }}</span></p></li>
       <li><p class="navbar-text">Failed Jobs: <span class="label label-danger">{{ failed_jobs }}</span></p></li>
     </ul>
   </div>

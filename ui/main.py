@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import requests
+import re
 from models.jobs import DependentJob, ScheduledJob
 from collections import defaultdict
 from flask import Flask, render_template, send_from_directory
@@ -24,7 +25,7 @@ def create_app():
     def view_jobs():
         entries = gen_table_entries()
         total_jobs=len(entries)
-        failed_jobs=len(entries.filter(lambda entry: entry.lastStatus == "failed"))
+        failed_jobs=len(filter(lambda entry: entry.lastStatus == "failed", entries))
         return render_template('index.html', 
                                total_jobs=total_jobs,
                                failed_jobs=failed_jobs,
@@ -54,7 +55,7 @@ def get_job_details():
 
         if 'parents' in j:
             # This is a dependent job.
-            parents = j["parents"]
+            parents = map(str, j["parents"])
             job = DependentJob(name, owner, command, retries, lastSuccess, lastError,
                                successCount, errorCount, disabled, parents=parents)
             job_details[name] = job

@@ -22,14 +22,17 @@ class BaseJob:
         self.disabled = disabled
         self.stats = {}
 
-        if timeOfLastSuccess and timeOfLastFailure:
+        if self.lastSuccess and self.lastError:
             timeOfLastSuccess = time.strptime(self.lastSuccess, "%Y-%m-%dT%H:%M:%S.%fZ")
-            timeOfLastFailure = time.strptime(self.lastFailure, "%Y-%m-%dT%H:%M:%S.%fZ")
-            self.lastStatus = "failed" if timeOfLastFailure > timeOfLastSuccess else "succeeded"
-        elif timeOfLastSuccess:
+            timeOfLastError = time.strptime(self.lastError, "%Y-%m-%dT%H:%M:%S.%fZ")
+            self.lastStatus = "failed" if timeOfLastError > timeOfLastSuccess else "succeeded"
+
+        elif self.lastSuccess:
             self.lastStatus = "succeeded"
-        elif timeOfLastFailure:
+
+        elif self.lastError:
             self.lastStatus = "failed"
+
         else:
             self.lastStatus = "fresh"
 
@@ -43,7 +46,6 @@ class DependentJob (BaseJob):
 
 class ScheduledJob (BaseJob):
     def __init__(self, *args, **kwargs):
-        print kwargs
         try:
             self.schedule = kwargs.pop('schedule')
         except KeyError:
