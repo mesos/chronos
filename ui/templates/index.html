@@ -10,7 +10,7 @@
 
 {% block content %}
 <div class="panel panel-default">
-  <div class="panel-heading">Shift-click to sort on multiple columns. Filters can take inequalities as well as equalities! </div>
+  <div class="panel-heading">Mouseover for command text. Search is fuzzy, Filters can take inequalities as well as equalities! </div>
   <table id="jobtable" class="table tablesorter">
     <thead>
       <tr>
@@ -20,7 +20,6 @@
         <th>Errors</th>
         <th>Last Success</th>
         <th>Last Error</th>
-        <th>Async</th>
         <th>Disabled</th>
         <th>99%</th>
         <th>95%</th>
@@ -29,286 +28,22 @@
       </tr>
     </thead>
     <tbody>
+      {% for entry in entries %}
       <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
+        <td>{{entry.name}}</td>
+        <td>{{entry.owner}}</td>
+        <td>{{entry.lastStatus}}</td>
+        <td>{{entry.successCount}}</td>
+        <td>{{entry.errorCount}}</td>
+        <td>{{entry.lastSuccess}}</td>
+        <td>{{entry.lastError}}</td>
+        <td>{{entry.disabled}}</td>
+        <td>{{entry.stats["99thPercentile"]}}</td>
+        <td>{{entry.stats["95thPercentile"]}}</td>
+        <td>{{entry.stats["75thPercentile"]}}</td>
+        <td>{{entry.stats["50thPercentile"]}}</td>
       </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
-      <tr>
-        <td>Fooification</td>
-        <td>Matt</td>
-        <td>25</td>
-        <td>0</td>
-        <td>2013-10-29 15:17:22</td>
-        <td>NONE</td>
-        <td>False</td>
-        <td>False</td>
-        <td>1192</td>
-        <td>1085</td>
-        <td>754</td>
-        <td>230</td>
-      </tr>
-      <tr>
-        <td>Hoorah</td>
-        <td>Matt</td>
-        <td>20</td>
-        <td>19</td>
-        <td>2013-12-20 10:00:00</td>
-        <td>2013-8-14 12:00:00</td>
-        <td>False</td>
-        <td>True</td>
-        <td>1300</td>
-        <td>1100</td>
-        <td>850</td>
-        <td>550</td>
-      </tr>
+      {% endfor %}
     </tbody>
   </table>
 
