@@ -425,6 +425,9 @@
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
+                        <configuration>
+                            <excludeGroupIds>junit,org.mockito,org.specs2,org.apache.maven.plugins</excludeGroupIds>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
