@@ -36,9 +36,9 @@
       {% for entry in entries %}
       <tr title="Command: {{entry.command}}">
         <td>
-          <a class="btn btn-success" id="run.{{entry.name}}" event="{{entry.name}}">Run</a>
+          <a class="btn btn-success" id="run.{{entry.name}}">Run</a>
           <a class="btn btn-warning" id="edit.{{entry.name}}">Edit</a>
-          <a class="btn btn-danger" id="delete.{{entry.name}}">&times;</a>
+          <a class="btn btn-danger" id="kill.{{entry.name}}">Kill</a>
         </td>
         <td>{{entry.name}}</td>
         <td>{{entry.owner}}</td>

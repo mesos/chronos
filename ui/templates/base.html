@@ -11,11 +11,8 @@
     {% endblock %}
 
     {% block scripts %}
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="//code.jquery.com/jquery.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="{{ url_for('static', filename='bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <!-- Include tooltip script for schedule / parents / command details.-->
     <script src="//jquery.bassistance.de/tooltip/jquery.tooltip.js"></script>
     {% endblock %}
   </head>
@@ -26,6 +23,7 @@
   <div class="collapse navbar-collapse navbar-ex1-collapse">
     <ul class="nav navbar-nav">
       <li><button type="button" class="btn btn-success navbar-btn" id="new_job">New Job</button></li>
+      <li><button type="button" class="btn btn-danger navbar-btn" id="delete_job">Delete a Job</button></li>
       <li><p class="navbar-text">Total Jobs: <span class="label label-primary">{{ total_jobs }}</span></p></li>
       <li><p class="navbar-text">Failed Jobs: <span class="label label-danger">{{ failed_jobs }}</span></p></li>
     </ul>
