@@ -157,7 +157,13 @@ def get_job_details():
         command = j["command"]
         retries = j["retries"]
         lastSuccess = j["lastSuccess"]
+        if lastSuccess:
+            lastSuccess = lastSuccess.replace("T", " ")
+            lastSuccess = lastSuccess[:lastSuccess.rfind(".")]
         lastError = j["lastError"]
+        if lastError:
+            lastError = lastError.replace("T", " ")[:-1]
+            lastError = lastError[:lastError.rfind(".")]
         successCount = j["successCount"]
         errorCount = j["errorCount"]
         disabled = j["disabled"]

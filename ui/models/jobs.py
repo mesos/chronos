@@ -23,9 +23,9 @@ class BaseJob:
         self.stats = {}
 
         if self.lastSuccess and self.lastError:
-            timeOfLastSuccess = time.strptime(self.lastSuccess, "%Y-%m-%dT%H:%M:%S.%fZ")
-            timeOfLastError = time.strptime(self.lastError, "%Y-%m-%dT%H:%M:%S.%fZ")
-            self.lastStatus = "Failed" if timeOfLastError > timeOfLastSuccess else "Succeeded"
+            timeOfLastSuccess = time.strptime(self.lastSuccess, "%Y-%m-%d %H:%M:%S")
+            timeOfLastError = time.strptime(self.lastError, "%Y-%m-%d %H:%M:%S")
+            self.lastStatus = "Failed" if timeOfLastError >= timeOfLastSuccess else "Succeeded"
 
         elif self.lastSuccess:
             self.lastStatus = "Succeeded"

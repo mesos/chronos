@@ -13,13 +13,13 @@
 
 {% block content %}
 <div class="panel panel-default">
-  <div class="panel-heading">Mouseover for command text. Search is fuzzy. Filters can handle inequalities as well as equalities. </div>
+  <div class="panel-heading">Search is fuzzy, filters can handle inequalities as well as equalities. See edit panel for more details.</div>
   <table id="jobtable" class="table tablesorter">
     <thead>
       <tr>
         <th>Name</th>
         <th>Owner</th>
-        <th>Parents</th>
+        <th>Command</th>
         <th>Disabled</th>
         <th>Status</th>
         <th>Successes</th>
@@ -34,8 +34,8 @@
     </thead>
     <tbody>
       {% for entry in entries %}
-      <tr title="Command: {{entry.command}}">
-        <td>
+      <tr>
+        <td title="{{entry.name}}">
           <div class="dropdown">
             <a href="#" id="dropdown.{{entry.name}}" data-toggle="dropdown">{{entry.name |truncate(30, True)}}</a>
             <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu" aria-labelledby="d{{entry.name}}">
@@ -47,8 +47,8 @@
             </ul>
           </div>
         </td>
-        <td style="overflow:hidden; width:80px">{{entry.owner |truncate(30, True)}}</td>
-        <td>{{entry.parents |truncate(40, True)}}</td>
+        <td title="{{entry.owner}}">{{entry.owner |truncate(30, True)}}</td>
+        <td title="{{entry.command}}">{{entry.command |truncate(30, True)}}</td>
         <td>{{entry.disabled}}</td>
         <td>{{entry.lastStatus}}</td>
         <td>{{entry.successCount}}</td>
