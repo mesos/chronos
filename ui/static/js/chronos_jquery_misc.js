@@ -9,7 +9,6 @@ $(function() {
     $(this).find('.dropdown-menu').first().stop(true, true).slideUp();
   });
 
-
   // If the owners is focused, clear and invalidate the schedule fields.
   // If any of the schedule fields are focused, clear invalidate the owner field
   $('#newParentsInput').change( function() {

@@ -37,7 +37,7 @@
       <tr title="Command: {{entry.command}}">
         <td>
           <div class="dropdown">
-            <a href="#" id="dropdown.{{entry.name}}" data-toggle="dropdown">{{entry.name}}</a>
+            <a href="#" id="dropdown.{{entry.name}}" data-toggle="dropdown">{{entry.name |truncate(30, True)}}</a>
             <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu" aria-labelledby="d{{entry.name}}">
                 <li class="btn-group">
                   <button class="btn btn-success" id="run.{{entry.name}}"><span class="glyphicon glyphicon-play"></span></button>
@@ -47,8 +47,8 @@
             </ul>
           </div>
         </td>
-        <td style="overflow:hidden; width:80px">{{entry.owner}}</td>
-        <td>{{entry.parents}}</td>
+        <td style="overflow:hidden; width:80px">{{entry.owner |truncate(30, True)}}</td>
+        <td>{{entry.parents |truncate(40, True)}}</td>
         <td>{{entry.disabled}}</td>
         <td>{{entry.lastStatus}}</td>
         <td>{{entry.successCount}}</td>
@@ -75,12 +75,15 @@
       <form class="form-horizontal" id="editJobForm" role="form" action="/edit" method="post">
         <div class="modal-body">
           <div class="form-group">
+            <input type="hidden" class="form-control" name="nameInput" id="nameInput" placeholder="job_name" value="">
+          </div>
+          <div class="form-group">
             <label for="commandInput">Command</label>
-            <input type="text" class="form-control" id="commandInput" placeholder="job_command" value="">
+            <input type="text" class="form-control" name="commandInput" id="commandInput" placeholder="job_command" value="">
           </div>
           <div class="form-group">
               <label for="ownerInput">Owner</label>
-              <input type="text" class="form-control" id="ownerInput" placeholder="job_owner" value="">
+              <input type="text" class="form-control" name="ownerInput" id="ownerInput" placeholder="job_owner" value="">
           </div>
           <div class="form-group" id="customEditFields">
           <!-- JQuery will programatically insert the schedule editing field or parent editing field. -->
@@ -111,36 +114,36 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="newNameInput">Name</label>
-            <input type="text" class="form-control" id="newNameInput" placeholder="job_name" value="">
+            <input type="text" class="form-control" name="newNameInput" id="newNameInput" placeholder="job_name" value="">
           </div>
           <div class="form-group">
             <label for="newCommandInput">Command</label>
-            <input type="text" class="form-control" id="newCommandInput" placeholder="job_command" value="">
+            <input type="text" class="form-control" name="newCommandInput" id="newCommandInput" placeholder="job_command" value="">
           </div>
           <div class="form-group">
             <label for="newOwnerInput">Owner</label>
-            <input type="text" class="form-control" id="newOwnerInput" placeholder="job_owner" value="">
+            <input type="text" class="form-control" name="newOwnerInput" id="newOwnerInput" placeholder="job_owner" value="">
           </div>
           <div class="form-group">
             <label for="newParentsInput">Parents</label>
-            <input type="text" class="form-control" id="newParentsInput" placeholder="job_parent1, job_parent2" value="">
+            <input type="text" class="form-control" name="newParentsInput" id="newParentsInput" placeholder="job_parent1, job_parent2" value="">
           </div>
           <div class="form-group">
             <div class="col-xs-2">
               <label for="newRepeatsInput">Repeats</label>
-              <input type="text" class="form-control" id="newRepeatsInput" placeholder="∞" value="">
+              <input type="text" class="form-control" name="newRepeatsInput" id="newRepeatsInput" placeholder="∞" value="">
             </div>
             <div class="col-xs-4">
               <label for="newDateInput">Launch Day</label>
-              <input type="text" class="form-control" id="newDateInput" placeholder="YYYY-MM-DD" value="">
+              <input type="text" class="form-control" name="newDateInput" id="newDateInput" placeholder="YYYY-MM-DD" value="">
             </div>
             <div class="col-xs-3">
               <label for="newTimeInput">Launch Time</label>
-              <input type="text" class="form-control" id="newTimeInput" placeholder="HH:MM:SS" value="">
+              <input type="text" class="form-control" name="newTimeInput" id="newTimeInput" placeholder="HH:MM:SS" value="">
             </div>
             <div class="col-xs-3">
               <label for="newPeriodInput">Period</label>
-              <input type="text" class="form-control" id="newPeriodInput" placeholder="T24H or T1D or similar" value="">
+              <input type="text" class="form-control" name="newPeriodInput" id="newPeriodInput" placeholder="T24H or T1D or similar" value="">
             </div>
           </div>
           <div class="form-group">

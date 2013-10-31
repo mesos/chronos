@@ -3,16 +3,26 @@ $(function() {
     var parts = $(this).attr("id").split(".");
     var name = parts[1];
     alert('Running job ' + name);
-    request = $.post('/run', {"name": name});
-    console.log("ran job with request", request);
+    request = $.ajax({
+      type: "POST",
+      url: '/run',
+      data: {"name": name}
+    }).done( function() {
+      location.reload(true);
+    });
   });
 
   $('[id^="kill."]').click( function() {
     var parts = $(this).attr("id").split(".");
     var name = parts[1];
     alert('Killing tasks for job ' + name);
-    request = $.post('/kill', {"name": name});
-    console.log("killed job with request", request);
+    request = $.ajax({
+      type: "POST",
+      url: '/kill',
+      data: {"name": name}
+    }).done( function() {
+      location.reload(true);
+    });
   });
 
   $('#delete_job').click( function() {
@@ -22,8 +32,13 @@ $(function() {
     }
     var result = confirm('Are you sure you want to delete `' + name + '`?');
     if (result) {
-      request = $.post('/delete', {"name": name});
-      console.log("deleted job with request", request);
+      request = $.ajax({
+        type: "POST",
+        url: '/delete',
+        data: {"name": name}
+      }).done( function() {
+        location.reload(true);
+      });
     }
   });
 });
@@ -31,6 +46,7 @@ $(function() {
 function buildEditJobModal(name, command, owner, parents, schedule, disabled) {
   $('#editModal').on('show.bs.modal', function() {
     $('#editModalLabel').html('Editing ' + name);
+    $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner)
     if (disabled == "True") {
@@ -41,23 +57,23 @@ function buildEditJobModal(name, command, owner, parents, schedule, disabled) {
 
     var parentInputHTML =
        ['  <label for="parentsInput">Parents</label>',
-        '  <input type="text" class="form-control" id="parentsInput" placeholder="job_parent1, job_parent2" value="">'].join('\n');
+        '  <input type="text" class="form-control" name="parentsInput" id="parentsInput" placeholder="job_parent1, job_parent2" value="">'].join('\n');
     var scheduleInputHTML =
        ['  <div class="col-xs-2">',
         '    <label for="repeatsInput">Repeats</label>',
-        '    <input type="text" class="form-control" id="repeatsInput" placeholder="∞" value="">',
+        '    <input type="text" class="form-control" name="repeatsInput" id="repeatsInput" placeholder="∞" value="">',
         '  </div>',
         '  <div class="col-xs-4">',
         '    <label for="dateInput">Launch Day</label>',
-        '    <input type="text" class="form-control" id="dateInput" placeholder="YYYY-MM-DD" value="">',
+        '    <input type="text" class="form-control" name="dateInput" id="dateInput" placeholder="YYYY-MM-DD" value="">',
         '  </div>',
         '  <div class="col-xs-3">',
         '    <label for="timeInput">Launch Time</label>',
-        '    <input type="text" class="form-control" id="timeInput" placeholder="HH:MM:SS" value="">',
+        '    <input type="text" class="form-control" name="timeInput" id="timeInput" placeholder="HH:MM:SS" value="">',
         '  </div>',
         '  <div class="col-xs-3">',
         '    <label for="periodInput">Period</label>',
-        '    <input type="text" class="form-control" id="periodInput" placeholder="T24H or T1D or similar" value="">',
+        '    <input type="text" class="form-control" name="periodInput" id="periodInput" placeholder="T24H or T1D or similar" value="">',
         '  </div>'].join('\n');
 
     if (parents.length > 0) {

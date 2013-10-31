@@ -3,6 +3,7 @@ import sys
 import json
 import requests
 import re
+from string import strip
 from models.jobs import DependentJob, ScheduledJob
 from collections import defaultdict
 from flask import Flask, render_template, send_from_directory, request
@@ -41,6 +42,9 @@ def create_app():
         r = requests.delete(url)
         if (r.status_code != 204):
             print "Did not receive HTTP 204 back from deleting %s" % job_name
+            print r.status_code
+            print r.headers
+            print r.text
         return render_jobs()
 
     @app.route('/kill', methods=["POST"])
@@ -51,6 +55,9 @@ def create_app():
         r = requests.delete(url)
         if (r.status_code != 204):
             print "Did not receive HTTP 204 back from killing %s" % job_name
+            print r.status_code
+            print r.headers
+            print r.text
         return render_jobs()
 
     @app.route('/run', methods=["POST"])
@@ -61,19 +68,80 @@ def create_app():
         r = requests.put(url)
         if (r.status_code != 204):
             print "Did not receive HTTP 204 back from manually starting %s" % job_name
+            print r.status_code
+            print r.headers
+            print r.text
         return render_jobs()
 
     @app.route('/create', methods=["POST"])
     def create_job():
-        print 'In this method!'
-        job_hash = request.form
-        print "Created job %s" % job_hash
+        job_hash = {}
+        job_hash["async"] = False
+        job_hash["epsilon"] = "PT30M"
+        job_hash["executor"] = ""
+        job_hash["disabled"] = True if str(request.form["newStatusInput"]) == "disabled" else False
+        job_hash["command"] = str(request.form["newCommandInput"])
+        job_hash["name"] = str(request.form["newNameInput"])
+        job_hash["owner"] = str(request.form["newOwnerInput"])
+
+        if 'newParentsInput' in request.form:
+            # This is a dependent job
+            job_hash["parents"] = map(strip, str(request.form["newParentsInput"]).split(","))
+            url = "http://%s/scheduler/dependency" % CHRONOS_HOST
+        else:
+            # This is a scheduled job
+            job_hash["schedule"] = "R%s/%sT%sZ/P%s" % (str(request.form["newRepeatsInput"]),
+                                                       str(request.form["newDateInput"]),
+                                                       str(request.form["newTimeInput"]),
+                                                       str(request.form["newPeriodInput"]))
+            url = "http://%s/scheduler/iso8601" % CHRONOS_HOST
+
+        headers = {"Content-Type": "application/json"}
+        r = requests.post(url, data=json.dumps(job_hash), headers=headers)
+        if (r.status_code != 204):
+            print "Job hash is: %s" % str(job_hash)
+            print "Json'd data is %s" % json.dumps(job_hash)
+            print r.status_code
+            print r.headers
+            print r.text
+            print "Did not receive HTTP 204 back from creating %s" % job_hash["name"]
+        print "Created job %s" % job_hash["name"]
         return render_jobs()
 
     @app.route('/edit', methods=["POST"])
     def edit_job():
-        job_hash = request.form
-        print "Edited job %s" % job_hash
+        print "in the edit job method"
+        job_hash = {}
+        job_hash["async"] = False
+        job_hash["epsilon"] = "PT30M"
+        job_hash["executor"] = ""
+        job_hash["disabled"] = True if str(request.form["statusInput"]) == "disabled" else False
+        job_hash["command"] = str(request.form["commandInput"])
+        job_hash["name"] = str(request.form["nameInput"])
+        job_hash["owner"] = str(request.form["ownerInput"])
+
+        if 'parentsInput' in request.form:
+            # This is a dependent job
+            job_hash["parents"] = map(strip, str(request.form["parentsInput"]).split(","))
+            url = "http://%s/scheduler/dependency" % CHRONOS_HOST
+        else:
+            # This is a scheduled job
+            job_hash["schedule"] = "R%s/%sT%sZ/P%s" % (str(request.form["repeatsInput"]),
+                                                       str(request.form["dateInput"]),
+                                                       str(request.form["timeInput"]),
+                                                       str(request.form["periodInput"]))
+            url = "http://%s/scheduler/iso8601" % CHRONOS_HOST
+
+        headers = {"Content-Type": "application/json"}
+        r = requests.put(url, data=json.dumps(job_hash), headers=headers)
+        if (r.status_code != 204):
+            print "Job hash is: %s" % str(job_hash)
+            print "Json'd data is %s" % json.dumps(job_hash)
+            print r.status_code
+            print r.headers
+            print r.text
+            print "Did not receive HTTP 204 back from creating %s" % job_hash["name"]
+        print "Edited job %s" % job_hash["name"]
         return render_jobs()
 
     return app
