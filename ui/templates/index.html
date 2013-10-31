@@ -8,6 +8,7 @@
 <script src="{{ url_for('static', filename='js/chronos_tablesort.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chronos_tooltips.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chronos_buttons.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chronos_jquery_misc.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -16,7 +17,6 @@
   <table id="jobtable" class="table tablesorter">
     <thead>
       <tr>
-        <th>Actions</th>
         <th>Name</th>
         <th>Owner</th>
         <th>Parents</th>
@@ -36,12 +36,18 @@
       {% for entry in entries %}
       <tr title="Command: {{entry.command}}">
         <td>
-          <a class="btn btn-success" id="run.{{entry.name}}">Run</a>
-          <a class="btn btn-warning" id="edit.{{entry.name}}">Edit</a>
-          <a class="btn btn-danger" id="kill.{{entry.name}}">Kill</a>
+          <div class="dropdown">
+            <a href="#" id="dropdown.{{entry.name}}" data-toggle="dropdown">{{entry.name}}</a>
+            <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu" aria-labelledby="d{{entry.name}}">
+                <li class="btn-group">
+                  <button class="btn btn-success" id="run.{{entry.name}}"><span class="glyphicon glyphicon-play"></span></button>
+                  <button class="btn btn-warning" onclick="buildEditJobModal( '{{entry.name}}', '{{entry.command}}', '{{entry.owner}}', {%if entry.parents is defined%}{{entry.parents |safe}}{% else %}[]{% endif %}, '{{entry.schedule}}', '{{entry.disabled}}' )" id="edit.{{entry.name}}" data-toggle="modal" data-target="#editModal"><span class="glyphicon glyphicon-wrench"></span></button>
+                  <button class="btn btn-danger" id="kill.{{entry.name}}"><span class="glyphicon glyphicon-stop"></span></button>
+                </li>
+            </ul>
+          </div>
         </td>
-        <td>{{entry.name}}</td>
-        <td>{{entry.owner}}</td>
+        <td style="overflow:hidden; width:80px">{{entry.owner}}</td>
         <td>{{entry.parents}}</td>
         <td>{{entry.disabled}}</td>
         <td>{{entry.lastStatus}}</td>
@@ -57,25 +63,97 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" id="editModalLabel">Edit job_name_here</h4>
+      </div>
+      <form class="form-horizontal" id="editJobForm" role="form" action="/edit" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="commandInput">Command</label>
+            <input type="text" class="form-control" id="commandInput" placeholder="job_command" value="">
+          </div>
+          <div class="form-group">
+              <label for="ownerInput">Owner</label>
+              <input type="text" class="form-control" id="ownerInput" placeholder="job_owner" value="">
+          </div>
+          <div class="form-group" id="customEditFields">
+          <!-- JQuery will programatically insert the schedule editing field or parent editing field. -->
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="statusInput" id="statusInputEnabled" value="enabled"> Enable Job</label><br>
+            <label><input type="radio" name="statusInput" id="statusInputDisabled" value="disabled"> Disable Job</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <input type="submit" id="newjob-modal-submit" class="btn btn-primary" value="Save Changes">
+        </div>
+      </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
-  <!-- Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" id="editjob" class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Edit</button>
-            <button type="button" id="forcerunjob" class="btn btn-default" data-dismiss="modal" aria-hidden="true">Force Run</button>
-            <button type="button" id="destroyjob" class="btn btn-dange" data-dismiss="modal" aria-hidden="true">Destroy</button>
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+<!-- New job modal -->
+<div class="modal fade" id="newJobModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" id="newJobModalLabel">Create new job</h4>
+      </div>
+      <form class="form-horizontal" id="newJobForm" role="form" action="/create" method="post">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="newNameInput">Name</label>
+            <input type="text" class="form-control" id="newNameInput" placeholder="job_name" value="">
           </div>
-          <div class="modal-body">
-            I am putting text in here.
+          <div class="form-group">
+            <label for="newCommandInput">Command</label>
+            <input type="text" class="form-control" id="newCommandInput" placeholder="job_command" value="">
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+          <div class="form-group">
+            <label for="newOwnerInput">Owner</label>
+            <input type="text" class="form-control" id="newOwnerInput" placeholder="job_owner" value="">
           </div>
-        </div><!-- /.modal-content -->
-      </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+          <div class="form-group">
+            <label for="newParentsInput">Parents</label>
+            <input type="text" class="form-control" id="newParentsInput" placeholder="job_parent1, job_parent2" value="">
+          </div>
+          <div class="form-group">
+            <div class="col-xs-2">
+              <label for="newRepeatsInput">Repeats</label>
+              <input type="text" class="form-control" id="newRepeatsInput" placeholder="∞" value="">
+            </div>
+            <div class="col-xs-4">
+              <label for="newDateInput">Launch Day</label>
+              <input type="text" class="form-control" id="newDateInput" placeholder="YYYY-MM-DD" value="">
+            </div>
+            <div class="col-xs-3">
+              <label for="newTimeInput">Launch Time</label>
+              <input type="text" class="form-control" id="newTimeInput" placeholder="HH:MM:SS" value="">
+            </div>
+            <div class="col-xs-3">
+              <label for="newPeriodInput">Period</label>
+              <input type="text" class="form-control" id="newPeriodInput" placeholder="T24H or T1D or similar" value="">
+            </div>
+          </div>
+          <div class="form-group">
+            <label><input type="radio" name="newStatusInput" id="newStatusInputEnabled" value="enabled" checked> Enable Job</label><br>
+            <label><input type="radio" name="newStatusInput" id="newStatusInputDisabled" value="disabled"> Disable Job</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <input type="submit" id="newjob-modal-submit" class="btn btn-primary" value="Create">
+        </div>
+      </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 {% endblock %}

@@ -5,13 +5,21 @@ import requests
 import re
 from models.jobs import DependentJob, ScheduledJob
 from collections import defaultdict
-from flask import Flask, render_template, send_from_directory
-from flask_wtf import Form
-from wtforms import TextField, HiddenField, ValidationError, RadioField, BooleanField, SubmitField
-from wtforms.validators import Required
+from flask import Flask, render_template, send_from_directory, request
 def create_app():
     app = Flask(__name__)
     app.config.update(DEBUG = True,)
+
+    def render_jobs():
+        entries = gen_table_entries()
+        total_jobs=len(entries)
+        failed_jobs=len(filter(lambda entry: entry.lastStatus == "Failed", entries))
+        return render_template('index.html',
+                               chronos_host=CHRONOS_HOST,
+                               total_jobs=total_jobs,
+                               failed_jobs=failed_jobs,
+                               entries=entries), 200
+
 
     @app.route('/favicon.ico')
     def favicon():
@@ -23,17 +31,50 @@ def create_app():
 
     @app.route('/')
     def view_jobs():
-        entries = gen_table_entries()
-        total_jobs=len(entries)
-        failed_jobs=len(filter(lambda entry: entry.lastStatus == "failed", entries))
-        return render_template('index.html', 
-                               total_jobs=total_jobs,
-                               failed_jobs=failed_jobs,
-                               entries=entries), 200
+        return render_jobs()
 
-    @app.route('/create')
+    @app.route('/delete', methods=["POST"])
+    def delete_job():
+        job_name = request.form['name']
+        print "Deleted job %s" % job_name
+        url = "http://%s/scheduler/job/%s" % (CHRONOS_HOST, job_name)
+        r = requests.delete(url)
+        if (r.status_code != 204):
+            print "Did not receive HTTP 204 back from deleting %s" % job_name
+        return render_jobs()
+
+    @app.route('/kill', methods=["POST"])
+    def kill_job():
+        job_name = request.form['name']
+        print "Killed job %s" % job_name
+        url = "http://%s/scheduler/task/kill/%s" % (CHRONOS_HOST, job_name)
+        r = requests.delete(url)
+        if (r.status_code != 204):
+            print "Did not receive HTTP 204 back from killing %s" % job_name
+        return render_jobs()
+
+    @app.route('/run', methods=["POST"])
+    def run_job():
+        job_name = request.form['name']
+        print "Ran job %s" % job_name
+        url = "http://%s/scheduler/job/%s" % (CHRONOS_HOST, job_name)
+        r = requests.put(url)
+        if (r.status_code != 204):
+            print "Did not receive HTTP 204 back from manually starting %s" % job_name
+        return render_jobs()
+
+    @app.route('/create', methods=["POST"])
     def create_job():
-        return render_template('create.html'), 200
+        print 'In this method!'
+        job_hash = request.form
+        print "Created job %s" % job_hash
+        return render_jobs()
+
+    @app.route('/edit', methods=["POST"])
+    def edit_job():
+        job_hash = request.form
+        print "Edited job %s" % job_hash
+        return render_jobs()
 
     return app
 

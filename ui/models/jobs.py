@@ -25,16 +25,16 @@ class BaseJob:
         if self.lastSuccess and self.lastError:
             timeOfLastSuccess = time.strptime(self.lastSuccess, "%Y-%m-%dT%H:%M:%S.%fZ")
             timeOfLastError = time.strptime(self.lastError, "%Y-%m-%dT%H:%M:%S.%fZ")
-            self.lastStatus = "failed" if timeOfLastError > timeOfLastSuccess else "succeeded"
+            self.lastStatus = "Failed" if timeOfLastError > timeOfLastSuccess else "Succeeded"
 
         elif self.lastSuccess:
-            self.lastStatus = "succeeded"
+            self.lastStatus = "Succeeded"
 
         elif self.lastError:
-            self.lastStatus = "failed"
+            self.lastStatus = "Failed"
 
         else:
-            self.lastStatus = "fresh"
+            self.lastStatus = "Fresh"
 
 class DependentJob (BaseJob):
     def __init__(self, *args, **kwargs):
