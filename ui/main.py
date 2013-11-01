@@ -9,7 +9,6 @@ from collections import defaultdict
 from flask import Flask, render_template, send_from_directory, request
 def create_app():
     app = Flask(__name__)
-    app.config.update(DEBUG = True,)
 
     def render_jobs():
         entries = gen_table_entries()
