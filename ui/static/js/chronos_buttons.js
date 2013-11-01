@@ -41,6 +41,22 @@ $(function() {
       });
     }
   });
+
+  $('#newJobModal').on('show.bs.modal', function() {
+    var d = new Date();
+    var year = d.getUTCFullYear();
+    var month = ('0' + (d.getUTCMonth()+1)).slice(-2);
+    var day = ('0' + d.getUTCDate()).slice(-2);
+    var hour = ('0' + d.getUTCHours()).slice(-2);
+    var minute = ('0' + d.getUTCMinutes()).slice(-2);
+    var second = ('0' + d.getUTCSeconds()).slice(-2);
+    var dstring = year+"-"+month+"-"+day;
+    var tstring = hour+":"+minute+":"+second;
+    $('#newDateInput').val(dstring);
+    $('#newTimeInput').val(tstring);
+    $('#newPeriodInput').val("T6H");
+    $('#newParentsInput').prop("disabled", true);
+  });
 });
 
 function buildEditJobModal(name, command, owner, parents, schedule, disabled) {
