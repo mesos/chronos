@@ -208,7 +208,7 @@
         <resources>
             <resource>
                 <targetPath>assets</targetPath>
-                <directory>src/main/resources/assets/build</directory>
+                <directory>src/main/resources/assets/app</directory>
             </resource>
         </resources>
         <pluginManagement>
@@ -380,33 +380,6 @@
                         </fileset>
                     </filesets>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>${maven-antrun-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>ant-run-requirejs</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <property name="compile_classpath" refid="maven.compile.classpath"/>
-                                <property name="configFile" value="${assets.dir}/app.build.js"/>
-                                <property name="optimizerFile" value="${assets.dir}/r.js"/>
-                                <property name="sourceDir" value="${assets.dir}"/>
-                                <property name="failOnError" value="true"/>
-                                <ant antfile="${basedir}/build.xml">
-                                    <target name="generateAssets"/>
-                                </ant>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

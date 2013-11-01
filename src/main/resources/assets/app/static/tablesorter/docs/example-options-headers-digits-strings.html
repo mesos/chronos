@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Dealing with text strings in numerical sorts</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<style>
+		th { width: 10%; }
+	</style>
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script id="js">$(function() {
+	// call the tablesorter plugin
+	$("table").tablesorter({
+		theme : 'blue',
+		// default strings setting
+		stringTo: "max",
+		// columns 2 & 3 (zero-based index) set using headers option
+		// columns 4+ set using header class name: "string-max", "string-min", "string-top", "string-bottom" and "string-none"
+		headers: {
+			1: { sorter: "digit", empty : "top" }, // sort empty cells to the top
+			2: { sorter: "digit", string: "max" }, // non-numeric content is treated as a MAX value
+			3: { sorter: "digit", string: "min" }  // non-numeric content is treated as a MIN value
+		}
+
+	});
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Dealing with text strings in numerical sorts</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>This functionality is new as of version 2.0.10 (not part of the original plugin).</li>
+			<li>When a column is sorted numerically ( <code>sorter:"digit"</code> ) any text in that column will, by default, be given a <em>zero</em> value. Sort the last column (#9) to see the problem with this method.</li>
+			<li>Overall <code>stringTo</code> option added in version 2.1.16.</li>
+			<li>String options changed in version 2.1.16; setting the value to:
+				<ul>
+					<li><code>"max"</code> will treat any text in that column as a value greater than the <em>max</em> (more positive) value. Renamed from "max+".</li>
+					<li><code>"min"</code> will treat any text in that column as a value greater than the <em>min</em> (more negative) value. Renamed from "max-".</li>
+					<li><code>"top"</code> will always sort the text to the top of the column.</li>
+					<li><code>"bottom"</code> will always sort the text to the bottom of the column.</li>
+					<li><code>"none"</code> or <code>"zero"</code> will treat the text as if it has a value of zero.</li>
+				</ul>
+			</li>
+			<li>Individual columns can be modified by adding the following (they all do the same thing), set in order of priority:
+				<ul>
+					<li>jQuery data <code>data-string="top"</code>.</li>
+					<li>metadata <code>class="{ string: 'top'}"</code>. This requires the metadata plugin.</li>
+					<li>headers option <code>headers : { 0 : { string : 'top' } }</code>.</li>
+					<li>header class name <code>class="string-top"</code>.</li>
+					<li>Overall <code>stringTo</code> option.</li>
+				</ul>
+			</li>
+			<li>Sort columns three through eight to see how the sort has changed. Note that the text is sorted separately from the numeric values.</li>
+			<li>The <code>emptyTo</code> option defaults to bottom, so all empty cells will sort at the bottom of the table, except for the second column.</li>
+		</ul>
+	</p>
+
+<h1>Demo</h1>
+<div id="demo"><table>
+	<thead>
+		<tr>
+			<th>Account #</th>
+			<th>Difference</th>
+			<th>3: Ratings (max)</th>
+			<th>4: Ratings (min)</th>
+			<th class="string-max">5: Change (max)</th>
+			<th class="string-min">6: Change (min)</th>
+			<th class="string-top">7: Change (top)</th>
+			<th class="string-bottom">8: Change (bottom)</th>
+			<th class="string-none">9: Change (zero)</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>A43</td>
+			<td>-35</td>
+			<td>01</td>
+			<td>01</td>
+			<td>-.1</td>
+			<td>-.1</td>
+			<td>-.1</td>
+			<td>-.1</td>
+			<td>-.1</td>
+		</tr>
+		<tr>
+			<td>A255</td>
+			<td>33</td>
+			<td>02</td>
+			<td>02</td>
+			<td>N/A #1</td>
+			<td>N/A #1</td>
+			<td>N/A #1</td>
+			<td>N/A #1</td>
+			<td>N/A #1</td>
+		</tr>
+		<tr>
+			<td>A33</td>
+			<td>2</td>
+			<td>03</td>
+			<td>03</td>
+			<td>N/A #2</td>
+			<td>N/A #2</td>
+			<td>N/A #2</td>
+			<td>N/A #2</td>
+			<td>N/A #2</td>
+		</tr>
+		<tr>
+			<td>A1</td>
+			<td>-5</td>
+			<td>04</td>
+			<td>04</td>
+			<td>-8.4</td>
+			<td>-8.4</td>
+			<td>-8.4</td>
+			<td>-8.4</td>
+			<td>-8.4</td>
+		</tr>
+		<tr>
+			<td>A102</td>
+			<td>99</td>
+			<td>05</td>
+			<td>05</td>
+			<td>-2.2</td>
+			<td>-2.2</td>
+			<td>-2.2</td>
+			<td>-2.2</td>
+			<td>-2.2</td>
+		</tr>
+		<tr>
+			<td>A10</td>
+			<td>-1</td>
+			<td>06</td>
+			<td>06</td>
+			<td>97.4</td>
+			<td>97.4</td>
+			<td>97.4</td>
+			<td>97.4</td>
+			<td>97.4</td>
+		</tr>
+		<tr>
+			<td>A02</td>
+			<td>0</td>
+			<td>07</td>
+			<td>07</td>
+			<td>23.6</td>
+			<td>23.6</td>
+			<td>23.6</td>
+			<td>23.6</td>
+			<td>23.6</td>
+		</tr>
+		<tr>
+			<td>A55</td>
+			<td>44</td>
+			<td></td>
+			<td></td>
+			<td>11.4</td>
+			<td>11.4</td>
+			<td>11.4</td>
+			<td>11.4</td>
+			<td>11.4</td>
+		</tr>
+		<tr>
+			<td>A87</td>
+			<td>04</td>
+			<td>NR</td>
+			<td>NR</td>
+			<td>5.2</td>
+			<td>5.2</td>
+			<td>5.2</td>
+			<td>5.2</td>
+			<td>5.2</td>
+		</tr>
+		<tr>
+			<td>A012</td>
+			<td></td>
+			<td>NR</td>
+			<td>NR</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+	</tbody>
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-parsers-class-name.html">Disable or set the column parser using class names &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

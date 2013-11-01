@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Tablesorter Testing (WIP)</title>
+	<link rel="stylesheet" href="testing/qunit-1.11.0.css">
+	<link rel="stylesheet" href="testing/testing.css">
+
+	<script src="testing/qunit-1.11.0.js"></script>
+	<script src="testing/jshint-r12.js"></script>
+	<script src="testing/jquery-1.8.3.min.js"></script>
+	<script src="js/jquery.tablesorter.js"></script>
+	<script src="js/jquery.metadata.js"></script>
+	<script src="js/parsers/parser-ipv6.js"></script>
+	<script src="testing/testing.js"></script>
+	<script src="testing/testing-ipv6.js"></script>
+
+	<script>
+	/*
+	Core plugin tested
+	========================
+	OPTIONS:
+		cssAsc, cssChildRow, cssDesc, cssHeader, cssHeaderRow, cssInfoBlock, dateFormat, emptyTo, headerList,
+		headers, ignoreCase, initialized, parsers, sortList, sortLocaleCompare, sortReset, stringTo, tableClass,
+		usNumberFormat, widgets (just zebra)
+
+	METHODS:
+		addRows, applyWidgets, destroy, sorton, sortReset, update/updateRow, updateAll, updateCell
+
+	EVENTS:
+		initialized, sortBegin, sortEnd, sortStart, updateComplete
+
+	Not yet tested
+	=========================
+	OPTIONS:
+		cancelSelection, cssIcon, cssProcessing, debug, delayInit, headerTemplate, initWidgets, onRenderHeader,
+		onRenderTemplate, selectorHeaders, selectorRemove, selectorSort, serverSideSorting, showProcessing,
+		sortAppend, sortForce, sortInitialOrder, sortMultiSortKey, sortResetKey, sortRestart, strings,
+		textExtraction, textSorter, theme, widthFixed, widgets (also need priority testing)
+
+	METHODS:
+		appendCache, applyWidgetId, sort, refreshWidgets
+
+	EVENTS:
+		-
+	*/
+
+	$(function(){
+
+		var ts = $.tablesorter,
+			$table1 = $('.tester:eq(0)'),
+			$table2 = $('.tester:eq(1)'),
+			$table3 = $('.tester:eq(2)'),
+			table1 = $table1[0],
+			table2 = $table2[0],
+			table3 = $table3[0],
+			th0 = $table1.find('th')[0], // first table header cell
+			init = false,
+			sortIndx = 0,
+			updateIndx = 0,
+			updateCallback = 0,
+			events = ['sortStart', 'sortBegin', 'sortEnd' ],
+			undef, c1, c2, c3, e, i, l, t;
+
+		$table1
+			.bind('tablesorter-initialized', function(){
+				init = true;
+			})
+			.bind( events.join(' '), function(e){
+				if (e.type === events[sortIndx%3]) {
+					sortIndx++;
+				}
+			})
+			.bind('updateComplete', function(){
+				updateIndx++;
+			})
+			.tablesorter();
+
+		$table2.tablesorter({
+			headers: {
+				0: { sorter: 'text' },
+				1: { sorter: 'text' },
+				2: { sorter: false }
+			}
+		});
+
+		$table3.tablesorter({
+			emptyTo: "bottom",
+			stringTo: "max", // non-numeric content is treated as a MAX value
+			headers: {
+				0: { empty : "top" }, // sort empty cells to the top
+				2: { string: "min" }, // non-numeric content is treated as a MIN value
+				3: { sorter: "digit", empty : "zero", string : "top" }
+			}
+		});
+
+		/************************************************
+			JSHint testing
+		************************************************/
+		// Run JSHint on main js files
+		tester.jsHintTest('JSHint core', 'js/jquery.tablesorter.js');
+		tester.jsHintTest('JSHint pager', 'addons/pager/jquery.tablesorter.pager.js');
+		tester.jsHintTest('JSHint widgets', 'js/jquery.tablesorter.widgets.js');
+		tester.jsHintTest('JSHint group widget', 'js/widgets/widget-grouping.js');
+		tester.jsHintTest('JSHint scroller widget', 'js/widgets/widget-scroller.js');
+
+		/************************************************
+			Initialization
+		************************************************/
+		test( "tablesorter loaded & initialized", function() {
+			expect(3);
+			equal( typeof ts, 'object', "tablesorter loaded");
+			equal( table1.hasInitialized, true, "tablesorter initialized flag");
+			equal( init, true, "tablesorter initialized event");
+		});
+
+		c1 = table1.config;
+		c2 = table2.config;
+		c3 = table3.config;
+
+		/************************************************
+			check isDigit function
+		************************************************/
+		var d = ts.isDigit;
+		test( "isDigit", function() {
+			expect(17);
+			ok( d('-1'),   "allow negative (-1)");
+			ok( d('+1'),   "allow plus (+1)");
+			ok( d('(1)'),  "allow parenthesis (1)");
+			ok( d('123'),  "string has numbers ('123')");
+			ok( d(123),    "has numbers (123)");
+			ok( d('1.2'),  "remove decimal (1.2)");
+			ok( d('1,234'),"remove commas (1,234)");
+			ok( d("11'"),  "remove apostrophe's (11')"); // 11 feet
+			ok( d('3\'4"'),"remove quotes (3'4\")"); // 3 foot 4 inches
+			ok( d(' 12 '), "remove spaces ( 12 )");
+			ok( !d('x'),   "non-digit alphabet");
+			ok( !d('1x'),  "digit + alphabet");
+			ok( !d('x1'),  "alphabet + digit");
+			ok( !d('@'),   "non-digit symbols");
+			ok( !d('1-'),  "negative after (1-) not allowed?");
+			ok( !d('1+'),  "plus after (1+) not allowed?");
+			ok( !d('$2'),  "no money; the currency parser will catch these");
+		});
+
+		/************************************************
+			check formatFloat function
+		************************************************/
+		var ff = function(str) {
+			return ts.formatFloat(str, table1);
+		};
+		test( "formatFloat", function() {
+			expect(18);
+			strictEqual( ff(''), '', 'returns empty string' );
+			strictEqual( ff(5), 5, 'returns numerical values');
+
+			c1.usNumberFormat = false;
+			strictEqual( ts.formatFloat('1,234,567.89'), 1234567.89, 'use format float without including table - defaults to US number format');
+
+			strictEqual( ff('1 234,56'), 1234.56, 'parse non-U.S. (French) number format');
+			strictEqual( ff('1.234,56'), 1234.56, 'parse non-U.S. (German) number format');
+			strictEqual( ff('-32,32'), -32.32, 'negative non-U.S. signed numbers');
+			strictEqual( ff('-1.234,56'), -1234.56, 'negative non-U.S. signed numbers');
+			strictEqual( ff('(32,32)'), -32.32, 'parenthesis wrapped non-U.S. negative number');
+			strictEqual( ff('  (32,32) '), -32.32, 'space + parenthesis wrapped non-U.S. negative number');
+
+			c1.usNumberFormat = true;
+			strictEqual( ff('1,234.56'), 1234.56, 'parse U.S. number format');
+			strictEqual( ff('-32.32'), -32.32, 'negative U.S. signed numbers');
+			strictEqual( ff('(32.32)'), -32.32, 'parenthesis wrapped U.S. negative number');
+			strictEqual( ff('  (32.32)'), -32.32, 'space + parenthesis wrapped U.S. negative number');
+
+			strictEqual( ff('fred'), 'fred', 'return string if not a number');
+			strictEqual( ff('  fred '), 'fred', 'return trimmed string if not a number');
+			strictEqual( ff('fred 12'), 'fred 12', 'return string if number not at beginning');
+			strictEqual( ff('12fred'), 12, 'parse number + string into number only');
+			strictEqual( ff('(fred)'), '(fred)', 'leave parenthesis intact on strings');
+
+		});
+
+		/************************************************
+			get data function - jQuery data > meta > headers option > header class name
+		************************************************/
+		var gd = function(n){
+			return ts.getData( c2.$headers[n], c2.headers[n], 'sorter' );
+		};
+
+		test( "getData", function() {
+			expect(4);
+			var txt = [ 'jQuery data', 'meta data', 'headers option', 'header class name' ];
+			for (i = 0; i < 4; i++) {
+				equal( gd(i), 'false', txt[i]); // all columns have sorter false set
+			}
+		});
+
+		/************************************************
+			character equivalent replacement
+		************************************************/
+		test( "replace accents", function() {
+			expect(6);
+			strictEqual( ts.replaceAccents('\u00e1\u00e0\u00e2\u00e3\u00e4\u0105\u00e5\u00c1\u00c0\u00c2\u00c3\u00c4\u0104\u00c5'), 'aaaaaaaAAAAAAA', "replaced a's");
+			strictEqual( ts.replaceAccents('\u00e9\u00e8\u00ea\u00eb\u011b\u0119\u00c9\u00c8\u00ca\u00cb\u011a\u0118'), 'eeeeeeEEEEEE', "replaced e's");
+			strictEqual( ts.replaceAccents('\u00ed\u00ec\u0130\u00ee\u00ef\u0131\u00cd\u00cc\u0130\u00ce\u00cf'), 'iiiiiiIIiII', "replaced i's");
+			strictEqual( ts.replaceAccents('\u00f3\u00f2\u00f4\u00f5\u00f6\u00d3\u00d2\u00d4\u00d5\u00d6'), 'oooooOOOOO', "replaced o's");
+			strictEqual( ts.replaceAccents('\u00fa\u00f9\u00fb\u00fc\u016f\u00da\u00d9\u00db\u00dc\u016e'), 'uuuuuUUUUU', "replaced u's");
+			strictEqual( ts.replaceAccents('\u00e7\u0107\u010d\u00c7\u0106\u010c\u00df\u1e9e'), 'cccCCCssSS', "replaced c & s sharp");
+		});
+
+		/************************************************
+			check all default parsers
+		************************************************/
+		var p = ts.parsers,
+		// test by parser
+		parserTests = 85,
+		// skipping metadata parser
+		sample1 = {
+			'text'      : { 'test': 'test', 'TesT': 'test', '\u00e1 test': 'á test' },
+			'currency'  : { '£1': 1, '($2.23)': -2.23, '5€': 5, '(11¤)': -11, '500¥': 500, '25¢': 25, '$1,000.50': 1000.5 },
+			'ipAddress' : { '255.255.255.255': 255255255255, '32.32.32.32': 32032032032, '1.1.1.1': 1001001001 },
+			'url'       : { 'http://google.com': 'google.com', 'ftp://fred.com': 'fred.com', 'https://github.com': 'github.com' },
+			'isoDate'   : { '2012/12/12': 1355292000000, '2012-12/12': 1355292000000, '2013-1-1': 1357020000000, '2013/1/1 12:34:56 AM': 1357022096000 },
+			'percent'   : { '100%': 100, '22%': 22, '%2': 2, '2 %': 2, '(4%)': -4, '1,234.56    %': 1234.56 },
+			'usLongDate': { 'Feb 23, 1999': 919749600000, 'Feb 23, 1999 12:34': 919794840000, 'Feb 23, 1999 12:34 AM': 919751640000, 'Feb 23, 1999 12:34:56 PM': 919794896000, '01 Jan 2013': 1357020000000 },
+			'shortDate' : { '1/2/2001': 978415200000, '1 2 2001': 978415200000, '1.2.2001': 978415200000, '1-2-2001': 978415200000, '1/2/2001 12:34 PM' : 978460440000, '1.2.2001 13:34' : 978464040000 },
+			'time'      : { '12:34 AM': 946708440000, '1:00 pm': 946753200000 },
+			'digit'     : { '12': 12, '$23': 23, '&44^': 44, '#(33)': -33, '1,000': 1000, '12.34': 12.34 }
+		},
+		// switch ignoreCase, sortLocalCompare & shortDate "ddmmyyyy"
+		sample2 = {
+			'text'      : { 'TesT': 'TesT', '\u00e1 test': 'a test' },
+			'currency'  : { '€ 123 456,78': 123456.78, '€ 123.456,78': 123456.78 },
+			'shortDate' : { '2/1/2001': 978415200000, '2-1-2001': 978415200000, '2 1,2001': 978415200000 }
+		},
+		// shortdate to "yyyymmdd"
+		sample3 = {
+			'shortDate' : { '2001/1/2': 978415200000, '2001-1/2': 978415200000, '2001,1.2': 978415200000 }
+		},
+		report = function(s) {
+			for (i = 0; i < p.length; i++) {
+				t = p[i].id;
+				if (s.hasOwnProperty(t)) {
+					$.each(s[t], function(k,v){
+						// check "is" and "format" functions
+						if (p[i].is(k)) {
+							equal( p[i].format(k, table1, th0, 0), v, t + ' parser: "' + k + '" parsed to ' + v );
+						} else {
+							equal( p[i].format(k, table1, th0, 0), v, t + ' parser **NOT DETECTED**: "' + k + '", but returns ' + v );
+						}
+					});
+					// test for undefined & null - probably overkill
+					strictEqual( p[i].format(undef, table1, th0, 0), undef, t + ' parser: will return undefined values properly' );
+					strictEqual( p[i].format(null, table1, th0, 0), null, t + ' parser: will return null values properly' );
+				}
+			}
+		};
+
+		test( "testing parsers", function() {
+			expect(parserTests);
+			report(sample1);
+
+			c1.sortLocaleCompare = true;
+			c1.ignoreCase = false;
+			c1.usNumberFormat = false;
+			th0.dateFormat = c1.dateFormat = "ddmmyyyy";
+			report(sample2);
+
+			c1.usNumberFormat = true;
+			th0.dateFormat = c1.dateFormat = "yyyymmdd";
+			report(sample3);
+
+			// undocumented sortValue
+			equal( ts.getParserById('metadata').format(null, table1, th0, 0), 'zzz', 'metadata parser found sortValue');
+			c1.parserMetadataName = 'poe';
+			equal( ts.getParserById('metadata').format(null, table1, th0, 0), 'nevermore', 'metadata parser found poe');
+
+		});
+
+		/************************************************
+			test parser cache
+		************************************************/
+		test( "parser cache; sorton methods; empty & string", function() {
+			expect(17);
+			$table1.trigger('sortReset');
+			// lower case because table was parsed before c1.ignoreCase was changed
+			tester.cacheCompare( table1, 'all', [ 'test2', 'x2', 'test1', 'x3', 'test3', 'x1', '', '', 'testb', 'x5', 'testc', 'x4', 'testa', 'x6' ], 'unsorted' );
+
+			$table1.trigger('sorton', [[[ 0,0 ]]]);
+			tester.cacheCompare( table1, 'all', [ 'test1', 'x3', 'test2', 'x2', 'test3', 'x1', '', '', 'testa', 'x6', 'testb', 'x5', 'testc', 'x4' ], 'ascending sort' );
+
+			$table1.trigger('sorton', [[[ 0,1 ]]]);
+			tester.cacheCompare( table1, 'all', [ 'test3', 'x1', 'test2', 'x2', 'test1', 'x3', '', '', 'testc', 'x4', 'testb', 'x5', 'testa', 'x6' ], 'descending sort' );
+
+			// empty cell position
+			$table3.trigger('sorton', [[[ 0,0 ]]]);
+			tester.cacheCompare( table3, 0, [ '', 'a1', 'a02', 'a10', 'a33', 'a43', 'a55', 'a87', 'a102', 'a255' ], 'asc sort; empty to top' );
+
+			$table3.trigger('sorton', [[[ 0,1 ]]]);
+			tester.cacheCompare( table3, 0, [ '', 'a255', 'a102', 'a87', 'a55', 'a43', 'a33', 'a10', 'a02', 'a1' ], 'desc sort; empty to top' );
+
+			// string position within number column
+			$table3.trigger('sorton', [[[ 1,0 ]]]);
+			tester.cacheCompare( table3, 1, [ -35, -5, -1, 1, 2, 4, 33, 44, 'nr', '' ], 'asc sort; empty to bottom; string to max' );
+
+			$table3.trigger('sorton', [[[ 1,1 ]]]);
+			tester.cacheCompare( table3, 1, [ 'nr', 44, 33, 4, 2, 1, -1, -5, -35, '' ], 'desc sort; empty to bottom; string to max' );
+
+			$table3.trigger('sorton', [[[ 2,0 ]]]);
+			tester.cacheCompare( table3, 2, [ 'nr', 'nr', 1, 2, 3, 4, 5, 6, 7, '' ], 'asc sort; empty to bottom; string to min' );
+
+			$table3.trigger('sorton', [[[ 2,1 ]]]);
+			tester.cacheCompare( table3, 2, [ 7, 6, 5, 4, 3, 2, 1, 'nr', 'nr', '' ], 'desc sort; empty to bottom; string to min' );
+
+			$table3.trigger('sorton', [[[ 3,0 ]]]);
+			tester.cacheCompare( table3, 3, [ 'n/a #2', 'n/a #1', -8.4, -2.2, -0.1, '', 5.2, 11.4, 23.6, 97.4 ], 'asc sort; empty to zero; string to top' );
+
+			$table3.trigger('sorton', [[[ 3,1 ]]]);
+			tester.cacheCompare( table3, 3, [ 'n/a #2', 'n/a #1', 97.4, 23.6, 11.4, 5.2, '', -0.1, -2.2, -8.4 ], 'desc sort; empty to zero; string to top' );
+
+			$table3.find('th:eq(3)').data('string', 'bottom');
+			$table3.trigger('update');
+			tester.cacheCompare( table3, 3, [ 97.4, 23.6, 11.4, 5.2, '', -0.1, -2.2, -8.4, 'n/a #1', 'n/a #2' ], 'desc sort; empty to zero; string to bottom' );
+
+			$table3.trigger('sorton', [[[ 3,0 ]]]);
+			tester.cacheCompare( table3, 3, [ -8.4, -2.2, -0.1, '', 5.2, 11.4, 23.6, 97.4, 'n/a #1', 'n/a #2' ], 'asc sort; empty to zero; string to bottom' );
+
+			$table3.find('th:eq(3)').data('string', 'none');
+			c3.headers[3].empty = "bottom";
+			c3.sortList = [[ 3, 1 ]]; // added to test sortList
+			$table3.trigger('update');
+			tester.cacheCompare( table3, 3, [ 97.4, 23.6, 11.4, 5.2, 'n/a #1', 'n/a #2', -0.1, -2.2, -8.4, '' ], 'desc sort; empty to zero; string to none/zero' );
+
+			$table3.trigger('sorton', [[[ 3,0 ]]]);
+			tester.cacheCompare( table3, 3, [ -8.4, -2.2, -0.1, 'n/a #1', 'n/a #2', 5.2, 11.4, 23.6, 97.4, '' ], 'asc sort; empty to zero; string to none/zero' );
+
+			t = [ 'x', 'X', 'y', 'Y', 'z', 'Z', 'a', 'A', 'b', 'B', 'c', 'C' ];
+			deepEqual( t.sort($.tablesorter.sortText), [ 'A', 'B', 'C', 'X', 'Y', 'Z', 'a', 'b', 'c', 'x', 'y', 'z' ], 'test sortText function directly' );
+
+			t = [ 'a02', 'a10', 'a43', 'a255', 'a102', 'a33', '', 'a1', 'a55', 'a87' ];
+			deepEqual( t.sort($.tablesorter.sortNatural), [ '', 'a1', 'a02', 'a10', 'a33', 'a43', 'a55', 'a87', 'a102', 'a255' ], 'test sortNatural function directly' );
+
+		});
+
+		test( "sort Events", function(){
+			expect(1);
+			// table1 sorted twice in the above test; sortIndx = 6 (3 events x 2)
+			equal( sortIndx, 6, 'sortStart, sortBegin & sortComplet fired in order' );
+		});
+
+		/************************************************
+			test update methods
+		************************************************/
+		test( "parser cache; update methods & callbacks", function() {
+			expect(5);
+			c1.ignoreCase = true;
+
+			// updateAll
+			$table1
+				.find('th:eq(1)').removeAttr('class').html('num').end()
+				.find('td:nth-child(2)').html(function(i,h){
+					return h.substring(1);
+				});
+			$table1.trigger('updateAll', [false, function(){
+				updateCallback++;
+				var nw = $table1.find('th:eq(1)')[0],
+					hc = c1.headerContent[1] === 'num',
+					hd = c1.$headers[1] === nw,
+					hl = c1.headerList[1] === nw,
+					p1 = c1.parsers[1].id === 'digit';
+				equal(hc && hd && hl && p1, true, 'testing header cache: updateAll - thead');
+				tester.cacheCompare( table1, 'all', [ 'test3', 1, 'test2', 2, 'test1', 3, '', '', 'testc', 4, 'testb', 5, 'testa', 6 ], 'updateAll - tbody' );
+			}]);
+
+			// addRows
+			t = $('<tr class="temp"><td>testd</td><td>7</td></tr>');
+			$table1.find('tbody:last').append(t);
+			$table1.trigger('addRows', [t, true, function(){
+				updateCallback++;
+				tester.cacheCompare( table1, 'all', [ 'test3', 1, 'test2', 2, 'test1', 3, '', '', 'testd', 7, 'testc', 4, 'testb', 5, 'testa', 6 ], 'addRows method' );
+			}]);
+
+			// updateCell
+			t = $table1.find('td:contains("testd")');
+			t.html('texte');
+			$table1.trigger('updateCell', [t[0], true, function(){
+				updateCallback++;
+				tester.cacheCompare( table1, 'all', [ 'test3', 1, 'test2', 2, 'test1', 3, '', '', 'texte', 7, 'testc', 4, 'testb', 5, 'testa', 6 ], 'updateCell method' );
+			}]);
+
+			// update
+			$table1.find('tr.temp').remove();
+			$table1.trigger('update', [true, function(){
+				updateCallback++;
+				tester.cacheCompare( table1, 'all', [ 'test3', 1, 'test2', 2, 'test1', 3, '', '', 'testc', 4, 'testb', 5, 'testa', 6 ], 'update method' );
+			}]);
+
+		});
+
+		test( "UpdateComplete Event", function(){
+			expect(1);
+			// table1 updated 4x in the above test
+			equal( updateIndx, updateCallback, 'updatedComplete and update callback functions working properly' );
+		});
+
+
+		/************************************************
+			check header css
+		************************************************/
+		test( "testing header css & sortReset method", function(){
+			expect(7);
+			t = $(th0);
+			equal( $table1.hasClass(ts.css.table), true, 'table class applied');
+			equal( t.hasClass(ts.css.header), true, 'Header class present' );
+			equal( t.parent().hasClass(ts.css.headerRow), true, 'Header row class present' );
+			equal( $table1.find('tbody:eq(1)').hasClass(c1.cssInfoBlock), true, 'Tbody info block class present' );
+			$table1.trigger('sorton', [[[ 0,1 ]]] );
+			equal( t.hasClass(ts.css.sortDesc), true, 'Descending class present' );
+			$table1.trigger('sorton', [[[ 0,0 ]]] );
+			equal( t.hasClass(ts.css.sortAsc), true, 'Ascending class present' );
+			$table1.trigger('sortReset');
+			equal( t.hasClass(ts.css.sortAsc) || t.hasClass(ts.css.sortDesc), false, 'Testing sortReset' );
+		});
+
+		/************************************************
+			test apply widgets function using zebra widget
+		************************************************/
+		var zebra = function(){
+			t = true;
+			$table2.find('tbody tr').each(function(){
+				t = t ? $(this).hasClass('odd') || $(this).hasClass('even') : false;
+			});
+			return t;
+		};
+
+		test( "apply zebra widget", function(){
+			expect(2);
+			equal( zebra(), false, 'zebra not applied' );
+			c2.widgets = [ 'zebra' ];
+			$table2.trigger('applyWidgets');
+			equal( zebra(), true, 'zebra is applied' );
+		});
+
+		/************************************************
+			check destroy method
+		************************************************/
+		test("testing destroy method", function(){
+			$table2.trigger('sorton', [[[ 0,1 ]]] );
+			$table2.trigger('destroy');
+			expect(7);
+			t = $table2.find('th:first');
+			e = jQuery._data(table2, 'events'); // get a list of all bound events
+			equal( $.isEmptyObject(e), true, 'no events applied' );
+			equal( $table2.data().hasOwnProperty('tablesorter'), false, 'Data removed' );
+			equal( $table2.attr('class'), 'tester', 'All table classes removed' );
+			equal( $table2.find('tr:first').attr('class'), '', 'Header row class removed' );
+			equal( t.attr('class').match('tablesorter'), null, 'Header classes removed' );
+			equal( t.children().length, 0, 'Inner wrapper removed' );
+			equal( typeof (t.data().column) , 'undefined', 'data-column removed');
+
+			$table2.tablesorter();
+		});
+
+		/************************************************
+			ipv6 parser testing
+		************************************************/
+		ipv6tests();
+
+	});
+	</script>
+
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+
+		<h3>This is a work-in-progress. It does not yet comprehensively test all sorting methods. The following are on the to do list:</h3>
+		<ul class="notes">
+			<li>Core tests:
+				<ul>
+					<li>Test each option, event & callback</li>
+					<li><del>Sorting empty cells</del>.</li>
+					<li><del>Sorting strings in numeric columns</del>.</li>
+					<li>Internal rendering, caching &amp; indexing utilities.</li>
+					<li><del>Update methods</del>.</li>
+				</ul>
+			</li>
+			<li>All widgets.</li>
+			<li>Pager plugin.</li>
+			<li>Include <a href="https://github.com/overset/javascript-natural-sort">natural sort</a> unit tests?</li>
+		</ul>
+
+		<table class="tester">
+			<thead>
+				<tr><th class="{sortValue:'zzz', poe:'nevermore'}">test-head</th><th>num</th></tr>
+			</thead>
+			<tfoot>
+				<tr><th>test-foot</th><th>txt</th></tr>
+			</tfoot>
+			<tbody>
+				<tr><td>test2</td><td>x2</td></tr>
+				<tr><td>test1</td><td>x3</td></tr>
+				<tr><td>test3</td><td>x1</td></tr>
+			</tbody>
+			<tbody class="tablesorter-infoOnly">
+				<tr><td colspan="3">Info</td></tr>
+			</tbody>
+			<tbody>
+				<tr><td>testB</td><td>x5</td></tr>
+				<tr><td>testC</td><td>x4</td></tr>
+				<tr><td>testA</td><td>x6</td></tr>
+			</tbody>
+		</table>
+
+		<table class="tester">
+			<thead>
+				<tr> <!-- all headers set to sorter false; jQuery data > meta > headers option > header class name -->
+					<th data-sorter="false" class="{sorter:'digit'} sorter-text">1</th> <!-- jQuery data -->
+					<th class="{sorter:false} sorter-text">2</th> <!-- metadata -->
+					<th class="sorter-text">3</th> <!-- headers option -->
+					<th class="sorter-false">4</th> <!-- class name -->
+				</tr>
+			</thead>
+			<tbody>
+				<tr><td>a</td><td>b</td><td>c</td><td>d</td></tr>
+				<tr><td>z</td><td>y</td><td>x</td><td>w</td></tr>
+			</tbody>
+		</table>
+
+		<table class="tester">
+			<thead>
+				<tr>
+					<th>1</th>
+					<th>2</th>
+					<th>3</th>
+					<th>4</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr><td>A43</td><td>-35</td><td>01</td><td>-.1</td></tr>
+				<tr><td>A255</td><td>33</td><td>02</td><td>N/A #1</td></tr>
+				<tr><td>A33</td><td>2</td><td>03</td><td>N/A #2</td></tr>
+				<tr><td>A1</td><td>-5</td><td>04</td><td>-8.4</td></tr>
+				<tr><td>A102</td><td>NR</td><td>05</td><td>-2.2</td></tr>
+				<tr><td>A10</td><td>-1</td><td>06</td><td>97.4</td></tr>
+				<tr><td>A02</td><td>1</td><td>07</td><td>23.6</td></tr>
+				<tr><td>A55</td><td>44</td><td></td><td>11.4</td></tr>
+				<tr><td>A87</td><td>04</td><td>NR</td><td>5.2</td></tr>
+				<tr><td></td><td></td><td>NR</td><td></td></tr>
+			</tbody>
+		</table>
+
+	</body>
+</html>

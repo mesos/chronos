@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Sorting with Multiple Tbodies</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<!-- Tablesorter: widgets (optional) -->
+	<script src="../js/jquery.tablesorter.widgets.js"></script>
+
+	<script id="js">$(function() {
+
+	$("table").tablesorter({
+		theme : 'blue',
+		cssInfoBlock : "tablesorter-no-sort",
+		widgets: [ 'zebra', 'stickyHeaders' ]
+	});
+
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Sorting with Multiple Tbodies</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+<h1>Demo</h1>
+<div id="demo"><table class="sortable">
+	<thead>
+		<tr><th>Name</th><th>A-head</th><th>B-head</th><th>C-head</th></tr>
+	</thead>
+	<tfoot>
+		<tr><th>Name</th><th>A-foot</th><th>B-foot</th><th>C-foot</th></tr>
+	</tfoot>
+
+	<!-- add "tablesorter-no-sort" class (changed by cssInfoBlock option) to skip sorting of this tbody -->
+	<tbody class="tablesorter-no-sort">
+		<tr><th colspan="4">This row is within the first tbody set as an info block - it is not sorted!</th></tr>
+	</tbody>
+
+	<tbody>
+		<tr><td>DDD</td><td>r1c1</td><td>r1c2</td><td>r1c3</td></tr>
+		<tr><td>AAA</td><td>r2c1</td><td>r2c2</td><td>r2c3</td></tr>
+		<tr><td>CCC</td><td>r3c1</td><td>r3c2</td><td>r3c3</td></tr>
+		<tr><td>BBB</td><td>r4c1</td><td>r4c2</td><td>r4c3</td></tr>
+	</tbody>
+
+	<tbody class="tablesorter-no-sort">
+		<tr><th colspan="4">summary info for the first group</th></tr>
+		<tr><th colspan="4">Another row referring to the first group</th></tr>
+	</tbody>
+
+	<tbody>
+		<tr><td>Zorro</td><td>r5c1</td><td>r5c2</td><td>r5c3</td></tr>
+		<tr><td>Caleb</td><td>r6c1</td><td>r6c2</td><td>r6c3</td></tr>
+		<tr><td>Momo</td><td>r7c1</td><td>r7c2</td><td>r7c3</td></tr>
+		<tr><td>Wolfie</td><td>r8c1</td><td>r8c2</td><td>r8c3</td></tr>
+	</tbody>
+
+	<tbody class="tablesorter-no-sort">
+		<tr><th colspan="4">summary info for the second group</th></tr>
+	</tbody>
+
+	<tbody>
+		<tr><td>Ulysses</td><td>r9c1</td><td>r9c2</td><td>r9c3</td></tr>
+		<tr><td>Penelope</td><td>r10c1</td><td>r10c2</td><td>r10c3</td></tr>
+		<tr><td>Edvald</td><td>r11c1</td><td>r11c2</td><td>r11c3</td></tr>
+		<tr><td>Jan</td><td>r12c1</td><td>r12c2</td><td>r12c3</td></tr>
+	</tbody>
+
+	<tbody class="tablesorter-no-sort">
+		<tr><th colspan="4">summary info for the last group</th></tr>
+	</tbody>
+
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-header-column-span.html">Sorting Across Multiple Columns &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

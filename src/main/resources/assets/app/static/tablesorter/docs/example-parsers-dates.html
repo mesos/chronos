@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter - Assorted date parsers</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+	<style>
+	th { width: 20%; }
+	</style>
+
+	<link href="../css/theme.blue.css" rel="stylesheet">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<!-- load month, weekday and two digit year parsers -->
+	<script src="../js/parsers/parser-date-month.js"></script>
+	<script src="../js/parsers/parser-date-weekday.js"></script>
+	<script src="../js/parsers/parser-date-two-digit-year.js"></script>
+
+	<!-- http://sugarjs.com/dates#comparing_dates -->
+	<script src="http://sugarjs.com/release/current/sugar.min.js"></script>
+	<script src="../js/parsers/parser-date.js"></script>
+
+	<script id="js">$(function() {
+
+	// call the tablesorter plugin
+	$("table").tablesorter({
+		theme : 'blue',
+		widgets : ["zebra"]
+	});
+
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Assorted date parsers</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>Parse Dates with these parsers
+				<ul>
+					<li>The "Date" column is using the <a href="http://sugarjs.com/dates#comparing_dates">sugar</a> library to parse dates. Make sure to include the sugar library and the sugar-date-parser.</li>
+					<li>The "Weekday" column uses the included "weekday" parser. You can modify parser to match whatever language you are using.</li>
+					<li>The "Month" column uses the included "month" parser. You can also modify the month names within the parser to match whatever language you are using.</li>
+					<li>The "Year" column is just using the included two digit year parser:
+						<ul>
+							<li>Formats for "mmddyy", "ddmmyy" and "yymmdd" are available</li>
+							<li>Within the parser code is a <code>range</code> variable which is set to <code>50</code> years range, which sets the date be within +/- range of the listed two digit year.</li>
+							<li>So if the current year is <code>2020</code>, and the listed two digit year is <code>80</code> (<code>2080 - 2020 > 50</code>), it becomes <code>1980</code>.</li>
+							<li>If the listed two digit year is <code>50</code> (<code>2050 - 2020 < 50</code>), then it becomes <code>2050</code>. I hope that makes it clearer.</li>
+							<li>Try out the two digit year calculator below the table.</li>
+						</ul>
+					</li>
+					<li>The "Time" column is using the built-in time parser which has been always been included with tablesorter .</li>
+				</ul>
+			</li>
+		</ul>
+	</p>
+
+	<h1>Demo</h1>
+	<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th class="sorter-sugar">Date</th>
+			<th class="sorter-weekday">Weekday</th>
+			<th class="sorter-month">Month</th>
+			<th class="sorter-mmddyy">MM/DD/YY</th> <!-- "sorter-ddmmyy" also available -->
+			<th class="sorter-time">Time</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr><td>next friday</td><td>Friday</td><td>Aug</td><td>1/1/12</td><td>12:00 PM</td></tr>
+		<tr><td>today</td><td>Thurs</td><td>September</td><td>1/1/12</td><td>00:00</td></tr>
+		<tr><td>last Tuesday</td><td>Fri</td><td>Mar</td><td>1/1/10</td><td>18:00</td></tr>
+		<tr><td>the day after tomorrow</td><td>Wed</td><td>July</td><td>1/1/13</td><td>13:00</td></tr>
+		<tr><td>2010-05-25T12:30:40.299+01:00</td><td>Monday</td><td>Jan</td><td>1/1/11</td><td>1:30 PM</td></tr>
+		<tr><td>May 25th of next year</td><td>Tues</td><td>Nov</td><td>1/1/11</td><td>14:00</td></tr>
+		<tr><td>25 May 2010</td><td>Tuesday</td><td>November</td><td>1/1/11</td><td>1:58 PM</td></tr>
+		<tr><td>the last day of March</td><td>Mon</td><td>December</td><td>1/1/12</td><td>2:10 PM</td></tr>
+		<tr><td>last month</td><td>Wednesday</td><td>April</td><td>1/1/14</td><td>13:50</td></tr>
+		<tr><td>one day before yesterday</td><td>Thursday</td><td>Feb</td><td>1/1/08</td><td>4:00 AM</td></tr>
+	</tbody>
+</table></div>
+
+	<h3>Two digit year calculator:</h3>
+	<div>two digit year <input class="tdy" type="number" min="0" max="99" value="20"> becomes <span class="result">2020</span></div>
+	<div class="params">
+		( <label>range</label> <input class="range" type="number" value="50" min="0" max="99">
+		<label>"current year"</label> <input class="current" type="number" value="2011" min="1900" max="9999"> )
+	</div>
+
+	<h1>Page Header</h1>
+	<div>
+		<pre class="prettyprint lang-html">&lt;!-- blue theme stylesheet with additional css styles added in v2.0.17 --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;../css/theme.blue.css&quot;&gt;
+&lt;!-- tablesorter plugin --&gt;
+&lt;script src=&quot;../js/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- load month, weekday and two digit year parsers --&gt;
+&lt;script src=&quot;../js/parsers/parser-date-month.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;../js/parsers/parser-date-weekday.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;../js/parsers/parser-date-two-digit-year.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- http://sugarjs.com/dates#comparing_dates --&gt;
+&lt;script src=&quot;../js/sugar.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;../js/parsers/parser-date-sugar.js&quot;&gt;&lt;/script&gt;</pre>
+	</div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-widget-filter.html">Applying the filter widget &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+<style>
+.result, .tdy { color: red; }
+.params { font-size: 0.8em; }
+</style>
+<script>
+$(function(){
+	var tdy = $('.tdy'),  // two digit year
+		a = $('.result'),   // answer
+		r = $('.range'),    // range
+		c = $('.current'), // current year
+		y = new Date().getFullYear();
+
+	tdy.val( (y + 20).toString().slice(-2) ); // use this year + 20
+	c.val( y );
+
+	$('input').on('change', function(){
+		var y = parseInt(tdy.val(), 10),
+			result = 1900 + y,
+			range = parseInt(r.val(), 10);
+		if (y < 10) { tdy.val('0' + y); }
+		y = parseInt(c.val(), 10);
+		while (y - result > range) {
+			result += 100;
+		}
+		a.html(result);
+	}).change();
+
+});
+</script>
+
+
+</body>
+</html>
+
