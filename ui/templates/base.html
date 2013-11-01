@@ -3,8 +3,8 @@
   <head>
     {% block title %} <title>Chronos</title> {% endblock %}
     {% block styles %}
-      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap/dist/css/bootstrap.min.css')}}">
-      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap/dist/css/bootstrap-theme.min.css')}}">
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css">
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap-theme.min.css">
       <link rel="stylesheet" href="{{url_for('static', filename='tablesorter/css/theme.bootstrap.css')}}">
       <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Raleway+Dots" type='text/css'>
       <link rel="stylesheet" href="//jquery.bassistance.de/tooltip/jquery.tooltip.css"> 
@@ -12,7 +12,7 @@
 
     {% block scripts %}
     <script src="//code.jquery.com/jquery.js"></script>
-    <script src="{{ url_for('static', filename='bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
     <script src="//jquery.bassistance.de/tooltip/jquery.tooltip.js"></script>
     {% endblock %}
   </head>
