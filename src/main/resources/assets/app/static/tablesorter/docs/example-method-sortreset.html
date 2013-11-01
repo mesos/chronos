@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - resetting the entire table sort</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script id="js">$(function() {
+	// call the tablesorter plugin
+	$("table").tablesorter({
+		theme : 'blue',
+		sortList: [ [0,0],[1,0],[2,0] ]
+	});
+
+	$('button').click(function(){
+		$('table').trigger('sortReset');
+		return false;
+	});
+
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Resetting the entire table sort</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>Click on the reset button to reset the sort. The button can be used at any time.</li>
+			<li>Reset the table by triggering a <code>sortReset</code> event on the table (see the javascript code below).</li>
+			<li>This method was added in version 2.4.7.</li>
+		</ul>
+	</p>
+
+<h1>Demo</h1>
+<button type="button">Reset</button>
+<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th>Account #</th>
+			<th>First Name</th>
+			<th>Last Name</th>
+			<th>Age</th>
+			<th>Total</th>
+			<th>Discount</th>
+			<th>Diff</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>A43</td>
+			<td>Peter</td>
+			<td>Parker</td>
+			<td>28</td>
+			<td>9.99</td>
+			<td>20.3%</td>
+			<td>+3</td>
+		</tr>
+		<tr>
+			<td>A255</td>
+			<td>John</td>
+			<td>Hood</td>
+			<td>33</td>
+			<td>19.99</td>
+			<td>25.1%</td>
+			<td>-7</td>
+		</tr>
+		<tr>
+			<td>A33</td>
+			<td>Clark</td>
+			<td>Kent</td>
+			<td>18</td>
+			<td>2.89</td>
+			<td>44.2%</td>
+			<td>-15</td>
+		</tr>
+		<tr>
+			<td>A1</td>
+			<td>Bruce</td>
+			<td>Almighty</td>
+			<td>45</td>
+			<td>153.19</td>
+			<td>44%</td>
+			<td>+19</td>
+		</tr>
+		<tr>
+			<td>A102</td>
+			<td>Bruce</td>
+			<td>Evans</td>
+			<td>56</td>
+			<td>$153.19</td>
+			<td>23%</td>
+			<td>+9</td>
+		</tr>
+		<tr>
+			<td>A256</td>
+			<td>John</td>
+			<td>Clark</td>
+			<td>44</td>
+			<td>($19.89)</td>
+			<td>25.1%</td>
+			<td>(5)</td>
+		</tr>
+		<tr>
+			<td>A23</td>
+			<td>Elvis</td>
+			<td>Presley</td>
+			<td>24</td>
+			<td>($9.99)</td>
+			<td>50%</td>
+			<td>(22)</td>
+		</tr>
+		<tr>
+			<td>A10</td>
+			<td>Frank</td>
+			<td>Carter</td>
+			<td>40</td>
+			<td>-12.99</td>
+			<td>20%</td>
+			<td>(6)</td>
+		</tr>
+	</tbody>
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-option-selectorsort.html">Using selectorSort &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Changing the date format</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script id="js">$(function() {
+	// call the tablesorter plugin
+	$("table").tablesorter({
+		theme : 'blue',
+
+		dateFormat : "mmddyyyy", // set the default date format
+
+		// or to change the format for specific columns, add the dateFormat to the headers option:
+		headers: {
+			0: { sorter: "shortDate" } //, dateFormat will parsed as the default above
+			// 1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // set day first format; set using class names
+			// 2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // set year first format; set using data attributes (jQuery data)
+		}
+
+	});
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Changing the date format</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>The dateFormat option was modified in version 2.0.23 (not part of the original plugin).</li>
+			<li>The dateFormat option will ONLY work with the <code>shortDate</code> parser.</li>
+			<li>The date can be separated by any of the following: slash, dash, period, comma, space(s) or tab (/-., ).</li>
+			<li>This date format parser will only work with a four digit year. You can <a href="example-parsers.html">write your own</a> if you need a two digit year parser.</a>
+			<li>In versions 2.3+, columns can be disabled using any of the following methods (they all do the same thing), in order of priority:
+				<ul>
+					<li>jQuery data <code>data-date-format="mmddyyyy"</code> (see the Javascript block below on how to set it directly; <code>data-dateFormat</code> is equivalent to <code>data-date-format</code>).</li>
+					<li>metadata <code>class="{ dateFormat: "mmddyyyy" }"</code>. This requires the metadata plugin.</li>
+					<li>headers option <code>headers : { 0 : { dateFormat: "mmddyyyy" } }</code>.</li>
+					<li>header class name <code>class="dateFormat-mmddyyyy"</code>.</li>
+					<li>overall <code>dateFormat</code> option setting.</li>
+				</ul>
+			</li>
+		</ul>
+	</p>
+
+<h1>Demo</h1>
+<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th>Date MMDDYYYY</th>
+			<th class="sorter-shortDate dateFormat-ddmmyyyy">Date DDMMYYYY</th>
+			<th data-sorter="shortDate" data-date-format="yyyymmdd">Date YYYYMMDD</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>8-7-2011</td>
+			<td>7-8-2011</td>
+			<td>2011-8-7</td>
+		</tr>
+		<tr>
+			<td>11/1/2011 12:34 AM</td>
+			<td>1/11/2011 12:34 AM</td>
+			<td>2011/11/1 12:34 AM</td>
+		</tr>
+		<tr>
+			<td>12/28/2011</td>
+			<td>28/12/2011</td>
+			<td>2011/12/28</td>
+		</tr>
+		<tr>
+			<td>6 30 2011</td>
+			<td>30 6 2011</td>
+			<td>2011 6 30</td>
+		</tr>
+		<tr>
+			<td>11/1/2011 12:35 AM</td>
+			<td>1/11/2011 12:35 AM</td>
+			<td>2011/11/1 12:35 AM</td>
+		</tr>
+		<tr>
+			<td>3.4.2011</td>
+			<td>4.3.2011</td>
+			<td>2011.3.4</td>
+		</tr>
+		<tr>
+			<td>07 01-2011 1:15 PM</td>
+			<td>01 7-2011 1:15 PM</td>
+			<td>2011-7 01 1:15 PM</td>
+		</tr>
+		<tr>
+			<td>04/5,2011</td>
+			<td>5/04,2011</td>
+			<td>2011,04/5</td>
+		</tr>
+		<tr>
+			<td>11/1/2011 12:34 PM</td>
+			<td>1/11/2011 12:34 PM</td>
+			<td>2011/11/1 12:34 PM</td>
+		</tr>
+		<tr>
+			<td>1/21 2011</td>
+			<td>21.1/2011</td>
+			<td>2011/1.21</td>
+		</tr>
+		<tr>
+			<td>5.24-2011</td>
+			<td>24.5-2011</td>
+			<td>2011-5.24</td>
+		</tr>
+		<tr>
+			<td>07/01-2011 12:15 PM</td>
+			<td>01-7/2011 12:15 PM</td>
+			<td>2011/7-01 12:15 PM</td>
+		</tr>
+		<tr>
+			<td>10,14,2011</td>
+			<td>14,10,2011</td>
+			<td>2011,10,14</td>
+		</tr>
+		<tr>
+			<td>09  07    2011</td> <!-- lot of spaces between the numbers -->
+			<td>07    09  2011</td>
+			<td>2011  09    07</td>
+		</tr>
+		<tr>
+			<td>2 27.2011</td>
+			<td>27 2.2011</td>
+			<td>2011 2 27</td>
+		</tr>
+		<tr>
+			<td>8	07	2010</td> <!-- separated by tabs -->
+			<td>07	8	2010</td>
+			<td>2010	8	07</td>
+		</tr>
+	</tbody>
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-parsers.html">Parser, writing your own &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

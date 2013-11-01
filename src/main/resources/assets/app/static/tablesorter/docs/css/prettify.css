@@ -1,0 +1,55 @@
+/* Hemisu Light */
+/* Original theme - http://noahfrederick.com/vim-color-scheme-hemisu/ */
+/* Pretty printing styles. Used with prettify.js. */
+/* SPAN elements with the classes below are added by prettyprint. */
+/* plain text */
+.pln { color: #111111; }
+
+@media screen {
+	.str { color: #739200; } /* string content */
+	.kwd { color: #739200; } /* a keyword */
+	.com { color: #888888; } /* a comment */
+	.typ { color: #ff0055; } /* a type name */
+	.lit { color: #538192; } /* a literal value */
+	.pun { color: #111111; } /* punctuation */
+	.opn { color: #111111; } /* lisp open bracket */
+	.clo { color: #111111; } /* lisp close bracket */
+	.tag { color: #111111; } /* a markup tag name */
+	.atn { color: #739200; } /* a markup attribute name */
+	.atv { color: #ff0055; } /* a markup attribute value */
+	.dec { color: #111111; } /* a declaration */
+	.var { color: #111111; } /* a variable name */
+	.fun { color: #538192; } /* a function name */
+}
+/* Use higher contrast and text-weight for printable form. */
+@media print, projection {
+	.str { color: #060; }
+	.kwd { color: #006; font-weight: bold; }
+	.com { color: #600; font-style: italic; }
+	.typ { color: #404; font-weight: bold; }
+	.lit { color: #044; }
+	.pun, .opn, .clo { color: #440; }
+	.tag { color: #006; font-weight: bold; }
+	.atn { color: #404; }
+	.atv { color: #060; }
+}
+/* Style */
+pre.prettyprint {
+	font-family: Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	padding: 10px;
+}
+
+/* Specify class=linenums on a pre to get line numbering */
+ol.linenums { margin-top: 0; margin-bottom: 0; }
+
+/* IE indents via margin-left */
+li.L0, li.L1, li.L2, li.L3, li.L4, li.L5, li.L6, li.L7, li.L8, li.L9 {
+	/* */
+}
+
+/* Alternate shading for lines */
+li.L1, li.L3, li.L5, li.L7, li.L9 {
+	/* */
+}

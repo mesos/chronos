@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - IP address parsers</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script src="../js/parsers/parser-ipv6.js"></script>
+
+	<script id="js">$(function() {
+
+	$('table').tablesorter({
+		theme: 'blue',
+		widgets: ['zebra'],
+		sortList: [[2, 0]],
+		headers: {
+			2: {
+				sorter: 'ipv6Address'
+			}
+		}
+	});
+
+});</script>
+
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>IPv4 &amp; IPv6 address parsers</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>This parser can be applied to the original plugin.</li>
+			<li>The default "ipAdress" parser (IPv4) is included with the original tablesorter.</li>
+			<li>A parser for IPv6 was added in <span class="version">v2.12</span> and named "ipv6Address":
+				<ul>
+					<li>Unlike some other custom parsers, this one will auto-detect &amp; check for a valid IPv6 address since the same address can be represented in many different ways. Some examples are shown in the demo table below.</li>
+					<li>IPv6 addresses are stored in the cache in their canonical decimal form, without the colons, for faster &amp; easier numerical sorting.</li>
+					<li><a href="../test.html?testNumber=19">Extensive unit tests</a> are included with this parser.</li>
+				</ul>
+			</li>
+			<li>If the parser doesn't auto-detect which column has IPv6 addresses, use the headers sorter option to set it:
+				<pre class="prettyprint lang-javascript">$(function(){
+  $('table').tablesorter({
+    headers: {
+      2: {
+        sorter: 'ipv6Address'
+      }
+    }
+  });
+});</pre>
+			</li>
+		</ul>
+	</p>
+
+	<h1>Demo</h1>
+	<button type="button" class="toggleparsedvalue">Toggle parsed values</button>
+	<br>
+	<div id="demo">
+<table>
+	<thead>
+		<tr>
+			<td>Name</td>
+			<td>IPv4</td>
+			<td>IPv6</td>
+		</tr>
+	</thead>
+	<tbody>
+		<tr><td>Fred</td><td>1.2.3.4</td><td>f0f0::1</td></tr>
+		<tr><td>Ginger</td><td>1.1.1.1</td><td>f0::1</td></tr>
+		<tr><td>Mike</td><td>2.222.33.44</td><td>1:2:3:4:5::7:8</td></tr>
+		<tr><td>George</td><td>255.255.255.255</td><td>::2:3:4</td></tr>
+		<tr><td>Harry</td><td>251.2.33.4</td><td>f0f0:f::1</td></tr>
+		<tr><td>Frank</td><td>251.002.31.4</td><td>::</td></tr>
+		<tr><td>Kristy</td><td>2.221.003.4</td><td>0:0:0:0:0:0:0:0</td></tr>
+		<tr><td>Lily</td><td>251.02.32.4</td><td>f0f0::f:1</td></tr>
+		<tr><td>Maria</td><td>1.2.3.44</td><td>1:2:3:4:5:6:1.2.3.4</td></tr>
+	</tbody>
+</table>
+
+</div>
+
+	<h1>Page Header</h1>
+	<div>
+		<pre class="prettyprint lang-html">&lt;!-- tablesorter --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;../css/theme.blue.css&quot;&gt;
+&lt;script src=&quot;../js/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- load ipv6 parser --&gt;
+&lt;script src=&quot;../js/parsers/parser-ipv6.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+$(function() {
+
+  $('table').tablesorter({
+    theme: 'blue',
+    widgets: ['zebra'],
+    sortList: [[1, 0]],
+    headers: {
+      1: {
+        sorter: 'ipv6Address'
+      }
+    }
+  });
+
+});
+&lt;/script&gt;</pre>
+	</div>
+
+</div>
+
+<script>
+$(function(){
+	// add parsed values to columns [0,1]
+	addParsedValues($('table'), [1,2]);
+});
+</script>
+
+
+</body></html>
