@@ -1,4 +1,4 @@
-/* Pager widget (beta) for TableSorter 10/18/2013 */
+/* Pager widget (beta) for TableSorter 10/30/2013 */
 /*jshint browser:true, jquery:true, unused:false */
 ;(function($){
 "use strict";
@@ -28,6 +28,11 @@ ts.addWidget({
 		// if true, the table will remain the same height no matter how many records are displayed. The space is made up by an empty
 		// table row set to a height to compensate; default is false
 		pager_fixedHeight: false,
+
+		// count child rows towards the set page size? (set true if it is a visible table row within the pager)
+		// if true, child row(s) may not appear to be attached to its parent row, may be split across pages or
+		// may distort the table if rowspan or cellspans are included.
+		pager_countChildRows: false,
 
 		// remove rows from the table to speed up the sort of large tables.
 		// setting this to false, only hides the non-visible rows; needed if you plan to add/remove rows with the pager enabled.
@@ -377,17 +382,18 @@ tsp = ts.pager = {
 		if (!c.widgetOptions.pager_ajaxUrl) {
 			var i,
 				p = c.pager,
+				wo = c.widgetOptions,
 				rows = c.$tbodies.eq(0).children(),
 				l = rows.length,
 				s = ( p.page * p.size ),
 				e =  s + p.size,
-				f = c.widgetOptions && c.widgetOptions.filter_filteredRow || 'filtered',
+				f = wo && wo.filter_filteredRow || 'filtered',
 				j = 0; // size counter
 			for ( i = 0; i < l; i++ ){
 				if ( !rows[i].className.match(f) ) {
 					rows[i].style.display = ( j >= s && j < e ) ? '' : 'none';
 					// don't count child rows
-					j += rows[i].className.match(c.cssChildRow + '|' + c.selectorRemove.slice(1)) ? 0 : 1;
+					j += rows[i].className.match(c.cssChildRow + '|' + c.selectorRemove.slice(1)) && !wo.pager_countChildRows ? 0 : 1;
 				}
 			}
 		}

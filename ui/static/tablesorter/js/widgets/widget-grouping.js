@@ -24,6 +24,11 @@ ts.grouping = {
 			return w && w.length >= num ? w[num - 1] : txt || '';
 		}
 	},
+	separator : function(c, $col, txt, num){
+		var wo = c.widgetOptions,
+			w = (txt + '').split(wo.group_separator);
+		return $.trim(w && num > 0 && w.length >= num ? w[(num || 1) - 1] : '');
+	},
 	word : function(c, $col, txt, num){
 		var w = (txt + ' ').match(/\w+/g);
 		return w && w.length >= num ? w[num - 1] : txt || '';
@@ -53,13 +58,15 @@ ts.addWidget({
 		group_collapsible : true, // make the group header clickable and collapse the rows below it.
 		group_collapsed   : false, // start with all groups collapsed
 		group_count       : ' ({num})', // if not false, the "{num}" string is replaced with the number of rows in the group
+		group_separator   : '-',  // group name separator; used when group-separator-# class is used.
+		group_formatter   : null, // function(txt, col, table, c, wo) { return txt; }
+		group_callback    : null, // function($cell, $rows, column, table){}, callback allowing modification of the group header labels
+		group_complete    : 'groupingComplete', // event triggered on the table when the grouping widget has finished work
+
 		// change these default date names based on your language preferences
 		group_months      : [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ],
 		group_week        : [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ],
-		group_time        : [ 'AM', 'PM' ],
-		group_formatter   : null, // function(txt, col, table, c, wo) { return txt; }
-		group_callback    : null, // function($cell, $rows, column, table){}, callback allowing modification of the group header labels
-		group_complete    : 'groupingComplete' // event triggered on the table when the grouping widget has finished work
+		group_time        : [ 'AM', 'PM' ]
 	},
 	init: function(table, thisWidget, c, wo){
 		if (wo.group_collapsible) {

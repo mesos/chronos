@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Render Header</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+<style id="css">.roundedCorners {
+	border: #000 1px solid;
+	padding: 2px 8px;
+	border-radius: 1em;
+	-moz-border-radius: 1em;
+	-webkit-border-radius: 1em;
+}
+.tablesorter-headerSortDown .roundedCorners {
+	border-color: #fff;
+}
+</style>
+
+<script id="js">$(function() {
+	// call the tablesorter plugin
+	$("table").tablesorter({
+		theme : 'blue',
+		headerTemplate: '{content} {icon}',
+		onRenderHeader: function(index){
+			// the TH content is wrapped with a div.tablesorter-header-inner by default, so just add the new class
+			$(this).find('div').addClass('roundedCorners header' + index );
+		}
+	});
+});</script>
+</head>
+<body>
+
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Render Headers</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em> The span wrapping the header text and the index variable for the function was added in version 2.0.9 (it is not part of the original plugin, but the "onRenderHeader" option was available).
+	</p>
+
+	<h1>Demo</h1>
+	<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th>First Name</th>
+			<th>Last Name</th>
+			<th>Age</th>
+			<th>Total</th>
+			<th>Discount</th>
+			<th>Date</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>Peter</td>
+			<td>Parker</td>
+			<td>28</td>
+			<td>$9.99</td>
+			<td>20%</td>
+			<td>Jul 6, 2006 8:14 AM</td>
+		</tr>
+		<tr>
+			<td>John</td>
+			<td>Hood</td>
+			<td>33</td>
+			<td>$19.99</td>
+			<td>25%</td>
+			<td>Dec 10, 2002 5:14 AM</td>
+		</tr>
+		<tr>
+			<td>Clark</td>
+			<td>Kent</td>
+			<td>18</td>
+			<td>$15.89</td>
+			<td>44%</td>
+			<td>Jan 12, 2003 11:14 AM</td>
+		</tr>
+		<tr>
+			<td>Bruce</td>
+			<td>Almighty</td>
+			<td>45</td>
+			<td>$153.19</td>
+			<td>44%</td>
+			<td>Jan 18, 2001 9:12 AM</td>
+		</tr>
+		<tr>
+			<td>Bruce</td>
+			<td>Evans</td>
+			<td>22</td>
+			<td>$13.19</td>
+			<td>11%</td>
+			<td>Jan 18, 2007 9:12 AM</td>
+		</tr>
+	</tbody>
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>CSS</h1>
+	<div id="css">
+		<pre class="prettyprint lang-css"></pre>
+	</div>
+	<h1>HTML</h1>
+	Before
+	<div>
+		<pre class="prettyprint lang-html">&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th&gt;First Name&lt;/th&gt;
+    &lt;th&gt;Last Name&lt;/th&gt;
+    &lt;th&gt;Age&lt;/th&gt;
+    &lt;th&gt;Total&lt;/th&gt;
+    &lt;th&gt;Discount&lt;/th&gt;
+    &lt;th&gt;Date&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;</pre>
+	</div>
+	After
+	<div>
+		<pre class="prettyprint lang-html">&lt;thead&gt;
+  &lt;tr class=&quot;tablesorter-headerRow&quot;&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners header0&quot;&gt;First Name &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners header1&quot;&gt;Last Name &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners header2&quot;&gt;Age &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners header3&quot;&gt;Total &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners header4&quot;&gt;Discount &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners header5&quot;&gt;Date &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;</pre>
+<small>* Note: the tablesorter-icon was only added for emphasis in this demo, it isn't used at all by the blue template.</small>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-option-render-template.html">Header Template &amp; Rendering &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

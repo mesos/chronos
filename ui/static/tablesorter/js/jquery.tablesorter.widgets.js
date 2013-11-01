@@ -1,4 +1,4 @@
-/*! tableSorter 2.8+ widgets - updated 10/18/2013
+/*! tableSorter 2.8+ widgets - updated 10/31/2013
  *
  * Column Styles
  * Column Filters
@@ -123,7 +123,7 @@ ts.addHeaderResizeEvent = function(table, disable, options){
 		wo.resize_flag = true;
 		headers = [];
 		c.$headers.each(function(){
-			var d = $.data(this, 'savedSizes'),
+			var d = $.data(this, 'savedSizes') || [0,0], // fixes #394
 				w = this.offsetWidth,
 				h = this.offsetHeight;
 			if (w !== d[0] || h !== d[1]) {
@@ -134,14 +134,14 @@ ts.addHeaderResizeEvent = function(table, disable, options){
 		if (headers.length) { c.$table.trigger('resize', [ headers ]); }
 		wo.resize_flag = false;
 	};
+	c.$headers.each(function(){
+		$.data(this, 'savedSizes', [ this.offsetWidth, this.offsetHeight ]);
+	});
 	clearInterval(wo.resize_timer);
 	if (disable) {
 		wo.resize_flag = false;
 		return false;
 	}
-	c.$headers.each(function(){
-		$.data(this, 'savedSizes', [ this.offsetWidth, this.offsetHeight ]);
-	});
 	wo.resize_timer = setInterval(function(){
 		if (wo.resize_flag) { return; }
 		checkSizes();
@@ -399,7 +399,7 @@ ts.addWidget({
 				}
 			},
 			findRows = function(filter, v, cv){
-				var $tb, $tr, $td, cr, r, l, ff, time, r1, r2, searchFiltered;
+				var $tb, $tr, $td, cr, r, l, ff, fr, time, r1, r2, searchFiltered;
 				if (c.debug) { time = new Date(); }
 				for (k = 0; k < b.length; k++ ){
 					if (b.eq(k).hasClass(ts.css.info)) { continue; } // ignore info blocks, issue #264
@@ -477,11 +477,11 @@ ts.addWidget({
 										ff = val === '' ? true : !(wo.filter_startsWith ? s === 0 : s >= 0);
 									// Look for operators >, >=, < or <=
 									} else if (/^[<>]=?/.test(val)){
-										s = fmt(val.replace(wo.filter_regex.nondigit, '').replace(wo.filter_regex.operators,''), table);
+										s = fr = fmt(val.replace(wo.filter_regex.nondigit, '').replace(wo.filter_regex.operators,''), table);
 										// parse filter value in case we're comparing numbers (dates)
 										if (parsed[i] || c.parsers[i].type === 'numeric') {
 											rg = c.parsers[i].format('' + val.replace(wo.filter_regex.operators,''), table, $ths.eq(i), i);
-											s = (rg !== '' && !isNaN(rg)) ? rg : s;
+											s = (isNaN(s) && rg !== '' && !isNaN(rg)) ? rg : s;
 										}
 										// xi may be numeric - see issue #149;
 										// check if c.cache[k].normalized[j] is defined, because sometimes j goes out of range? (numeric columns)
@@ -489,7 +489,7 @@ ts.addWidget({
 											isNaN(xi) ? fmt(xi.replace(wo.filter_regex.nondigit, ''), table) : fmt(xi, table);
 										if (/>/.test(val)) { ff = />=/.test(val) ? rg >= s : rg > s; }
 										if (/</.test(val)) { ff = /<=/.test(val) ? rg <= s : rg < s; }
-										if (s === '') { ff = true; } // keep showing all rows if nothing follows the operator
+										if (!ff && fr === '') { ff = true; } // keep showing all rows if nothing follows the operator
 									// Look for an AND or && operator (logical and)
 									} else if (/\s+(AND|&&)\s+/g.test(v[i])) {
 										s = val.split(/(?:\s+(?:and|&&)\s+)/g);
@@ -754,9 +754,7 @@ ts.addWidget({
 								// $(':focus') needs jQuery 1.6+
 								if ($(document.activeElement).closest('tr')[0] !== ft[0]){
 									// get all filter values
-									all = $t.find('.tablesorter-filter').map(function(){
-										return $(this).val() || '';
-									}).get().join('');
+									all = ts.getFilters(table).join('');
 									// don't hide row if any filter has a value
 									if (all === ''){
 										ft.addClass('hideme');
@@ -770,7 +768,7 @@ ts.addWidget({
 						clearTimeout(st);
 						st = setTimeout(function(){
 							// don't hide row if any filter has a value
-							if ($t.find('.tablesorter-filter').map(function(){ return $(this).val() || ''; }).get().join('') === ''){
+							if (ts.getFilters(table).join('') === ''){
 								ft2[ e.type === 'focus' ? 'removeClass' : 'addClass']('hideme');
 							}
 						}, 200);
@@ -820,22 +818,22 @@ ts.addWidget({
 			$tb.children().removeClass(wo.filter_filteredRow).show();
 			ts.processTbody(table, $tb, false); // restore tbody
 		}
-		if (wo.filterreset) { $(document).undelegate(wo.filter_reset, 'click.tsfilter'); }
+		if (wo.filter_reset) { $(document).undelegate(wo.filter_reset, 'click.tsfilter'); }
 	}
 });
 ts.getFilters = function(table) {
 	var c = table ? $(table)[0].config : {};
 	if (c && c.widgetOptions && !c.widgetOptions.filter_columnFilters) { return $(table).data('lastSearch'); }
-	return c && c.$filters ? c.$filters.find('.tablesorter-filter').map(function(i, el) {
-		return $(el).val();
+	return c && c.$filters ? c.$filters.map(function(i, el) {
+		return $(el).find('.tablesorter-filter').val() || '';
 	}).get() || [] : false;
 };
 ts.setFilters = function(table, filter, apply) {
 	var $t = $(table),
 		c = $t.length ? $t[0].config : {},
-		valid = c && c.$filters ? c.$filters.find('.tablesorter-filter').each(function(i, el) {
-			$(el).val(filter[i] || '');
-		}).trigger('change.tsfilter') || false : false;
+		valid = c && c.$filters ? c.$filters.each(function(i, el) {
+			$(el).find('.tablesorter-filter').val(filter[i] || '');
+		}) || false : false;
 	if (apply) { $t.trigger('search', [filter, false]); }
 	return !!valid;
 };

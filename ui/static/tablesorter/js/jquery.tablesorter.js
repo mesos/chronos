@@ -1,5 +1,5 @@
 /**!
-* TableSorter 2.12.0 - Client-side table sorting with ease!
+* TableSorter 2.13.1 - Client-side table sorting with ease!
 * @requires jQuery v1.2.6+
 *
 * Copyright (c) 2007 Christian Bach
@@ -24,7 +24,7 @@
 
 			var ts = this;
 
-			ts.version = "2.12.0";
+			ts.version = "2.13.1";
 
 			ts.parsers = [];
 			ts.widgets = [];
@@ -1066,11 +1066,10 @@
 				if (a === b) { return 0; }
 				var xN, xD, yN, yD, xF, yF, i, mx,
 					r = ts.regex;
-				// numeric or hex detection
-				yD = parseInt(b.match(r.hex), 16);
 				// first try and sort Hex codes
-				if (yD) {
+				if (r.hex.test(b)) {
 					xD = parseInt(a.match(r.hex), 16);
+					yD = parseInt(b.match(r.hex), 16);
 					if ( xD < yD ) { return -1; }
 					if ( xD > yD ) { return 1; }
 				}
@@ -1317,7 +1316,7 @@
 				}
 				if(/^\s*\([.\d]+\)/.test(s)) {
 					// make (#) into a negative number -> (10) = -10
-					s = s.replace(/^\s*\(/,'-').replace(/\)/,'');
+					s = s.replace(/^\s*\(([.\d]+)\)/, '-$1');
 				}
 				i = parseFloat(s);
 				// return the text instead of zero

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Basic Tablesorter Demo</title>
+
+	<!-- Demo styling -->
+	<link href="docs/css/jq.css" rel="stylesheet">
+
+	<!-- jQuery: required (tablesorter works with jQuery 1.2.3+) -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+	<!-- Pick a theme, load the plugin & initialize plugin -->
+	<link href="css/theme.default.css" rel="stylesheet">
+	<script src="js/jquery.tablesorter.min.js"></script>
+	<script src="js/jquery.tablesorter.widgets.min.js"></script>
+	<script>
+	$(function(){
+		$('table').tablesorter({
+			widgets        : ['zebra', 'columns'],
+			usNumberFormat : false,
+			sortReset      : true,
+			sortRestart    : true
+		});
+	});
+	</script>
+
+</head>
+<body>
+<div class="demo">
+	<h1><a href="https://github.com/Mottie/tablesorter">table<em>sorter</em></a></h1>
+	<p>By Christian Bach; github updates by <a href="https://github.com/Mottie/">Rob G</a><br>
+		<a href="docs/index.html">Complete docs included</a> (updated with missing docs from <a href="http://wowmotty.blogspot.com/2011/06/jquery-tablesorter-missing-docs.html">this blog post</a>)
+	</p>
+
+	<table class="tablesorter">
+		<thead>
+			<tr>
+				<th>AlphaNumeric Sort</th>
+				<th>Currency</th>
+				<th>Alphabetical</th>
+				<th>Sites</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr><td>abc 123</td><td>&#163;10,40</td><td>Koala</td><td>http://www.google.com</td></tr>
+			<tr><td>abc 1</td><td>&#163;234,10</td><td>Ox</td><td>http://www.yahoo.com</td></tr>
+			<tr><td>abc 9</td><td>&#163;10,33</td><td>Girafee</td><td>http://www.facebook.com</td></tr>
+			<tr><td>zyx 24</td><td>&#163;10</td><td>Bison</td><td>http://www.whitehouse.gov/</td></tr>
+			<tr><td>abc 11</td><td>&#163;3,20</td><td>Chimp</td><td>http://www.ucla.edu/</td></tr>
+			<tr><td>abc 2</td><td>&#163;56,10</td><td>Elephant</td><td>http://www.wikipedia.org/</td></tr>
+			<tr><td>abc 9</td><td>&#163;3,20</td><td>Lion</td><td>http://www.nytimes.com/</td></tr>
+			<tr><td>ABC 10</td><td>&#163;87,00</td><td>Zebra</td><td>http://www.google.com</td></tr>
+			<tr><td>zyx 1</td><td>&#163;99,90</td><td>Koala</td><td>http://www.mit.edu/</td></tr>
+			<tr><td>zyx 12</td><td>&#163;234,10</td><td>Llama</td><td>http://www.nasa.gov/</td></tr>
+		</tbody>
+	</table>
+
+	<p>This is a quick demo of the columns & zebra widget with the "sortReset" option set to true (clicking on a sort header a third time will reset the sort)</p>
+
+</div>
+</body></html>

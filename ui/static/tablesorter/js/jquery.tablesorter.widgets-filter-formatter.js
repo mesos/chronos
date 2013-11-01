@@ -1,4 +1,4 @@
-/*! Filter widget formatter functions - updated 10/10/2013
+/*! Filter widget formatter functions - updated 10/30/2013
  * requires: tableSorter 2.7.7+ and jQuery 1.4.3+
  *
  * uiSpinner (jQuery UI spinner)
@@ -519,7 +519,7 @@ $.tablesorter.filterFormatter = {
 		var localfrom = o.defaultDate = o.from || o.defaultDate;
 
 		closeFrom = o.onClose = function( selectedDate, ui ) {
-			var from = new Date( selectedDate ).getTime() || '',
+			var from = new Date( $cell.find('.dateFrom').datepicker('getDate') ).getTime() || '',
 				to = new Date( $cell.find('.dateTo').datepicker('getDate') ).getTime() || '',
 				range = from ? ( to ? from + ' - ' + to : '>=' + from ) : (to ? '<=' + to : '');
 			$cell
@@ -542,7 +542,7 @@ $.tablesorter.filterFormatter = {
 		o.defaultDate = o.to || '+7d'; // set to date +7 days from today (if not defined)
 		closeTo = o.onClose = function( selectedDate, ui ) {
 			var from = new Date( $cell.find('.dateFrom').datepicker('getDate') ).getTime() || '',
-				to = new Date( selectedDate ).getTime() || '',
+				to = new Date( $cell.find('.dateTo').datepicker('getDate') ).getTime() || '',
 				range = from ? ( to ? from + ' - ' + to : '>=' + from ) : (to ? '<=' + to : '');
 			$cell
 				.find('.dateRange').val(range)
@@ -608,7 +608,7 @@ $.tablesorter.filterFormatter = {
 		$number = $('<input type="number" style="visibility:hidden;" value="test">').appendTo($cell),
 		// test if HTML5 number is supported - from Modernizr
 		numberSupported = o.skipTest || $number.attr('type') === 'number' && $number.val() !== 'test',
-		t, l, $shcell = [],
+		l, $shcell = [],
 		c = $cell.closest('table')[0].config,
 
 		updateCompare = function(v) {

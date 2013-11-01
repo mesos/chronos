@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Filter Widget</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.js"></script>
+
+	<!-- Demo stuff -->
+	<link class="ui-theme" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/cupertino/jquery-ui.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+	<script src="../js/jquery.tablesorter.widgets.js"></script>
+
+	<script>
+	$(function(){
+		$('.accordion').accordion({
+			autoHeight: false,
+			collapsible : true
+		});
+	});
+	</script>
+
+	<script id="js">$(function() {
+
+	// call the tablesorter plugin
+	$("table.tablesorter").tablesorter({
+		theme: 'blue',
+
+		// hidden filter input/selects will resize the columns, so try to minimize the change
+		widthFixed : true,
+
+		// initialize zebra striping and filter widgets
+		widgets: ["zebra", "filter"],
+
+		// headers: { 5: { sorter: false, filter: false } },
+
+		widgetOptions : {
+
+			// If there are child rows in the table (rows with class name from "cssChildRow" option)
+			// and this option is true and a match is found anywhere in the child row, then it will make that row
+			// visible; default is false
+			filter_childRows : false,
+
+			// if true, a filter will be added to the top of each table column;
+			// disabled by using -> headers: { 1: { filter: false } } OR add class="filter-false"
+			// if you set this to false, make sure you perform a search using the second method below
+			filter_columnFilters : true,
+
+			// extra css class applied to the table row containing the filters & the inputs within that row
+			filter_cssFilter : '',
+
+			// class added to filtered rows (rows that are not showing); needed by pager plugin
+			filter_filteredRow   : 'filtered',
+
+			// add custom filter elements to the filter row
+			// see the filter formatter demos for more specifics
+			filter_formatter : null,
+
+			// add custom filter functions using this option
+			// see the filter widget custom demo for more specifics on how to use this option
+			filter_functions : null,
+
+			// if true, filters are collapsed initially, but can be revealed by hovering over the grey bar immediately
+			// below the header row. Additionally, tabbing through the document will open the filter row when an input gets focus
+			filter_hideFilters : true,
+
+			// Set this option to false to make the searches case sensitive
+			filter_ignoreCase : true,
+
+			// if true, search column content while the user types (with a delay)
+			filter_liveSearch : true,
+
+			// jQuery selector string of an element used to reset the filters
+			filter_reset : 'button.reset',
+
+			// Delay in milliseconds before the filter widget starts searching; This option prevents searching for
+			// every character while typing and should make searching large tables faster.
+			filter_searchDelay : 300,
+
+			// if true, server-side filtering should be performed because client-side filtering will be disabled, but
+			// the ui and events will still be used.
+			filter_serversideFiltering: false,
+
+			// Set this option to true to use the filter to find text from the start of the column
+			// So typing in "a" will find "albert" but not "frank", both have a's; default is false
+			filter_startsWith : false,
+
+			// Filter using parsed content for ALL columns
+			// be careful on using this on date columns as the date is parsed and stored as time in seconds
+			filter_useParsedData : false
+
+		}
+
+	});
+
+	// External search
+	// buttons set up like this:
+	// <button type="button" class="search" data-filter-column="4" data-filter-text="2?%">Saved Search</button>
+	$('button.search').click(function(){
+		/*** first method *** data-filter-column="1" data-filter-text="!son"
+			add search value to Discount column (zero based index) input */
+		var filters = [],
+			col = $(this).data('filter-column'), // zero-based index
+			txt = $(this).data('filter-text'); // text to add to filter
+
+		filters[col] = txt;
+		// using "table.hasFilters" here to make sure we aren't targetting a sticky header
+		$.tablesorter.setFilters( $('table.hasFilters'), filters, true ); // new v2.9
+
+		/** old method (prior to tablsorter v2.9 ***
+		var filters = $('table.tablesorter').find('input.tablesorter-filter');
+		filters.val(''); // clear all filters
+		filters.eq(col).val(txt).trigger('search', false);
+		******/
+
+		/*** second method ***
+			this method bypasses the filter inputs, so the "filter_columnFilters"
+			option can be set to false (no column filters showing)
+		******/
+		/*
+		var columns = [];
+		columns[5] = '2?%'; // or define the array this way [ '', '', '', '', '', '2?%' ]
+		$('table').trigger('search', [ columns ]);
+		*/
+
+		return false;
+	});
+
+});</script>
+
+<script>
+$(function(){
+
+	$('.firstname').click(function(){
+		$.tablesorter.setFilters( $('table.tablesorter'), ['', 'alex|br*|c'], true );
+		return false;
+	});
+
+	// *** widgetfilter_startsWith toggle button ***
+	$('button.toggle').click(function(){
+		var c = $('table.tablesorter')[0].config,
+		$t = $(this),
+		// toggle the boolean
+		fsw = !c.widgetOptions.filter_startsWith,
+		fic = !c.widgetOptions.filter_ignoreCase;
+		if ($t.hasClass('fsw')) {
+			c.widgetOptions.filter_startsWith = fsw;
+			$('#start').html(fsw.toString());
+		} else if ($t.hasClass('fic')) {
+			c.widgetOptions.filter_ignoreCase = fic;
+			$('#case').html(fic.toString());
+		} else {
+			$t = c.$headers.eq(1).toggleClass('filter-match');
+			$t.find('span').html( $t.hasClass('filter-match') ? '' : ' No' );
+		}
+		// update search after option change; add false to trigger to skip search delay
+		$('table.tablesorter').trigger('search', false);
+		return false;
+	});
+
+});
+</script>
+
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Filter Widget</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p></p>
+	<br>
+	<div class="accordion">
+
+		<h3><a href="#">Notes</a></h3>
+		<div>
+			<ul>
+				<li>Hover over the grey bar below the table header to open the filter row. Disable this by setting <code>filter_hideFilters</code> option to <code>false</code>.</li>
+				<li>This widget uses jQuery's <code>.nextUntil()</code> function which is only available is jQuery version 1.4+.</li>
+				<li>This widget does work with tablesorter v2.0.5.</li>
+				<li>Using the filters:
+					<table class="tablesorter-blue">
+						<thead><tr><th>Type <small class="bright">(1)</small></th><td>Description</th><th>Example</th></tr></thead>
+						<tbody>
+							<tr><td class="center">text</td><td>Any text entered in the filter will <strong>match</strong> text found within the column</td><td><code>abc</code> (finds &quot;abc&quot;, &quot;abcd&quot;, &quot;abcde&quot;, etc)</td></tr>
+							<tr><td class="center"><code>&quot;</code></td><td>To exactly match the search query, add a quote, apostrophe or equal sign to the beginning and/or end of the query</td><td><code>abc&quot;</code> or <code>abc=</code> (exactly match &quot;abc&quot;)</td></tr>
+							<tr><td class="center"><code>?</code></td><td>Wildcard for a single, non-space character.</td><td><code>J?n</code> (finds &quot;Jan&quot; and &quot;Jun&quot;, but not &quot;Joan&quot;)</td></tr>
+							<tr><td class="center"><code>*</code></td><td>Wildcard for zero or more non-space characters.</td><td><code>B*k</code> (matches &quot;Black&quot; and &quot;Book&quot;)</td></tr>
+							<tr><td class="center"><code>/\d/</code></td><td>Add any regex to the query to use in the query</td><td><code>/b[aeiou]g/i</code> (finds &quot;bag&quot;, &quot;beg&quot;, &quot;BIG&quot;, &quot;Bug&quot;, etc)</td></tr>
+							<tr><td class="center"><code>&lt; &lt;= &gt;= &gt;</code></td><td>Find alphabetical or numerical values less than or greater than or equal to the filtered query <small class="bright">(2)</small>.</td><td><code>&gt;= 10</code> (find values greater than or equal to 10)</td></tr>
+							<tr><td class="center"><code>!</code></td><td>Not operator. Filter the column with content that <strong>do not</strong> match the query.</td><td><code>!fe</code> (hide rows with &quot;female&quot; in that column, but shows rows with &quot;male&quot;)</td></tr>
+							<tr><td class="center"><code>&nbsp;&&&nbsp;</code> or <code>&nbsp;AND&nbsp;</code></td><td>Logical &quot;and&quot;. Filter the column for content that matches text from either side of the operator.</td><td><code>box && bat</code> (matches a column cell that contains both &quot;box&quot; and &quot;bat&quot;)</td></tr>
+							<tr><td class="center"><code>|</code> or <code>&nbsp;OR&nbsp;</code></td><td>Logical &quot;or&quot; (Vertical bar). Filter the column for content that matches text from either side of the bar <small class="bright">(3)</small>.</td><td><code>box|bat</code> (matches a column cell with either &quot;box&quot; or &quot;bat&quot;)</td></tr>
+							<tr><td class="center"><code>&nbsp;-&nbsp;</code> or <code>&nbsp;to&nbsp;</code></td><td>Find a range of values. Make sure there is a space before and after the dash (or the word &quot;to&quot;) <small class="bright">(2)</small>.</td><td><code>10 - 30</code> or <code>10 to 30</code> (match values between 10 and 30)</td></tr>
+						</tbody>
+					</table>
+					<span class="bright">(1)</span> You cannot combine these operators with each other (except for the wildcards).<br>
+					<span class="bright">(2)</span> In tablesorter <span class="version">v2.10</span>, comparisons can be made in date columns (if properly parsed).<br>
+					<span class="bright">(3)</span> Logical "or" comparisons can now show exact matches (by default; <span class="version">v2.10.1</span>) or just match cell contents.
+				</li>
+			</ul>
+		</div>
+
+		<h3><a href="#">Options</a></h3>
+		<div>
+			<h3>Filter widget defaults (added inside of tablesorter <code>widgetOptions</code>)</h3>
+			<ul>
+				<li><code>filter_childRows : false</code> - if true, filter includes child row content in the search.</li>
+				<li><code>filter_columnFilters : true</code> - if true, a filter will be added to the top of each table column.</li>
+				<li><code>filter_cssFilter : ''</code> - extra css class name added to the filter row & each input in the row.</li>
+				<li><code>filter_filteredRow : 'filtered'</code> - css class name added to filtered rows (rows that are not showing); needed by pager plugin.</li>
+				<li><code>filter_formatter : null</code> - add custom filter elements to the filter row.</li>
+				<li><code>filter_functions : null</code> - add custom filter functions using this option.</li>
+				<li><code>filter_hideFilters : false</code> - if true, filters are hidden initially, but can be revealed by clicking on the filter icon <span class="remark">*</span>.</li>
+				<li><code>filter_ignoreCase : true</code> - if true, make all searches case-insensitive.</li>
+				<li><code>filter_liveSearch : true</code> - if true, search column content while the user types (with a delay). If false, the user must press enter to start the search. If set to a number, when the length of the input text reaches this minimum length, a search will initiate.</li>
+				<li><code>filter_onlyAvail : 'filter-onlyAvail'</code> - a header with a select dropdown &amp; this class name will only show available (visible) options within that drop down.</li>
+				<li><code>filter_reset : null</code> - jQuery selector string of an element used to reset the filters.</li>
+				<li><code>filter_searchDelay : 300</code> - typing delay in milliseconds before starting a search.</li>
+				<li><code>filter_serversideFiltering : false</code> - if true, filter will be done server-side. The client-side filtering will be disabled, but the ui and events will still be used.</li>
+				<li><code>filter_startsWith : false</code> - if true, filter start from the beginning of the cell contents.</li>
+				<li><code>filter_useParsedData : false</code> - filter all data using parsed content.</li>
+			</ul>
+			<!-- <span class="alert">Caution</span>: In my testing, it appears that Chrome does not properly render a previously hidden search input text properly (<a href="http://jsfiddle.net/Mottie/Mjbab/1/">demo</a>), so for now, I'm changing this demo's <code>filter_hideFilters</code> option to <code>false</code> until the source of this problem is determined. -->
+		</div>
+
+		<h3><a href="#">Classes</a></h3>
+		<div>
+			Class names that can be added to the <code>th</code> header cells:
+			<ul>
+				<li><code>filter-false</code> - disable the filter for a specific header column.</li>
+				<li><code>filter-select</code> - build a default select box for a column (shows unique column content). See the <a href="example-widget-filter-custom.html">custom filter widget</a> demo for an example.</li>
+				<li><code>filter-match</code> - applies to &quot;filter-select&quot; columns and columns where the user can use the logical "or" search. Makes the filter/select match the column contents instead of exactly matching.</li>
+				<li><code>filter-parsed</code> - set a column to filter through parsed data instead of the actual table cell content.</li>
+				<li><code>filter-onlyAvail</code> - show only available (visible) options within a default select box. See the <a href="example-widget-filter-custom.html">custom filter widget</a> demo &quot;Discount&quot; column for an example.</li>
+			</ul>
+		</div>
+
+		<h3><a href="#">Methods</a></h3>
+		<div>
+			<h3>filterReset</h3>
+			<blockquote>
+			Use the <code>filterReset</code> method to reset (clear) all of the current filters using this method
+			<pre class="prettyprint lang-javascript">$('table').trigger('filterReset');</pre>
+			</blockquote>
+
+			<h3>search</h3>
+			<blockquote>
+			With this method, you can pass an array of filter values:
+			<pre class="prettyprint lang-javascript">// apply &quot;2?%&quot; filter to the fifth column (zero-based index)
+var columns = [];
+columns[5] = '2?%';
+// or define the array this way var columns = [ '', '', '', '', '', '2?%' ]
+$('table').trigger('search', [ columns ]);</pre>
+			or, just pass <code>false</code> to refresh the current search:
+			<pre class="prettyprint lang-javascript">$('table').trigger('search', false);</pre>
+			* Note: using this search method <strong>will not</strong> update the contents of the filters within the filter row; use the <code>$.tablesorter.setFilter()</code> method below to do that.
+			</blockquote>
+
+			<h3>Get current filters</h3>
+			<blockquote>
+			Get an array of the currently applied filters (<span class="version">v2.9</span>).
+			<pre class="prettyprint lang-javascript">$.tablesorter.getFilters( $('table') ); // or $('table.hasFilters')</pre>
+			This method returns an array of filter values or <code>false</code> if the selected table does not contain a filter row.
+			</blockquote>
+
+			<h3>Set current filters</h3>
+			<blockquote>
+			Set the values of the actual filters using this method; include a <code>true</code> boolean to actually apply the search (<span class="version">v2.9</span>).
+			<pre class="prettyprint lang-javascript">// update filters, but don't apply the search
+$.tablesorter.setFilters( $('table'), [ '', '', '', '', '', '2?%' ] );
+
+// update filters, AND apply the search
+$.tablesorter.setFilters( $('table'), [ '', '', '', '', '', '2?%' ], true );</pre>
+			This method returns <code>true</code> if the filters were sucessfully applied, or <code>false</code> if the table does have a filter row.
+		</blockquote>
+		</div>
+
+		<h3><a href="#">Events</a></h3>
+		<div>
+			<ul>
+				<li><code>filterEnd</code> - Event triggered when the filter widget has finished processing the search.</li>
+				<li><code>filterInit</code> - Event triggered when the filter widget has finished initializing.</li>
+				<li><code>filterStart</code> - Event triggered when the filter widget has started processing the search.</li>
+			</ul>
+		</div>
+
+		<h3><a href="#">Changes</a></h3>
+		<div class="inner">
+			<p>Moved to the wiki pages - <a href="https://github.com/Mottie/tablesorter/wiki/Change3">filter change log</a>.
+		</div>
+	</div>
+
+	<h1>Demo</h1>
+	<button type="button" class="toggle fsw">Toggle</button> filter_startsWith : <span id="start">false</span> (if true, search from beginning of cell content only)<br>
+	<button type="button" class="toggle fic">Toggle</button> filter_ignoreCase : <span id="case">true</span> (if false, the search will be case sensitive)<br>
+	<button type="button" class="toggle ffm">Toggle</button> filter-match (if class name added to the "First Name" column, all "or" searches will only match the content; Search <button type="button" class="firstname">alex|br*|c</button> in the First Name column (<span class="version">2.10.1</span>).
+	<hr>
+
+	<div id="demo">
+	<button type="button" class="search" data-filter-column="5" data-filter-text="2?%">Saved Search</button> (search the Discount column for &quot;2?%&quot;)<br>
+	<button type="button" class="reset">Reset Search</button> <!-- targetted by the "filter_reset" option -->
+
+	<table class="tablesorter">
+	<thead>
+		<tr>
+			<!-- you can also add a placeholder using script; $('.tablesorter th:eq(0)').data('placeholder', 'hello') -->
+			<th data-placeholder="" class="filter-false">Rank</th>
+			<th data-placeholder="Try B*{space} or alex|br*|c" class="filter-match">First Name (<span></span> filter-match )</th>
+			<th data-placeholder="Try <d">Last Name</th>
+			<th data-placeholder="Try >=33">Age</th>
+			<th data-placeholder="Try <9.99">Total</th>
+			<th data-placeholder="Try 2?%">Discount</th> <!-- add class="filter-false" to disable the filter in this column -->
+			<th data-placeholder="Try /20[^0]\d/ or >1/1/2010">Date</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr><td>1</td><td>Philip Aaron</td><td>Johnson Sr Esq</td><td>25</td><td>$5.95</td><td>22%</td><td>Jun 26, 2004 7:22 AM</td></tr>
+		<tr><td>11</td><td>Aaron</td><td>Hibert</td><td>12</td><td>$2.99</td><td>5%</td><td>Aug 21, 2009 12:21 PM</td></tr>
+		<tr><td>12</td><td>Brandon Clark</td><td>Henry Jr</td><td>51</td><td>$42.29</td><td>18%</td><td>Oct 13, 2000 1:15 PM</td></tr>
+		<tr><td>111</td><td>Peter</td><td>Parker</td><td>28</td><td>$9.99</td><td>20%</td><td>Jul 6, 2006 8:14 AM</td></tr>
+		<tr><td>21</td><td>John</td><td>Hood</td><td>33</td><td>$19.99</td><td>25%</td><td>Dec 10, 2002 5:14 AM</td></tr>
+		<tr><td>013</td><td>Clark</td><td>Kent Sr.</td><td>18</td><td>$15.89</td><td>44%</td><td>Jan 12, 2003 11:14 AM</td></tr>
+		<tr><td>005</td><td>Bruce</td><td>Almighty Esq</td><td>45</td><td>$153.19</td><td>44%</td><td>Jan 18, 2021 9:12 AM</td></tr>
+		<tr><td>10</td><td>Alex</td><td>Dumass</td><td>13</td><td>$5.29</td><td>4%</td><td>Jan 8, 2012 5:11 PM</td></tr>
+		<tr><td>16</td><td>Jim</td><td>Franco</td><td>24</td><td>$14.19</td><td>14%</td><td>Jan 14, 2004 11:23 AM</td></tr>
+		<tr><td>166</td><td>Bruce Lee</td><td>Evans</td><td>22</td><td>$13.19</td><td>11%</td><td>Jan 18, 2007 9:12 AM</td></tr>
+		<tr><td>100</td><td>Brenda Lee</td><td>McMasters</td><td>18</td><td>$55.20</td><td>15%</td><td>Feb 12, 2010 7:23 PM</td></tr>
+		<tr><td>55</td><td>Dennis</td><td>Bronson</td><td>65</td><td>$123.00</td><td>32%</td><td>Jan 20, 2001 1:12 PM</td></tr>
+		<tr><td>9</td><td>Martha</td><td>delFuego</td><td>25</td><td>$22.09</td><td>17%</td><td>Jun 11, 2011 10:55 AM</td></tr>
+	</tbody>
+</table></div>
+
+	<h1>Page Header</h1>
+	<div>
+		<pre class="prettyprint lang-html">&lt;!-- blue theme stylesheet --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;../css/theme.blue.css&quot;&gt;
+&lt;!-- tablesorter plugin --&gt;
+&lt;script src=&quot;../js/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- tablesorter widget file - loaded after the plugin --&gt;
+&lt;script src=&quot;../js/jquery.tablesorter.widgets.js&quot;&gt;&lt;/script&gt;</pre>
+	</div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+
+	<h1>CSS</h1>
+	<div>
+		<pre class="prettyprint lang-css">/* filter row */
+.tablesorter-filter-row td {
+  background: #eee;
+  line-height: normal;
+  text-align: center; /* center the input */
+  -webkit-transition: line-height 0.1s ease;
+  -moz-transition: line-height 0.1s ease;
+  -o-transition: line-height 0.1s ease;
+  transition: line-height 0.1s ease;
+}
+/* optional disabled input styling */
+.tablesorter-filter-row .disabled {
+  opacity: 0.5;
+  filter: alpha(opacity=50);
+  cursor: not-allowed;
+}
+
+/* hidden filter row */
+.tablesorter-filter-row.hideme td {
+  /*** *********************************************** ***/
+  /*** change this padding to modify the thickness     ***/
+  /*** of the closed filter row (height = padding x 2) ***/
+  padding: 2px;
+  /*** *********************************************** ***/
+  margin: 0;
+  line-height: 0;
+  cursor: pointer;
+}
+.tablesorter-filter-row.hideme .tablesorter-filter {
+  height: 1px;
+  min-height: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  /* don't use visibility: hidden because it disables tabbing */
+  opacity: 0;
+  filter: alpha(opacity=0);
+}
+
+/* filters */
+.tablesorter-filter {
+  width: 95%;
+  height: inherit;
+  margin: 4px;
+  padding: 4px;
+  background-color: #fff;
+  border: 1px solid #bbb;
+  color: #333;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -webkit-transition: height 0.1s ease;
+  -moz-transition: height 0.1s ease;
+  -o-transition: height 0.1s ease;
+  transition: height 0.1s ease;
+}</pre>
+	</div>
+
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-widget-filter-custom.html">jQuery custom filter widget &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+
