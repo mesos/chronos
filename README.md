@@ -434,5 +434,5 @@ Next, try
 	git clone https://github.com/airbnb/chronos.git
 	cd chronos
 	mvn package
-	java -cp target/chronos*.jar com.airbnb.scheduler.Main server config/local_scheduler_nozk.yml
+	java -cp target/chronos*.jar com.airbnb.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts=localhost:2181
 
