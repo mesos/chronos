@@ -16,8 +16,6 @@ Chronos also supports the definition of jobs triggered by the completion of othe
 Also join us on IRC in #mesos on freenode.**
 
 
-
-* [Quick Start](#quick-start)
 * [Features](#features)
 * [Running Chronos](#running-chronos)
 * [Configuring Chronos](#configuring-chronos)
@@ -47,14 +45,7 @@ Also join us on IRC in #mesos on freenode.**
     - [Install Chronos on Amazon Linux](#install-chronos-on-amazon-linux)
 
 
-## Quick Start
 
-There is a file called 'installer.bash' that can be found in the bin directory of the repo. It will compile and install mesos and Chronos.
-After successful installation, a local version of Chronos with a built-in ZK server is started. You will need Maven 3.X, a JDK and build tools to get up and running.
-This is how you run this installer:
-
-
-    $./bin/installer.bash
 
 
 If you get an error while compiling [mesos][mesos], please consult the [FAQ](docs/FAQ.md).
@@ -74,7 +65,9 @@ If you get an error while compiling [mesos][mesos], please consult the [FAQ](doc
 We've included some [example run scripts](#example-run-scripts), but the
 basic syntax for launching chronos is:
 
-    java -cp chronos.jar -server com.airbnb.scheduler.Main server config.yml
+    java -cp chronos.jar --master zk://127.0.0.1:2181/mesos --zk_hosts 127.0.0.1:2181
+
+Please note that you need to have both mesos and zookeeper running for this to work!
 
 For more information on configuration options, please see [configuring
 chronos](#configuring-chronos).
