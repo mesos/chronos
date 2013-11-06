@@ -72,6 +72,14 @@ $(function() {
     var command = $('#commandInput').val();
     var name = $('#nameInput').val();
     var owner = $('#ownerInput').val();
+    var owners = owner.split(",");
+    $.each(owners, function(i, ownerstring) {
+      if (!isEmail(ownerstring.trim())) {
+        alert("The address " + ownerstring + " does not seem to be valid.");
+        console.log("bad email: " + ownerstring);
+        return;
+      }
+    });
 
     job_hash["async"] = false;
     job_hash["epsilon"] = "PT30M";
@@ -150,6 +158,14 @@ $(function() {
     job_hash["command"] = command;
     job_hash["name"] = name;
     job_hash["owner"] = owner;
+    var owners = owner.split(",");
+    $.each(owners, function(i, ownerstring) {
+      if (!isEmail(ownerstring.trim())) {
+        alert("The address " + ownerstring + " does not seem to be valid.");
+        console.log("bad email: " + ownerstring);
+        return;
+      }
+    });
 
     if ($('#newParentsInput').val().length > 0) {
       job_hash["parents"] = []
@@ -332,6 +348,10 @@ $(function() {
 
 });
 
+function isEmail(email) {
+  var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  return regex.test(email);
+}
 
 function buildResultsTable() {
   var trstrings = [];
