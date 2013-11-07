@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Using selectorSort</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.2/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<style>
+	.search { float: right; }
+	</style>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.default.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script id="js">$(function() {
+	// call the tablesorter plugin
+	$("table").tablesorter({
+			selectorSort : 'a'
+	});
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Using selectorSort</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em> Click on any column header <strong>link</strong> to sort that column. Clicking anywhere else within the header will not initiate a sort.
+	</p>
+
+<h1>Demo</h1><br>
+<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th><a href="#">Account #</a> aa</th>
+			<th><a href="#">First Name</a> bb</th>
+			<th><a href="#">Last Name</a> cc</th>
+			<th><a href="#">Age</a> dd</th>
+			<th><a href="#">Total</a> ee</th>
+			<th><a href="#">Discount</a> ff</th>
+			<th class="sorter-false"><a href="#">Diff</a> gg</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>A43</td>
+			<td>Peter</td>
+			<td>Parker</td>
+			<td>28</td>
+			<td>9.99</td>
+			<td>20.3%</td>
+			<td>+3</td>
+		</tr>
+		<tr>
+			<td>A255</td>
+			<td>John</td>
+			<td>Hood</td>
+			<td>33</td>
+			<td>19.99</td>
+			<td>25.1%</td>
+			<td>-7</td>
+		</tr>
+		<tr>
+			<td>A33</td>
+			<td>Clark</td>
+			<td>Kent</td>
+			<td>18</td>
+			<td>2.89</td>
+			<td>44.2%</td>
+			<td>-15</td>
+		</tr>
+		<tr>
+			<td>A1</td>
+			<td>Bruce</td>
+			<td>Almighty</td>
+			<td>45</td>
+			<td>153.19</td>
+			<td>44%</td>
+			<td>+19</td>
+		</tr>
+		<tr>
+			<td>A102</td>
+			<td>Bruce</td>
+			<td>Evans</td>
+			<td>56</td>
+			<td>$153.19</td>
+			<td>23%</td>
+			<td>+9</td>
+		</tr>
+		<tr>
+			<td>A256</td>
+			<td>John</td>
+			<td>Clark</td>
+			<td>44</td>
+			<td>($19.89)</td>
+			<td>25.1%</td>
+			<td>(5)</td>
+		</tr>
+		<tr>
+			<td>A23</td>
+			<td>Elvis</td>
+			<td>Presley</td>
+			<td>24</td>
+			<td>($9.99)</td>
+			<td>50%</td>
+			<td>(22)</td>
+		</tr>
+		<tr>
+			<td>A10</td>
+			<td>Frank</td>
+			<td>Carter</td>
+			<td>40</td>
+			<td>-12.99</td>
+			<td>20%</td>
+			<td>(6)</td>
+		</tr>
+	</tbody>
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-option-sort-empty.html">Sorting empty cells &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

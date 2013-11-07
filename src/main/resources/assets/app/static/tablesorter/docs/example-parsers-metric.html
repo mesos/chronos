@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter - Metric Parser</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+	<style>
+	th { width: 20%; }
+	</style>
+
+	<link href="../css/theme.blue.css" rel="stylesheet">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<!-- load metric parser -->
+	<script src="../js/parsers/parser-metric.js"></script>
+
+	<script id="js">$(function() {
+
+	$("table").tablesorter({
+		theme : 'blue',
+		widgets : ["zebra"]
+	});
+
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Metric parser</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>This parser will convert numbers with metric prefixes ("Mega", "Giga", etc) into appropriate values so they are sorted correctly.</li>
+			<li>The base name must be included in the header:
+				<ul>
+					<li>The base is the unit of measure, such as "byte", "meter", "liter", etc.</li>
+					<li>When saving the base, include both the abbreviation and full name of the base separated by a vertical bar (shift-\) <code>b|byte</code>.</li>
+					<li>Store this information within the header's data-attribute (<code>data-metric-name="b|byte"</code>).</li>
+					<li>If no base information is found, it will default to <code>m|meter</code>.</li>
+				</ul>
+			</li>
+			<li>Because metric prefixes can be applied to binary values, the parser will calculate the cached value based on the binary multiple, i.e. <code>"1 kb"</code> is actually <code>"1024 bytes"</code>. See <a href="http://en.wikipedia.org/wiki/Unit_prefix#Binary_prefixes">this article</a> for more details.</li>
+			<li>This parser does not (yet) support the IEC recommendations for binary prefixes (i.e. "kibibyte (Kib)", "mebibyte (MiB)", etc).</li>
+			<li>Supported prefixes include: Yotta (10<sup>24</sup>), Zetta (10<sup>21</sup>), Exa (10<sup>18</sup>), Peta (10<sup>15</sup>), Tera (10<sup>12</sup>), Giga (10<sup>9</sup>), Mega (10<sup>6</sup>), kilo (10<sup>3</sup>), hecto (10<sup>2</sup>), deka (10<sup>1</sup>), deci (10<sup>-1</sup>), centi (10<sup>-2</sup>), milli (10<sup>-3</sup>), micro (10<sup>-6</sup>), nano (10<sup>-9</sup>), pico (10<sup>-12</sup>), femto (10<sup>-15</sup>), atto (10<sup>-18</sup>), zepto (10<sup>-21</sup>) and yocto (10<sup>-24</sup>).</li>
+			<li>This demo includes the stored metric values within the table cells, toggle the view using the button below.</li>
+		</ul>
+	</p>
+
+	<h1>Demo</h1>
+	<button type="button" class="toggleparsedvalue">Toggle parsed values</button>
+	<div id="demo"><table class="tablesorter">
+  <thead>
+    <tr><th class="sorter-metric" data-metric-name="b|byte">Metric (binary) Size</th>
+      <th class="sorter-metric" data-metric-name="m|meter">Metric Length</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1 byte</td><td>1 nm</td></tr>
+    <tr><td>1 kb</td><td>1 kilometer</td></tr>
+    <tr><td>1 Gigabyte</td><td>1 Gm</td></tr>
+    <tr><td>10 Mb</td><td>1 Tm</td></tr>
+    <tr><td>1 Mb</td><td>1,000 mm</td></tr>
+    <tr><td>1 Tb</td><td>1 meter</td></tr>
+    <tr><td>1 Petabyte</td><td>1 hm</td></tr>
+    <tr><td>1 Zb</td><td>1 dam</td></tr>
+    <tr><td>1,025 Mb</td><td>1 Mm</td></tr>
+    <tr><td>1,000 kilobytes</td><td>1 dm</td></tr>
+    <tr><td>1 Eb</td><td>1 µm</td></tr>
+    <tr><td>1023 Mb</td><td>1 pm</td></tr>
+  </tbody>
+</table></div>
+
+	<h1>Page Header</h1>
+	<div>
+		<pre class="prettyprint lang-html">&lt;!-- blue theme stylesheet with additional css styles added in v2.0.17 --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;../css/theme.blue.css&quot;&gt;
+&lt;!-- tablesorter plugin --&gt;
+&lt;script src=&quot;../js/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- load metric parser --&gt;
+&lt;script src=&quot;../js/parsers/parser-metric.js&quot;&gt;&lt;/script&gt;
+	</div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-widget-filter.html">Applying the filter widget &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+<script>
+$(function(){
+	// add parsed values to columns [0,1]
+	addParsedValues($('table'), [0,1], function(num){ return num.toExponential(); });
+});
+</script>
+
+</body>
+</html>
+

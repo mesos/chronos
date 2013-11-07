@@ -1,0 +1,10 @@
+/* tables */
+.tester { /* */
+	position: absolute;
+	top: -999em;
+}
+
+/* skipped tests */
+#qunit-tests li.pass.skipped {
+	background-color: #fffacd;
+}

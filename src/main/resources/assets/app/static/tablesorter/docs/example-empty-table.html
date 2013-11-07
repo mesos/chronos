@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Initializing tablesorter on an empty table</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script id="js">$(function() {
+
+	// Set up empty table with second and first columns pre-sorted
+	$("table").tablesorter({ theme : 'blue', sortList: [[2,1],[0,0]] });
+
+	$("#append").click(function() {
+
+		// add some html
+		var html = "<tr><td>Peter</td><td>Parker</td><td>28</td><td>$9.99</td><td>20%</td><td>Jul 6, 2006 8:14 AM</td></tr>" +
+			"<tr><td>John</td><td>Hood</td><td>33</td><td>$19.99</td><td>25%</td><td>Dec 10, 2002 5:14 AM</td></tr><tr><td>Clark</td>" +
+			"<td>Kent</td><td>18</td><td>$15.89</td><td>44%</td><td>Jan 12, 2003 11:14 AM</td></tr>" +
+			"<tr><td>Bruce</td><td>Almighty</td><td>45</td><td>$153.19</td><td>44%</td><td>Jan 18, 2001 9:12 AM</td></tr>";
+
+		// append new html to table body 
+		$("table tbody").append(html);
+
+		// let the plugin know that we made a update, then the plugin will
+		// automatically sort the table based on the header settings
+		$("table").trigger("update");
+
+		return false;
+	});
+
+});</script>
+</head>
+<body>
+
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Initializing tablesorter on an empty table</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em> The presorting of an empty table and automatic sorting of appended data was added in version 2.0.14 (not part of the original plugin).
+	</p>
+
+	<h1>Demo</h1>
+	<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th>First Name</th>
+			<th>Last Name</th>
+			<th>Age</th>
+			<th>Total</th>
+			<th>Discount</th>
+			<th>Date</th>
+		</tr>
+	</thead>
+	<tbody>
+	</tbody>
+</table>
+
+<a href="#" id="append">Append new table data</a>
+</div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-ajax.html">Appending table data with ajax &rsaquo;&rsaquo;</a>
+</div>
+
+	</div>
+
+</div>
+
+</body>
+</html>

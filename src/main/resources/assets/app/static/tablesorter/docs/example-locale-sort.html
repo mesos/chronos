@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Sorting Accented Characters</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<script id="js">$(function() {
+
+	// these default equivalents were obtained from a table of equivalents
+	// provided by sugar.js sorting alogrithms: http://sugarjs.com/sorting
+	/*
+	$.tablesorter.characterEquivalents = {
+		"a" : "\u00e1\u00e0\u00e2\u00e3\u00e4", // áàâãä
+		"A" : "\u00c1\u00c0\u00c2\u00c3\u00c4", // ÁÀÂÃÄ
+		"c" : "\u00e7", // ç
+		"C" : "\u00c7", // Ç
+		"e" : "\u00e9\u00e8\u00ea\u00eb", // éèêë
+		"E" : "\u00c9\u00c8\u00ca\u00cb", // ÉÈÊË
+		"i" : "\u00ed\u00ec\u0130\u00ee\u00ef", // íìIîï
+		"I" : "\u00cd\u00cc\u0130\u00ce\u00cf", // ÍÌIÎÏ
+		"o" : "\u00f3\u00f2\u00f4\u00f5\u00f6", // óòôõö
+		"O" : "\u00d3\u00d2\u00d4\u00d5\u00d6", // ÓÒÔÕÖ
+		"S" : "\u00df", // ß
+		"u" : "\u00fa\u00f9\u00fb\u00fc", // úùûü
+		"U" : "\u00da\u00d9\u00db\u00dc" // ÚÙÛÜ
+	};
+	*/
+	// modify the above defaults as follows
+	$.extend( $.tablesorter.characterEquivalents, {
+		"ae" : "\u00e6", // expanding characters æ Æ
+		"AE" : "\u00c6",
+		"oe" : "\u00f6\u0153", // œ Œ
+		"OE" : "\u00d6\u0152",
+		"d"  : "\u00f0",  // Eth (ð Ð)
+		"D"  : "\u00d0",
+		"o"  : "\u00f3\u00f2\u00f4\u00f5", // remove ö because it's in the oe now
+		"O"  : "\u00d3\u00d2\u00d4\u00d5"  // remove Ö because it's in the OE now
+	});
+
+	$("table").tablesorter({
+		theme : 'blue',
+		// Enable use of the characterEquivalents reference
+		sortLocaleCompare : true,
+		// if false, upper case sorts BEFORE lower case
+		ignoreCase : true
+	});
+});</script>
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Sorting Accented Characters</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<p class="tip">
+		<em>NOTE!</em>
+		<ul>
+			<li>Accented characters will get replaced by their character equivalent when the <code>sortLocaleCompare</code> option is <code>true</code>.</li>
+			<li>In the javascript code block below you can see the default <code>$.tablesorter.characterEquivalents</code> table and an example of how to extend it to include other equivalents.</li>
+			<li>If you have a specific language requirement, please refer to the <a href="https://github.com/Mottie/tablesorter/wiki/Language">Language</a> wiki pages to see if it is there. If not, please consider sharing the code or even just share the character equivalents themselves.</li>
+		</ul>
+	</p>
+
+<h1>Demo</h1>
+<div id="demo"><table class="tablesorter">
+	<thead>
+		<tr>
+			<th>Account #</th>
+			<th>First Name</th>
+			<th>Last Name</th>
+			<th>Age</th>
+			<th>Location</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>a1a10</td>
+			<td>AnderE</td>
+			<td>Parker</td>
+			<td>28</td>
+			<td>Béchar</td>
+		</tr>
+		<tr>
+			<td>a1a2</td>
+			<td>Ändere</td>
+			<td>Hood</td>
+			<td>33</td>
+			<td>Bebington</td>
+		</tr>
+		<tr>
+			<td>A1a1</td>
+			<td>Andére</td>
+			<td>Kent</td>
+			<td>18</td>
+			<td>Berlin</td>
+		</tr>
+		<tr>
+			<td>A2b2</td>
+			<td>CotÉ</td>
+			<td>Almighty</td>
+			<td>45</td>
+			<td>Beckum</td>
+		</tr>
+		<tr>
+			<td>A1d2</td>
+			<td>CÔte</td>
+			<td>Evans</td>
+			<td>56</td>
+			<td>Curaçao</td>
+		</tr>
+		<tr>
+			<td>a2b11</td>
+			<td>CÔtÉ</td>
+			<td>Clark</td>
+			<td>44</td>
+			<td>Béjaïa</td>
+		</tr>
+		<tr>
+			<td>A2b1</td>
+			<td>Çote</td>
+			<td>Presley</td>
+			<td>24</td>
+			<td>Bekkevoort</td>
+		</tr>
+		<tr>
+			<td>A1b0</td>
+			<td>Andéré</td>
+			<td>Carter</td>
+			<td>40</td>
+			<td>Bègles</td>
+		</tr>
+	</tbody>
+</table></div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-multiple-tbodies.html">Sorting with Multiple Tbodies &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+</body>
+</html>
+

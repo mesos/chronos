@@ -5,7 +5,7 @@ import com.google.inject.Inject
 import java.net.{HttpURLConnection, URL}
 import java.io.{OutputStream, InputStream}
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.Logger
+import java.util.logging.{Logger, Level}
 import javax.inject.Named
 import javax.servlet._
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
@@ -40,15 +40,15 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
   def doFilter(rawRequest: ServletRequest,
                rawResponse: ServletResponse,
                chain: FilterChain) {
-    try {
-      if (rawRequest.isInstanceOf[HttpServletRequest]) {
-        val request = rawRequest.asInstanceOf[HttpServletRequest]
-        val leaderData = jobScheduler.getLeader
-        val response = rawResponse.asInstanceOf[HttpServletResponse]
+    if (rawRequest.isInstanceOf[HttpServletRequest]) {
+      val request = rawRequest.asInstanceOf[HttpServletRequest]
+      val leaderData = jobScheduler.getLeader
+      val response = rawResponse.asInstanceOf[HttpServletResponse]
 
-        if (jobScheduler.isLeader) {
-          chain.doFilter(request, response)
-        } else {
+      if (jobScheduler.isLeader) {
+        chain.doFilter(request, response)
+      } else {
+        try {
           log.info("Proxying request.")
 
           val method = request.getMethod
@@ -84,14 +84,27 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
 
           response.setStatus(proxy.getResponseCode())
 
+          val fields = proxy.getHeaderFields
+          // getHeaderNames() and getHeaders() are known to return null, see:
+          // http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getHeaders(java.lang.String)
+          if (fields != null) {
+            for ((name, values) <- fields.asScala) {
+              if (name != null && values != null) {
+                for (value <- values.asScala) {
+                  response.setHeader(name, value)
+                }
+              }
+            }
+          }
+
           val responseOutputStream = response.getOutputStream
           copy(proxy.getInputStream, response.getOutputStream)
           proxy.getInputStream.close
           responseOutputStream.close
+        } catch {
+          case t: Throwable => log.log(Level.WARNING, "Exception while proxying!", t)
         }
       }
-    } catch {
-      case t: Throwable => log.warning("Exception while proxying: " + t)
     }
   }
 

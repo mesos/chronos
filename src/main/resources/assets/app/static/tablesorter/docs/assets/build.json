@@ -1,0 +1,37 @@
+{
+	"headers": [
+		[
+			{ "text": "First Name", "class": "fname", "width": "20%" },
+			"Last Name",
+			{ "text": "Age", "class": "age", "data-sorter": false },
+			"Total",
+			{ "text": "Discount", "class": "sorter-false" },
+			{ "text": "Date", "class": "date", "width": "20%" }
+		]
+	],
+	"footers": "clone",
+	"rows": [
+		[ "Peter", "Parker", 28, "$9.99",  "20%", "Jul 6, 2006 8:14 AM"   ],
+		[ "John",  "Hood",   33, "$19.99", "25%", "Dec 10, 2002 5:14 AM"  ],
+		[ "Clark", "Kent",   18, "$15.89", "44%", "Jan 12, 2003 11:14 AM" ],
+
+		{ "newTbody": true, "class": "tablesorter-infoOnly" },
+		{ "cells": [ { "html": "<strong>JSON Info Row</strong>", "colspan": 6 } ] },
+
+		{ "newTbody": true },
+		[ "Bruce", "Evans",    22, "$13.19",  "11%", "Jan 18, 2007 9:12 AM"  ],
+		[ "Brice", "Almighty", 45, "$153.19", "44%", "Jan 18, 2001 9:12 AM"  ],
+
+		{ "class": "specialRow",
+			"cells": [
+				{ "text": "Fred", "class": "fname" },
+				{ "text": "Smith", "class": "lname" },
+				{ "text": 18, "class": "age", "data-info": "fake ID!, he's only 16" },
+				{ "text": "$22.44", "class": "total" },
+				"8%",
+				{ "text": "Aug 20, 2012 10:15 AM", "class": "date" }
+			],
+			"data-info": "This row likes turtles"
+		}
+	]
+}
