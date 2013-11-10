@@ -3,8 +3,6 @@ package com.airbnb.scheduler.jobs
 import collection.mutable
 import collection.mutable.ListBuffer
 import java.util.logging.Logger
-
-import com.airbnb.scheduler.api.{JobsDeserializer, JobSerializer}
 import com.airbnb.scheduler.state.PersistenceStore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -12,6 +10,7 @@ import com.google.common.base.{Joiner, Charsets}
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.joda.time.{Seconds, DateTime}
 import org.joda.time.format.DateTimeFormat
+import com.airbnb.utils.{JobDeserializer, JobSerializer}
 
 /**
  * @author Florian Leibert (flo@leibert.de)
@@ -29,7 +28,7 @@ object JobUtils {
   val mod =  new SimpleModule("JobModule")
 
   mod.addSerializer(classOf[BaseJob], new JobSerializer)
-  mod.addDeserializer(classOf[BaseJob], new JobsDeserializer)
+  mod.addDeserializer(classOf[BaseJob], new JobDeserializer)
   objectMapper.registerModule(mod)
 
   def toBytes[T <: BaseJob](job: T): Array[Byte] =
