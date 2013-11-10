@@ -1,4 +1,4 @@
-package com.airbnb.scheduler.api
+package com.airbnb.utils
 
 import com.airbnb.scheduler.jobs.{ScheduleBasedJob, DependencyBasedJob, BaseJob}
 import com.fasterxml.jackson.databind.{SerializerProvider, JsonSerializer}
@@ -74,6 +74,5 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     }
 
     json.writeEndObject()
-    json.close()
   }
 }

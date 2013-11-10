@@ -1,10 +1,10 @@
 package com.airbnb.scheduler.jobs
 
-import com.airbnb.scheduler.api.JobsDeserializer
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.annotation.{JsonSerialize, JsonDeserialize}
 import org.joda.time.{Period, Minutes}
+import com.airbnb.utils.{PeriodSerializer, JobDeserializer}
 
 /**
  * BaseJob encapsulates job specific information. BaseJob is defined for all tasks within a job.
@@ -42,7 +42,7 @@ trait BaseJob {
   def errorsSinceLastSuccess: Long = 0L
 }
 
-@JsonDeserialize(using = classOf[JobsDeserializer])
+@JsonDeserialize(using = classOf[JobDeserializer])
 case class ScheduleBasedJob(
     @JsonProperty schedule: String,
     @JsonProperty override val name: String,
@@ -65,7 +65,7 @@ case class ScheduleBasedJob(
   extends BaseJob
 
 
-@JsonDeserialize(using = classOf[JobsDeserializer])
+@JsonDeserialize(using = classOf[JobDeserializer])
 case class DependencyBasedJob(
     @JsonProperty parents: Set[String],
     @JsonProperty override val name: String,

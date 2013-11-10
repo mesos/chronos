@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.joda.time.Minutes
 import org.specs2.mutable.SpecificationWithJUnit
+import com.airbnb.utils.{JobSerializer, JobDeserializer}
 
 class SerDeTest extends SpecificationWithJUnit {
 
@@ -13,7 +14,7 @@ class SerDeTest extends SpecificationWithJUnit {
       val objectMapper = new ObjectMapper
       val mod =  new SimpleModule("JobModule")
       mod.addSerializer(classOf[BaseJob], new JobSerializer)
-      mod.addDeserializer(classOf[BaseJob], new JobsDeserializer)
+      mod.addDeserializer(classOf[BaseJob], new JobDeserializer)
       objectMapper.registerModule(mod)
 
       val a = new DependencyBasedJob(Set("B", "C", "D", "E"), "A", "noop", Minutes.minutes(5).toPeriod, 10L,
@@ -29,7 +30,7 @@ class SerDeTest extends SpecificationWithJUnit {
       val objectMapper = new ObjectMapper
       val mod =  new SimpleModule("JobModule")
       mod.addSerializer(classOf[BaseJob], new JobSerializer)
-      mod.addDeserializer(classOf[BaseJob], new JobsDeserializer)
+      mod.addDeserializer(classOf[BaseJob], new JobDeserializer)
       objectMapper.registerModule(mod)
 
       val a = new ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
