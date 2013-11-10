@@ -4,7 +4,7 @@ package com.airbnb.scheduler.jobs
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.{JsonSerialize, JsonDeserialize}
 import org.joda.time.{Period, Minutes}
-import com.airbnb.utils.{PeriodSerializer, JobDeserializer}
+import com.airbnb.utils.{JobDeserializer}
 
 /**
  * BaseJob encapsulates job specific information. BaseJob is defined for all tasks within a job.
