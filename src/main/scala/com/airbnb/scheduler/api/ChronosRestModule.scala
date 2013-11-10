@@ -14,6 +14,7 @@ import com.google.inject.name.Names
 import com.codahale.metrics.servlets.MetricsServlet
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.google.inject.servlet.ServletModule
+import com.airbnb.utils.{JobSerializer, JobDeserializer}
 
 /**
  * @author Tobi Knaup
@@ -60,7 +61,7 @@ class ChronosRestModule extends ServletModule {
       @Named("restMapper") mapper: ObjectMapper): JacksonJsonProvider = {
     val mod =  new SimpleModule("JobModule")
     mod.addSerializer(classOf[BaseJob], new JobSerializer)
-    mod.addDeserializer(classOf[BaseJob], new JobsDeserializer)
+    mod.addDeserializer(classOf[BaseJob], new JobDeserializer)
     mapper.registerModule(DefaultScalaModule)
     mapper.registerModule(mod)
     new JacksonMessageBodyProvider(mapper,

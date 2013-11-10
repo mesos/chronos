@@ -31,7 +31,7 @@ trait SchedulerConfiguration extends ScallopConf {
 
   def zookeeperServers() : String = {
     if (zookeeperServersString().startsWith("zk://")) {
-      return zookeeperServersString().replace("zk://", "")
+      return zookeeperServersString().replace("zk://", "").replaceAll("/.*", "")
     }
     zookeeperServersString()
   }

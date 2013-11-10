@@ -1,4 +1,4 @@
-package com.airbnb.scheduler.api
+package com.airbnb.utils
 
 import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
 import com.fasterxml.jackson.core.JsonParser
@@ -10,7 +10,7 @@ import scala.collection.JavaConversions._
  * Custom JSON deserializer for jobs.
  * @author Florian Leibert (flo@leibert.de)
  */
-class JobsDeserializer extends JsonDeserializer[BaseJob] {
+class JobDeserializer extends JsonDeserializer[BaseJob] {
 
   def deserialize(jsonParser: JsonParser, ctxt: DeserializationContext): BaseJob = {
     val codec = jsonParser.getCodec
