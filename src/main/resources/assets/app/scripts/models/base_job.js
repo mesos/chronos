@@ -33,8 +33,8 @@ function(Backbone, _, moment, BaseJobValidations) {
       return {
         name: '-',
         owner: '',
-        startTime: moment(d).format('HH:mm:ss'),
-        startDate: moment(d).format('YYYY-MM-DD'),
+        startTime: moment.utc(d).format('HH:mm:ss'),
+        startDate: moment.utc(d).format('YYYY-MM-DD'),
         repeats: '',
         duration: 'T24H',
         epsilon: 'PT15M',
