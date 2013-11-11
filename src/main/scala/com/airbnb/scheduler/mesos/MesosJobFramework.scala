@@ -177,12 +177,7 @@ class MesosJobFramework @Inject()(
             x.getScalar.getValue match {
 
               case value: Double => {
-                log.info(s"<<<>>>>${value}, ${x.getScalar.getValue}, ${sufficient(x.getName)}")
                 if (value.doubleValue() <= x.getScalar.getValue && !sufficient(x.getName)) {
-                  taskInfoTemplate.addResources(
-                    Resource.newBuilder().setType(Value.Type.SCALAR).setScalar(
-                     Protos.Value.Scalar.newBuilder()
-                        .setValue(value.doubleValue())).setName(x.getName).setRole(x.getRole))
                   sufficient(x.getName) = true
                 }
               }
