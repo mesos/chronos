@@ -7,18 +7,50 @@ import com.google.protobuf.ByteString
 import com.google.common.base.Charsets
 import org.apache.mesos.Protos._
 import org.apache.mesos.Protos.Environment.Variable
+import scala.collection.Map
+import javax.inject.Inject
+import com.airbnb.scheduler.config.SchedulerConfiguration
 
 /**
  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
  * names are valid.
  * @author Florian Leibert (flo@leibert.de)
  */
-object MesosUtils {
+class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   private[this] val log = Logger.getLogger(getClass.getName)
   val taskNameTemplate = "ChronosTask:%s"
   //args|command.
   //  e.g. args: -av (async job), verbose mode
   val executorArgsPattern = "%s|%s"
+
+  final val cpusResourceName = "cpus"
+  final val memResourceName = "mem"
+  final val diskResourceName = "disk"
+
+  def scalarResource(name: String, value: Double, role: String) = {
+    Resource.newBuilder
+      .setName(name)
+      .setType(Value.Type.SCALAR)
+      .setScalar(Value.Scalar.newBuilder.setValue(value))
+      .setRole(role)
+      .build
+  }
+
+  def scalarResource(name: String, value: Double): Resource = {
+    // Added for convenience.  Uses default catch-all role.
+    scalarResource(name, value, "*")
+  }
+
+  def environment(vars: Map[String, String]) = {
+    val builder = Environment.newBuilder()
+
+    for ((key, value) <- vars) {
+      val variable = Variable.newBuilder().setName(key).setValue(value)
+      builder.addVariables(variable)
+    }
+
+    builder.build()
+  }
 
   def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob): TaskInfo.Builder = {
     //TODO(FL): Allow adding more fine grained resource controls.
@@ -44,6 +76,14 @@ object MesosUtils {
           CommandInfo.newBuilder().setValue(job.command).setEnvironment(environment)
         })
     }
+    val mem = if (job.mem > 0) job.mem else conf.mesosTaskDisk()
+    val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
+    val disk = if (job.disk > 0) job.disk else conf.mesosTaskDisk()
+    taskInfo
+      .addResources(scalarResource(cpusResourceName, cpus, conf.mesosRole()))
+      .addResources(scalarResource(memResourceName, mem, conf.mesosRole()))
+      .addResources(scalarResource(diskResourceName, disk, conf.mesosRole()))
+
     return taskInfo
   }
 

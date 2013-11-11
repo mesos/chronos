@@ -21,7 +21,8 @@ class MesosJobFramework @Inject()(
     val scheduler: JobScheduler,
     val taskManager: TaskManager,
     val config: SchedulerConfiguration,
-    val frameworkIdUtil: FrameworkIdUtil)
+    val frameworkIdUtil: FrameworkIdUtil,
+    val taskBuilder: MesosTaskBuilder)
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -151,7 +152,7 @@ class MesosJobFramework @Inject()(
    *         resources where offered, the TaskBuilder and the offer.
    */
   def buildTask(taskId: String, job: BaseJob, offer: Offer) : (Boolean, TaskInfo.Builder, Offer) = {
-    val taskInfoTemplate = MesosUtils.getMesosTaskInfoBuilder(taskId, job)
+    val taskInfoTemplate = taskBuilder.getMesosTaskInfoBuilder(taskId, job)
     log.fine("Job %s ready for launch at time: %d".format(taskInfoTemplate.getTaskId.getValue,
       System.currentTimeMillis))
     import collection.JavaConversions._
@@ -162,7 +163,7 @@ class MesosJobFramework @Inject()(
         log.info(x.getScalar.getValue.getClass.getName)
         x.getType match {
           case Value.Type.SCALAR =>
-            (x.getName match {
+            x.getName match {
               case "mem" =>
                 if (job.mem == 0) config.mesosTaskMem else job.mem
               case "cpus" =>
@@ -171,9 +172,9 @@ class MesosJobFramework @Inject()(
                 if (job.disk == 0) config.mesosTaskDisk else job.disk
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
-            })
+            }
 
-            (x.getScalar.getValue match {
+            x.getScalar.getValue match {
 
               case value: Double => {
                 log.info(s"<<<>>>>${value}, ${x.getScalar.getValue}, ${sufficient(x.getName)}")
@@ -190,7 +191,7 @@ class MesosJobFramework @Inject()(
               }
 
                 // not sufficient, skip
-            })
+            }
           case _ =>
             log.warning("Ignoring offered resource: %s".format(x.getType.toString))
       }})
