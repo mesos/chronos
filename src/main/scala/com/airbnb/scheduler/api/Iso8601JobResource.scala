@@ -1,10 +1,9 @@
 package com.airbnb.scheduler.api
 
-import java.net.URI
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.{Level, Logger}
-import javax.ws.rs.{Consumes, Path, POST, Produces, PUT}
-import javax.ws.rs.core.{Context, MediaType, Response}
+import javax.ws.rs._
+import javax.ws.rs.core.{MediaType, Response}
 import scala.Array
 
 import com.airbnb.scheduler.config.SchedulerConfiguration
@@ -13,6 +12,7 @@ import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
+import com.airbnb.scheduler.jobs.ScheduleBasedJob
 
 /**
  * The REST API to the iso8601 (timed, cron-like) component of the scheduler.

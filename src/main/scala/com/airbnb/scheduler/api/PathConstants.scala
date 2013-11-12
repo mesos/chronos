@@ -11,6 +11,7 @@ object PathConstants {
   final val jobBasePath = "/"
   final val jobPatternPath = "job/{jobName}"
   final val allJobsPath = "jobs"
+  final val jobSearchPath = "jobs/search"
   final val allStatsPath = "stats/{percentile}"
   final val jobStatsPatternPath = "job/stat/{jobName}"
   final val graphBasePath = "/graph"
