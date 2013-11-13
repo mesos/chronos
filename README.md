@@ -11,8 +11,7 @@ Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
 Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
-**You can try the interactive and personalized [tutorial for chronos](http://mesosphere.io/learn/run-chronos-on-mesos/).
-Try out Chronos in 15 minutes or less via [Elastic Mesos](http://elastic.mesosphere.io).**
+**Try out the interactive and personalized [tutorial for chronos](http://mesosphere.io/learn/run-chronos-on-mesos/).**
 
 For questions and discussions around Chronos, please use the Google Group "chronos-scheduler":
 [Chronos Scheduler Group](https://groups.google.com/forum/#!forum/chronos-scheduler).
