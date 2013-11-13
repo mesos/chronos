@@ -29,7 +29,14 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "The look-ahead time for scheduling tasks in seconds",
     default = Some(60))
 
-  lazy val zookeeperServers = opt[String]("zk_hosts",
+  def zookeeperServers() : String = {
+    if (zookeeperServersString().startsWith("zk://")) {
+      return zookeeperServersString().replace("zk://", "").replaceAll("/.*", "")
+    }
+    zookeeperServersString()
+  }
+
+  lazy val zookeeperServersString = opt[String]("zk_hosts",
     descr = "The list of ZooKeeper servers for storing state",
     default = Some("localhost:2181"))
 
