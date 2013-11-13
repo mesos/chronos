@@ -11,9 +11,11 @@ Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
 Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
-**For questions and discussions around Chronos, please use the Google Group "chronos-scheduler": 
+**Try out the interactive and personalized [tutorial for chronos](http://mesosphere.io/learn/run-chronos-on-mesos/).**
+
+For questions and discussions around Chronos, please use the Google Group "chronos-scheduler":
 [Chronos Scheduler Group](https://groups.google.com/forum/#!forum/chronos-scheduler).
-Also join us on IRC in #mesos on freenode.**
+Also join us on IRC in #mesos on freenode.
 
 
 * [Features](#features)
@@ -427,7 +429,7 @@ from Chronos code but rather from some Scala classes, consider upgrading to Open
 ##### Build Chronos
 
 Install node first. On OSX, try `brew install node`.
-  
+
 Next, try
 
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
