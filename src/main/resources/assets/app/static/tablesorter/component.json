@@ -1,7 +1,0 @@
-{
-  "name": "tablesorter",
-  "version": "2.13.1",
-  "dependencies": {
-    "jquery": ">=1.2.6"
-  }
-}
