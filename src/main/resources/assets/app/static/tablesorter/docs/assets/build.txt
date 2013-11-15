@@ -1,9 +1,0 @@
-Album,Artist,Price ($)
-Lateralus,Tool,$13.00
-Aenima,Tool,$12.00
-"10,000 days",Tool,$14.00
-Down In It,Nine Inch Nails,$3.00
-Broken,Nine Inch Nails,$6.00
-Muse,Black Holes and Revelations,$7.00
-Anon,"fake album, with comma", $1.00
-Album,Artist,Price ($)

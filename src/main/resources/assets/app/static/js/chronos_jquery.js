@@ -12,7 +12,6 @@ $(function() {
         type: "PUT",
         url: '/scheduler/job/'+name
       }).done( function(data, textStatus, jqXHR) {
-        location.reload(true);
       }).fail( function(data, textStatus, jqXHR) {
         alert("Could not run " + name);
         location.reload(true);
@@ -29,7 +28,6 @@ $(function() {
         type: "DELETE",
         url: '/scheduler/task/kill/'+name
       }).done( function(data, textStatus, jqXHR) {
-        location.reload(true);
       }).fail( function(data, textStatus, jqXHR) {
         alert("Could not kill " + name);
         location.reload(true);
@@ -336,21 +334,19 @@ $(function() {
     odd        : ''  // even row zebra striping
   });
   // call the tablesorter plugin and apply the uitheme widget
-  $("table").tablesorter({
+  $("#jobtable").tablesorter({
     // this will apply the bootstrap theme if "uitheme" widget is included
     // the widgetOptions.uitheme is no longer required to be set
     theme : "bootstrap",
-
     headerTemplate : '{content} {icon}', // new in v2.7. Needed to add the bootstrap icon!
     // widget code contained in the jquery.tablesorter.widgets.js file
     // use the zebra stripe widget if you plan on hiding any rows (filter widget)
-    widgets : [ "uitheme", "filter", "zebra"],
+    widgets : [ "uitheme", "resizable", "filter", "zebra"],
     widgetOptions : {
       // using the default zebra striping class name, so it actually isn't included in the theme variable above
       // this is ONLY needed for bootstrap theming if you are using the filter widget, because rows are hidden
       zebra : ["even", "odd"],
-      // reset filters button
-      filter_reset : ".reset"
+      resizable_addLastColumn : true
     }
   });
 
@@ -359,6 +355,21 @@ $(function() {
 function isEmail(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
   return regex.test(email);
+}
+
+var entityMap = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': '&quot;',
+  "'": '&#39;',
+  "/": '&#x2F;'
+};
+
+function escapeHtml(string) {
+  return String(string).replace(/[&<>"'\/]/g, function (s) {
+    return entityMap[s];
+  });
 }
 
 function buildResultsTable() {
@@ -379,9 +390,9 @@ function buildResultsTable() {
     var entry50 = entry.stats["median"];
     var trstring =
       ['<tr>',
-       '  <td title="'+name+'">',
+       '  <td title="'+escapeHtml(command)+'">',
        '    <div class="dropdown">',
-       '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+truncate(name, 30)+'</a>',
+       '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+name+'</a>',
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
        '        <li class="btn-group">',
        '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
@@ -391,8 +402,7 @@ function buildResultsTable() {
        '      </ul>',
        '    </div>',
        '  </td>',
-       '  <td title="'+owner+'">'+truncate(owner, 30)+'</td>',
-       '  <td title="'+command+'">'+truncate(command, 30)+'</td>',
+       '  <td title="'+owner+'">'+owner+'</td>',
        '  <td>'+disabled+'</td>',
        '  <td>'+lastStatus+'</td>',
        '  <td>'+successCount+'</td>',
