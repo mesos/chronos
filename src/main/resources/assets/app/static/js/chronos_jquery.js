@@ -357,6 +357,21 @@ function isEmail(email) {
   return regex.test(email);
 }
 
+var entityMap = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': '&quot;',
+  "'": '&#39;',
+  "/": '&#x2F;'
+};
+
+function escapeHtml(string) {
+  return String(string).replace(/[&<>"'\/]/g, function (s) {
+    return entityMap[s];
+  });
+}
+
 function buildResultsTable() {
   var trstrings = [];
   $.each(entries, function(key, entry) {
@@ -375,7 +390,7 @@ function buildResultsTable() {
     var entry50 = entry.stats["median"];
     var trstring =
       ['<tr>',
-       '  <td title="'+command+'">',
+       '  <td title="'+escapeHtml(command)+'">',
        '    <div class="dropdown">',
        '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+name+'</a>',
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
