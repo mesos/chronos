@@ -375,7 +375,7 @@ function buildResultsTable() {
     var entry50 = entry.stats["median"];
     var trstring =
       ['<tr>',
-       '  <td title="'+name+'" class="truncate">',
+       '  <td title="'+name+'">',
        '    <div class="dropdown">',
        '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+name+'</a>',
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
@@ -387,8 +387,8 @@ function buildResultsTable() {
        '      </ul>',
        '    </div>',
        '  </td>',
-       '  <td title="'+owner+'" class="truncate">'+owner+'</td>',
-       '  <td title="'+command+'" class="truncate">'+command+'</td>',
+       '  <td title="'+owner+'">'+owner+'</td>',
+       '  <td title="'+command+'">'+truncate(command, 30)+'</td>',
        '  <td>'+disabled+'</td>',
        '  <td>'+lastStatus+'</td>',
        '  <td>'+successCount+'</td>',
