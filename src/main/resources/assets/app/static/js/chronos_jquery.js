@@ -12,7 +12,6 @@ $(function() {
         type: "PUT",
         url: '/scheduler/job/'+name
       }).done( function(data, textStatus, jqXHR) {
-        location.reload(true);
       }).fail( function(data, textStatus, jqXHR) {
         alert("Could not run " + name);
         location.reload(true);
@@ -29,7 +28,6 @@ $(function() {
         type: "DELETE",
         url: '/scheduler/task/kill/'+name
       }).done( function(data, textStatus, jqXHR) {
-        location.reload(true);
       }).fail( function(data, textStatus, jqXHR) {
         alert("Could not kill " + name);
         location.reload(true);

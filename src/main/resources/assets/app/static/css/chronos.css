@@ -5,7 +5,7 @@
   text-overflow: ellipsis;
 }
 
-td {
+th, td {
   width: 150px;
-  overflow:clip;
+  overflow:hidden;
 }
