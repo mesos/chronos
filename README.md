@@ -388,9 +388,9 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/se
 [arx]: https://github.com/solidsnack/arx
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [json]: http://www.json.org/
-[mesos]: http://incubator.apache.org/mesos/ "Apache Mesos"
+[mesos]: https://mesos.apache.org/ "Apache Mesos"
 [logging]: http://dropwizard.codahale.com/manual/core/#logging
-[Zookeeper]: http://zookeeper.apache.org/
+[Zookeeper]: https://zookeeper.apache.org/
 
 
 ### Install Chronos on Amazon Linux
