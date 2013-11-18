@@ -216,7 +216,7 @@ Once you've generated the hash, send it to Chronos like so:
 * Method: POST
 * Example:
 
-        curl -L -H 'Content-Type: application/json' -X POST -H 'Content-Type: application/json' -d '{json hash}' chronos-node:4400/scheduler/iso8601
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:4400/scheduler/iso8601
 
 * Response: HTTP 204
 
