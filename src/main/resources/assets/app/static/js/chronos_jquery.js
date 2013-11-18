@@ -362,7 +362,6 @@ function buildResultsTable() {
   $.each(entries, function(key, entry) {
     var name = entry.name;
     var owner = entry.owner;
-    var command = entry.command;
     var disabled = entry.disabled;
     var lastStatus = entry.lastStatus;
     var successCount = entry.successCount;
@@ -388,7 +387,6 @@ function buildResultsTable() {
        '    </div>',
        '  </td>',
        '  <td title="'+owner+'">'+owner+'</td>',
-       '  <td title="'+command+'">'+truncate(command, 30)+'</td>',
        '  <td>'+disabled+'</td>',
        '  <td>'+lastStatus+'</td>',
        '  <td>'+successCount+'</td>',
