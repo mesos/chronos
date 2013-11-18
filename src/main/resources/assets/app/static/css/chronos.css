@@ -1,6 +1,11 @@
 .truncate {
-  width: 250px;
+  width: 150px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+td {
+  width: 150px;
+  overflow:clip;
 }
