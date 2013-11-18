@@ -214,7 +214,7 @@ Here is an example job hash:
 Once you've generated the hash, send it to Chronos like so:
 
 * Endpoint: __/scheduler/iso8601__
-* Method: POST
+* Method: __POST__
 * Example:
 
         curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:4400/scheduler/iso8601
@@ -251,7 +251,7 @@ Here is a more elaborate example for a dependency job hash:
     ],
     "retries": 2,
     "successCount": 100
-},
+}
 ```
 
 ### Describing the Dependency Graph
@@ -259,7 +259,7 @@ Here is a more elaborate example for a dependency job hash:
 Chronos allows to describe the dependency graph and has an endpoint to return this graph in form of a dotfile.
 
 * Endpoint: __/scheduler/graph/dot__
-* Method: GET
+* Method: __GET__
 * Example:
 ```bash
     curl -L -X GET chronos-node:4400/scheduler/graph/dot
