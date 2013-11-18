@@ -362,6 +362,7 @@ function buildResultsTable() {
   $.each(entries, function(key, entry) {
     var name = entry.name;
     var owner = entry.owner;
+    var command = entry.command;
     var disabled = entry.disabled;
     var lastStatus = entry.lastStatus;
     var successCount = entry.successCount;
@@ -374,7 +375,7 @@ function buildResultsTable() {
     var entry50 = entry.stats["median"];
     var trstring =
       ['<tr>',
-       '  <td title="'+name+'">',
+       '  <td title="'+command+'">',
        '    <div class="dropdown">',
        '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+name+'</a>',
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
