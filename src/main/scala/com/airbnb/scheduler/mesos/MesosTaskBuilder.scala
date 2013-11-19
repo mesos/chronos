@@ -10,6 +10,7 @@ import org.apache.mesos.Protos.Environment.Variable
 import scala.collection.Map
 import javax.inject.Inject
 import com.airbnb.scheduler.config.SchedulerConfiguration
+import scala.collection.JavaConverters._
 
 /**
  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
@@ -68,14 +69,27 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     } else {
       taskInfo.setCommand(
         if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
-          val uri1 = CommandInfo.URI.newBuilder().setValue(job.command).setExecutable(true).build()
+          val uri1 = CommandInfo.URI.newBuilder()
+            .setValue(job.command)
+            .setExecutable(true).build()
+
           CommandInfo.newBuilder().addUris(uri1)
-            .setValue("\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
+            .setValue("\"." + job.command.substring(
+              job.command.lastIndexOf("/")) + "\"")
             .setEnvironment(environment)
         } else {
-          CommandInfo.newBuilder().setValue(job.command).setEnvironment(environment)
+          val uriProtos = job.uris.map(uri => {
+            CommandInfo.URI.newBuilder()
+              .setValue(uri)
+              .build()
+          })
+          CommandInfo.newBuilder()
+            .setValue(job.command)
+            .setEnvironment(environment)
+            .addAllUris(uriProtos.asJava)
         })
     }
+
     val mem = if (job.mem > 0) job.mem else conf.mesosTaskDisk()
     val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
     val disk = if (job.disk > 0) job.disk else conf.mesosTaskDisk()
@@ -83,7 +97,6 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .addResources(scalarResource(cpusResourceName, cpus, conf.mesosRole()))
       .addResources(scalarResource(memResourceName, mem, conf.mesosRole()))
       .addResources(scalarResource(diskResourceName, disk, conf.mesosRole()))
-
     return taskInfo
   }
 
