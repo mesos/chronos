@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway+Dots" type='text/css'>
     <link rel="stylesheet" href="//jquery.bassistance.de/tooltip/jquery.tooltip.css">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/css/theme.bootstrap.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/chosen/1.0/chosen.min.css">
     <link rel="stylesheet" href="static/css/chronos.css">
 
     <!-- Scripts -->
@@ -18,6 +19,7 @@
     <script src="//jquery.bassistance.de/tooltip/jquery.tooltip.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.13.3/jquery.tablesorter.widgets.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/chosen/1.0/chosen.jquery.min.js"></script>
     <script src="static/js/chronos_jquery.js"></script>
 
   </head>
@@ -73,7 +75,7 @@
               </div>
               <div class="form-group">
                 <label for="commandInput">Command</label>
-                <textarea class="form-control" name="commandInput" id="commandInput" row="3" cols="80">Job Command</textarea>
+                <textarea class="form-control" name="commandInput" id="commandInput" row="3" cols="80"></textarea>
               </div>
               <div class="form-group">
                   <label for="ownerInput">Owner</label>
@@ -112,7 +114,7 @@
               </div>
               <div class="form-group">
                 <label for="newCommandInput">Command</label>
-                <textarea class="form-control" name="newCommandInput" id="newCommandInput" row="3" cols="80">Job Command</textarea>
+                <textarea class="form-control" name="newCommandInput" id="newCommandInput" row="3" cols="80"></textarea>
               </div>
               <div class="form-group">
                 <label for="newOwnerInput">Owner</label>
@@ -120,7 +122,7 @@
               </div>
               <div class="form-group">
                 <label for="newParentsInput">Parents</label>
-                <input type="text" class="form-control" name="newParentsInput" id="newParentsInput" placeholder="job_parent1, job_parent2" value="">
+                <select class="form-control" name="newParentsInput" id="newParentsInput"></select>
               </div>
               <div class="form-group">
                 <div class="col-xs-2">
