@@ -199,29 +199,33 @@ $(function() {
 
   // Set enable/disable readonly toggling on parents / schedule fields.
   $('#parentsInput').change( function() {
-    if ($(this).val().length > 0) {
-      // Disable when it's got content
-      $('#repeatsInput').val('').prop('readonly', true);
-      $('#dateInput').val('').prop('readonly', true);
-      $('#timeInput').val('').prop('readonly', true);
-      $('#periodInput').val('').prop('readonly', true);
-    } else {
-      // Enable when it's empty
-      $('#repeatsInput').prop('readonly', false);
-      $('#dateInput').prop('readonly', false);
-      $('#timeInput').prop('readonly', false);
-      $('#periodInput').prop('readonly', false);
+    if ($('#modificationType').val() != "editing") {
+      if ($(this).val().length > 0) {
+        // Disable when it's got content
+        $('#repeatsInput').val('').prop('readonly', true);
+        $('#dateInput').val('').prop('readonly', true);
+        $('#timeInput').val('').prop('readonly', true);
+        $('#periodInput').val('').prop('readonly', true);
+      } else {
+        // Enable when it's empty
+        $('#repeatsInput').prop('readonly', false);
+        $('#dateInput').prop('readonly', false);
+        $('#timeInput').prop('readonly', false);
+        $('#periodInput').prop('readonly', false);
+      }
     }
   });
 
   $('#repeatsInput, #dateInput, #timeInput, #periodInput').change( function() {
-    if ($(this).val().length > 0) {
-      // Disable when any of them have content
-      $('#parentsInput').val('').prop('readonly', true);
-    }
-    else {
-      // Enable when all of them are empty.
-      $('#parentsInput').prop('readonly', false);
+    if ($('#modificationType').val() != "editing") {
+      if ($(this).val().length > 0) {
+        // Disable when any of them have content
+        $('#parentsInput').val('').prop('readonly', true);
+      }
+      else {
+        // Enable when all of them are empty.
+        $('#parentsInput').prop('readonly', false);
+      }
     }
   });
 
@@ -495,6 +499,7 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
       }
     } else {
       $('#jobModalLabel').html('Create new job');
+      $('#nameInput').prop("readonly", false);
       $('#modificationType').val("creating");
       // Create a scheduled job by default.
       $('#parentsInput').prop("readonly", true);
