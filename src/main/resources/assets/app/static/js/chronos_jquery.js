@@ -46,7 +46,7 @@ $(function() {
     var name = $(this).attr("id").split(".")[1];
     var result = confirm('Running job ' + name + ', click to continue.');
     if (result) {
-      ajaxAction("PUT", "/scheduler/job/"+name, false);
+      ajaxAction("PUT", "/scheduler/job/"+encodeURIComponent(name), false);
     }
   });
 
@@ -54,7 +54,7 @@ $(function() {
     var name = $(this).attr("id").split(".")[1];
     var result = confirm('Killing tasks for job ' + name + ', click to continue.');
     if (result) {
-      ajaxAction("DELETE", "scheduler/task/kill/"+name, false);
+      ajaxAction("DELETE", "scheduler/task/kill/"+encodeURIComponent(name), false);
     }
   });
 
@@ -62,7 +62,7 @@ $(function() {
     var name = $(this).attr("id").split(".")[1];
     var result = confirm('Are you sure you want to delete `' + name + '`?');
     if (result) {
-      ajaxAction("DELETE", "/scheduler/job/"+name, true);
+      ajaxAction("DELETE", "/scheduler/job/"+encodeURIComponent(name), true);
     }
   });
 
@@ -281,11 +281,6 @@ function escapeHtml(string) {
   });
 }
 
-// Extend JQuery to allow us to check if a selector exists
-$.fn.exists = function() {
-  return this.length !== 0;
-}
-
 function secondsToTime(secs) {
   var t = new Date(1970,0,1);
   t.setSeconds(secs);
@@ -293,13 +288,6 @@ function secondsToTime(secs) {
   if(secs > 86399)
     s = Math.floor((t - Date.parse("1/1/70")) / 3600000) + s.substr(2);
   return s;
-}
-
-function truncate(string, n) {
-  if (string.length > n)
-    return string.substring(0, n)+"...";
-  else
-    return string;
 }
 
 function setTotalAndFailingJobs() {
@@ -314,7 +302,6 @@ function setTotalAndFailingJobs() {
   $('#failedJobs').html(failedJobs + " Failing");
 }
 
-
 function genTableEntries() {
   var details = getJobDetails();
   var stats_vals = getJobStats();
@@ -324,7 +311,6 @@ function genTableEntries() {
   }
   return details;
 }
-
 
 function getJobDetails() {
   var job_details = {}; // A hash mapping names to full job JSON blobs
