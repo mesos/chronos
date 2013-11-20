@@ -1,234 +1,79 @@
+function ajaxAction(verb, endpoint, shouldReload) {
+  // Makes the ajax call to specified endpoing using specified verb.
+  // If shouldReload is true, reload the page on success.
+  // Always reload the page on failure.
+  $.ajax({
+    type: verb,
+    url: endpoint
+  }).done( function(data, textStatus, jqXHR) {
+    if (shouldReload) {
+      location.reload(true);
+    }
+  }).fail( function(data, textStatus, jqXHR) {
+    alert("Could not complete a " + verb + " request on endpoint " + endpoint);
+    // Always reload on failure.
+    location.reload(true);
+  });
+}
+
+function populateWithContent(name, isEditing) {
+  var job = entries[name];
+  var command = job["command"];
+  var owner = job["owner"];
+  var parents = job["parents"];
+  var repeats = job["repeats"];
+  var day = job["day"];
+  var time = job["time"];
+  var period = job["period"];
+  var type = job["jobType"]
+  populateJobModal(name, command, owner, parents, repeats, day, time, period, disabled, type, isEditing)
+}
+
 $(function() {
+
+  // The only global scope variable - this is a hash from job_name strings to job objects.
   entries = genTableEntries();
+
   buildResultsTable();
   setTotalAndFailingJobs();
 
+  // Handle dropdown actions.
   $('[id^="run."]').click( function() {
-    var parts = $(this).attr("id").split(".");
-    var name = parts[1];
+    var name = $(this).attr("id").split(".")[1];
     var result = confirm('Running job ' + name + ', click to continue.');
     if (result) {
-      $.ajax({
-        type: "PUT",
-        url: '/scheduler/job/'+name
-      }).done( function(data, textStatus, jqXHR) {
-      }).fail( function(data, textStatus, jqXHR) {
-        alert("Could not run " + name);
-        location.reload(true);
-      });
+      ajaxAction("PUT", "/scheduler/job/"+name, false);
     }
   });
 
   $('[id^="kill."]').click( function() {
-    var parts = $(this).attr("id").split(".");
-    var name = parts[1];
+    var name = $(this).attr("id").split(".")[1];
     var result = confirm('Killing tasks for job ' + name + ', click to continue.');
     if (result) {
-      $.ajax({
-        type: "DELETE",
-        url: '/scheduler/task/kill/'+name
-      }).done( function(data, textStatus, jqXHR) {
-      }).fail( function(data, textStatus, jqXHR) {
-        alert("Could not kill " + name);
-        location.reload(true);
-      });
+      ajaxAction("DELETE", "scheduler/task/kill/"+name, false);
+    }
+  });
+
+  $('[id^="delete."]').click( function() {
+    var name = $(this).attr("id").split(".")[1];
+    var result = confirm('Are you sure you want to delete `' + name + '`?');
+    if (result) {
+      ajaxAction("DELETE", "/scheduler/job/"+name, true);
     }
   });
 
   $('[id^="edit."]').click( function() {
-    var parts = $(this).attr("id").split(".");
-    var name = parts[1];
-    buildEditJobModal(name);
+    var name = $(this).attr("id").split(".")[1];
+    populateWithContent(name, true);
   });
 
-  $('#delete_job').click( function() {
-    var name = prompt('Which job name do you want to delete?');
-    if (!name) {
-      return;
-    }
-    if (!entries[name]) {
-      alert("No such job (" + name + ") exists.");
-      return;
-    }
-    var result = confirm('Are you sure you want to delete `' + name + '`?');
-    if (result) {
-      $.ajax({
-        type: "DELETE",
-        url: '/scheduler/job/'+name,
-      }).done( function(data, textStatus, jqXHR) {
-        location.reload(true);
-      }).fail( function(data, textStatus, jqXHR) {
-        alert("Could not delete " + name);
-        location.reload(true);
-      });
-    }
+  $('[id^="duplicate."]').click( function() {
+    var name = $(this).attr("id").split(".")[1];
+    populateWithContent(name, false);
   });
 
-  $('#editjob-modal-submit').click( function(e) {
-    var job_hash = {};
-    var disabled = ($('#statusInputDisabled').is(":checked") ? true : false);
-    var command = $('#commandInput').val();
-    var name = $('#nameInput').val();
-    var owner = $('#ownerInput').val();
-    var owners = owner.split(",");
-    var brokenOwner = false;
-    $.each(owners, function(i, ownerstring) {
-      if (!isEmail(ownerstring.trim())) {
-        alert("The address " + ownerstring + " does not seem to be valid.");
-        console.log("bad email: " + ownerstring);
-        brokenOwner = true;
-      }
-    });
-    if (brokenOwner) {
-      return;
-    }
-
-    job_hash["async"] = false;
-    job_hash["epsilon"] = "PT30M";
-    job_hash["executor"] = "";
-    job_hash["disabled"] = disabled;
-    job_hash["command"] = command;
-    job_hash["name"] = name;
-    job_hash["owner"] = owner;
-
-    if ($('#parentsInput').exists() && $('#parentsInput').val().length > 0) {
-      job_hash["parents"] = []
-      var splitParents = $('#parentsInput').val().split(",");
-      $.each(splitParents, function(i, parent) {
-        var trimmed_parent = parent.trim();
-        if (!entries[trimmed_parent]) {
-          alert("The parent job " + trimmed_parent + " does not exist.");
-          return;
-        }
-        job_hash["parents"].push(trimmed_parent);
-      });
-      var path = "/scheduler/dependency";
-    } else {
-      var repeats = $('#repeatsInput').val();
-      var date = $('#dateInput').val();
-      var time = $('#timeInput').val();
-      var period = $('#periodInput').val();
-      job_hash["schedule"] = "R"+repeats+"/"+date+"T"+time+"Z/P"+period;
-      var path = "/scheduler/iso8601";
-      var dateRegexp = /^\d{4}-\d{2}-\d{2}$/;
-      var timeRegexp = /^\d{2}:\d{2}:\d{2}$/;
-      var periodRegexp = /^T(\d+[HMSD])+$/;
-
-      if (!dateRegexp.test(date)) {
-        alert("Date must be in YYYY-MM-DD format.");
-        console.log("bad date: " + date);
-        return;
-      }
-      if (!timeRegexp.test(time)) {
-        alert("Time must be in HH:MM:SS format.");
-        console.log("bad time: " + time);
-        return;
-      }
-      if (!periodRegexp.test(period)) {
-        alert("Period must be in T(\\d+[HMS])+ format.");
-        console.log("bad period: " + period);
-        return;
-      }
-    }
-
-
-    request = $.ajax({
-      type: "PUT",
-      url: path,
-      contentType: 'application/json',
-      dataType: 'json',
-      data: JSON.stringify(job_hash)
-    }).done( function() {
-      location.reload(true);
-    }).fail( function(data, textStatus, jqXHR) {
-      alert("Could not edit " + name);
-      location.reload(true);
-    });
-  });
-
-  $('#newjob-modal-submit').click( function(e) {
-    var job_hash = {};
-    var disabled = ($('#newStatusInputDisabled').is(":checked") ? true : false);
-    var command = $('#newCommandInput').val();
-    var name = $('#newNameInput').val();
-    var owner = $('#newOwnerInput').val();
-    var owners = owner.split(",");
-    var brokenOwner = false;
-    $.each(owners, function(i, ownerstring) {
-      if (!isEmail(ownerstring.trim())) {
-        alert("The address " + ownerstring + " does not seem to be valid.");
-        console.log("bad email: " + ownerstring);
-        brokenOwner = true;
-      }
-    });
-    if (brokenOwner) {
-      return;
-    }
-
-    job_hash["async"] = false;
-    job_hash["epsilon"] = "PT30M";
-    job_hash["executor"] = "";
-    job_hash["disabled"] = disabled;
-    job_hash["command"] = command;
-    job_hash["name"] = name;
-    job_hash["owner"] = owner;
-
-    if ($('#newParentsInput').val().length > 0) {
-      job_hash["parents"] = []
-      var splitParents = $('#newParentsInput').val().split(",");
-      $.each(splitParents, function(i, parent) {
-        var trimmed_parent = parent.trim();
-        if (!entries[trimmed_parent]) {
-          alert("The parent job " + trimmed_parent + " does not exist.");
-          return;
-        }
-        job_hash["parents"].push(trimmed_parent);
-      });
-      var path = "/scheduler/dependency";
-    } else {
-      var repeats = $('#newRepeatsInput').val();
-      var date = $('#newDateInput').val();
-      var time = $('#newTimeInput').val();
-      var period = $('#newPeriodInput').val();
-      job_hash["schedule"] = "R"+repeats+"/"+date+"T"+time+"Z/P"+period;
-      var path = "/scheduler/iso8601";
-      var dateRegexp = /^\d{4}-\d{2}-\d{2}$/;
-      var timeRegexp = /^\d{2}:\d{2}:\d{2}$/;
-      var periodRegexp = /^T(\d+[HMSD])+$/;
-
-      if (!dateRegexp.test(date)) {
-        console.log("bad date: " + date);
-        alert("Date must be in YYYY-MM-DD format.");
-        return;
-      }
-      if (!timeRegexp.test(time)) {
-        console.log("bad time: " + time);
-        alert("Time must be in HH:MM:SS format.");
-        return;
-      }
-      if (!periodRegexp.test(period)) {
-        console.log("bad period: " + period);
-        alert("Period must be in T(\\d+[HMS])+ format.");
-        return;
-      }
-    }
-
-    request = $.ajax({
-      type: "POST",
-      url: path,
-      contentType: 'application/json',
-      dataType: 'json',
-      data: JSON.stringify(job_hash)
-    }).done( function() {
-      location.reload(true);
-    }).fail( function(data, textStatus, jqXHR) {
-      alert("Could not create " + name);
-      location.reload(true);
-    });
-  });
-
-  // When you bring up the new job modal, populate it by default with the current time.
-  $('#newJobModal').on('show.bs.modal', function() {
+  // Handle new_job button click.
+  $('#new_job').click( function() {
     var d = new Date();
     var year = d.getUTCFullYear();
     var month = ('0' + (d.getUTCMonth()+1)).slice(-2);
@@ -238,87 +83,146 @@ $(function() {
     var second = ('0' + d.getUTCSeconds()).slice(-2);
     var dstring = year+"-"+month+"-"+day;
     var tstring = hour+":"+minute+":"+second;
-    $('#newDateInput').val(dstring);
-    $('#newTimeInput').val(tstring);
-    $('#newPeriodInput').val("T6H");
-    $('#newParentsInput').prop("disabled", true);
+    populateJobModal("", "", "", "", "", dstring, tstring, "T6H", false, "", false);
   });
 
-  // ADD SLIDEDOWN ANIMATION TO DROPDOWN //
+
+  // Handle modal submission.
+  $('#job-modal-submit').click( function(e) {
+    var job_hash = {};
+    var modificationType = $('#modificationType').val();
+    var verb = ( modificationType === "editing" ? "PUT" : "POST");
+    var path = "/scheduler/";
+    var disabled = ($('#statusInputDisabled').is(":checked") ? true : false);
+    var command = $('#commandInput').val();
+    var name = $('#nameInput').val();
+    var owner = $('#ownerInput').val(); // May be comma separated list.
+    var owners = owner.split(",");
+
+    // Sanity check for proper email addresses.
+    var hasBrokenOwner = false;
+    $.each(owners, function(i, ownerstring) {
+      if (!isEmail(ownerstring.trim())) {
+        alert("The address " + ownerstring + " does not seem to be valid.");
+        console.log("bad email: " + ownerstring);
+        hasBrokenOwner = true;
+      }
+    });
+    if (hasBrokenOwner) {
+      return;
+    }
+
+    // Start to populate the hash we send off to an appropriate endpoint.
+    job_hash["async"] = false;
+    job_hash["epsilon"] = "PT30M";
+    job_hash["executor"] = "";
+    job_hash["disabled"] = disabled;
+    job_hash["command"] = command;
+    job_hash["name"] = name;
+    job_hash["owner"] = owner;
+
+    if ($('#parentsInput').val().length > 0) {
+      // This is a dependent job.
+      job_hash["parents"] = []
+      var splitParents = $('#parentsInput').val().split(",");
+
+      // Sanity test for proper formatted parents.
+      $.each(splitParents, function(i, parent) {
+        var trimmed_parent = parent.trim();
+        if (!entries[trimmed_parent]) {
+          alert("The parent job " + trimmed_parent + " does not exist.");
+          return;
+        }
+        job_hash["parents"].push(trimmed_parent);
+      });
+      path += "dependency";
+
+    } else {
+      // This is a scheduled job.
+      var repeats = $('#repeatsInput').val();
+      var date = $('#dateInput').val();
+      var time = $('#timeInput').val();
+      var period = $('#periodInput').val();
+      job_hash["schedule"] = "R"+repeats+"/"+date+"T"+time+"Z/P"+period;
+      path += "iso8601";
+
+      // Sanity check for proper formatted date/time/period.
+      var dateRegexp = /^\d{4}-\d{2}-\d{2}$/;
+      var timeRegexp = /^\d{2}:\d{2}:\d{2}$/;
+      var periodRegexp = /^T(\d+[HMSD])+$/;
+
+      if (!dateRegexp.test(date)) {
+        alert("Date must be in YYYY-MM-DD format.");
+        console.log("bad date: " + date);
+        return;
+      }
+      if (!timeRegexp.test(time)) {
+        alert("Time must be in HH:MM:SS format.");
+        console.log("bad time: " + time);
+        return;
+      }
+      if (!periodRegexp.test(period)) {
+        alert("Period must be in T(\\d+[HMS])+ format.");
+        console.log("bad period: " + period);
+        return;
+      }
+    }
+    // Make the actual submission request.
+    $.ajax({
+      type: verb,
+      url: path,
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify(job_hash)
+    }).done( function() {
+      location.reload(true);
+    }).fail( function(data, textStatus, jqXHR) {
+      alert("Could not finish " + modificationType + " " + name);
+      location.reload(true);
+    });
+  });
+
+
+  // Add animations to dropdown.
   $('.dropdown').on('show.bs.dropdown', function(e){
     $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
   });
 
-  // ADD SLIDEUP ANIMATION TO DROPDOWN //
   $('.dropdown').on('hide.bs.dropdown', function(e){
     $(this).find('.dropdown-menu').first().stop(true, true).slideUp();
   });
 
-  // If the owners field is focused, clear and invalidate the schedule fields.
-  // If any of the schedule fields are focused, clear and invalidate the owner field
-  $('#newParentsInput').change( function() {
+  // Set enable/disable readonly toggling on parents / schedule fields.
+  $('#parentsInput').change( function() {
     if ($(this).val().length > 0) {
-      $('#newRepeatsInput').val('');
-      $('#newDateInput').val('');
-      $('#newTimeInput').val('');
-      $('#newPeriodInput').val('');
-      $('#newRepeatsInput').prop('disabled', true);
-      $('#newDateInput').prop('disabled', true);
-      $('#newTimeInput').prop('disabled', true);
-      $('#newPeriodInput').prop('disabled', true);
+      // Disable when it's got content
+      $('#repeatsInput').val('').prop('readonly', true);
+      $('#dateInput').val('').prop('readonly', true);
+      $('#timeInput').val('').prop('readonly', true);
+      $('#periodInput').val('').prop('readonly', true);
     } else {
       // Enable when it's empty
-      $('#newRepeatsInput').prop('disabled', false);
-      $('#newDateInput').prop('disabled', false);
-      $('#newTimeInput').prop('disabled', false);
-      $('#newPeriodInput').prop('disabled', false);
-    }
-  });
-  $('#newRepeatsInput').change( function() {
-    if ($(this).val().length > 0) {
-      $('#newParentsInput').val('');
-      $('#newParentsInput').prop('disabled', true);
-    }
-    else {
-      $('#newParentsInput').prop('disabled', false);
-    }
-  }); 
-  $('#newDateInput').change( function() {
-    if ($(this).val().length > 0) {
-      $('#newParentsInput').val('');
-      $('#newParentsInput').prop('disabled', true);
-    }
-    else {
-      $('#newParentsInput').prop('disabled', false);
-    }
-  });
-  $('#newTimeInput').change( function() {
-    if ($(this).val().length > 0) {
-      $('#newParentsInput').val('');
-      $('#newParentsInput').prop('disabled', true);
-    }
-    else {
-      $('#newParentsInput').prop('disabled', false);
-    }
-  }); 
-  $('#newPeriodInput').change( function() {
-    if ($(this).val().length > 0) {
-      $('#newParentsInput').val('');
-      $('#newParentsInput').prop('disabled', true);
-    }
-    else {
-      $('#newParentsInput').prop('disabled', false);
+      $('#repeatsInput').prop('readonly', false);
+      $('#dateInput').prop('readonly', false);
+      $('#timeInput').prop('readonly', false);
+      $('#periodInput').prop('readonly', false);
     }
   });
 
-  // Tooltip settings.
-  $("#jobtable").tooltip({
-    delay:0
+  $('#repeatsInput, #dateInput, #timeInput, #periodInput').change( function() {
+    if ($(this).val().length > 0) {
+      // Disable when any of them have content
+      $('#parentsInput').val('').prop('readonly', true);
+    }
+    else {
+      // Enable when all of them are empty.
+      $('#parentsInput').prop('readonly', false);
+    }
   });
 
+
+  // Construct tablesorter plugin and options.
   $.extend($.tablesorter.themes.bootstrap, {
-    // these classes are added to the table. To see other table classes available,
-    // look here: http://twitter.github.com/bootstrap/base-css.html#tables
     table      : 'table table-bordered',
     header     : 'bootstrap-header', // give the header a gradient background
     footerRow  : '',
@@ -333,23 +237,19 @@ $(function() {
     even       : '', // odd row zebra striping
     odd        : ''  // even row zebra striping
   });
-  // call the tablesorter plugin and apply the uitheme widget
+
   $("#jobtable").tablesorter({
-    // this will apply the bootstrap theme if "uitheme" widget is included
-    // the widgetOptions.uitheme is no longer required to be set
     theme : "bootstrap",
-    headerTemplate : '{content} {icon}', // new in v2.7. Needed to add the bootstrap icon!
-    // widget code contained in the jquery.tablesorter.widgets.js file
-    // use the zebra stripe widget if you plan on hiding any rows (filter widget)
+    headerTemplate : '{content} {icon}',
+    widthFixed: true,
     widgets : [ "uitheme", "resizable", "filter", "zebra"],
     widgetOptions : {
-      // using the default zebra striping class name, so it actually isn't included in the theme variable above
-      // this is ONLY needed for bootstrap theming if you are using the filter widget, because rows are hidden
       zebra : ["even", "odd"],
       resizable_addLastColumn : true
     }
+  }).tooltip({
+    delay: 0
   });
-
 });
 
 function isEmail(email) {
@@ -372,55 +272,12 @@ function escapeHtml(string) {
   });
 }
 
-function buildResultsTable() {
-  var trstrings = [];
-  $.each(entries, function(key, entry) {
-    var name = entry.name;
-    var owner = entry.owner;
-    var command = entry.command;
-    var disabled = entry.disabled;
-    var lastStatus = entry.lastStatus;
-    var successCount = entry.successCount;
-    var errorCount = entry.errorCount;
-    var lastSuccess = entry.lastSuccess.replace("T", " ");
-    var lastError = entry.lastError.replace("T", " ");
-    var entry99 = entry.stats["99thPercentile"];
-    var entry95 = entry.stats["95thPercentile"];
-    var entry75 = entry.stats["75thPercentile"];
-    var entry50 = entry.stats["median"];
-    var trstring =
-      ['<tr>',
-       '  <td title="'+escapeHtml(command)+'">',
-       '    <div class="dropdown">',
-       '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+name+'</a>',
-       '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
-       '        <li class="btn-group">',
-       '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
-       '          <button class="btn btn-warning" title="Modify Job" data-toggle="modal" data-target="#editModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
-       '          <button class="btn btn-danger" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
-       '        </li>',
-       '      </ul>',
-       '    </div>',
-       '  </td>',
-       '  <td title="'+owner+'">'+owner+'</td>',
-       '  <td>'+disabled+'</td>',
-       '  <td>'+lastStatus+'</td>',
-       '  <td>'+successCount+'</td>',
-       '  <td>'+errorCount+'</td>',
-       '  <td>'+lastSuccess+'</td>',
-       '  <td>'+lastError+'</td>',
-       '  <td>'+secondstotime(entry99)+'</td>',
-       '  <td>'+secondstotime(entry95)+'</td>',
-       '  <td>'+secondstotime(entry75)+'</td>',
-       '  <td>'+secondstotime(entry50)+'</td>',
-       '</tr>'].join('\n');
-
-    trstrings.push(trstring)
-  });
-  $('#jobData').html(trstrings.join("\n"));
+// Extend JQuery to allow us to check if a selector exists
+$.fn.exists = function() {
+  return this.length !== 0;
 }
 
-function secondstotime(secs) {
+function secondsToTime(secs) {
   var t = new Date(1970,0,1);
   t.setSeconds(secs);
   var s = t.toTimeString().substr(0,8);
@@ -531,73 +388,91 @@ function getJobStats() {
   return all_stats;
 }
 
-// Allow us to check if a selector exists
-$.fn.exists = function() {
-  return this.length !== 0;
+function buildResultsTable() {
+  var trstrings = [];
+  $.each(entries, function(key, entry) {
+    var name = entry.name;
+    var owner = entry.owner;
+    var command = entry.command;
+    var disabled = entry.disabled;
+    var lastStatus = entry.lastStatus;
+    var successCount = entry.successCount;
+    var errorCount = entry.errorCount;
+    var lastSuccess = entry.lastSuccess.replace("T", " ");
+    var lastError = entry.lastError.replace("T", " ");
+    var entry99 = entry.stats["99thPercentile"];
+    var entry95 = entry.stats["95thPercentile"];
+    var entry75 = entry.stats["75thPercentile"];
+    var entry50 = entry.stats["median"];
+    var trstring =
+      ['<tr>',
+       '  <td title="'+escapeHtml(command)+'">',
+       '    <div class="dropdown">',
+       '      <a href="#" id="dropdown.'+name+'" data-toggle="dropdown">'+name+'</a>',
+       '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
+       '        <li class="btn-group">',
+       '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
+       '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
+       '          <button class="btn btn-info" title="Duplicate Job" data-toggle="modal" data-target="#jobModal" id="duplicate.'+name+'"><span class="glyphicon glyphicon-file"></span></button>',
+       '          <button class="btn btn-warning" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
+       '          <button class="btn btn-danger" title="Delete" id="delete.'+name+'"><span class="glyphicon glyphicon-trash"></span></button>',
+       '        </li>',
+       '      </ul>',
+       '    </div>',
+       '  </td>',
+       '  <td>'+owner+'</td>',
+       '  <td>'+disabled+'</td>',
+       '  <td>'+lastStatus+'</td>',
+       '  <td>'+successCount+'</td>',
+       '  <td>'+errorCount+'</td>',
+       '  <td>'+lastSuccess+'</td>',
+       '  <td>'+lastError+'</td>',
+       '  <td>'+secondsToTime(entry99)+'</td>',
+       '  <td>'+secondsToTime(entry95)+'</td>',
+       '  <td>'+secondsToTime(entry75)+'</td>',
+       '  <td>'+secondsToTime(entry50)+'</td>',
+       '</tr>'].join('\n');
+
+    trstrings.push(trstring)
+  });
+  $('#jobData').html(trstrings.join("\n"));
 }
 
-function buildEditJobModal(name) {
-  $('#editModal').on('show.bs.modal', function() {
-    var job = entries[name];
-    command = job["command"]
-    owner = job["owner"]
-    disabled = job["disabled"]
-    type = job["jobType"]
-    $('#editModalLabel').html('Editing ' + name);
+function populateJobModal(name, command, owner, parents, repeats, day, time, period, disabled, type, isEditing) {
+  $('#jobModal').on('show.bs.modal', function() {
+    // If creating a new job, pass empty strings.
     $('#nameInput').val(name);
     $('#commandInput').val(command);
-    $('#ownerInput').val(owner)
+    $('#ownerInput').val(owner);
+    $('#parents').val(parents);
+    $('#repeats').val(repeats);
+    $('#day').val(day);
+    $('#time').val(time);
+    $('#period').val(period);
     if (disabled) {
       $('#statusInputDisabled').prop("checked", true);
     } else {
       $('#statusInputEnabled').prop("checked", true);
     }
 
-    var parentInputHTML =
-       ['  <label for="parentsInput">Parents</label>',
-        '  <input type="text" class="form-control" name="parentsInput" id="parentsInput" placeholder="job_parent1, job_parent2" value="">'].join('\n');
-    var scheduleInputHTML =
-       ['  <div class="col-xs-2">',
-        '    <label for="repeatsInput">Repeats</label>',
-        '    <input type="text" class="form-control" name="repeatsInput" id="repeatsInput" placeholder="∞" value="">',
-        '  </div>',
-        '  <div class="col-xs-4">',
-        '    <label for="dateInput">Launch Day</label>',
-        '    <input type="date" class="form-control" name="dateInput" id="dateInput" min="2013-01-01" placeholder="YYYY-MM-DD" value="">',
-        '  </div>',
-        '  <div class="col-xs-3">',
-        '    <label for="timeInput">Launch Time</label>',
-        '    <input type="text" class="form-control" name="timeInput" id="timeInput" placeholder="HH:MM:SS" value="">',
-        '  </div>',
-        '  <div class="col-xs-3">',
-        '    <label for="periodInput">Period</label>',
-        '    <input type="text" class="form-control" name="periodInput" id="periodInput" placeholder="T24H or T1D or similar" value="">',
-        '  </div>'].join('\n');
-
-    if (type === "dependent") {
-      parents = job["parents"];
-      $('#customEditFields').html(parentInputHTML);
-      $('#parentsInput').val(parents);
-    } else {
-      $('#customEditFields').html(scheduleInputHTML);
-      schedule = job["schedule"]
-      var parts = schedule.split("/");
-      reps = parts[0].substring(1);
-      datetime = parts[1]; // of the form 2013-10-25T01:00:00.000Z
-      datetime = datetime.slice(0,-1);
-      datetimeparts = datetime.split("T");
-      date = datetimeparts[0];
-
-      time = datetimeparts[1];
-      var dotInd = time.lastIndexOf(".");
-      if (dotInd !== -1) {
-        time = time.substring(0, dotInd);
+    if (isEditing) {
+      // Go through and make some properties readonly.
+      $('#jobModalLabel').html('Editing ' + name);
+      $('#nameInput').prop("readonly", true);
+      $('#modificationType').val("editing");
+      if (type === "dependent") {
+        $('#repeats').prop("readonly", true);
+        $('#day').prop("readonly", true);
+        $('#time').prop("readonly", true);
+        $('#period').prop("readonly", true);
+      } else {
+        $('#parents').prop("readonly", true);
       }
-      period = parts[2].substring(1);
-      $('#repeatsInput').val(reps);
-      $('#dateInput').val(date);
-      $('#timeInput').val(time);
-      $('#periodInput').val(period);
+    } else {
+      $('#jobModalLabel').html('Create new job');
+      $('#modificationType').val("creating");
+      // Create a scheduled job by default.
+      $('#parentsInput').prop("readonly", true);
     }
   });
 }

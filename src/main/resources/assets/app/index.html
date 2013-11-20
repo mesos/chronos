@@ -29,7 +29,7 @@
       <div class="collapse navbar-collapse navbar-ex1-collapse">
         <ul class="nav navbar-nav">
           <li><a href="/" class="navbar-text" style="font-size: 64px; font-family: 'Raleway Dots', cursive;">Chronos </a></li>
-          <li style="margin-left: 10px; margin-top: 20px;"><button type="button" class="btn btn-success navbar-btn" id="new_job" data-toggle="modal" data-target="#newJobModal">New Job</button></li>
+          <li style="margin-left: 10px; margin-top: 20px;"><button type="button" class="btn btn-success navbar-btn" id="new_job" data-toggle="modal" data-target="#jobModal">New Job</button></li>
           <li style="margin-top: 20px;"><button type="button" class="btn btn-danger navbar-btn" id="delete_job">Delete Job</button></li>
           <li style="margin-top: 19px;"><p class=navbar-text><span id="totalJobs" class="label label-primary" style="font-size:20px">Loading...</span></p></li>
           <li style="margin-top: 19px;"><p class=navbar-text><span id="failedJobs" class="label label-danger" style="font-size:20px"></span></p></li>
@@ -38,7 +38,7 @@
     </nav>
 
     <!-- HTML Table -->
-    <table id="jobtable" class="table tablesorter">
+    <table id="jobtable" class="table tablesorter" style="width:auto">
       <thead>
         <tr>
           <th>Name</th>
@@ -60,96 +60,61 @@
       </tbody>
     </table>
 
-    <!-- Edit modal -->
-    <div class="modal fade" id="editModal" role="dialog">
+    <!-- Job modal -->
+    <div class="modal fade" id="jobModal" role="dialog">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" id="editModalLabel">Edit job_name_here</h4>
+            <h4 class="modal-title" id="jobModalLabel">Create new job</h4>
           </div>
-          <form class="form-horizontal" id="editJobForm" role="form">
+          <form class="form-horizontal" id="jobForm" role="form">
             <div class="modal-body">
               <div class="form-group">
-                <input type="hidden" class="form-control" name="nameInput" id="nameInput" placeholder="job_name" value="">
+                <input type="hidden" class="form-control" name="modificationType" id="modificationType" value="">
+              </div>
+              <div class="form-group">
+                <label for="nameInput">Name</label>
+                <input type="text" class="form-control" name="nameInput" id="nameInput" placeholder="job_name" value="">
               </div>
               <div class="form-group">
                 <label for="commandInput">Command</label>
-                <textarea class="form-control" name="commandInput" id="commandInput" row="3" cols="80"></textarea>
+                <textarea class="form-control" name="commandInput" id="commandInput" rows="3" cols="80"></textarea>
               </div>
               <div class="form-group">
-                  <label for="ownerInput">Owner</label>
-                  <input type="email" class="form-control" name="ownerInput" id="ownerInput" placeholder="job_owner" value="">
-              </div>
-              <div class="form-group" id="customEditFields">
-              <!-- JQuery will programatically insert the schedule editing field or parent editing field. -->
+                <label for="ownerInput">Owner</label>
+                <input type="text" class="form-control" name="ownerInput" id="ownerInput" placeholder="job_owner" value="">
               </div>
               <div class="form-group">
-                <label><input type="radio" name="statusInput" id="statusInputEnabled" value="enabled"> Enable Job</label><br>
+                <label for="parentsInput">Parents</label>
+                <input type="text" class="form-control" name="parentsInput" id="parentsInput" placeholder="parents" value="">
+              </div>
+              <div class="form-group">
+                <div class="col-xs-2">
+                  <label for="repeatsInput">Repeats</label>
+                  <input type="text" class="form-control" name="repeatsInput" id="repeatsInput" placeholder="∞" value="">
+                </div>
+                <div class="col-xs-4">
+                  <label for="dateInput">Launch Day</label>
+                  <input type="date" class="form-control" name="dateInput" id="dateInput" min="2013-01-01" placeholder="YYYY-MM-DD" value="">
+                </div>
+                <div class="col-xs-3">
+                  <label for="timeInput">Launch Time</label>
+                  <input type="text" class="form-control" name="timeInput" id="timeInput" placeholder="HH:MM:SS" value="">
+                </div>
+                <div class="col-xs-3">
+                  <label for="periodInput">Period</label>
+                  <input type="text" class="form-control" name="periodInput" id="periodInput" placeholder="T15M" value="T15M">
+                </div>
+              </div>
+              <div class="form-group">
+                <label><input type="radio" name="statusInput" id="statusInputEnabled" value="enabled" checked> Enable Job</label><br>
                 <label><input type="radio" name="statusInput" id="statusInputDisabled" value="disabled"> Disable Job</label>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <input type="submit" id="editjob-modal-submit" data-dismiss="modal" class="btn btn-primary" value="Save Changes">
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- New job modal -->
-    <div class="modal fade" id="newJobModal" role="dialog">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">&times;</button>
-            <h4 class="modal-title" id="newJobModalLabel">Create new job</h4>
-          </div>
-          <form class="form-horizontal" id="newJobForm" role="form">
-            <div class="modal-body">
-              <div class="form-group">
-                <label for="newNameInput">Name</label>
-                <input type="text" class="form-control" name="newNameInput" id="newNameInput" placeholder="job_name" value="">
-              </div>
-              <div class="form-group">
-                <label for="newCommandInput">Command</label>
-                <textarea class="form-control" name="newCommandInput" id="newCommandInput" row="3" cols="80"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="newOwnerInput">Owner</label>
-                <input type="email" class="form-control" name="newOwnerInput" id="newOwnerInput" placeholder="job_owner" value="">
-              </div>
-              <div class="form-group">
-                <label for="newParentsInput">Parents</label>
-                <select class="form-control" name="newParentsInput" id="newParentsInput"></select>
-              </div>
-              <div class="form-group">
-                <div class="col-xs-2">
-                  <label for="newRepeatsInput">Repeats</label>
-                  <input type="text" class="form-control" name="newRepeatsInput" id="newRepeatsInput" placeholder="∞" value="">
-                </div>
-                <div class="col-xs-4">
-                  <label for="newDateInput">Launch Day</label>
-                  <input type="date" class="form-control" name="newDateInput" id="newDateInput" min="2013-01-01" placeholder="YYYY-MM-DD" value="">
-                </div>
-                <div class="col-xs-3">
-                  <label for="newTimeInput">Launch Time</label>
-                  <input type="text" class="form-control" name="newTimeInput" id="newTimeInput" placeholder="HH:MM:SS" value="">
-                </div>
-                <div class="col-xs-3">
-                  <label for="newPeriodInput">Period</label>
-                  <input type="text" class="form-control" name="newPeriodInput" id="newPeriodInput" placeholder="T15M" value="T15M">
-                </div>
-              </div>
-              <div class="form-group">
-                <label><input type="radio" name="newStatusInput" id="newStatusInputEnabled" value="enabled" checked> Enable Job</label><br>
-                <label><input type="radio" name="newStatusInput" id="newStatusInputDisabled" value="disabled"> Disable Job</label>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <input type="submit" id="newjob-modal-submit" data-dismiss="modal" class="btn btn-primary" value="Create">
+              <input type="submit" id="job-modal-submit" data-dismiss="modal" class="btn btn-primary" value="Save">
             </div>
           </form>
         </div>
