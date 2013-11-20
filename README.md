@@ -1,17 +1,20 @@
 # Chronos
 
-Chronos is airbnb's replacement for `cron`.
-It is a distributed and fault-tolerant scheduler which runs on top of [mesos][mesos]. You can use it to orchestrate jobs. It's a framework and supports custom
-[mesos][mesos] executors as well as the default command executor. Thus by default, Chronos executes sh (on most systems bash) scripts.
-Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if the mesos slaves on which execution happens
-do not have Hadoop installed. Included wrapper scripts allow transfering files and executing them on a remote machine in the background
-and using asynchronous callbacks to notify Chronos of job completion or failures.
+Chronos is Airbnb's replacement for `cron`.
+It is a distributed and fault-tolerant scheduler that runs on top of [Apache Mesos][mesos].
+You can use it to orchestrate jobs. It supports custom Mesos executors as well
+as the default command executor. Thus by default, Chronos executes `sh`
+(on most systems bash) scripts. Chronos can be used to interact with systems
+such as Hadoop (incl. EMR), even if the Mesos slaves on which execution happens
+do not have Hadoop installed. Included wrapper scripts allow transfering files
+and executing them on a remote machine in the background and using asynchronous
+callbacks to notify Chronos of job completion or failures.
 
 Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling.
 Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
 
-**Try out the interactive and personalized [tutorial for chronos](http://mesosphere.io/learn/run-chronos-on-mesos/).**
+**Try out the interactive and personalized [tutorial for Chronos](http://mesosphere.io/learn/run-chronos-on-mesos/).**
 
 For questions and discussions around Chronos, please use the Google Group "chronos-scheduler":
 [Chronos Scheduler Group](https://groups.google.com/forum/#!forum/chronos-scheduler).
@@ -48,9 +51,7 @@ Also join us on IRC in #mesos on freenode.
 
 
 
-
-
-If you get an error while compiling [mesos][mesos], please consult the [FAQ](docs/FAQ.md).
+If you get an error while compiling Mesos, please consult the [FAQ](docs/FAQ.md).
 
 ## Features
 
@@ -72,7 +73,7 @@ basic syntax for launching chronos is:
 Please note that you need to have both mesos and zookeeper running for this to work!
 
 For more information on configuration options, please see [configuring
-chronos](#configuring-chronos).
+Chronos](#configuring-chronos).
 
 ### Example Run Scripts
 
@@ -194,7 +195,7 @@ The JSON hash you send to Chronos should contain the following fields:
     * Number of times to repeat the job; put just 'R' to repeat forever
     * The start time of the job
     * The run interval
-* Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval.
+* Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
 
@@ -213,10 +214,10 @@ Here is an example job hash:
 Once you've generated the hash, send it to Chronos like so:
 
 * Endpoint: __/scheduler/iso8601__
-* Method: POST
+* Method: __POST__
 * Example:
 
-        curl -L -H 'Content-Type: application/json' -X POST -H 'Content-Type: application/json' -d '{json hash}' chronos-node:4400/scheduler/iso8601
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:4400/scheduler/iso8601
 
 * Response: HTTP 204
 
@@ -250,7 +251,7 @@ Here is a more elaborate example for a dependency job hash:
     ],
     "retries": 2,
     "successCount": 100
-},
+}
 ```
 
 ### Describing the Dependency Graph
@@ -258,7 +259,7 @@ Here is a more elaborate example for a dependency job hash:
 Chronos allows to describe the dependency graph and has an endpoint to return this graph in form of a dotfile.
 
 * Endpoint: __/scheduler/graph/dot__
-* Method: GET
+* Method: __GET__
 * Example:
 ```bash
     curl -L -X GET chronos-node:4400/scheduler/graph/dot
@@ -388,9 +389,9 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/se
 [arx]: https://github.com/solidsnack/arx
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [json]: http://www.json.org/
-[mesos]: http://incubator.apache.org/mesos/ "Apache Mesos"
+[mesos]: https://mesos.apache.org/ "Apache Mesos"
 [logging]: http://dropwizard.codahale.com/manual/core/#logging
-[Zookeeper]: http://zookeeper.apache.org/
+[Zookeeper]: https://zookeeper.apache.org/
 
 
 ### Install Chronos on Amazon Linux
@@ -407,28 +408,21 @@ Follow these steps to install Chronos on Amazon Linux:
 
 ##### Build and Install Mesos
 
-Please note, some versions of OpenJDK 1.6 have a bug which prevents you from building chronos. If you encounter an error while building that seems to not stem
+Please note, some versions of OpenJDK 1.6 have a bug which prevents you from building Chronos. If you encounter an error while building that seems to not stem
 from Chronos code but rather from some Scala classes, consider upgrading to OpenJDK 1.7.
 
 	git clone https://github.com/apache/mesos.git
-
 	cd mesos/
-
 	git checkout 0.12.x
-
 	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/
-
 	./bootstrap
-
 	./configure --with-webui --with-included-zookeeper --disable-perftools
-
 	make
-
 	sudo make install
 
 ##### Build Chronos
 
-Install node first. On OSX, try `brew install node`.
+Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`.
 
 Next, try
 
@@ -437,4 +431,3 @@ Next, try
 	cd chronos
 	mvn package
 	java -cp target/chronos*.jar com.airbnb.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts=localhost:2181
-
