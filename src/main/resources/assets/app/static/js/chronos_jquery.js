@@ -39,6 +39,7 @@ $(function() {
   entries = genTableEntries();
 
   buildResultsTable();
+  setParentsSelectorOptions();
   setTotalAndFailingJobs();
 
   // Handle dropdown actions.
@@ -128,18 +129,7 @@ $(function() {
 
     if ($('#parentsInput').val().length > 0) {
       // This is a dependent job.
-      job_hash["parents"] = []
-      var splitParents = $('#parentsInput').val().split(",");
-
-      // Sanity test for proper formatted parents.
-      $.each(splitParents, function(i, parent) {
-        var trimmed_parent = parent.trim();
-        if (!entries[trimmed_parent]) {
-          alert("The parent job " + trimmed_parent + " does not exist.");
-          return;
-        }
-        job_hash["parents"].push(trimmed_parent);
-      });
+      job_hash["parents"] = $('#parentsInput').val();
       path += "dependency";
 
     } else {
@@ -220,7 +210,8 @@ $(function() {
     if ($('#modificationType').val() != "editing") {
       if ($(this).val().length > 0) {
         // Disable when any of them have content
-        $('#parentsInput').val('').prop('readonly', true);
+        $('#parentsInput :selected').prop('selected', false);
+        $('#parentsInput').prop('readonly', true);
       }
       else {
         // Enable when all of them are empty.
@@ -433,13 +424,23 @@ function buildResultsTable() {
   $('#jobData').html(trstrings.join("\n"));
 }
 
+function setParentsSelectorOptions() {
+  var optionStrings = ["<option value></option>"];
+  $.each(entries, function(key, entry) {
+    var name = entry.name;
+    var optionString = "<option value='"+name+"'>"+name+"</option>";
+    optionStrings.push(optionString);
+  });
+  $('#parentsInput').html(optionsStrings.join("\n"));
+}
+
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing) {
   $('#jobModal').on('show.bs.modal', function() {
     // If creating a new job, pass empty strings.
     $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner);
-    $('#parentsInput').val(parents);
+    $('#parentsInput').val(parents.split(","));
     // Parse the schedule string into repeats, date, time, period
     if (type === "scheduled") {
       var parts = schedule.split("/");
