@@ -87,7 +87,7 @@ Chronos](#configuring-chronos).
 
 ## Configuring Chronos
 
-For information on configuring chronos, please see [config/README.md](config/README.md).
+For information on configuring chronos, please see [docs/CONFIG.md](docs/CONFIG.md).
 
 ## License
 
