@@ -454,7 +454,7 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
     if (type === "scheduled") {
       var parts = schedule.split("/");
       var repeats = parts[0].substring(1);
-      var datetime = parts[1].slite(0,-1);
+      var datetime = parts[1].slice(0,-1);
       var datetimeparts = datetime.split("T");
       var date = datetimeparts[0];
       var time = datetimeparts[1];
