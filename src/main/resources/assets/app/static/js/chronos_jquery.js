@@ -250,6 +250,10 @@ $(function() {
   }).tooltip({
     delay: 0
   });
+
+
+  $("#parentsInput").chosen({no_results_text: "Oops, nothing found!"});
+
 });
 
 function isEmail(email) {
@@ -431,7 +435,7 @@ function setParentsSelectorOptions() {
     var optionString = "<option value='"+name+"'>"+name+"</option>";
     optionStrings.push(optionString);
   });
-  $('#parentsInput').html(optionsStrings.join("\n"));
+  $('#parentsInput').html(optionStrings.join("\n"));
 }
 
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing) {
