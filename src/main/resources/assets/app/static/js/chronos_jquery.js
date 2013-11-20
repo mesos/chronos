@@ -22,6 +22,7 @@ function populateWithContent(name, isEditing) {
   var owner = job["owner"];
   var parents = job["parents"];
   var schedule = job["schedule"];
+  var disabled = job["disabled"];
   var type = job["jobType"]
   if (parents === undefined) {
     parents = "";
