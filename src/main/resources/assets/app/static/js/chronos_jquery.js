@@ -23,6 +23,12 @@ function populateWithContent(name, isEditing) {
   var parents = job["parents"];
   var schedule = job["schedule"];
   var type = job["jobType"]
+  if (parents === undefined) {
+    parents = "";
+  }
+  if (schedule === undefined) {
+    schedule = "";
+  }
   populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing)
 }
 
@@ -444,22 +450,29 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
     $('#ownerInput').val(owner);
     $('#parentsInput').val(parents);
     // Parse the schedule string into repeats, date, time, period
-    var parts = schedule.split("/");
-    var repeats = parts[0].substring(1);
-    var datetime = parts[1].slite(0,-1);
-    var datetimeparts = datetime.split("T");
-    var date = datetimeparts[0];
-    var time = datetimeparts[1];
-    var dotInd = time.lastIndexOf(".");
-    if (dotInd !== -1) {
-      time = time.substring(0, dotInd);
-    }
-    var period = parts[2].substring(1);
+    if (type === "scheduled") {
+      var parts = schedule.split("/");
+      var repeats = parts[0].substring(1);
+      var datetime = parts[1].slite(0,-1);
+      var datetimeparts = datetime.split("T");
+      var date = datetimeparts[0];
+      var time = datetimeparts[1];
+      var dotInd = time.lastIndexOf(".");
+      if (dotInd !== -1) {
+        time = time.substring(0, dotInd);
+      }
+      var period = parts[2].substring(1);
 
-    $('#repeatsInput').val(repeats);
-    $('#dateInput').val(date);
-    $('#timeInput').val(time);
-    $('#periodInput').val(period);
+      $('#repeatsInput').val(repeats);
+      $('#dateInput').val(date);
+      $('#timeInput').val(time);
+      $('#periodInput').val(period);
+    } else {
+      $('#repeatsInput').val("");
+      $('#dateInput').val("");
+      $('#timeInput').val("");
+      $('#periodInput').val("");
+    }
     if (disabled) {
       $('#statusInputDisabled').prop("checked", true);
     } else {
