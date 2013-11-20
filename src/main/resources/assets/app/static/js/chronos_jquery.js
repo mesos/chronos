@@ -21,12 +21,9 @@ function populateWithContent(name, isEditing) {
   var command = job["command"];
   var owner = job["owner"];
   var parents = job["parents"];
-  var repeats = job["repeats"];
-  var day = job["day"];
-  var time = job["time"];
-  var period = job["period"];
+  var schedule = job["schedule"];
   var type = job["jobType"]
-  populateJobModal(name, command, owner, parents, repeats, day, time, period, disabled, type, isEditing)
+  populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing)
 }
 
 $(function() {
@@ -83,7 +80,8 @@ $(function() {
     var second = ('0' + d.getUTCSeconds()).slice(-2);
     var dstring = year+"-"+month+"-"+day;
     var tstring = hour+":"+minute+":"+second;
-    populateJobModal("", "", "", "", "", dstring, tstring, "T6H", false, "", false);
+    var schedule = "R/"+dstring+"T"+tstring+"Z/PT6H";
+    populateJobModal("", "", "", "", schedule, false, "scheduled", false);
   });
 
 
@@ -438,17 +436,30 @@ function buildResultsTable() {
   $('#jobData').html(trstrings.join("\n"));
 }
 
-function populateJobModal(name, command, owner, parents, repeats, day, time, period, disabled, type, isEditing) {
+function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing) {
   $('#jobModal').on('show.bs.modal', function() {
     // If creating a new job, pass empty strings.
     $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner);
-    $('#parents').val(parents);
-    $('#repeats').val(repeats);
-    $('#day').val(day);
-    $('#time').val(time);
-    $('#period').val(period);
+    $('#parentsInput').val(parents);
+    // Parse the schedule string into repeats, date, time, period
+    var parts = schedule.split("/");
+    var repeats = parts[0].substring(1);
+    var datetime = parts[1].slite(0,-1);
+    var datetimeparts = datetime.split("T");
+    var date = datetimeparts[0];
+    var time = datetimeparts[1];
+    var dotInd = time.lastIndexOf(".");
+    if (dotInd !== -1) {
+      time = time.substring(0, dotInd);
+    }
+    var period = parts[2].substring(1);
+
+    $('#repeatsInput').val(repeats);
+    $('#dateInput').val(date);
+    $('#timeInput').val(time);
+    $('#periodInput').val(period);
     if (disabled) {
       $('#statusInputDisabled').prop("checked", true);
     } else {
@@ -461,12 +472,12 @@ function populateJobModal(name, command, owner, parents, repeats, day, time, per
       $('#nameInput').prop("readonly", true);
       $('#modificationType').val("editing");
       if (type === "dependent") {
-        $('#repeats').prop("readonly", true);
-        $('#day').prop("readonly", true);
-        $('#time').prop("readonly", true);
-        $('#period').prop("readonly", true);
+        $('#repeatsInput').prop("readonly", true);
+        $('#dateInput').prop("readonly", true);
+        $('#timeInput').prop("readonly", true);
+        $('#periodInput').prop("readonly", true);
       } else {
-        $('#parents').prop("readonly", true);
+        $('#parentsInput').prop("readonly", true);
       }
     } else {
       $('#jobModalLabel').html('Create new job');
