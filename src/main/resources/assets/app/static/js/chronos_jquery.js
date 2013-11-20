@@ -46,7 +46,7 @@ $(function() {
     var name = $(this).attr("id").split(".")[1];
     var result = confirm('Running job ' + name + ', click to continue.');
     if (result) {
-      ajaxAction("PUT", "/scheduler/job/"+encodeURIComponent(name), false);
+      ajaxAction("PUT", "/scheduler/job/"+name, false);
     }
   });
 
@@ -54,7 +54,7 @@ $(function() {
     var name = $(this).attr("id").split(".")[1];
     var result = confirm('Killing tasks for job ' + name + ', click to continue.');
     if (result) {
-      ajaxAction("DELETE", "scheduler/task/kill/"+encodeURIComponent(name), false);
+      ajaxAction("DELETE", "scheduler/task/kill/"+name, false);
     }
   });
 
@@ -62,7 +62,7 @@ $(function() {
     var name = $(this).attr("id").split(".")[1];
     var result = confirm('Are you sure you want to delete `' + name + '`?');
     if (result) {
-      ajaxAction("DELETE", "/scheduler/job/"+encodeURIComponent(name), true);
+      ajaxAction("DELETE", "/scheduler/job/"+name, true);
     }
   });
 
