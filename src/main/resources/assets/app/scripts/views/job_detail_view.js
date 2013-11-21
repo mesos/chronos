@@ -269,9 +269,9 @@ function($,
     },
 
     highlightValidationError: function(error, errorName) {
-      console.log('highlightValidationError', error, errorName);
       var $form = this.$('form'),
-          $el;
+          $el,
+          $parent;
 
       if (_.isArray(error) && (error.length === 1)) {
         error = error[0];
@@ -284,9 +284,9 @@ function($,
         $parent = $el.parents('.control-group').first().addClass('error');
 
         if (error !== true) {
-          $parent.find('.help-inline').text(error);
+          $parent.find('.help-inline').text(error).removeClass('hide');
         }
-      };
+      }
     },
 
     createError: function(model, jqXhr, options) {
