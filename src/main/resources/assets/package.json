@@ -53,7 +53,7 @@
       "tests/mocha": "github:visionmedia/mocha/1.8.1",
       "backbone.validations": "github:n-time/backbone.validations/master",
       "raphael": "github:DmitryBaranovskiy/raphael/v2.1.0",
-      "morris": "github:oesmith/morris.js/0.4.1",
+      "morris": "github:oesmith/morris.js/0.4.1"
     }
   }
 }
