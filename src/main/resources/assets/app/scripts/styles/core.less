@@ -1,5 +1,3 @@
-body {}
-
 .chronos {
   overflow: hidden;
 }
@@ -42,7 +40,6 @@ textarea::-webkit-input-placeholder {
   position: absolute;
   bottom: 0;
   padding-bottom: 35px;
-  /*border-top: 1px solid rgba(255,255,255,0.7);*/
 }
 
 .left .width {
@@ -63,7 +60,6 @@ textarea::-webkit-input-placeholder {
 .nav-list .badge {
   margin-top: 1px;
   padding-top: 1px;
-  /*box-shadow: inset 0 2px 2px rgba(0,0,0,0.8);*/
   background-color: rgba(255,255,255,0.2);
 }
 
@@ -87,7 +83,6 @@ textarea::-webkit-input-placeholder {
   text-transform: uppercase;
   font-weight: bold;
   text-shadow: none;
-  /*background: rgba(0,0,0,0.5);*/
   cursor: pointer;
 }
 
@@ -209,7 +204,6 @@ textarea::-webkit-input-placeholder {
 .box.light {
   background-color: rgba(255,255,255,0.5);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
-  /*box-shadow: 0 2px 40px rgba(255,255,255,0.7);*/
 }
 
 #logo {
@@ -336,66 +330,7 @@ textarea::-webkit-input-placeholder {
   box-sizing: border-box; 
 }
 
-.timeline {
-  height: 100%;
-  border-top: 1px solid rgba(255,255,255,0.6);
-  border-bottom: 1px solid rgba(255,255,255,0.6);
-  background: rgba(255,255,255,0.8);
-  position: relative;
-  min-height: 550px !important;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;    
-  box-sizing: border-box; 
-}
-
-#scrubber {
-  position: absolute;
-  height: 101%;
-  width: 1px;
-  border: 1px solid rgba(0,143,213,1);
-  left: 20%;
-  top: -1%;
-  background: rgba(0,143,213,1);
-  border-radius: 20px;
-  /*box-shadow: 1px 1px 2px rgba(66,66,66,0.3);*/
-}
-
-.chronos-wrapper.blue #scrubber {
-  background: rgba(242,69,19,1);
-  border: 1px solid rgba(242,69,19,1);
-  border-left: 1px solid rgba(242,69,19,0.1);
-  border-right: 1px solid rgba(242,69,19,0.1);
-}
-
-#scrubber:hover {
-  cursor: move;
-}
-
-#scrubber-marker {
-  /*width: 80px;*/
-  /*height: 30px;*/
-  background-color: #333;
-  border: 1px solid #222;
-  position: relative;
-  top: -32px;
-  font-weight: bold;
-  text-align: center;
-  left: -51%;
-  display: table-cell;
-  vertical-align: middle;
-  border-radius: 5px;
-  box-shadow: 1px 1px 7px rgba(0,0,0,0.7);
-}
-
-#scrubber-time {
-  color: white;
-  display: table-cell;
-  padding: 0 8px;
-  text-shadow: 0 -1px rgba(0,0,0,0.9);
-}
-
 .table-wrapper {
-  /*background: black;*/
   position: absolute;
   width: 100%;
   height: 100%;
@@ -409,7 +344,6 @@ textarea::-webkit-input-placeholder {
 
 .table2 {
   height: 2000px;
-  /*background-color: pink;*/
 }
 
 .new-job-form {
@@ -435,11 +369,6 @@ textarea::-webkit-input-placeholder {
 
 .lightbox {
   z-index: 9999;
-}
-
-.axis-1 {
-  height: 45px;
-  background: rgba(255,255,255,0.5);
 }
 
 .full {
@@ -479,8 +408,6 @@ textarea::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.6);
   background-color: rgba(255,255,255,0.2);
   overflow: hidden;
-  padding-bottom: 0;
-  display: block;
   margin-bottom: 1px;
 }
 
@@ -501,19 +428,12 @@ textarea::-webkit-input-placeholder {
 }
 
 .job-name,
-.item .span2,
-.item .span10 {
-  line-height: 46px;
-}
-
-.job-name,
 .item .span2 {
-  padding-left: 7px;
+  padding: 0 7px;
   overflow: hidden;
   height: 46px;
+  line-height: 46px;
   position: relative;
-  padding-top: 0;
-  padding-right: 10px;
 }
 
 .job-name.hover {
@@ -842,10 +762,6 @@ textarea::-webkit-input-placeholder {
   font-size: 1.5em;
 }
 
-/*.sched .repeats.small-input {*/
-  /*width: 16%;*/
-/*}*/
-
 .sched .break {
   width: 10px;
   padding-top: 10px;
@@ -856,8 +772,4 @@ textarea::-webkit-input-placeholder {
   text-transform: none;
   white-space: normal;
   word-wrap: break-word;
-}
-
-.hidden {
-  display: none;
 }
