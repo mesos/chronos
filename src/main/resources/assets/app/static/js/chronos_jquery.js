@@ -20,7 +20,7 @@ function populateWithContent(name, isEditing) {
   var job = entries[name];
   var command = job["command"];
   var owner = job["owner"];
-  var parents = job["parents"];
+  var parents = job["parents"]; // parents is an array of strings
   var schedule = job["schedule"];
   var disabled = job["disabled"];
   var type = job["jobType"]
@@ -447,7 +447,7 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
     $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner);
-    $('#parentsInput').val(parents.split(","));
+    $('#parentsInput').val(parents);
     // Parse the schedule string into repeats, date, time, period
     if (type === "scheduled") {
       var parts = schedule.split("/");
