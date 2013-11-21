@@ -7,8 +7,12 @@
     "camelcase": true,
     "curly": true,
     "eqeqeq": true,
+    "globals": {
+        "define": false,
+        "require": false
+    },
     "immed": true,
-    "indent": 4,
+    "indent": 2,
     "latedef": true,
     "newcap": true,
     "noarg": true,
