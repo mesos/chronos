@@ -1,14 +1,16 @@
 /**
  * Base Job Model
- *
  */
 define([
+  'jquery',
   'backbone',
   'underscore',
   'moment',
   'validations/base_job'
 ],
-function(Backbone, _, moment, BaseJobValidations) {
+function($, Backbone, _, moment, BaseJobValidations) {
+
+  'use strict';
 
   var slice = Array.prototype.slice,
       BaseWhiteList,
@@ -88,13 +90,6 @@ function(Backbone, _, moment, BaseJobValidations) {
       var formatStats = function(stats) {
         return _.reduce(stats, function(memo, v, k) {
           var key = k;
-          /*
-          if (k.toLocaleLowerCase().indexOf('percentile') >= 0) {
-            key = [
-              k.split('th')[0], 'th', ' Percentile'
-            ].join('');
-          }
-          */
           memo[key] = v;
           return memo;
         }, {});
@@ -127,29 +122,24 @@ function(Backbone, _, moment, BaseJobValidations) {
       this.set({schedule: schedule}, {silent: true});
     },
 
-    validate: function(attributes, options) {
-      return "cannot validate base jobs";
-    },
-
     run: function(options) {
       return this.sync('run', this, options);
     },
 
     sync: function(method, model, options) {
-      var _options,
-          syncUrl,
+      var syncUrl,
           _method = method;
 
       if (method === 'run') { _method = 'update'; }
       switch (method) {
-        case 'delete':
-        case 'run':
-          syncUrl = this.url('put');
-          options.data = null;
-          break;
-        default:
-          syncUrl = this.url();
-          break;
+      case 'delete':
+      case 'run':
+        syncUrl = this.url('put');
+        options.data = null;
+        break;
+      default:
+        syncUrl = this.url();
+        break;
       }
 
       return Backbone.sync.apply(this, [
