@@ -37,7 +37,7 @@ function(Backbone, _, moment, BaseJobValidations) {
         startDate: moment.utc(d).format('YYYY-MM-DD'),
         repeats: '',
         duration: 'T24H',
-        epsilon: 'PT15M',
+        epsilon: 'PT30M',
         command: '-',
         schedule: '-',
         parents: [],
