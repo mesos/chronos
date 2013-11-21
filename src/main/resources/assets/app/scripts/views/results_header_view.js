@@ -1,18 +1,13 @@
 /**
  * Results Header View
- *
  */
 define([
-         'jquery',
-         'backbone',
-         'underscore',
-         'hbs!templates/results_header_view'
-       ],
-       function($, Backbone, _, ResultsHeaderViewTpl) {
+  'jquery',
+  'backbone',
+  'hbs!templates/results_header_view'
+], function($, Backbone, ResultsHeaderViewTpl) {
 
-  var ResultsHeaderView;
-
-  ResultsHeaderView = Backbone.View.extend({
+  var ResultsHeaderView = Backbone.View.extend({
     el: '.results-header',
 
     template: ResultsHeaderViewTpl,
@@ -29,14 +24,14 @@ define([
     },
 
     toggleLastRun: function(event) {
-      var $el = $(event.target);
+      var $el = $(event.currentTarget);
 
       $el.find('.toggle').toggle();
       app.resultsCollection.trigger('toggle:lastRun');
     },
 
     toggleName: function(event) {
-      var $el = $(event.target);
+      var $el = $(event.currentTarget);
 
       $el.find('.down').toggle();
       $el.find('.up').toggle();
