@@ -41,6 +41,8 @@ Please note, this must be a jar file version that's available from one of the re
 
 ## My Web UI is not showing up!
 
+For asset bundeling, you need node installed. If you're seeing a 403 when trying to access the web-ui, it's likely that node was not present during the `mvn package` step.
+
 See [docs/WEBUI.md](/docs/WEBUI.md).
 
 ## When running jobs locally I get an error like `Failed to execute 'chown -R'`
