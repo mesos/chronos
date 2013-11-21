@@ -36,13 +36,7 @@
         ]
       },
       {
-        name: "styles",
-        include: [
-          "fonts"
-        ]
-      },
-      {
-        name: "fonts"
+        name: "styles"
       }
     ]
 })

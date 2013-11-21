@@ -25,8 +25,6 @@ require.config({
     'jquery/fastLiveFilter' : 'vendor/jquery/jquery.fastLiveFilter',
     'coffee-script'         : 'vendor/coffee-script',
     'cs'                    : 'vendor/cs',
-    'propertyParser'        : 'vendor/requirejs-plugins/src/propertyParser',
-    'font'                  : 'vendor/requirejs-plugins/src/font',
     'mousetrap'             : 'vendor/mousetrap',
     'mocha'                 : 'vendor/tests/mocha',
     'chai'                  : 'vendor/tests/chai',
@@ -111,7 +109,7 @@ require.config({
   }
 });
 
-require(['styles', 'fonts'], function(){});
+require(['styles'], function(){});
 
 require([
   'jquery',
