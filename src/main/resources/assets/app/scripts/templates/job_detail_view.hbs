@@ -11,10 +11,7 @@
       </div>
     </div>
 
-    <div class="row-fluid control-group job-detail-row job-detail job-detail-tooltip no-edit"
-         data-toggle="tooltip"
-         data-title="Name of the job"
-         data-placement="bottom">
+    <div class="row-fluid control-group job-detail-row job-detail no-edit">
       <div class="detail">Name</div>
       <div class="display hightlight line-height job-name name" data-rv-text="job.name">{{name}}</div>
       <div class="field cmd">
@@ -26,7 +23,7 @@
     <div class="row-fluid control-group job-detail-row job-detail job-detail-tooltip"
          data-toggle="tooltip"
          data-html="true"
-         data-title="Command<br>The command for the executor to run."
+         data-title="Command for the executor to run."
          data-placement="bottom">
       <div class="detail">Command</div>
       <div class="display hightlight cmd command"
@@ -74,7 +71,7 @@
         </div>
 
         <div class="control-group job-detail job-detail-tooltip"
-             data-title="This is the mesos executor to use. Note, this can be a path that needs to be available on the mesos slave or it can be left blank in which case the shell-executor is assumed. The executor will receive the string specified in the command field."
+             data-title="Mesos executor to use. This can be a path that needs to be available on the Mesos slave, or it can be left blank in which case the shell-executor is assumed. The executor will receive the string specified in the command field."
              data-toggle="tooltip"
              data-placement="bottom">
           <div class="detail">Executor</div>
@@ -198,7 +195,7 @@
         <div class="field cmd epsilon control-group">
           <input class="job-input" value="{{epsilon}}" name="epsilon" tabindex="10"
             data-rv-value="job.epsilon"
-            data-title="Epsilon<br>Amount of time after a failure within which to retry the job."
+            data-title="Amount of time after a failure within which to retry the job."
             data-html="true"
             data-toggle="tooltip">
 
