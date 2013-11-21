@@ -89,7 +89,7 @@ $(function() {
     var dstring = year+"-"+month+"-"+day;
     var tstring = hour+":"+minute+":"+second;
     var schedule = "R/"+dstring+"T"+tstring+"Z/PT6H";
-    populateJobModal("", "", "", "", schedule, false, "scheduled", false);
+    populateJobModal("", "", "", [], schedule, false, "scheduled", false);
   });
 
 
@@ -253,8 +253,7 @@ $(function() {
 
 
   $(".chosen-select").chosen({
-    no_results_text: "Oops, nothing found!",
-    width: "95%"
+    no_results_text: "Oops, nothing found!"
   });
 
 });
@@ -447,7 +446,9 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
     $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner);
-    $('#parentsInput').val(parents);
+    $.each(parents, function(index, value) {
+      $('#parentsInput').find('option[value="'+ value +'"]').prop("selected", true);
+    }
     // Parse the schedule string into repeats, date, time, period
     if (type === "scheduled") {
       var parts = schedule.split("/");
