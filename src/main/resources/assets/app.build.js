@@ -13,13 +13,6 @@
     ],
     findNestedDependencies: true,
     optimize: "uglify",
-    closure: {
-      CompilerOptions: {
-      },
-      charset: 'UTF-8',
-      CompilationLevel: 'SIMPLE_OPTIMIZATIONS',
-      loggingLevel: 'SEVERE'
-    },
     fileExclusionRegExp: /^\.|spec|tests/,
     optimizeCss: "standard.keepLines",
     generateSourceMaps: false,
