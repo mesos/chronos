@@ -3,19 +3,12 @@
  */
 define([
   'views/bound_view',
-  'components/tooltip_view',
   'hbs!templates/job_item_view',
-  'bootstrap/tooltip'
 ],
 function(BoundView,
-         TooltipView,
          JobItemViewTpl) {
 
   var JobItemView = BoundView.extend({
-
-    mixins: {
-      tooltips: TooltipView.InstanceMethods
-    },
 
     tagName: 'li',
 
@@ -24,7 +17,6 @@ function(BoundView,
     template: JobItemViewTpl,
 
     initialize: function() {
-      this.addTooltips();
       this.addRivets();
     },
 
