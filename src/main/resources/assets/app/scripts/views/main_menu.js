@@ -1,24 +1,32 @@
 define([
   'jquery',
   'backbone',
-  'underscore',
   'views/bound_view',
   'hbs!templates/main_menu'
 ],
 function($,
          Backbone,
-         _,
          BoundView,
          MainMenuTpl) {
 
-  var MainMenu;
-
-  MainMenu = BoundView.extend({
+  var MainMenu = BoundView.extend({
     el: "#main-menu",
     template: MainMenuTpl,
 
     events: {
+      'click #btn-bg-prowess': 'paintItProw',
+      'click #btn-bg-tranquility': 'paintItTranquil',
       'submit #search-form': 'submitSearchForm'
+    },
+
+    paintItProw: function() {
+      this.$wrapper.removeClass("chronos-wrapper-tranquility");
+      this.$wrapper.addClass("chronos-wrapper-prowess");
+    },
+
+    paintItTranquil: function() {
+      this.$wrapper.removeClass("chronos-wrapper-prowess");
+      this.$wrapper.addClass("chronos-wrapper-tranquility");
     },
 
     getBindModels: function() {
@@ -30,6 +38,7 @@ function($,
     render: function() {
       var html = this.template();
       this.$el.html(html);
+      this.$wrapper = this.$el.parents(".chronos-wrapper");
 
       this.addRivets();
       this.trigger('render');
