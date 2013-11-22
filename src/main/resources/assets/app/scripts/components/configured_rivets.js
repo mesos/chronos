@@ -2,7 +2,7 @@ define([
   'jquery',
   'backbone',
   'underscore',
-  'cs!vendor/rivets'
+  'vendor/rivets'
 ], function($, Backbone, _, rivets) {
 
   var collectionEvents = 'add remove reset';
