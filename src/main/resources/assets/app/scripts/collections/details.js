@@ -71,8 +71,6 @@ define([
         path = '/';
       }
 
-      console.log('details serialize', path);
-
       // TODO: hack to fix jobs/:jobName////////////// infinite redirect
       if (path.slice(-1) === '-') {
         return false;
