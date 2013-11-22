@@ -32,10 +32,6 @@ function($,
 
     template: JobItemViewTpl,
 
-    events: {
-      'click': 'click'
-    },
-
     initialize: function() {
       this.$el.addClass(this.model.cid);
       this.listenTo(this.model, {
@@ -59,6 +55,7 @@ function($,
       var data = this.model.toData(),
           html = this.template(data);
 
+      this.$el.attr('data-cid', this.model.cid);
       this.$el.html(html);
       this.trigger('render', {sync: true});
       this.setActive();
@@ -81,21 +78,6 @@ function($,
         this.$el.addClass('active');
       } else {
         this.removeActive(model);
-      }
-    },
-
-    click: function(e) {
-      var active, $target;
-
-      active = app.detailsCollection.get(this.model.cid);
-      $target = $(e.target);
-
-      if ($target.hasClass('ignore')) {
-        return;
-      } else if (active) {
-        app.detailsCollection.remove(this.model);
-      } else {
-        app.detailsCollection.add(this.model, {at: 0});
       }
     }
   });
