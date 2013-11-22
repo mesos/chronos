@@ -34,6 +34,11 @@ function($,
         listenTo(this, {
           'parentView:afterRenderChildren': this.childrenRendered
         });
+
+      this.listenTo(app.detailsCollection, {
+        add: this.setActiveJobItem,
+        remove: this.removeActiveJobItem
+      });
     },
 
     render: function() {
@@ -54,12 +59,29 @@ function($,
       }
 
       var model = this.collection.get($jobItem.data('cid'));
-      var active = app.detailsCollection.get(model.cid);
+      var active = app.detailsCollection.get(model.id);
 
       if (active == null) {
         app.detailsCollection.add(model, {at: 0});
       } else {
         app.detailsCollection.remove(model);
+      }
+    },
+
+    removeActiveJobItem: function(model, collection) {
+      if (model != null) {
+        this.$('[data-cid="' + model.cid + '"]').removeClass('active');
+      }
+    },
+
+    setActiveJobItem: function(model, collection) {
+      var isAdd = model && collection;
+      var active = app.detailsCollection.get(model.id);
+
+      if (isAdd || active) {
+        this.$('[data-cid="' + model.cid + '"]').addClass('active');
+      } else {
+        this.removeActive(model);
       }
     },
 

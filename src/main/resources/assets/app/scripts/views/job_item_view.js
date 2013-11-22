@@ -1,26 +1,17 @@
 /**
  * Job View
- *
  */
 define([
-  'jquery',
-  'backbone',
-  'underscore',
   'views/bound_view',
   'components/tooltip_view',
   'hbs!templates/job_item_view',
   'bootstrap/tooltip'
 ],
-function($,
-         Backbone,
-         _,
-         BoundView,
+function(BoundView,
          TooltipView,
          JobItemViewTpl) {
 
-  var JobItemView;
-
-  JobItemView = BoundView.extend({
+  var JobItemView = BoundView.extend({
 
     mixins: {
       tooltips: TooltipView.InstanceMethods
@@ -33,12 +24,6 @@ function($,
     template: JobItemViewTpl,
 
     initialize: function() {
-      this.$el.addClass(this.model.cid);
-      this.listenTo(app.detailsCollection, {
-        add: this.setActive,
-        remove: this.removeActive
-      });
-
       this.addTooltips();
       this.addRivets();
     },
@@ -56,27 +41,8 @@ function($,
       this.$el.attr('data-cid', this.model.cid);
       this.$el.html(html);
       this.trigger('render', {sync: true});
-      this.setActive();
 
       return this;
-    },
-
-    removeActive: function(model, collection) {
-      if (!model) { return; }
-      else if (model.id === this.model.id) {
-        this.$el.removeClass('active');
-      }
-    },
-
-    setActive: function(model, collection) {
-      var isAdd = model && collection && (model.id === this.model.id),
-          active = app.detailsCollection.get(this.model);
-
-      if (isAdd || active) {
-        this.$el.addClass('active');
-      } else {
-        this.removeActive(model);
-      }
     }
   });
 
