@@ -34,9 +34,7 @@ function($,
 
     initialize: function() {
       this.$el.addClass(this.model.cid);
-      this.listenTo(this.model, {
-        'change:lastRunStatus': this.render
-      }).listenTo(app.detailsCollection, {
+      this.listenTo(app.detailsCollection, {
         add: this.setActive,
         remove: this.removeActive
       });
