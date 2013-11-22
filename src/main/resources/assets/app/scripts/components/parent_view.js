@@ -28,7 +28,7 @@ function(_) {
     }
   }
 
-  function ResolveView(view) {
+  function resolveView(view) {
     if (_.isString(view)) {
       return require(view);
     } else if (_.isFunction(view)) {
@@ -43,11 +43,11 @@ function(_) {
         viewOpts  = (options && options.viewOptions),
         view  = views[model.cid],
         viewClassName = get(this, 'viewClassName'),
-        viewClass;
+        ViewClass;
 
     if (!view) {
-      viewClass = ResolveView(viewClassName);
-      view = new viewClass({
+      ViewClass = resolveView(viewClassName);
+      view = new ViewClass({
         model: model,
         options: viewOpts || {}
       });
@@ -150,8 +150,7 @@ function(_) {
     },
 
     _childrenSorted: function(collection, options) {
-      var parentView = this,
-          $container = this.$childViewContainer(),
+      var $container = this.$childViewContainer(),
           views = get(this, 'views'),
           view;
 
@@ -165,8 +164,7 @@ function(_) {
     },
 
     _renderChildViews: function(collection) {
-      var parentView = this,
-          view;
+      var parentView = this;
 
       this.trigger('parentView:beforeRenderChildren');
 
