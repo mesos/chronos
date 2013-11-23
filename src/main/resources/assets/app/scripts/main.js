@@ -114,6 +114,7 @@ require(['styles'], function(){});
 require([
   'jquery',
   'underscore',
+  'backbone',
   'routers/application',
   'collections/jobs',
   'collections/details',
@@ -125,15 +126,16 @@ require([
 ],
 function($,
          _,
+         Backbone,
          ApplicationRouter,
          JobsCollection,
          DetailsCollection,
          ResultsCollection,
          JobGraphCollection) {
 
-  var app;
+  'use strict';
 
-  window.app = app = {
+  var app = window.app = {
     Models: {},
     Collections: {},
     Views: {},
@@ -141,14 +143,13 @@ function($,
 
     Helpers: {
       filterList: function() {
-        var $jobs = $('.result-jobs-count'),
-            $errors = $('.failed-jobs-count');
+        var $jobs = $('.result-jobs-count');
 
         $('#search-filter').fastLiveFilter('#job-list' , {
           callback: function(total, results) {
             $jobs.html(total);
             app.resultsCollection.trigger('change');
-            if (!results) return false;
+            if (!results) { return false; }
           }
         });
       },
@@ -157,33 +158,16 @@ function($,
         var hash = window.location.hash,
             parts = hash.split('/') ;
 
-        console.log(hash, parts)
         if (hash) {
           parts = parts.join('/') + '/';
           return parts;
         } else {
           return 'jobs/';
         }
-      },
-
-      /**
-       * dayYear returns a number equal to
-       * the number of the day [0, 366] plus
-       * the year (2012).
-       *
-       * @params date - a date object
-       */
-      dayYear: function(date) {
-        var dayFormat = d3.time.format('%j'),
-            yearFormat = d3.time.format('%Y'),
-            day = parseInt(dayFormat(date), 10),
-            year = parseInt(yearFormat(date), 10);
-        return day + year;
       }
     },
 
     init: function() {
-      window.app || (window.app = {});
       var jobsCollection = new JobsCollection();
 
       jobsCollection.fetch().done(function() {
@@ -191,8 +175,8 @@ function($,
           job.set({persisted: true}, {silent: true});
         });
 
-        window.app.detailsCollection = new DetailsCollection()
-        window.app.resultsCollection = new ResultsCollection(jobsCollection.models)
+        window.app.detailsCollection = new DetailsCollection();
+        window.app.resultsCollection = new ResultsCollection(jobsCollection.models);
         window.app.jobsGraphCollection = new JobGraphCollection();
 
         window.app.jobsGraphCollection.registerAccessoryCollection(
@@ -210,7 +194,7 @@ function($,
     }
   };
 
-  $(document).ready(function(){
+  $(document).ready(function() {
     app.init();
   });
 
