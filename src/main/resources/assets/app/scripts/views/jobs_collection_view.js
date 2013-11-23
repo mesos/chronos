@@ -52,7 +52,6 @@ function($,
     },
 
     childrenRendered: function() {
-      $('.all-jobs-count').html(app.resultsCollection.size());
       app.Helpers.filterList();
     },
 
