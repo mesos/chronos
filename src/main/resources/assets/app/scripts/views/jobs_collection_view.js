@@ -31,7 +31,7 @@ function($,
     },
 
     initialize: function() {
-      this.header = (new ResultsHeaderView()).render();
+      this.header = new ResultsHeaderView();
 
       this.bindCollectionViews(JobItemView, this.collection).
         listenTo(this, {

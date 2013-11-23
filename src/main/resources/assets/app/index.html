@@ -20,7 +20,7 @@
           <div class="search-wrapper">
             <form id="search-form">
               <i class="icon-search"></i>
-              <input type="text" class="span12" id="search-filter" placeholder="Search by job name, status or owner" />
+              <input type="text" class="span12" id="search-filter" placeholder="Search by job name, status or owner">
             </form>
           </div>
 
@@ -64,7 +64,18 @@
           </div>
         </div>
         <div class="span5 results">
-          <div class="row-fluid results-header no-select"></div>
+          <div class="row-fluid results-header no-select">
+            <div class="span9 header-name">
+              <span>Name</span>
+              <span class="toggle down">▼</span>
+              <span class="toggle up hide">▲</span>
+            </div>
+            <div class="span3 header-last-run">
+              <span>Last</span>
+              <span class="toggle down">▼</span>
+              <span class="toggle up hide">▲</span>
+            </div>
+          </div>
           <div class="row-fluid">
             <ul class="joblist unstyled"></ul>
           </div>

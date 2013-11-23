@@ -4,23 +4,16 @@
 define([
   'jquery',
   'backbone',
-  'hbs!templates/results_header_view'
-], function($, Backbone, ResultsHeaderViewTpl) {
+], function($, Backbone) {
+
+  'use strict';
 
   var ResultsHeaderView = Backbone.View.extend({
     el: '.results-header',
 
-    template: ResultsHeaderViewTpl,
-
     events: {
       'click .header-last-run': 'toggleLastRun',
       'click .header-name': 'toggleName'
-    },
-
-    render: function() {
-      var html = this.template();
-      this.$el.html(html);
-      return this;
     },
 
     toggleLastRun: function(event) {
