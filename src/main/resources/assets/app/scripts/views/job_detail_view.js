@@ -191,7 +191,6 @@ function($,
     },
 
     renderDisplayName: function() {
-      console.log('renderDisplayName')
       this.$el.find('.toggleName').html(this.model.get('name'));
     },
 
@@ -495,8 +494,7 @@ function($,
     },
 
     cancel: function(event) {
-      var newJob = this.$el.hasClass('create-job'),
-          data   = this._remember;
+      var data = this._remember;
       event && event.preventDefault();
 
       this.disableEdit();
@@ -507,8 +505,6 @@ function($,
 
     close: function() {
       var mCid = this.model.cid;
-
-      console.log("Close", arguments, this, this.$el);
 
       if (this.model.isNew()) {
         app.detailsCollection.remove(mCid, {create: true});
@@ -527,11 +523,6 @@ function($,
 
       this.$el.find('.'+name).html(newVal);
       this.model.set(name, ''+newVal);
-    },
-
-    setAsync: function(e) {
-      e && e.preventDefault();
-      //this.$('input[name="executor"]').val(asyncExecutorPath);
     },
 
     validate: function(e) {
