@@ -1,15 +1,13 @@
 define([
   'jquery',
-  'backbone',
   'underscore',
-  'views/bound_view',
-  'hbs!templates/main_menu'
+  'views/bound_view'
 ],
 function($,
-         Backbone,
          _,
-         BoundView,
-         MainMenuTpl) {
+         BoundView) {
+
+  'use strict';
 
   var MainMenu = BoundView.extend({
     defaults: {
@@ -17,7 +15,6 @@ function($,
     },
 
     el: "#main-menu",
-    template: MainMenuTpl,
 
     events: {
       'click [data-theme]': 'switchTheme',
@@ -35,13 +32,10 @@ function($,
     },
 
     render: function() {
-      var html = this.template();
-      this.$el.html(html);
       this.$wrapper = this.$el.parents('.chronos-wrapper');
 
       this.addRivets();
       this.trigger('render');
-
       return this;
     },
 
