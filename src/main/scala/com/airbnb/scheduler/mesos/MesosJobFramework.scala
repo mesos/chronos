@@ -152,7 +152,7 @@ class MesosJobFramework @Inject()(
    *         resources where offered, the TaskBuilder and the offer.
    */
   def buildTask(taskId: String, job: BaseJob, offer: Offer) : (Boolean, TaskInfo.Builder, Offer) = {
-    val taskInfoTemplate = taskBuilder.getMesosTaskInfoBuilder(taskId, job)
+    val taskInfoTemplate = taskBuilder.getMesosTaskInfoBuilder(taskId, job, offer)
     log.fine("Job %s ready for launch at time: %d".format(taskInfoTemplate.getTaskId.getValue,
       System.currentTimeMillis))
     import collection.JavaConversions._
