@@ -63,19 +63,6 @@ define([
       return !val;
     },
 
-    lastRunDescr: {
-      read: function(val) {
-        if (!!val.lastRunError) {
-          return 'Last run @ ' + val.lastRunTime + ' was successful.';
-        } else if (!!val.lastRunSuccess) {
-          return 'Last run @ ' + val.lastRunTime + ' failed.';
-        } else {
-          return 'Job has not run yet.';
-        }
-      },
-      publish: false
-    },
-
     eq: function(val, comparisonVal) {
       return val === comparisonVal;
     },

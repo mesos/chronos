@@ -44,7 +44,10 @@ function($,
         reset: this.removeAllActiveJobItems
       });
 
-      this.addTooltips('parentView:afterRenderChildren');
+      this.$el.tooltip({
+        container: this.$el,
+        selector: '[data-toggle="tooltip"]'
+      });
     },
 
     render: function() {

@@ -44,8 +44,8 @@ function($, Backbone, _, moment, BaseJobValidations) {
         schedule: '-',
         parents: [],
         retries: 2,
-        lastSuccess: '-',
-        lastError: '-',
+        lastSuccess: null,
+        lastError: null,
         successCount: 0,
         errorCount: 0,
         persisted: false,
@@ -187,16 +187,28 @@ function($, Backbone, _, moment, BaseJobValidations) {
       });
     },
 
-    updateLastRunInfo: function(model, lastRunStatus, options) {
+    updateLastRunInfo: function(model, lastRunStatus) {
       var lastRunFailed  = (lastRunStatus === 'failure'),
           lastRunFresh   = (lastRunStatus === 'fresh'),
           lastRunSuccess = (lastRunStatus === 'success');
 
+      var lastRunDescr, lastRunTime;
+      if (lastRunFailed) {
+        lastRunTime = model.get('lastError');
+        lastRunDescr = 'Last run @ ' + lastRunTime + ' failed.';
+      } else if (lastRunSuccess) {
+        lastRunTime = model.get('lastSuccess');
+        lastRunDescr = 'Last run @ ' + lastRunTime + ' was successful.';
+      } else {
+        lastRunDescr = 'Job has not run yet.';
+      }
+
       model.set({
-        lastRunSuccess: !!lastRunSuccess,
-        lastRunError: !!lastRunFailed,
-        lastRunFresh: !!lastRunFresh,
-        lastRunTime: model.get((lastRunFailed ? 'lastError' : 'lastSuccess'))
+        lastRunDescr: lastRunDescr,
+        lastRunSuccess: lastRunSuccess,
+        lastRunError: lastRunFailed,
+        lastRunFresh: lastRunFresh,
+        lastRunTime: lastRunTime
       });
     },
 
