@@ -3,6 +3,7 @@
 ## Table of Contents
 
 * [[osx] making mesos fails on `warning: 'JNI_CreateJavaVM' is deprecated`](#osx-making-mesos-fails-on-deprecated-warning)
+* [Running Chronos fails with the error: java.lang.UnsatisfiedLinkError: org.apache.mesos.state.AbstractState.__fetch(Ljava/lang/String;)J](#mesos-versioning-problem)
 * [My Web UI is not showing up!](#my-web-ui-is-not-showing-up)
 * [When running jobs locally I get an error like `Failed to execute 'chown -R'`](#when-running-jobs-locally-i-get-an-error-like-failed-to-execute-chown--r)
 * [I found a bug!](#i-found-a-bug)
@@ -31,7 +32,16 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 
     JAVA_CPPFLAGS='-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/' ../configure
 
+## Running Chronos fails with the error: java.lang.UnsatisfiedLinkError: org.apache.mesos.state.AbstractState.__fetch(Ljava/lang/String;)J
+
+This means you're using a mesos-jar file that is incompatible with the version of Mesos you're running.
+If you want to run chronos with a different version of mesos than in the pom.xml file, override the version by issuing `mvn package -Dmesos.version=0.14.0-rc4`.
+Please note, this must be a jar file version that's available from one of the repositories listed in the pom.xml file.
+
+
 ## My Web UI is not showing up!
+
+For asset bundeling, you need node installed. If you're seeing a 403 when trying to access the web-ui, it's likely that node was not present during the `mvn package` step.
 
 See [docs/WEBUI.md](/docs/WEBUI.md).
 

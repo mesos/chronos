@@ -4,7 +4,7 @@
 
     <groupId>com.airbnb</groupId>
     <artifactId>chronos</artifactId>
-    <version>2.0.1~mesos-${mesos.version}</version>
+    <version>2.1.0~mesos-${mesos.version}</version>
     <inceptionYear>2012</inceptionYear>
 
     <prerequisites>
@@ -21,7 +21,7 @@
         <scala.abi>2.10.3</scala.abi>
 
         <!-- runtime deps versions -->
-        <chaos.version>0.4.5</chaos.version>
+        <chaos.version>0.4.8</chaos.version>
         <mesos-utils.version>0.0.4</mesos-utils.version>
         <commons-math3.version>3.2</commons-math3.version>
         <guava.version>14.0.1</guava.version>

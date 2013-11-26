@@ -4,7 +4,7 @@ import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.logging.{Level, Logger}
 
-import com.airbnb.scheduler.mesos.{MesosDriverFactory, MesosJobFramework}
+import com.airbnb.scheduler.mesos.{MesosTaskBuilder, MesosDriverFactory, MesosJobFramework}
 import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
@@ -30,9 +30,10 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   override def configure() {
     log.info("Wiring up the application")
 
+    bind(classOf[SchedulerConfiguration]).toInstance(config)
     bind(classOf[Scheduler]).to(classOf[MesosJobFramework]).asEagerSingleton()
     bind(classOf[TaskManager]).asEagerSingleton()
-    bind(classOf[SchedulerConfiguration]).toInstance(config)
+    bind(classOf[MesosTaskBuilder]).asEagerSingleton()
 
     //TODO(FL): Only bind this if config.dependentJobs is turned on.
     bind(classOf[JobGraph]).asEagerSingleton()

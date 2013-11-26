@@ -4,7 +4,6 @@ set -o errexit -o nounset -o pipefail
 
 # Global vars
 declare -r BIN_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-declare -r DEFAULT_MESOS_JAR_STRING="0.12.0-SNAPSHOT_JDK1.7"
 
 detected_os="$(uname)"
 case $detected_os in
@@ -77,21 +76,6 @@ function install_mesos {
 }
 
 function install_chronos {
-
-  pushd "$mesos_installation"
-  local mesos_jar_file=$(find . -name "mesos-*.jar" | grep -v sources)
-  local mesos_version="$(echo $mesos_jar_file | sed -e 's/^.*mesos-//g' | sed -e 's/\.jar//g')"
-  local mesos_version_string="${mesos_version}-SNAPSHOT"
-  if [[ -z "$mesos_version" ]] ; then
-      echo "Could not determine mesos version. Try reinstalling mesos. Aborting."
-      exit 1
-  fi
-
-  echo "Installing snapshot of mesos version $mesos_version into local mvn repository"
-  mvn install:install-file -DgroupId=org.apache.mesos -DartifactId=mesos -Dversion="$mesos_version_string" -Dpackaging=jar  -Dfile="$mesos_jar_file"
-  echo "Replacing pom.xml mesos dependency"
-  sed_in_place -e "s/$DEFAULT_MESOS_JAR_STRING/$mesos_version_string/g" "$BIN_DIRECTORY/../pom.xml"
-  popd
   pushd "$BIN_DIRECTORY" ; cd ..
   echo "Installing chronos"
   mvn package
