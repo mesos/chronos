@@ -2,14 +2,10 @@
  * Details Collection
  */
 define([
-  'jquery',
-  'backbone',
   'underscore',
   'collections/base_jobs',
   'components/functor'
-], function($,
-            Backbone,
-            _,
+], function(_,
             JobsCollection,
             Functor) {
 
