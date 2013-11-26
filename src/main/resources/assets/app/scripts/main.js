@@ -3,7 +3,7 @@ require.config({
     'hbs'                   : 'vendor/require-handlebars-plugin/hbs',
     'handlebars'            : 'vendor/require-handlebars-plugin/Handlebars',
     'text'                  : 'vendor/text',
-    'jquery'                : 'vendor/jquery',
+    'jquery'                : 'vendor/jquery-1.10.2',
     'lodash'                : 'vendor/lodash',
     'backbone'              : 'vendor/backbone',
     'backbone/declarative'  : 'vendor/backbone.declarative',
