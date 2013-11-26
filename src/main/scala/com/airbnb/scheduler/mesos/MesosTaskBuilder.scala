@@ -28,7 +28,21 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   final val memResourceName = "mem"
   final val diskResourceName = "disk"
 
-  def scalarResource(name: String, value: Double, role: String) = {
+  def scalarResource(name: String, value: Double, offer: Offer) = {
+    import scala.collection.JavaConverters._
+    val role = offer.getResourcesList.asScala.find({x =>
+      x.getType match {
+        case Value.Type.SCALAR =>
+          x.getName == name && x.getScalar.getValue >= value
+        case _ =>
+          false
+      }
+    }) match {
+      case Some(x) =>
+        x.getRole
+      case None =>
+        "*"
+    }
     Resource.newBuilder
       .setName(name)
       .setType(Value.Type.SCALAR)
@@ -39,7 +53,12 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
 
   def scalarResource(name: String, value: Double): Resource = {
     // Added for convenience.  Uses default catch-all role.
-    scalarResource(name, value, "*")
+    Resource.newBuilder
+      .setName(name)
+      .setType(Value.Type.SCALAR)
+      .setScalar(Value.Scalar.newBuilder.setValue(value))
+      .setRole("*")
+      .build
   }
 
   def environment(vars: Map[String, String]) = {
@@ -53,7 +72,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     builder.build()
   }
 
-  def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob): TaskInfo.Builder = {
+  def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob, offer: Offer): TaskInfo.Builder = {
     //TODO(FL): Allow adding more fine grained resource controls.
     val taskId = TaskID.newBuilder().setValue(taskIdStr).build()
     val taskInfo = TaskInfo.newBuilder()
@@ -94,9 +113,10 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
     val disk = if (job.disk > 0) job.disk else conf.mesosTaskDisk()
     taskInfo
-      .addResources(scalarResource(cpusResourceName, cpus, conf.mesosRole()))
-      .addResources(scalarResource(memResourceName, mem, conf.mesosRole()))
-      .addResources(scalarResource(diskResourceName, disk, conf.mesosRole()))
+      .addResources(scalarResource(cpusResourceName, cpus, offer))
+      .addResources(scalarResource(memResourceName, mem, offer))
+      .addResources(scalarResource(diskResourceName, disk, offer))
+
     return taskInfo
   }
 
