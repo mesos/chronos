@@ -19,4 +19,4 @@
 #FW_NAME=chronos-2.0.1
 
 # Use $OPTS to add other settings not handled by init script
-#OPTS=
+#OPTS="--log_config /etc/chronos/logging.properties"

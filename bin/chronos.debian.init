@@ -52,7 +52,7 @@ set_environment() {
     ${DISK:+--mesos_task_disk $DISK} \
     ${ROLE:+--mesos_role $ROLE} \
     ${FW_NAME:+--mesos_framework_name $FW_NAME} \
-    ${OPTS:+$OPS}"
+    ${OPTS:+$OPTS}"
 }
 
 case "$1" in
