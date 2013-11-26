@@ -40,7 +40,8 @@ function($,
 
       this.listenTo(app.detailsCollection, {
         add: this.setActiveJobItem,
-        remove: this.removeActiveJobItem
+        remove: this.removeActiveJobItem,
+        reset: this.removeAllActiveJobItems
       });
 
       this.addTooltips('parentView:afterRenderChildren');
@@ -76,6 +77,10 @@ function($,
       if (model != null) {
         this.$('[data-cid="' + model.cid + '"]').removeClass('active');
       }
+    },
+
+    removeAllActiveJobItems: function() {
+      this.$('.item.active').removeClass('active');
     },
 
     setActiveJobItem: function(model, collection) {

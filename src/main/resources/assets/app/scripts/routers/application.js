@@ -57,7 +57,6 @@ function($,
 
     index: function() {
       app.detailsCollection.reset();
-      app.resultsCollection.reset(app.jobsCollection.models);
     },
 
     showJob: function(path) {
