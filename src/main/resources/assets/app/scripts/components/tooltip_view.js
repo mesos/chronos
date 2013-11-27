@@ -19,14 +19,14 @@ function(_) {
   }
 
   var InstanceMethods = {
-    addTooltips: function() {
+    addTooltips: function(eventName) {
       if (get(this, 'tooltipsObserved')) { return; }
       set(this, 'tooltipsObserved', true);
 
-      this.listenTo(this, {
-        render: function() {
-          this.$('[data-toggle="tooltip"]').tooltip();
-        }
+      eventName = eventName || 'render';
+
+      this.listenTo(this, eventName, function() {
+        this.$('[data-toggle="tooltip"]').tooltip();
       });
     }
   };

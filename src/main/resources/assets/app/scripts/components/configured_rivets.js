@@ -1,9 +1,10 @@
 define([
-  'jquery',
   'backbone',
   'underscore',
-  'cs!vendor/rivets'
-], function($, Backbone, _, rivets) {
+  'vendor/rivets'
+], function(Backbone, _, rivets) {
+
+  'use strict';
 
   var collectionEvents = 'add remove reset';
 
@@ -20,7 +21,7 @@ define([
           obj.on(collectionEvents, callback).
             on('change:' + keypath, callback);
         } else {
-          obj.on('change:' + keypath, callback)
+          obj.on('change:' + keypath, callback);
         }
       },
       unsubscribe: function(obj, keypath, callback) {
@@ -28,7 +29,7 @@ define([
           obj.off(collectionEvents, callback).
             off('change:' + keypath, callback);
         } else {
-          obj.off('change:' + keypath, callback)
+          obj.off('change:' + keypath, callback);
         }
       },
       read: function(obj, keypath) {
@@ -36,19 +37,16 @@ define([
           return obj[keypath] || obj;
         } else {
           return obj.get(keypath);
-        };
+        }
       },
       publish: function(obj, keypath, value) {
         if (isColl(obj)) {
           obj[keypath] = value;
         } else {
           obj.set(keypath, value);
-        };
+        }
       }
     }
-  });
-
-  _.extend(rivets.binders, {
   });
 
   _.extend(rivets.formatters, {
@@ -63,19 +61,6 @@ define([
 
     inverse: function(val) {
       return !val;
-    },
-
-    lastRunDescr: {
-      read: function(val) {
-        if (!!val.lastRunError) {
-          return 'Last run @ ' + val.lastRunTime + ' was successful.';
-        } else if (!!val.lastRunSuccess) {
-          return 'Last run @ ' + val.lastRunTime + ' failed.';
-        } else {
-          return 'Job has not run yet.';
-        }
-      },
-      publish: false
     },
 
     eq: function(val, comparisonVal) {

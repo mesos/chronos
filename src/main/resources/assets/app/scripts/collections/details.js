@@ -1,24 +1,17 @@
 /**
  * Details Collection
- *
  */
 define([
-  'jquery',
-  'backbone',
   'underscore',
   'collections/base_jobs',
   'components/functor'
-], function($,
-            Backbone,
-            _,
+], function(_,
             JobsCollection,
             Functor) {
 
-  var DetailsCollection;
+  'use strict';
 
-  var slice = Array.prototype.slice;
-
-  DetailsCollection = JobsCollection.extend({
+  var DetailsCollection = JobsCollection.extend({
 
     initialize: function() {
       this.listenTo(this, {
@@ -71,19 +64,17 @@ define([
         }).value();
         path = base.concat(names).join('/');
       } else {
-        path = '/'
+        path = '/';
       }
 
-      console.log('details serialize', path);
-
       // TODO: hack to fix jobs/:jobName////////////// infinite redirect
-      if (path.slice(-1) == '-') {
+      if (path.slice(-1) === '-') {
         return false;
       }
 
-      app.router.navigate(path, {trigger: true});
+      app.router.navigate(path);
     }
   });
 
   return DetailsCollection;
-})
+});
