@@ -414,7 +414,7 @@ Follow these steps to install Chronos on Amazon Linux:
 	git checkout 
 	export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.45.x86_64/
 	./bootstrap
-	./configure --with-webui --with-included-zookeeper --disable-perftools --enable-frame-pointers;
+	./configure --with-webui --with-included-zookeeper --disable-perftools --enable-frame-pointers
 	make
 	sudo make install
 
@@ -423,6 +423,7 @@ Follow these steps to install Chronos on Amazon Linux:
 Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`.
 
 Next, try
+
 	start up zookeeper, mesos master, and mesos slave(s)
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 	git clone https://github.com/airbnb/chronos.git
