@@ -8,17 +8,11 @@ define([
 function(BoundView,
          JobItemViewTpl) {
 
+  'use strict';
+
   var JobItemView = BoundView.extend({
 
-    tagName: 'li',
-
-    className: 'item',
-
     template: JobItemViewTpl,
-
-    initialize: function() {
-      this.addRivets();
-    },
 
     getBindModels: function() {
       return {
@@ -27,14 +21,26 @@ function(BoundView,
     },
 
     render: function() {
-      var data = this.model.toData(),
-          html = this.template(data);
+      var element = document.createElement('div');
+      element.innerHTML = this.toHTML();
 
-      this.$el.attr('data-cid', this.model.cid);
-      this.$el.html(html);
+      this.setElement(element.firstChild);
       this.trigger('render', {sync: true});
 
       return this;
+    },
+
+    setElement: function(element) {
+      BoundView.prototype.setElement.call(this, element);
+      this.addRivets();
+      this.trigger('render', {sync: true});
+    },
+
+    toHTML: function() {
+      var data = this.model.toData(),
+          html = this.template(data);
+
+      return html;
     }
   });
 

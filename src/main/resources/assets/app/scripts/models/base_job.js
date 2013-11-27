@@ -179,6 +179,7 @@ function($, Backbone, _, moment, BaseJobValidations) {
       var data = Backbone.Model.prototype.toJSON.call(this);
 
       return _.extend({}, data, {
+        cid: this.cid,
         parentsList: this.get('parents').join(', '),
         isNew: this.isNew(),
         hasSchedule: this.hasSchedule(),

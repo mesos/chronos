@@ -170,7 +170,7 @@ function($,
     init: function() {
       var jobsCollection = new JobsCollection();
 
-      jobsCollection.fetch().done(function() {
+      jobsCollection.fetch({remove: false}).done(function() {
         jobsCollection.each(function(job) {
           job.set({persisted: true}, {silent: true});
         });
