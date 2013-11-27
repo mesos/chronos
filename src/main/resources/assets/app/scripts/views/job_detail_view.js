@@ -1,10 +1,8 @@
 /**
  * Job Detail View
- *
  */
 define([
   'jquery',
-  'backbone',
   'underscore',
   'views/job_detail_header_view',
   'views/job_detail_stats',
@@ -22,7 +20,6 @@ define([
   'bootstrap/timepicker'
 ],
 function($,
-         Backbone,
          _,
          JobDetailHeaderView,
          JobDetailStatsView,
