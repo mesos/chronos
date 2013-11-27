@@ -405,6 +405,7 @@ Follow these steps to install Chronos on Amazon Linux:
 
 ###### Fedora Linux:
     sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel cyrus-sasl-devel
+
 Make sure you're using java 7: `sudo alternatives --config java`
 
 ##### Build and Install Mesos
