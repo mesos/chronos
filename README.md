@@ -404,30 +404,28 @@ Follow these steps to install Chronos on Amazon Linux:
     sudo apt-get install autoconf make gcc cpp patch python-dev git libtool default-jdk default-jdk-builddep default-jre gzip libghc-zlib-dev libcurl4-openssl-dev
 
 ###### Fedora Linux:
-    sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel
+    sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel cyrus-sasl-devel
+Make sure you're using java 7: `sudo alternatives --config java`
 
 ##### Build and Install Mesos
 
-Please note, some versions of OpenJDK 1.6 have a bug which prevents you from building Chronos. If you encounter an error while building that seems to not stem
-from Chronos code but rather from some Scala classes, consider upgrading to OpenJDK 1.7.
-
 	git clone https://github.com/apache/mesos.git
 	cd mesos/
-	git checkout 0.12.x
-	export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/
+	git checkout 
+	export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.45.x86_64/
 	./bootstrap
-	./configure --with-webui --with-included-zookeeper --disable-perftools
+	./configure --with-webui --with-included-zookeeper --disable-perftools --enable-frame-pointers
 	make
 	sudo make install
 
 ##### Build Chronos
 
-Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`.
+Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`
 
-Next, try
-
+Start up start up zookeeper, mesos master, and mesos slave(s).  Then try
+	
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 	git clone https://github.com/airbnb/chronos.git
 	cd chronos
 	mvn package
-	java -cp target/chronos*.jar com.airbnb.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts=localhost:2181
+	java -cp target/chronos*.jar com.airbnb.scheduler.Main --master zk://localhost:5050/mesos --zk_hosts localhost:2181
