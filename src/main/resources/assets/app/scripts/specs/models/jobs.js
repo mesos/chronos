@@ -39,7 +39,6 @@ function(_,
         job = new JobClass({name: defaultAttributes.name});
 
         var vvv;
-        console.log('job.validate', (vvv = job.validate()));
         expect(job.validate()).to.be.falsy;
       });
 
