@@ -70,7 +70,7 @@ basic syntax for launching chronos is:
 
     java -cp chronos.jar --master zk://127.0.0.1:2181/mesos --zk_hosts 127.0.0.1:2181
 
-Please note that you need to have both mesos and zookeeper running for this to work!
+Please note that you need to have both Mesos and Zookeeper running for this to work!
 
 For more information on configuration options, please see [configuring
 Chronos](#configuring-chronos).
@@ -406,7 +406,7 @@ Follow these steps to install Chronos on Amazon Linux:
 ###### Fedora Linux:
     sudo yum install autoconf make gcc gcc-c++ patch python-devel git libtool java-1.7.0-openjdk-devel zlib-devel libcurl-devel openssl-devel cyrus-sasl-devel
 
-Make sure you're using java 7: `sudo alternatives --config java`
+Make sure you're using Java 7: `sudo alternatives --config java`
 
 ##### Build and Install Mesos
 
@@ -421,9 +421,9 @@ Make sure you're using java 7: `sudo alternatives --config java`
 
 ##### Build Chronos
 
-Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`
+Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`.
 
-Start up start up zookeeper, mesos master, and mesos slave(s).  Then try
+Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try
 	
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 	git clone https://github.com/airbnb/chronos.git
