@@ -11,22 +11,19 @@
       </div>
     </div>
 
-    <div class="row-fluid control-group job-detail-row job-detail job-detail-tooltip no-edit"
-         data-toggle="tooltip"
-         data-title="Name of the job"
-         data-placement="bottom">
+    <div class="row-fluid control-group job-detail-row job-detail no-edit">
       <div class="detail">Name</div>
-      <div class="display hightlight line-height job-name name" data-rv-text="job.name">{{name}}</div>
+      <div class="display hightlight name" data-rv-text="job.name">{{name}}</div>
       <div class="field cmd">
         <input class="job-input" value="{{name}}" data-rv-value="job.name" id="input-name" name="name" tabindex="1">
       </div>
-      <span class="help-inline"></span>
+      <span class="help-inline hide"></span>
     </div>
 
     <div class="row-fluid control-group job-detail-row job-detail job-detail-tooltip"
          data-toggle="tooltip"
          data-html="true"
-         data-title="Command<br>The command for the executor to run."
+         data-title="Command for the executor to run."
          data-placement="bottom">
       <div class="detail">Command</div>
       <div class="display hightlight cmd command"
@@ -35,14 +32,14 @@
         <input class="job-input" value="{{command}}"
                data-rv-value="job.command" name="command" tabindex="2">
       </div>
-      <span class="help-inline"></span>
+      <span class="help-inline hide"></span>
     </div>
 
     <div class="row-fluid control-group job-detail-row job-detail parents-wrapper">
       <div class="span12">
         <div class="detail">Parents</div>
-        <h2 class="display hightlight parents"
-             data-rv-text="job:parentsList < .parents">{{joinWith parents ', '}}</h2>
+        <div class="display hightlight parents"
+             data-rv-text="job:parentsList < .parents">{{joinWith parents ', '}}</div>
         <div class="field cmd">
           <input class="job-input"
                  value="{{joinWith parents ', '}}"
@@ -52,7 +49,7 @@
                  type="hidden"
                  tabindex="3">
         </div>
-        <span class="help-inline"></span>
+        <span class="help-inline hide"></span>
       </div>
     </div>
 
@@ -64,17 +61,17 @@
              data-html="true"
              data-placement="bottom">
           <div class="detail">Owner(s)</div>
-          <div class="display hightlight line-height job-name owner"
+          <div class="display hightlight owner"
                data-rv-text="job.owner">{{owner}}</div>
           <div class="field cmd">
             <input class="job-input" value="{{owner}}" name="owner" tabindex="4"
                    data-rv-value="job.owner">
           </div>
-          <span class="help-inline"></span>
+          <span class="help-inline hide"></span>
         </div>
 
         <div class="control-group job-detail job-detail-tooltip"
-             data-title="This is the mesos executor to use. Note, this can be a path that needs to be available on the mesos slave or it can be left blank in which case the shell-executor is assumed. The executor will receive the string specified in the command field."
+             data-title="Mesos executor to use. This can be a path that needs to be available on the Mesos slave, or it can be left blank in which case the shell-executor is assumed. The executor will receive the string specified in the command field."
              data-toggle="tooltip"
              data-placement="bottom">
           <div class="detail">Executor</div>
@@ -99,7 +96,7 @@
                data-title="Last time the job ran successfully"
                data-placement="bottom">
             <div class="detail">Last Success</div>
-            <div class="display hightlight line-height small-detail lastSuccess"
+            <div class="display hightlight small-detail lastSuccess"
                  data-rv-text="job.lastSuccess | orNone">{{lastSuccess}}</div>
           </div>
 
@@ -108,7 +105,7 @@
                data-title="Number of successful runs to date"
                data-placement="bottom">
             <div class="detail"># Success</div>
-            <div class="display hightlight line-height small-detail successCount"
+            <div class="display hightlight small-detail successCount"
                  data-rv-text="job.successCount">{{successCount}}</div>
           </div>
         </div>
@@ -120,7 +117,7 @@
                data-title="Last time an error occurred"
                data-placement="bottom">
             <div class="detail">Last Error</div>
-            <div class="display hightlight line-height small-detail lastError"
+            <div class="display hightlight small-detail lastError"
                  data-rv-text="job.lastError | orNone">{{lastError}}</div>
           </div>
 
@@ -129,13 +126,13 @@
                data-title="Number of unsuccessful runs to date"
                data-placement="bottom">
             <div class="detail"># Error</div>
-            <div class="display hightlight line-height small-detail errorCount"
+            <div class="display hightlight small-detail errorCount"
                  data-rv-text="job.errorCount">{{errorCount}}</div>
           </div>
 
         </div>
 
-      </div><!--// end .span6.small -->
+      </div>
       {{/persisted}}
     </div>
 
@@ -187,7 +184,7 @@
           data-html="true"
           data-toggle="tooltip">
       </div>
-      <span class="help-inline"></span>
+      <span class="help-inline hide"></span>
     </div>
     {{/hasSchedule}}
 
@@ -198,11 +195,11 @@
         <div class="field cmd epsilon control-group">
           <input class="job-input" value="{{epsilon}}" name="epsilon" tabindex="10"
             data-rv-value="job.epsilon"
-            data-title="Epsilon<br>Amount of time after a failure within which to retry the job."
+            data-title="Amount of time after a failure within which to retry the job."
             data-html="true"
             data-toggle="tooltip">
 
-          <span class="help-inline"></span>
+          <span class="help-inline hide"></span>
         </div>
       </div>
 

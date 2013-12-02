@@ -117,7 +117,6 @@ function(Backbone, _) {
 
     get: function(key) {
       if (!!this.model) {
-        console.log('this', this, 'this.model', this.model);
         return this.isPlain ? this.model[key] : this.model.get(key);
       } else {
         return null;
@@ -143,7 +142,6 @@ function(Backbone, _) {
         return memo;
       }, {}, this);
 
-      console.log('errors', errors);
       return this.errors = errors;
     },
 
