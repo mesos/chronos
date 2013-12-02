@@ -1,7 +1,7 @@
 define([
   'backbone',
   'underscore',
-  'vendor/rivets'
+  'rivets'
 ], function(Backbone, _, rivets) {
 
   'use strict';

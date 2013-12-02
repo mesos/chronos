@@ -15,6 +15,7 @@ require.config({
     'bootstrap/dropdown'    : 'vendor/bootstrap/js/bootstrap-dropdown',
     'bootstrap/timepicker'  : 'vendor/bootstrap-timepicker/js/bootstrap-timepicker',
     'd3'                    : 'vendor/d3.v3',
+    'rivets'                : 'vendor/rivets-0.5.13',
     'underscore'            : 'vendor/lodash',
     'moment'                : 'vendor/moment.min',
     'backpack'              : 'vendor/backpack',
