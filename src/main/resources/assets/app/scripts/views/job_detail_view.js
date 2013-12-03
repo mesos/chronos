@@ -13,9 +13,11 @@ define([
   'hbs!templates/job_persistence_error',
   'hbs!templates/job_persistence_success',
   'templates/helpers/join_with',
-  'bootstrap/tooltip',
-  'bootstrap/button',
   'bootstrap/alert',
+  'bootstrap/button',
+  'bootstrap/collapse',
+  'bootstrap/tooltip',
+  'bootstrap/transition',
   'jquery/pickadate',
   'bootstrap/timepicker'
 ],
@@ -30,9 +32,11 @@ function($,
          JobPersistenceErrorTpl,
          JobPersistenceSuccessTpl) {
 
-  var ListSeparator, JobDetailView, asyncExecutorPath, Remove;
+  'use strict';
 
-  ListSeparator = ', ';
+  var JobDetailView, asyncExecutorPath, Remove;
+
+  var LIST_SEPARATOR = ', ';
 
   asyncExecutorPath = '/srv/mesos/utils/async-executor.arx';
 
@@ -93,6 +97,7 @@ function($,
 
       this.addRivets();
       this.addTooltips();
+      this.$('.collapse').collapse();
     },
 
     remove: function() {
@@ -108,7 +113,10 @@ function($,
     },
 
     render: function() {
-      var html = this.template(this.model.toData());
+      var data = this.model.toData();
+      data.cid = this.model.cid;
+
+      var html = this.template(data);
       this.$el.html(html);
 
       this.addRivets();
@@ -163,11 +171,11 @@ function($,
       var view = this.statsView;
       if (!view) {
         try {
-        view = new JobDetailStatsView({
-          model: this.model
-        });
+          view = new JobDetailStatsView({
+            model: this.model
+          });
 
-        this.statsView = view;
+          this.statsView = view;
         } catch (e) {
         }
       }
@@ -178,7 +186,7 @@ function($,
     renderParents: function() {
       if (this.model.get('parents').length) {
         var $parentsWrapper = this.$el.find('.parents-wrapper'),
-            parentsList     = this.model.get('parents').join(ListSeparator);
+            parentsList     = this.model.get('parents').join(LIST_SEPARATOR);
 
         this.model.set('parentsList', parentsList);
         $parentsWrapper.find('.parents').html(parentsList);
@@ -302,8 +310,8 @@ function($,
     persistenceSuccess: function(model, verb) {
       var data = {
         jobName: model.get('name'),
-        create: !!(verb === 'create'),
-        save:   !!(verb === 'save')
+        create: (verb === 'create'),
+        save: (verb === 'save')
       };
 
       this.disableEdit();
@@ -320,7 +328,7 @@ function($,
     },
 
     renderMessage: function(classes, tpl, data) {
-      var c, $el, name, text;
+      var c, $el, name;
       data || (data = {});
 
       c = (['alert', classes]).join('-');
@@ -331,8 +339,8 @@ function($,
         jobName: name,
         alertClass: c
       }))).find('.alert').alert().on('closed', function() {
-          $el.hide();
-          $el.parents('form').find('.control-group.error').removeClass('error');
+        $el.hide();
+        $el.parents('form').find('.control-group.error').removeClass('error');
       });
     },
 
@@ -347,17 +355,17 @@ function($,
 
         console.log(name, val);
 
-        if (name == 'async') {
+        if (name === 'async') {
           if (!$el.is(':checked')) { return; }
 
-          val = !(parseInt(val, 10) === 0);
-        } else if (name == 'parents') {
+          val = (parseInt(val, 10) !== 0);
+        } else if (name === 'parents') {
           val = val.split(',');
           val = _.map(val, function(v) {
             return v.trim();
           });
-          if (val[0] == '') val = [];
-        } else if (name == 'disabled') {
+          if (val[0] === '') { val = []; }
+        } else if (name === 'disabled') {
           if (!$el.is(':checked')) { return; }
 
           val = (parseInt(val, 10) === 0);
@@ -373,7 +381,7 @@ function($,
 
     dispose: function() {
       this.off();
-      $('.right-pane').html('')
+      $('.right-pane').html('');
     },
 
     '$parents': function() {
@@ -514,7 +522,6 @@ function($,
     },
 
     blur: function(event) {
-      var $target = $(event.target);
       var newVal = $(event.currentTarget).val(),
           name = $(event.currentTarget).attr('name');
 
@@ -524,7 +531,6 @@ function($,
 
     validate: function(e) {
       e && e.preventDefault();
-      var isValid = this.model.isValid();
       var validation = this.model.validate(this.model.attributes);
 
       $(e.target).css({
