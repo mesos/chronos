@@ -18,6 +18,22 @@ textarea::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
 
+.alert {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  text-shadow: none;
+}
+
+.alert-warning {
+  background: rgba(252, 248, 227, 0.10);
+}
+
+.close {
+  text-shadow: none;
+}
+/* /Bootstrap overrides */
+
 .chronos .app .span5 {
   overflow-y: auto;
   overflow-x: hidden;
@@ -460,12 +476,19 @@ textarea::-webkit-input-placeholder {
 }
 
 .job-details-wrapper {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .job-details-wrapper-body {
   background: rgba(0, 0, 0, 0.6);
   display: block;
+}
+
+.job-details-wrapper-footer {
+  -moz-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .job-details-wrapper .save,
@@ -506,21 +529,22 @@ textarea::-webkit-input-placeholder {
   display: block;
 }
 
-.job-details-wrapper.up {
-  margin-bottom: 10px;
-}
-
 .job-details-wrapper.up .toggle {
   width: 70%;
   opacity: 1;
 }
 
-.job-details-wrapper.up .details-wrapper {
+.job-details-wrapper.up .job-details-wrapper-body,
+.job-details-wrapper.up .job-details-wrapper-footer {
   display: none;
 }
 
 .job-details-wrapper.up .nav-item {
   display: none;
+
+  &.close {
+    display: list-item;
+  }
 }
 
 .lightbox-inner .content {
@@ -607,6 +631,14 @@ textarea::-webkit-input-placeholder {
 .job-details-wrapper .create-job .no-edit .display,
 .job-details-wrapper .edit-job .no-edit .cmd {
   display: none;
+}
+
+.visible-edit-job {
+  display: none;
+}
+
+.edit-job .visible-edit-job {
+  display: block;
 }
 
 .job-detail .detail {
