@@ -49,6 +49,11 @@ function($,
 
       window.app.lightbox = new GraphboxView();
       window.app.resultsCollection.trigger('reset');
+
+      window.app.jobsCollectionView.$el.tooltip({
+        container: window.app.applicationView.$el,
+        selector: '[data-toggle="tooltip"]'
+      });
     },
 
     navigateJob: function(jobName) {

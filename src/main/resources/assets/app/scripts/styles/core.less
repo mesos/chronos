@@ -34,11 +34,6 @@ textarea::-webkit-input-placeholder {
 }
 /* /Bootstrap overrides */
 
-.chronos .app .span5 {
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
 .left {
   padding-left: 50px;
   width: 300px;
@@ -114,27 +109,20 @@ textarea::-webkit-input-placeholder {
   padding-right: 15px;
 }
 
-.no-select {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
 .results-header {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
   text-transform: uppercase;
   color: rgba(0,0,0,0.6);
   line-height: 38px;
-  opacity: 0.9;
-  box-shadow: 0 2px 2px rgba(0,0,0,0.1);
-  cursor: pointer;
-  position: fixed;
-  width: 40.42553191489362%;
-  z-index: 3;
-  top: 20px;
+  margin-top: 10px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+
+  /* Stack on top of .results to box-shadow stacks on absolutely-positioned
+   * list elements.
+   */
+  z-index: 10;
 }
 
 .results-header > .span6,
@@ -217,6 +205,7 @@ textarea::-webkit-input-placeholder {
   color: rgba(255, 255, 255, 0.5);
   font-family: @russoFontFamily;
   font-size: 34px;
+  line-height: 1em;
   text-decoration: none;
   text-align: center;
   text-transform: uppercase;
@@ -233,12 +222,6 @@ textarea::-webkit-input-placeholder {
 .menu {
   padding: 20px 0 0 15px;
   position: relative;
-}
-
-.menu-footer {
-  bottom: 10px;
-  position: absolute;
-  width: 100%;
 }
 
 .navbar {
@@ -258,9 +241,9 @@ textarea::-webkit-input-placeholder {
 }
 
 .right-pane {
-  padding: 20px 20px 100px 0;
-  overflow: scroll;
   height: 100%;
+  overflow: auto;
+  padding: 20px 20px 100px 0;
 }
 
 .job-detail .job-name {
@@ -290,9 +273,8 @@ textarea::-webkit-input-placeholder {
   background: none;
   box-shadow: none;
   text-shadow: none;
-  color: rgba(255,255,255,0.5);
-  font-weight: bold;
-  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .chronos .navbar-inner {
@@ -379,6 +361,10 @@ textarea::-webkit-input-placeholder {
   background: rgba(255,255,255,0.5);
 }
 
+.joblist {
+  margin: 0;
+}
+
 .jobs {
   list-style-type: none;
   padding: 0;
@@ -400,10 +386,6 @@ textarea::-webkit-input-placeholder {
 .jobs li {
   padding: 10px 6px;
   border-top: 1px solid rgba(255,255,255,0.3);
-}
-
-.joblist {
-  padding: 60px 0;
 }
 
 .item {
@@ -705,37 +687,35 @@ textarea::-webkit-input-placeholder {
 
 .stat-menu {
   text-align: right;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.stat-menu > li {
-  padding: 15px 0;
-  border-top: 1px solid rgba(255,255,255,0.2);
-}
-
-.stat-menu > li:first-child {
-  padding-top: 5px;
-  border-top: none;
+  padding: 0;
+  margin: 0;
 }
 
 .stat-count {
-  font-size: 60px;
+  font-family: @russoFontFamily;
+  font-size: 34px;
   line-height: 1em;
-  font-weight: 900;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .stat-label {
   text-transform: uppercase;
-  font-size: 20px;
+  vertical-align: 25%;
+  font-size: 18px;
   color: rgba(0,0,0,0.4);
-  margin-top: 1px;
+}
+
+.total-jobs + .total-jobs {
+  margin-left: 10px;
 }
 
 .results {
-  height: 100%;
-  overflow: scroll;
+  bottom: 0;
+  left: 15px;
+  overflow: auto;
+  position: absolute;
+  right: 0;
+  top: 147px;
 }
 
 .sched .small-input {
