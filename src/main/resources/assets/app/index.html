@@ -12,58 +12,59 @@
   <body class="chronos">
     <div class="chronos-wrapper chronos-wrapper-tranquility">
       <div class="app row-fluid">
-        <div class="span2 menu box" id="main-menu">
-          <a class="brand" href="/#">
-            <h1 id="logo">Chronos</h1>
-          </a>
-
-          <div class="search-wrapper">
-            <form id="search-form">
-              <i class="icon-search"></i>
-              <input type="text" class="span12" id="search-filter" placeholder="Search by job name, status or owner">
-            </form>
+        <div class="span7 menu box" id="main-menu">
+          <div class="row-fluid" style="margin-bottom: 10px;">
+            <div class="span5">
+              <a class="brand pull-left" href="/#" id="logo">Chronos</a>
+              <div class="pull-left btn-bg-group" id="btn-bg">
+                <button class="btn btn-bg btn-bg-tranquility"
+                  data-theme="tranquility"
+                  id="btn-bg-tranquility"
+                  title="Tranquility"></button>
+                <button class="btn btn-bg btn-bg-prowess"
+                  data-theme="prowess"
+                  id="btn-bg-prowess"
+                  title="Prowess"></button>
+                <button class="btn btn-bg btn-bg-serenity"
+                  data-theme="serenity"
+                  id="btn-bg-serenity"
+                  title="Serenity"></button>
+              </div>
+            </div>
+            <div class="span7">
+              <ul class="stat-menu inline">
+                <li class="total-jobs">
+                  <span class="stat-label">Total Jobs</span>
+                  <span class="stat-count all-jobs-count"
+                       data-rv-text="jobs.length">0</span>
+                </li>
+                <li class="total-jobs">
+                  <span class="stat-label">Failed Jobs</span>
+                  <span class="stat-count failed-jobs-count"
+                       data-rv-text="jobs:errCount < .lastRunStatus">0</span>
+                </li>
+              </ul>
+            </div>
           </div>
-
-          <ul class="nav nav-list stat-menu">
-            <li class="no-select total-jobs">
-              <div class="stat-count all-jobs-count"
-                   data-rv-text="jobs.length">0</div>
-              <div class="stat-label">Total Jobs</div>
-            </li>
-
-            <li class="no-select total-jobs">
-              <div class="stat-count failed-jobs-count"
-                   data-rv-text="jobs:errCount < .lastRunStatus">0</div>
-              <div class="stat-label">Failed Jobs</div>
-            </li>
-          </ul>
-
-          <div>
-            <button class="btn btn-block clear-btn view-graph">
-              <i class="icon-retweet"></i> Dependency Graph
-            </button>
-            <button class="btn btn-block clear-btn new-job">✚ New Job</button>
-            <a class="btn btn-block clear-btn" href="stats.html">
-              Runtime statistics
-            </a>
+          <div class="row-fluid">
+            <div class="span5">
+              <div class="search-wrapper">
+                <form id="search-form">
+                  <i class="icon-search"></i>
+                  <input type="text" class="span12" id="search-filter" placeholder="Search job name or status">
+                </form>
+              </div>
+            </div>
+            <div class="span7 text-right">
+              <button class="btn clear-btn view-graph">
+                <i class="icon-retweet"></i> Graph
+              </button>
+              <a class="btn clear-btn" href="stats.html">
+                Statistics
+              </a>
+              <button class="btn clear-btn new-job">✚ New Job</button>
+            </div>
           </div>
-
-          <div class="menu-footer text-center" id="btn-bg">
-            <button class="btn btn-bg btn-bg-tranquility"
-              data-theme="tranquility"
-              id="btn-bg-tranquility"
-              title="Tranquility"></button>
-            <button class="btn btn-bg btn-bg-prowess"
-              data-theme="prowess"
-              id="btn-bg-prowess"
-              title="Prowess"></button>
-            <button class="btn btn-bg btn-bg-serenity"
-              data-theme="serenity"
-              id="btn-bg-serenity"
-              title="Serenity"></button>
-          </div>
-        </div>
-        <div class="span5 results">
           <div class="row-fluid results-header">
             <div class="span9 header-name">
               <span>Name</span>
@@ -76,7 +77,7 @@
               <span class="toggle up hide">▲</span>
             </div>
           </div>
-          <div class="row-fluid">
+          <div class="results">
             <ul class="joblist unstyled"></ul>
           </div>
         </div>
