@@ -1,10 +1,8 @@
 /**
  * Job Detail View
- *
  */
 define([
   'jquery',
-  'backbone',
   'underscore',
   'views/job_detail_header_view',
   'views/job_detail_stats',
@@ -22,7 +20,6 @@ define([
   'bootstrap/timepicker'
 ],
 function($,
-         Backbone,
          _,
          JobDetailHeaderView,
          JobDetailStatsView,
@@ -191,7 +188,6 @@ function($,
     },
 
     renderDisplayName: function() {
-      console.log('renderDisplayName')
       this.$el.find('.toggleName').html(this.model.get('name'));
     },
 
@@ -269,9 +265,9 @@ function($,
     },
 
     highlightValidationError: function(error, errorName) {
-      console.log('highlightValidationError', error, errorName);
       var $form = this.$('form'),
-          $el;
+          $el,
+          $parent;
 
       if (_.isArray(error) && (error.length === 1)) {
         error = error[0];
@@ -284,9 +280,9 @@ function($,
         $parent = $el.parents('.control-group').first().addClass('error');
 
         if (error !== true) {
-          $parent.find('.help-inline').text(error);
+          $parent.find('.help-inline').text(error).removeClass('hide');
         }
-      };
+      }
     },
 
     createError: function(model, jqXhr, options) {
@@ -495,8 +491,7 @@ function($,
     },
 
     cancel: function(event) {
-      var newJob = this.$el.hasClass('create-job'),
-          data   = this._remember;
+      var data = this._remember;
       event && event.preventDefault();
 
       this.disableEdit();
@@ -507,8 +502,6 @@ function($,
 
     close: function() {
       var mCid = this.model.cid;
-
-      console.log("Close", arguments, this, this.$el);
 
       if (this.model.isNew()) {
         app.detailsCollection.remove(mCid, {create: true});
@@ -527,11 +520,6 @@ function($,
 
       this.$el.find('.'+name).html(newVal);
       this.model.set(name, ''+newVal);
-    },
-
-    setAsync: function(e) {
-      e && e.preventDefault();
-      //this.$('input[name="executor"]').val(asyncExecutorPath);
     },
 
     validate: function(e) {

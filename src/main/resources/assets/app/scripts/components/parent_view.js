@@ -1,7 +1,8 @@
 define([
+  'jquery',
   'underscore'
 ],
-function(_) {
+function($, _) {
   'use strict';
 
   var namespace = "_childViews",
@@ -28,7 +29,7 @@ function(_) {
     }
   }
 
-  function ResolveView(view) {
+  function resolveView(view) {
     if (_.isString(view)) {
       return require(view);
     } else if (_.isFunction(view)) {
@@ -43,11 +44,11 @@ function(_) {
         viewOpts  = (options && options.viewOptions),
         view  = views[model.cid],
         viewClassName = get(this, 'viewClassName'),
-        viewClass;
+        ViewClass;
 
     if (!view) {
-      viewClass = ResolveView(viewClassName);
-      view = new viewClass({
+      ViewClass = resolveView(viewClassName);
+      view = new ViewClass({
         model: model,
         options: viewOpts || {}
       });
@@ -150,8 +151,7 @@ function(_) {
     },
 
     _childrenSorted: function(collection, options) {
-      var parentView = this,
-          $container = this.$childViewContainer(),
+      var $container = this.$childViewContainer(),
           views = get(this, 'views'),
           view;
 
@@ -165,13 +165,28 @@ function(_) {
     },
 
     _renderChildViews: function(collection) {
-      var parentView = this,
-          view;
+      var _this = this;
 
       this.trigger('parentView:beforeRenderChildren');
 
+      // Collect child HTML into a single Array of strings. Rendering to DOM
+      // elements too early is expensive with a large number of elements.
+      var childrenStrings = new Array(collection.length);
       collection.each(function(model) {
-        parentView._childAdded(model, collection, {});
+        var view = AddOne.call(_this, model, collection);
+        childrenStrings.push(view.toHTML());
+      });
+
+      // Render big children String to the DOM.
+      this.$childViewContainer().html(childrenStrings.join(''));
+
+      // Iterate over new DOM elements and give their associated views
+      // references to them so Rivets can take over updates from here.
+      this.$childViewContainer().find('[data-cid]').each(function(index, element) {
+        var $el = $(element);
+        var view = get(_this, 'views')[$el.data('cid')];
+
+        view.setElement(element);
       });
 
       this.trigger('parentView:afterRenderChildren');
