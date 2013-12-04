@@ -8,8 +8,8 @@ bin=$(dirname $me)
 process=$(basename $me)
 
 ##- JAVA OPTIONS ==============================================================
-HEAP=1024M
-PERMGEN=256M
+HEAP=${HEAP:-1024M}
+PERMGEN=${HEAP:-256M}
 
 #- Heap space -----------------------------------------------------------------
 echo "==> HEAP memory used: $HEAP"
@@ -26,7 +26,7 @@ JAVA_OPTS="$JAVA_OPTS -Djava.library.path=${JAVA_LIBPATH:-/usr/lib/} -cp /etc/ch
 JAVA_OPTS="$JAVA_OPTS -Dnet.spy.log.LoggerImpl=net.spy.memcached.compat.log.Log4JLogger"
 #
 #- Java Management eXtensions -------------------------------------------------
-JMX_PORT=9004
+JMX_PORT=${JMX_PORT:-9004}
 JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=$JMX_PORT"
 JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
 JAVA_OPTS="$JAVA_OPTS -Dcom.sun.management.jmxremote.ssl=false"
