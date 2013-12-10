@@ -18,6 +18,7 @@
   fileExclusionRegExp: /^\.|spec|tests/,
   generateSourceMaps: false,
   preserveLicenseComments: false,
+  skipDirOptimize: true,
   modules: [
     {
       name: 'main',
