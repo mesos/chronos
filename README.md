@@ -158,15 +158,6 @@ Get a job name from the job listing above. Then:
 * Example: `curl -L -X DELETE chronos-node:4400/scheduler/job/request_event_counter_hourly`
 * Response: HTTP 204
 
-### Deleting All Jobs
-
-Note: *don't do this*.
-
-* Endpoint: __/scheduler/jobs__
-* Method: __DELETE__
-* Example: `curl -L -X DELETE chronos-node:4400/scheduler/jobs`
-* Response: HTTP 204
-
 ### Deleting All Tasks for a Job
 
 Deleting tasks for a job is useful if a job gets stuck. Get a job name from the job listing above. Then:

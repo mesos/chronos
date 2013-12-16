@@ -6,22 +6,19 @@ define([
   'views/results_header_view',
   'views/job_item_view',
   'components/mixable_view',
-  'components/parent_view',
-  'components/tooltip_view'
+  'components/parent_view'
 ],
 function($,
          ResultsHeaderView,
          JobItemView,
          MixableView,
-         ParentView,
-         TooltipView) {
+         ParentView) {
 
   'use strict';
 
   var JobsCollectionView = MixableView.extend({
     mixins: {
-      collectionViews: ParentView.InstanceMethods,
-      tooltips: TooltipView.InstanceMethods
+      collectionViews: ParentView.InstanceMethods
     },
 
     el: '.joblist',
@@ -42,11 +39,6 @@ function($,
         add: this.setActiveJobItem,
         remove: this.removeActiveJobItem,
         reset: this.removeAllActiveJobItems
-      });
-
-      this.$el.tooltip({
-        container: this.$el,
-        selector: '[data-toggle="tooltip"]'
       });
     },
 
