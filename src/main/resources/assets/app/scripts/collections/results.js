@@ -1,16 +1,13 @@
 /**
  * Results Collection
- *
  */
 define([
-         'backbone',
-         'underscore',
-         'collections/base_jobs'
-       ], function(Backbone, _, JobsCollection) {
+  'collections/base_jobs'
+], function(JobsCollection) {
 
-  var ResultsCollection;
+  'use strict';
 
-  ResultsCollection = JobsCollection.extend({
+  var ResultsCollection = JobsCollection.extend({
     initialize: function() {
       this.listenTo(this, {
         change: this.update,
@@ -25,12 +22,10 @@ define([
     },
 
     updateErrorCount: function() {
-      var count = 0,
-          errors = this.where({'lastRunStatus': 'failure'});
+      var errors = this.where({'lastRunStatus': 'failure'});
 
       this.errorCount = errors.length;
     }
-
   });
 
   return ResultsCollection;
