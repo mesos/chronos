@@ -45,6 +45,7 @@
         <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
         <maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
+        <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
         <maven-shade-plugin.version>2.1</maven-shade-plugin.version>
         <maven-surefire-plugins.version>2.14.1</maven-surefire-plugins.version>
         <scala-maven-plugin.version>3.1.0</scala-maven-plugin.version>
@@ -286,6 +287,21 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.airbnb.scheduler.Main</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
 
             <plugin>
