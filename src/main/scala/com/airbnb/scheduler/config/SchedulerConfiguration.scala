@@ -123,7 +123,8 @@ trait SchedulerConfiguration extends ScallopConf {
     default = Some("*"))
 
   // Chronos version
-  lazy val version = "2.0.1"
+  lazy val version =
+    Option(classOf[SchedulerConfiguration].getPackage.getImplementationVersion).getOrElse("unknown")
 
   lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
     descr = "The framework name",

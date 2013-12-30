@@ -31,6 +31,7 @@ function($,
         reset: this.updateJobsCount,
         sync: this.setPersisted
       });
+      this.updateJobsCount();
     },
 
     setPersisted: function(collection, resp, options) {
