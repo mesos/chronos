@@ -27,6 +27,7 @@ function($,
       'click .close': 'close',
       'click .cancel': 'cancel',
       'click .run': 'run',
+      'click .kill': 'kill',
       'click .edit': 'edit',
       'click .save': 'save',
       'click .create': 'create',
@@ -96,6 +97,27 @@ function($,
           wait: true
         });
       }
+    },
+
+    kill: function() {
+      var model = this.model,
+        kill = confirm('Are you sure you want to kill: ' + model.get('name') + '?');
+
+      if (kill) {
+        console.log('kill')
+        model.kill({
+          wait: true,
+
+          success: function() {
+            console.log('killed: ', model.get('name'))
+          },
+
+          error: function() {
+            console.log('error: could not kill ', model.get('name'))
+          }
+        });
+      }
+
     },
 
     toggle: function(e) {
