@@ -73,7 +73,7 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
           proxy.setRequestMethod(method)
 
           method match {
-            case "GET" | "HEAD" =>
+            case "GET" | "HEAD" | "DELETE" =>
               proxy.setDoOutput(false)
             case _ =>
               proxy.setDoOutput(true)
