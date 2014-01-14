@@ -126,15 +126,24 @@ function($, Backbone, _, moment, BaseJobValidations) {
       return this.sync('run', this, options);
     },
 
+    kill: function(options) {
+      return this.sync('kill', this, options);
+    },
+
     sync: function(method, model, options) {
       var syncUrl,
           _method = method;
 
       if (method === 'run') { _method = 'update'; }
+      if (method === 'kill') { _method = 'delete'; }
       switch (method) {
       case 'delete':
       case 'run':
         syncUrl = this.url('put');
+        options.data = null;
+        break;
+      case 'kill':
+        syncUrl = Route('scheduler', 'task', 'kill', this.get('name'));
         options.data = null;
         break;
       default:
