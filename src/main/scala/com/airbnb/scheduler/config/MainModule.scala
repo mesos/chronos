@@ -8,7 +8,7 @@ import com.airbnb.scheduler.mesos.{MesosTaskBuilder, MesosDriverFactory, MesosJo
 import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
-import com.airbnb.notification.MailClient
+import com.airbnb.notification.{MailClient,RavenClient}
 import com.google.inject.{Inject, Provides, Singleton, AbstractModule}
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, ThreadFactoryBuilder, MoreExecutors}
 import com.twitter.common.zookeeper.Candidate
@@ -16,7 +16,7 @@ import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
 import mesosphere.mesos.util.FrameworkIdUtil
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.{ActorRefFactory, ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import scala.concurrent.duration._
 
@@ -67,27 +67,38 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
                             persistenceStore: PersistenceStore,
                             mesosSchedulerDriver: MesosDriverFactory,
                             candidate: Candidate,
-                            mailClient: Option[ActorRef],
+                            notificationClients: List[ActorRef],
                             metrics: JobMetrics): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
       taskManager, dependencyScheduler, persistenceStore,
-      mesosSchedulerDriver, candidate, mailClient, config.failureRetryDelayMs(),
+      mesosSchedulerDriver, candidate, notificationClients, config.failureRetryDelayMs(),
       config.disableAfterFailures(), metrics)
   }
 
   @Singleton
   @Provides
-  def provideMailClient(): Option[ActorRef] = {
-    for {
-      server <- config.mailServer.get if !server.isEmpty && server.contains(":")
-      from <- config.mailFrom.get if !from.isEmpty
-    } yield {
-      implicit val system = ActorSystem("chronos-actors")
-      implicit val timeout = Timeout(36500 days)
-      log.warning("Starting mail client.")
-      system.actorOf(Props(classOf[MailClient], server, from,
-        config.mailUser.get, config.mailPassword.get, config.mailSslOn()))
+  def provideNotificationClients(): List[ActorRef] = {
+    implicit val system = ActorSystem("chronos-actors")
+    implicit val timeout = Timeout(36500 days)
+
+    def create(clazz: Class[_], args: scala.Any*) : ActorRef = {
+      log.warning("Starting [%s] notification client.".format(clazz))
+      system.actorOf(Props(clazz, args:_*))
     }
+
+    List(
+      for {
+        server <- config.mailServer.get if !server.isEmpty && server.contains(":")
+        from <- config.mailFrom.get if !from.isEmpty
+      } yield {
+        create(classOf[MailClient], server, from, config.mailUser.get, config.mailPassword.get, config.mailSslOn())
+      },
+      for {
+        ravenDsn <- config.ravenDsn.get if !ravenDsn.isEmpty
+      } yield {
+        create(classOf[RavenClient], ravenDsn)
+      }
+    ).flatten
   }
 
   @Singleton

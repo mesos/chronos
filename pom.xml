@@ -34,6 +34,7 @@
         <twitter-commons.version>0.0.44</twitter-commons.version>
         <metrics.version>3.0.0</metrics.version>
         <akka.version>2.2.1</akka.version>
+        <raven.version>4.1.2</raven.version>
 
         <!-- test deps versions -->
         <junit.version>4.11</junit.version>
@@ -166,6 +167,17 @@
             <version>${akka.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>net.kencochrane.raven</groupId>
+            <artifactId>raven</artifactId>
+            <version>${raven.version}</version>
+        </dependency>
+
+        <dependency>
+          <groupId>net.kencochrane.raven</groupId>
+          <artifactId>raven-getsentry</artifactId>
+          <version>${raven.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>

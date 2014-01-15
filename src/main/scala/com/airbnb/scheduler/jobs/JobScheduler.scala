@@ -34,7 +34,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val persistenceStore: PersistenceStore,
                              val mesosDriver: MesosDriverFactory = null,
                              val candidate: Candidate = null,
-                             val mailClient: Option[ActorRef] = None,
+                             val notificationClients: List[ActorRef] = List(),
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics)
@@ -72,11 +72,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
-    if (!mailClient.isEmpty) {
+    for (client <- notificationClients) {
       val subowners = job.owner.split("\\s*,\\s*")
       for (subowner <- subowners) {
-        log.info("Sending mail notification to:%s for job %s".format(subowner, job.name))
-        mailClient.get ! (subowner, subject, message)
+        log.info("Sending mail notification to:%s for job %s using client: %s".format(subowner, job.name, client))
+        client ! (job, subowner, subject, message)
       }
     }
 

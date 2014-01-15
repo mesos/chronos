@@ -94,6 +94,10 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "Mail SSL",
     default = Some(false))
 
+  lazy val ravenDsn = opt[String]("raven_dsn",
+    descr = "Raven DSN for connecting to a raven or sentry event service",
+    default = None)
+
   lazy val failureRetryDelayMs = opt[Long]("failure_retry",
     descr = "Number of ms between retries",
     default = Some(60000))
