@@ -32,7 +32,6 @@ Also join us on IRC in #mesos on freenode.
     - [Leader](#leaders)
     - [Listing Jobs](#listing-jobs)
     - [Deleting a Job](#deleting-a-job)
-    - [Deleting All Jobs](#deleting-all-jobs)
     - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
     - [Manually Starting a Job](#manually-starting-a-job)
     - [Adding a Scheduled Job](#adding-a-scheduled-job)
