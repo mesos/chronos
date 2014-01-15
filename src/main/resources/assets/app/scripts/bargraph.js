@@ -15,7 +15,7 @@ function drawBarChart(chartID, data, selectString) {
   var legendTextOffset = 20;
   var maxTime = Math.max(d3.max(dataSet, function(d) {return d.time; }), 2); // ensure maxTime > 1
   var minTime = d3.min(dataSet, function(d) {return d.time; });
-  var x = d3.scale.log().domain([1, maxTime]).rangeRound([0, barsWidthTotal]);
+  var x = d3.scale.log().domain([1, maxTime+1]).rangeRound([0, barsWidthTotal]);
   var y = d3.scale.linear().domain([0, numJobs]).range([0, barsHeightTotal]);
 
   // Color Scale Handling...
@@ -73,7 +73,7 @@ function drawBarChart(chartID, data, selectString) {
       .ease("bounce")
         .duration(500)
         .delay(function(d, i) { return i * 100; })
-      .attr("width", function(d) { return x(d.time) + 5; })
+      .attr("width", function(d) { return x(d.time+1) + 5; })
       .style("fill", function(d, i) { colorVal = colorScale(d.time); return colorVal; } )
       .attr("index_value", function(d, i) { return "index-" + i; })
       .attr("class", function(d, i) { return "bars-" + chartID + "-bar-index-" + i; })
