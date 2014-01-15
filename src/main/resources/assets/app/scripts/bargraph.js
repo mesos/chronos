@@ -73,7 +73,7 @@ function drawBarChart(chartID, data, selectString) {
       .ease("bounce")
         .duration(500)
         .delay(function(d, i) { return i * 100; })
-      .attr("width", function(d) { return x(d.time + 5); })
+      .attr("width", function(d) { return x(d.time) + 5; })
       .style("fill", function(d, i) { colorVal = colorScale(d.time); return colorVal; } )
       .attr("index_value", function(d, i) { return "index-" + i; })
       .attr("class", function(d, i) { return "bars-" + chartID + "-bar-index-" + i; })
