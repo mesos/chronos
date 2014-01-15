@@ -16,7 +16,7 @@ class RavenClient(val dsn: String) extends NotificationClient {
   private[this] val raven = RavenFactory.ravenInstance(dsn)
 
   def sendNotification(job: BaseJob, to : String, subject : String, message : Option[String]) {
-    val ravenMessage = subject + "\n\n" + message
+    val ravenMessage = subject + "\n\n" + message.getOrElse("")
     val event = new EventBuilder()
       .setMessage(ravenMessage)
       .setLevel(Event.Level.ERROR)

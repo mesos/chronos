@@ -375,12 +375,14 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             if (disableJob) {
               log.warning("Job failed beyond retries! Job will now be disabled after "
                 + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
-              sendNotification(job, "JOB DISABLED: '%s' failed at '%s', %d failures since last success"
-                .format(job.name, DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess))
+              sendNotification(job, "JOB DISABLED: '%s'".format(job.name),
+                Some("Failed at '%s', %d failures since last success"
+                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess)))
             } else {
               log.warning("Job failed beyond retries!")
-              sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
-                .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
+              sendNotification(job, "job '%s' failed!".format(job.name),
+                Some("'%s'. Retries attempted: %d. "
+                .format(DateTime.now(DateTimeZone.UTC), job.retries)))
             }
             jobMetrics.updateJobStatus(jobName, success = false)
           }
