@@ -13,7 +13,7 @@ function drawBarChart(chartID, data, selectString) {
   var legendOffset = barHeight/2;
   var legendBulletOffset = 30;
   var legendTextOffset = 20;
-  var maxTime = d3.max(dataSet, function(d) {return d.time; });
+  var maxTime = max(d3.max(dataSet, function(d) {return d.time; }), 2); // ensure maxTime > 1
   var minTime = d3.min(dataSet, function(d) {return d.time; });
   var x = d3.scale.log().domain([1, maxTime]).rangeRound([0, barsWidthTotal]);
   var y = d3.scale.linear().domain([0, numJobs]).range([0, barsHeightTotal]);
