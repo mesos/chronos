@@ -1,11 +1,9 @@
-function drawBarChart(chartID, data, selectString, nJobs) {
+function drawBarChart(chartID, data, selectString) {
   // chartID => A unique drawing identifier that has no spaces, no "." and no "#" characters.
   // data => Input data for the chart, itself.
   // selectString => String that allows you to pass in
   //           a D3 select string.
-  // nJobs => The number of bars to render
-  // TODO: handle jobs that take zero time
-  var numJobs = Math.min(data.length, nJobs);
+  var numJobs = data.length;
   var dataSet = data.slice(0, numJobs+1);
   var canvasWidth = $(selectString).parent().width();
   var barsWidthTotal = canvasWidth / 1.5;
@@ -75,7 +73,7 @@ function drawBarChart(chartID, data, selectString, nJobs) {
       .ease("bounce")
         .duration(500)
         .delay(function(d, i) { return i * 100; })
-      .attr("width", function(d) { return x(d.time); })
+      .attr("width", function(d) { return x(d.time + 5); })
       .style("fill", function(d, i) { colorVal = colorScale(d.time); return colorVal; } )
       .attr("index_value", function(d, i) { return "index-" + i; })
       .attr("class", function(d, i) { return "bars-" + chartID + "-bar-index-" + i; })
@@ -145,27 +143,27 @@ var readableDuration = (function() {
 $(function() {
   $("#chart_mean").click( function() {
     $.getJSON("/scheduler/stats/mean", function(result) {
-        drawBarChart("mean", result, "#barchart .chart", 10);
+        drawBarChart("mean", result, "#barchart .chart");
     });
   });
   $("#chart_median").click( function() {
     $.getJSON("/scheduler/stats/median", function(result) {
-        drawBarChart("median", result, "#barchart .chart", 10);
+        drawBarChart("median", result, "#barchart .chart");
     });
   });
   $("#chart_75").click( function() {
     $.getJSON("/scheduler/stats/75thPercentile", function(result) {
-        drawBarChart("75", result, "#barchart .chart", 10);
+        drawBarChart("75", result, "#barchart .chart");
     });
   });
   $("#chart_95").click( function() {
     $.getJSON("/scheduler/stats/95thPercentile", function(result) {
-        drawBarChart("95", result, "#barchart .chart", 10);
+        drawBarChart("95", result, "#barchart .chart");
     });
   });
   $("#chart_99").click( function() {
     $.getJSON("/scheduler/stats/99thPercentile", function(result) {
-        drawBarChart("99", result, "#barchart .chart", 10);
+        drawBarChart("99", result, "#barchart .chart");
     });
   });
 });
