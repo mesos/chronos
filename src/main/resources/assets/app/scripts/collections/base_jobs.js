@@ -31,7 +31,10 @@ define([
         add: this.parseSchedule,
         reset: this.parseAllSchedules,
         'toggle:count': this.toggleCount,
+        'toggle:lastRun': this.toggleLastRun,
         'toggle:name': this.toggleName
+        'toggle:disabled': this.toggleDisabled,
+        'toggle:owner': this.toggleOwner,
       });
     },
 
@@ -100,6 +103,20 @@ define([
       this.setComparator(this.makeComparatorByAttribute('displayName', reverse));
 
       this.sortNameDirection = reverse ? 'down' : 'up';
+    },
+
+    toggleOwner: function() {
+      var reverse = this.sortOwnerDirection === 'up';
+      this.setComparator(this.makeComparatorByAttribute('owner', reverse));
+
+      this.sortOwnerDirection = reverse ? 'down' : 'up';
+    },
+
+    toggleDisabled: function() {
+      var reverse = this.sortDisabledDirection === 'up';
+      this.setComparator(this.makeComparatorByAttribute('disabled', reverse));
+
+      this.sortDisabledDirection = reverse ? 'down' : 'up';
     },
 
     toggleLastRun: function() {

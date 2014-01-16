@@ -12,7 +12,7 @@ define([
     el: '.results-header',
 
     events: {
-      'click .header-status': 'toggleStatus',
+      'click .header-disabled': 'toggleDisabled',
       'click .header-owner': 'toggleOwner',
       'click .header-last-run': 'toggleLastRun',
       'click .header-name': 'toggleName'
@@ -33,11 +33,11 @@ define([
       app.resultsCollection.trigger('toggle:name');
     },
 
-    toggleStatus: function(event) {
+    toggleDisabled: function(event) {
       var $el = $(event.currentTarget);
 
       $el.find('.toggle').toggle();
-      app.resultsCollection.trigger('toggle:status');
+      app.resultsCollection.trigger('toggle:disabled');
     },
 
     toggleOwner: function(event) {

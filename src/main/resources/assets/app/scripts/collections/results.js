@@ -14,7 +14,7 @@ define([
         'toggle:count': this.toggleCount,
         'toggle:lastRun': this.toggleLastRun,
         'toggle:name': this.toggleName,
-        'toggle:status': this.toggleStatus,
+        'toggle:disabled': this.toggleDisabled,
         'toggle:owner': this.toggleOwner
       });
     },
