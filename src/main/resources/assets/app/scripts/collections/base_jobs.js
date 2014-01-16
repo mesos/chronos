@@ -32,9 +32,9 @@ define([
         reset: this.parseAllSchedules,
         'toggle:count': this.toggleCount,
         'toggle:lastRun': this.toggleLastRun,
-        'toggle:name': this.toggleName
+        'toggle:name': this.toggleName,
         'toggle:disabled': this.toggleDisabled,
-        'toggle:owner': this.toggleOwner,
+        'toggle:owner': this.toggleOwner
       });
     },
 
