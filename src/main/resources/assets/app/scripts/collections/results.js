@@ -13,7 +13,9 @@ define([
         change: this.update,
         'toggle:count': this.toggleCount,
         'toggle:lastRun': this.toggleLastRun,
-        'toggle:name': this.toggleName
+        'toggle:name': this.toggleName,
+        'toggle:disabled': this.toggleDisabled,
+        'toggle:owner': this.toggleOwner
       });
     },
 
