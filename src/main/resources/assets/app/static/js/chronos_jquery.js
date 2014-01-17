@@ -20,17 +20,19 @@ function populateWithContent(name, isEditing) {
   var job = entries[name];
   var command = job["command"];
   var owner = job["owner"];
-  var parents = job["parents"]; // parents is an array of strings
+  var parents = job["parents"]; // parents is an array of strings here, but we want a single string as input to the function
   var schedule = job["schedule"];
   var disabled = job["disabled"];
   var type = job["jobType"]
   if (parents === undefined) {
-    parents = "";
+    var parentString = "";
+  } else {
+    var parentString = parents.join(", ");
   }
   if (schedule === undefined) {
     schedule = "";
   }
-  populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing)
+  populateJobModal(name, command, owner, parentString, schedule, disabled, type, isEditing)
 }
 
 $(function() {
@@ -128,7 +130,7 @@ $(function() {
 
     if ($('#parentsInput').val().length > 0) {
       // This is a dependent job.
-      job_hash["parents"] = $('#parentsInput').val();
+      job_hash["parents"] = $('#parentsInput').val().split(", "); // this should be an array
       path += "dependency";
 
     } else {
@@ -211,8 +213,13 @@ $(function() {
         $('#parentsInput').prop('readonly', true);
       }
       else {
-        // Enable when all of them are empty.
-        $('#parentsInput').prop('readonly', false);
+        if ( $('#repeatsInput').val().length == 0 &&
+             $('#dateInput').val().length == 0 &&
+             $('#timeInput').val().length == 0 &&
+             $('#periodInput').val().length == 0) {
+              // Enable when all of them are empty.
+              $('#parentsInput').prop('readonly', false);
+        }
       }
     }
   });
@@ -428,7 +435,7 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
     $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner);
-    $('#parentsInput').val(parents.join(", "));
+    $('#parentsInput').val(parents);
     // Parse the schedule string into repeats, date, time, period
     if (type === "scheduled") {
       var parts = schedule.split("/");
