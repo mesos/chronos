@@ -428,7 +428,7 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
     $('#nameInput').val(name);
     $('#commandInput').val(command);
     $('#ownerInput').val(owner);
-    $('#parentsInput').val(parents.split(","));
+    $('#parentsInput').val(parents.join(", "));
     // Parse the schedule string into repeats, date, time, period
     if (type === "scheduled") {
       var parts = schedule.split("/");
