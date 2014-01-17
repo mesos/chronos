@@ -109,7 +109,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         })
     }
 
-    val mem = if (job.mem > 0) job.mem else conf.mesosTaskDisk()
+    val mem = if (job.mem > 0) job.mem else conf.mesosTaskMem()
     val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
     val disk = if (job.disk > 0) job.disk else conf.mesosTaskDisk()
     taskInfo
