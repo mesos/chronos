@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+body .modal-admin {
+  width: 800px;
+  margin-left: -400px;
+}
+
 textarea {
   resize: vertical;
 }
