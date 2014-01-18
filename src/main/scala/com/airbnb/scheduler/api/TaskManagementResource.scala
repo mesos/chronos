@@ -83,7 +83,7 @@ class TaskManagementResource @Inject()(
     log.info("Task purge request received")
     try {
       persistenceStore.purgeTasks()
-      taskManager.queue.clear()
+      taskManager.queues.foreach(_.clear())
       return Response.noContent().build()
     } catch {
       case ex: Throwable => {
