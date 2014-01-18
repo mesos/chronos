@@ -89,6 +89,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
     }
 
+    val priority =
+      if (node.has("priority") && node.get("priority") != null) node.get("priority").asInt
+      else 0
+
     var parentList = scala.collection.mutable.ListBuffer[String]()
     if (node.has("parents")) {
       for (parent <- node.path("parents")) {
@@ -97,12 +101,14 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled, uris = uris)
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled,
+        uris = uris, priority = priority)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled, uris = uris)
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled,
+        uris = uris,  priority = priority)
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }

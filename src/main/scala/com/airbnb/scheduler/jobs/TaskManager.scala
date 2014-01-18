@@ -26,8 +26,17 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   val log = Logger.getLogger(getClass.getName)
 
-  // This queue contains the task_ids
-  val queue = new java.util.concurrent.LinkedBlockingQueue[String]
+  /* index values into queues */
+  val HIGH_P = 0
+  val NORMAL_P = 1
+  val LOW_P = 2
+
+  // These queues contains the task_ids  (high, medium, low) priorities
+  val queues = Array[java.util.concurrent.LinkedBlockingQueue[String]](
+    new java.util.concurrent.LinkedBlockingQueue[String], // high priority
+    new java.util.concurrent.LinkedBlockingQueue[String], // normal
+    new java.util.concurrent.LinkedBlockingQueue[String]) // low
+  val names = Array[String]("High priority", "Normal priority", "Low priority")
 
   val taskCache = CacheBuilder.newBuilder().maximumSize(5000L).build[String, TaskState]()
 
@@ -37,7 +46,19 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   val queueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "queueSize"),
     new Gauge[Long] {
-      def getValue() = queue.size
+      def getValue() = queues(NORMAL_P).size
+    })
+
+  val lowQueueGauge = registry.register(
+    MetricRegistry.name(classOf[TaskManager], "lowQueueSize"),
+    new Gauge[Long] {
+      def getValue() = queues(LOW_P).size
+    })
+
+  val highQueueGauge = registry.register(
+    MetricRegistry.name(classOf[TaskManager], "highQueueSize"),
+    new Gauge[Long] {
+      def getValue() = queues(HIGH_P).size
     })
 
 
@@ -46,18 +67,25 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
    */
   def getTask: Option[(String, BaseJob)] = {
+    getTaskHelper(HIGH_P).orElse(getTaskHelper(NORMAL_P)).orElse(getTaskHelper(LOW_P))
+  }
+
+  private def getTaskHelper(num: Integer) = {
+    val queue = queues(num)
+    val name = names(num)
     val taskId = queue.poll()
     if (taskId == null) {
-      log.fine("Queue empty")
+      log.fine(s"$name queue empty")
       None
     } else {
-      log.info("Queue contains task:" + taskId)
+      log.info(s"$name queue contains task: $taskId")
       val jobOption = jobGraph.getJobForName(TaskUtils.getJobNameForTaskId(taskId))
       //If the job was deleted after the taskId was added to the queue, the task could be empty.
       if (jobOption.isEmpty) {
-        return None
+        None
+      } else {
+        Some(taskId, jobOption.get)
       }
-      Some(taskId, jobOption.get)
     }
   }
 
@@ -100,7 +128,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         })
     })
     taskMapping.clear()
-    queue.clear()
+    queues.foreach(_.clear())
   }
 
   def persistTask(taskId: String, baseJob: BaseJob) {
@@ -111,10 +139,12 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     persistenceStore.removeTask(taskId)
   }
 
-  def enqueue(taskId: String) {
-    log.fine("Adding task '%s' to queue".format(taskId))
-    queue.add(taskId)
-  }
+    def enqueue(taskId: String, priority: Int) {
+      log.fine("Adding task '%s' to queue".format(taskId))
+      /* TODO(DLS): something more sane here with different levels */
+      val _priority = Math.min(Math.max(-1, priority), 1) + 1
+      queues(_priority).add(taskId)
+    }
 
   /**
    * Enqeueues a wrapped Task with a calculated delay, after this time, the job is added to the job queue. This means

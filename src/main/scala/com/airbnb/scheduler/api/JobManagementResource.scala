@@ -91,7 +91,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
-      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0))
+      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0), job.priority)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException => {
