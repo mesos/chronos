@@ -182,15 +182,15 @@ function($,
         window.app.resultsCollection = new ResultsCollection(jobsCollection.models);
         window.app.jobsGraphCollection = new JobGraphCollection();
 
-        window.app.jobsGraphCollection.registerAccessoryCollection(
-          jobsCollection).fetch();
+        //window.app.jobsGraphCollection.registerAccessoryCollection(
+        //  jobsCollection).fetch();
 
         window.app.router = new ApplicationRouter();
         Backbone.history.start();
         app.Helpers.filterList();
 
         jobsCollection.startPolling();
-        window.app.jobsGraphCollection.startPolling();
+        //window.app.jobsGraphCollection.startPolling();
       });
 
       window.app.jobsCollection = jobsCollection;
