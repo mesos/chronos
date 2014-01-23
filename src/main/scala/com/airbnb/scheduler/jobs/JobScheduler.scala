@@ -34,7 +34,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val persistenceStore: PersistenceStore,
                              val mesosDriver: MesosDriverFactory = null,
                              val candidate: Candidate = null,
-                             val mailClient: Option[ActorRef] = None,
+                             val notificationClients: List[ActorRef] = List(),
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics)
@@ -72,11 +72,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
-    if (!mailClient.isEmpty) {
+    for (client <- notificationClients) {
       val subowners = job.owner.split("\\s*,\\s*")
       for (subowner <- subowners) {
-        log.info("Sending mail notification to:%s for job %s".format(subowner, job.name))
-        mailClient.get ! (subowner, subject, message)
+        log.info("Sending mail notification to:%s for job %s using client: %s".format(subowner, job.name, client))
+        client ! (job, subowner, subject, message)
       }
     }
 
@@ -375,12 +375,14 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             if (disableJob) {
               log.warning("Job failed beyond retries! Job will now be disabled after "
                 + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
-              sendNotification(job, "JOB DISABLED: '%s' failed at '%s', %d failures since last success"
-                .format(job.name, DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess))
+              sendNotification(job, "JOB DISABLED: '%s'".format(job.name),
+                Some("Failed at '%s', %d failures since last success"
+                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess)))
             } else {
               log.warning("Job failed beyond retries!")
-              sendNotification(job, "job '%s' failed at '%s'. Retries attempted: %d. "
-                .format(job.name, DateTime.now(DateTimeZone.UTC), job.retries))
+              sendNotification(job, "job '%s' failed!".format(job.name),
+                Some("'%s'. Retries attempted: %d. "
+                .format(DateTime.now(DateTimeZone.UTC), job.retries)))
             }
             jobMetrics.updateJobStatus(jobName, success = false)
           }
