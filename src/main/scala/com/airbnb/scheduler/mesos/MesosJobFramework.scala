@@ -163,13 +163,13 @@ class MesosJobFramework @Inject()(
         log.info(x.getScalar.getValue.getClass.getName)
         x.getType match {
           case Value.Type.SCALAR =>
-            x.getName match {
+            val amount = x.getName match {
               case "mem" =>
-                if (job.mem == 0) config.mesosTaskMem else job.mem
+                if (job.mem > 0) job.mem else config.mesosTaskMem()
               case "cpus" =>
-                if (job.cpus == 0) config.mesosTaskCpu else job.cpus
+                if (job.cpus > 0) job.cpus else config.mesosTaskCpu()
               case "disk" =>
-                if (job.disk == 0) config.mesosTaskDisk else job.disk
+                if (job.disk > 0) job.disk else config.mesosTaskDisk()
               case _ =>
                 x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
             }
@@ -177,7 +177,7 @@ class MesosJobFramework @Inject()(
             x.getScalar.getValue match {
 
               case value: Double => {
-                if (value.doubleValue() <= x.getScalar.getValue && !sufficient(x.getName)) {
+                if (value.doubleValue() >= amount && !sufficient(x.getName)) {
                   sufficient(x.getName) = true
                 }
               }
