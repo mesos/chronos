@@ -295,7 +295,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             val dependentJob = jobGraph.getJobForName(x).get
             if (!dependentJob.disabled) {
               taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
-                DateTime.now(DateTimeZone.UTC)), dependentJob.priority)
+                DateTime.now(DateTimeZone.UTC)), dependentJob.highPriority)
 
               log.fine("Enqueued depedent job." + x)
             }

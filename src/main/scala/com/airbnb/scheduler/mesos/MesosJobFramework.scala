@@ -71,7 +71,7 @@ class MesosJobFramework @Inject()(
               offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
 
               /* Put the task back into the queue */
-              taskManager.enqueue(x, j.priority)
+              taskManager.enqueue(x, j.highPriority)
           }
         }
         case _ => {
