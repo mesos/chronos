@@ -295,7 +295,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             val dependentJob = jobGraph.getJobForName(x).get
             if (!dependentJob.disabled) {
               taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
-                DateTime.now(DateTimeZone.UTC)), dependentJob.priority)
+                DateTime.now(DateTimeZone.UTC)), dependentJob.highPriority)
 
               log.fine("Enqueued depedent job." + x)
             }
@@ -350,7 +350,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
               .plus(new Duration(failureRetryDelay)), attempt + 1)
             taskManager.persistTask(taskId, job)
-            taskManager.enqueue(newTaskId, job.priority)
+            taskManager.enqueue(newTaskId, job.highPriority)
           } else {
             val disableJob =
               (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)

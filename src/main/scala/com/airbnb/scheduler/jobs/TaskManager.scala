@@ -29,14 +29,12 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   /* index values into queues */
   val HIGH_P = 0
   val NORMAL_P = 1
-  val LOW_P = 2
 
   // These queues contains the task_ids  (high, medium, low) priorities
   val queues = Array[java.util.concurrent.LinkedBlockingQueue[String]](
     new java.util.concurrent.LinkedBlockingQueue[String], // high priority
-    new java.util.concurrent.LinkedBlockingQueue[String], // normal
-    new java.util.concurrent.LinkedBlockingQueue[String]) // low
-  val names = Array[String]("High priority", "Normal priority", "Low priority")
+    new java.util.concurrent.LinkedBlockingQueue[String]) // normal
+  val names = Array[String]("High priority", "Normal priority")
 
   val taskCache = CacheBuilder.newBuilder().maximumSize(5000L).build[String, TaskState]()
 
@@ -46,19 +44,13 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   val queueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "queueSize"),
     new Gauge[Long] {
-      def getValue() = queues(NORMAL_P).size
-    })
-
-  val lowQueueGauge = registry.register(
-    MetricRegistry.name(classOf[TaskManager], "lowQueueSize"),
-    new Gauge[Long] {
-      def getValue() = queues(LOW_P).size
+      def getValue = queues(NORMAL_P).size
     })
 
   val highQueueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "highQueueSize"),
     new Gauge[Long] {
-      def getValue() = queues(HIGH_P).size
+      def getValue = queues(HIGH_P).size
     })
 
 
@@ -67,7 +59,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
    */
   def getTask: Option[(String, BaseJob)] = {
-    getTaskHelper(HIGH_P).orElse(getTaskHelper(NORMAL_P)).orElse(getTaskHelper(LOW_P))
+    getTaskHelper(HIGH_P).orElse(getTaskHelper(NORMAL_P))
   }
 
   private def getTaskHelper(num: Integer) = {
@@ -91,7 +83,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   /**
    * Returns the time that is left before the task needs to be handed off to mesos where it is immediately executed.
-   * @param due
+   * @param due DateTime when the job should be run
    * @return the number of milliseconds between current time and when the task is due
    */
   def getMillisUntilExecution(due: DateTime) = {
@@ -101,7 +93,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   /**
    * Removes a future-task mapping thus signaling that a task has been added to the local queue awaiting execution from
    * mesos.
-   * @param task
+   * @param task ScheduledTask to remove
    */
   def removeTaskFutureMapping(task: ScheduledTask) {
     log.info("Removing task mapping")
@@ -139,10 +131,10 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     persistenceStore.removeTask(taskId)
   }
 
-    def enqueue(taskId: String, priority: Int) {
-      log.fine("Adding task '%s' to queue".format(taskId))
-      /* TODO(DLS): something more sane here with different levels */
-      val _priority = Math.min(Math.max(-1, priority), 1) + 1
+    def enqueue(taskId: String, highPriority: Boolean) {
+      /* Don't want to change previous logging if we don't have to... */
+      log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
+      val _priority = if(highPriority) HIGH_P else NORMAL_P
       queues(_priority).add(taskId)
     }
 
@@ -174,7 +166,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   /**
    * Cancels all the taskMappings
-   * @param baseJob
+   * @param baseJob BaseJob for which to cancel all tasks.
    */
   def cancelTasks(baseJob: BaseJob) {
     taskMapping.get(baseJob.name) match {
@@ -192,7 +184,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   /**
    * Removes all tasks from the persistence store that belong to a job.
-   * @param baseJob
+   * @param baseJob BaseJob for which to remove all tasks from persistence store.
    */
   def removeTasks(baseJob: BaseJob) {
     log.info("Removing all tasks for job:" + baseJob)
