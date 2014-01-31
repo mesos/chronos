@@ -27,10 +27,11 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   val log = Logger.getLogger(getClass.getName)
 
   /* index values into queues */
-  val HIGH_P = 0
-  val NORMAL_P = 1
+  val HIGH_PRIORITY = 0
+  val NORMAL_PRIORITY = 1
 
-  // These queues contains the task_ids  (high, medium, low) priorities
+  /* Maintain a queue for high priority and normal priority jobs. (Just like boarding for airlines...
+   * we have no guarantees of forward progress. But jobs in the high priority line always go first.) */
   val queues = Array[java.util.concurrent.LinkedBlockingQueue[String]](
     new java.util.concurrent.LinkedBlockingQueue[String], // high priority
     new java.util.concurrent.LinkedBlockingQueue[String]) // normal
@@ -44,13 +45,13 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   val queueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "queueSize"),
     new Gauge[Long] {
-      def getValue = queues(NORMAL_P).size
+      def getValue = queues(NORMAL_PRIORITY).size
     })
 
   val highQueueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "highQueueSize"),
     new Gauge[Long] {
-      def getValue = queues(HIGH_P).size
+      def getValue = queues(HIGH_PRIORITY).size
     })
 
 
@@ -59,7 +60,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
    */
   def getTask: Option[(String, BaseJob)] = {
-    getTaskHelper(HIGH_P).orElse(getTaskHelper(NORMAL_P))
+    getTaskHelper(HIGH_PRIORITY).orElse(getTaskHelper(NORMAL_PRIORITY))
   }
 
   private def getTaskHelper(num: Integer) = {
@@ -134,7 +135,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     def enqueue(taskId: String, highPriority: Boolean) {
       /* Don't want to change previous logging if we don't have to... */
       log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
-      val _priority = if(highPriority) HIGH_P else NORMAL_P
+      val _priority = if(highPriority) HIGH_PRIORITY else NORMAL_PRIORITY
       queues(_priority).add(taskId)
     }
 
