@@ -19,7 +19,7 @@ class ScheduledTask(
     //TODO(FL): Think about pulling the state updating into the TaskManager.
     taskManager.log.info("Triggering: '%s'".format(job.name))
     taskManager.removeTaskFutureMapping(this)
-    taskManager.enqueue(taskId)
+    taskManager.enqueue(taskId, job.highPriority)
     return null
   }
 }
