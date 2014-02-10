@@ -61,7 +61,6 @@ object JobUtils {
     //TODO(FL): Create functions that map strings to jobs
     val scheduledJobs = new ListBuffer[ScheduleBasedJob]
     val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
-    import scala.collection.JavaConversions._
 
     val jobs = store.getJobs
 
@@ -72,10 +71,6 @@ object JobUtils {
         throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
     }
 
-    dependencyBasedJobs.foreach({ x =>
-      log.info("Adding dependencies for %s -> [%s]".format(x.name, Joiner.on(",").join(x.parents)))
-    })
-
     log.info("Registering jobs:" + scheduledJobs.size)
     scheduler.registerJob(scheduledJobs.toList)
 
@@ -85,19 +80,26 @@ object JobUtils {
         scheduler.jobGraph.addVertex(x)
     })
 
-    dependencyBasedJobs.foreach({ x =>
+    dependencyBasedJobs.foreach {
+      x =>
         log.info("mapping:" + x)
         import scala.collection.JavaConversions._
         log.info("Adding dependencies for %s -> [%s]".format(x.name, Joiner.on(",").join(x.parents)))
 
-        scheduler.jobGraph.parentJobs(x).foreach({
-          //Setup all the dependencies
-          y: BaseJob =>
-            scheduler.jobGraph.addDependency(y.name, x.name)
-            scheduler.jobGraph.dag.getAllEdges(y.name, x.name)
-              .foreach(e => scheduler.jobGraph.edgeInvocationCount.put(e, y.successCount))
-        })
-    })
+        scheduler.jobGraph.parentJobsOption(x) match {
+          case None =>
+            log.warning(s"Coudn't find all parents of job ${x.name}... dropping it.")
+            scheduler.jobGraph.removeVertex(x)
+          case Some(parentJobs) =>
+            parentJobs.foreach {
+              //Setup all the dependencies
+              y: BaseJob =>
+                scheduler.jobGraph.addDependency(y.name, x.name)
+                scheduler.jobGraph.dag.getAllEdges(y.name, x.name)
+                  .foreach(e => scheduler.jobGraph.edgeInvocationCount.put(e, y.successCount))
+            }
+        }
+    }
   }
 
   def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime)  = {
