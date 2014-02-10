@@ -22,14 +22,31 @@ class JobGraph {
   val dag = new DirectedAcyclicGraph[String, DefaultEdge](classOf[DefaultEdge])
   val edgeInvocationCount = Map[DefaultEdge, Long]()
 
-  val parentJobs = {
-    job: DependencyBasedJob =>
-      job.parents.map({
-        x: String =>
-          val vertex = lookupVertex(x)
-          require(!vertex.isEmpty, "Parent: %s not found in job graph!".format(x))
-          vertex.get
-      })
+  def parentJobs(job: DependencyBasedJob) = parentJobsOption(job) match {
+    case None =>
+      throw new IllegalArgumentException(s"requirement failed: Job ${job.name} does not have all parents defined!")
+    case Some(jobs) =>
+      jobs
+  }
+
+  def parentJobsOption(job: DependencyBasedJob): Option[List[BaseJob]] = {
+    val vertexNamePairs = job.parents.map(x => (x, lookupVertex(x))).toList
+    var failure = false
+    val parents = vertexNamePairs.flatMap {
+      case (x: String, y: Option[BaseJob]) =>
+        y match {
+          case None =>
+            log.warning(s"Parent $x of job ${job.name} not found in job graph!")
+            failure = true
+            None
+          case Some(baseJob: BaseJob) =>
+            Some(baseJob)
+        }
+    }
+    if (failure)
+      None
+    else
+     Some(parents)
   }
 
   def getJobForName(name: String): Option[BaseJob] = {
