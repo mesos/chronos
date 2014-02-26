@@ -5,7 +5,11 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDeserializer}
 import org.joda.time.Period
 import scala.collection.JavaConversions._
+import com.airbnb.scheduler.config.SchedulerConfiguration
 
+object JobDeserializer {
+  var config: SchedulerConfiguration = _
+}
 /**
  * Custom JSON deserializer for jobs.
  * @author Florian Leibert (flo@leibert.de)
@@ -64,16 +68,16 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else ""
 
     val cpus =
-      if (node.has("cpus") && node.get("cpus") != null) node.get("cpus").asDouble
-      else 0
+      if (node.has("cpus") && node.get("cpus") != null && node.get("cpus").asDouble != 0) node.get("cpus").asDouble
+      else JobDeserializer.config.mesosTaskCpu()
 
     val disks =
-      if (node.has("disk") && node.get("disk") != null) node.get("disk").asInt
-      else 0
+      if (node.has("disk") && node.get("disk") != null && node.get("disk").asInt != 0) node.get("disk").asInt
+      else JobDeserializer.config.mesosTaskDisk()
 
     val mem =
-      if (node.has("mem") && node.get("mem") != null) node.get("mem").asInt
-      else 0
+      if (node.has("mem") && node.get("mem") != null && node.get("mem").asInt != 0) node.get("mem").asInt
+      else JobDeserializer.config.mesosTaskMem()
 
     var uris = scala.collection.mutable.ListBuffer[String]()
     if (node.has("uris")) {
