@@ -50,7 +50,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     val disabled =
       if (node.has("disabled") && node.get("disabled") != null) node.get("disabled").asBoolean
       else false
-    
+
     val successCount =
       if (node.has("successCount") && node.get("successCount") != null) node.get("successCount").asLong
       else 0L
@@ -69,15 +69,18 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
 
     val cpus =
       if (node.has("cpus") && node.get("cpus") != null && node.get("cpus").asDouble != 0) node.get("cpus").asDouble
-      else JobDeserializer.config.mesosTaskCpu()
+      else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskCpu()
+      else 0
 
     val disks =
       if (node.has("disk") && node.get("disk") != null && node.get("disk").asInt != 0) node.get("disk").asInt
-      else JobDeserializer.config.mesosTaskDisk()
+      else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskDisk()
+      else 0
 
     val mem =
       if (node.has("mem") && node.get("mem") != null && node.get("mem").asInt != 0) node.get("mem").asInt
-      else JobDeserializer.config.mesosTaskMem()
+      else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskMem()
+      else 0
 
     var uris = scala.collection.mutable.ListBuffer[String]()
     if (node.has("uris")) {
