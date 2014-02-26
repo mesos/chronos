@@ -49,7 +49,7 @@ class TaskManagementResource @Inject()(
         log.info("Task failed '%s'".format(id))
         jobScheduler.handleFailedTask(id)
       }
-      return Response.noContent().build()
+      Response.noContent().build()
     } catch {
       case ex: Throwable => {
         log.log(Level.WARNING, "Exception while serving request", ex)

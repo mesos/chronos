@@ -330,7 +330,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  def handleFailedTask(taskId: String) {
+  def handleFailedTask(taskId: String, message: Option[String] = None) {
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
     } else {
@@ -351,6 +351,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               .plus(new Duration(failureRetryDelay)), attempt + 1)
             taskManager.persistTask(taskId, job)
             taskManager.enqueue(newTaskId)
+            message match {
+              case Some(message) =>
+                sendNotification(job, "job '%s' failed!  This job will be retried.".format(job.name),
+                  Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
+                      .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
+              case None =>
+            }
           } else {
             val disableJob =
               (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
@@ -375,14 +382,28 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             if (disableJob) {
               log.warning("Job failed beyond retries! Job will now be disabled after "
                 + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
-              sendNotification(job, "JOB DISABLED: '%s'".format(job.name),
-                Some("Failed at '%s', %d failures since last success"
+              message match {
+                case Some(message) =>
+                  sendNotification(job, "JOB DISABLED: '%s'".format(job.name),
+                    Some("\nFailed at '%s', %d failures since last success\nThe scheduler provided this message:\n\n%s"
+                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, message)))
+                case None =>
+                  sendNotification(job, "JOB DISABLED: '%s'".format(job.name),
+                    Some("\nFailed at '%s', %d failures since last success\n"
                         .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess)))
+              }
             } else {
               log.warning("Job failed beyond retries!")
-              sendNotification(job, "job '%s' failed!".format(job.name),
-                Some("'%s'. Retries attempted: %d. "
-                .format(DateTime.now(DateTimeZone.UTC), job.retries)))
+              message match {
+                case Some(message) =>
+                  sendNotification(job, "job '%s' failed!".format(job.name),
+                    Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
+                        .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
+                case None =>
+                  sendNotification(job, "job '%s' failed!".format(job.name),
+                    Some("\n'%s'. Retries attempted: %d.\n"
+                        .format(DateTime.now(DateTimeZone.UTC), job.retries)))
+              }
             }
             jobMetrics.updateJobStatus(jobName, success = false)
           }

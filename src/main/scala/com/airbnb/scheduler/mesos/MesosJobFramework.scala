@@ -110,10 +110,10 @@ class MesosJobFramework @Inject()(
         }
       case TaskState.TASK_FAILED =>
         log.warning("Task with id '%s' FAILED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus.getTaskId.getValue)
+        scheduler.handleFailedTask(taskStatus.getTaskId.getValue, Some(taskStatus.getMessage))
       case TaskState.TASK_LOST =>
         log.warning("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus.getTaskId.getValue)
+        scheduler.handleFailedTask(taskStatus.getTaskId.getValue, Some(taskStatus.getMessage))
       case TaskState.TASK_RUNNING =>
         log.warning("Task with id '%s' RUNNING.".format(taskStatus.getTaskId.getValue))
       case _ =>

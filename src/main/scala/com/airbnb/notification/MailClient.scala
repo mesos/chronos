@@ -37,7 +37,7 @@ class MailClient(
 
     email.setSubject(subject)
 
-    if (!message.isEmpty) {
+    if (message.nonEmpty && message.get.nonEmpty) {
       email.setMsg(message.get)
     }
 
