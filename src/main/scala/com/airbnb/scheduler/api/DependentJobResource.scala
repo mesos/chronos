@@ -73,7 +73,7 @@ class DependentJobResource @Inject()(
       val oldParents = jobGraph.parentJobs(oldJob)
       oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
       log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
-      jobGraph.replaceVertex(oldJob, newJob)
+      jobScheduler.replaceJob(oldJob, newJob)
 
       log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
         newJob.name,
