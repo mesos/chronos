@@ -221,7 +221,7 @@
         <resources>
             <resource>
                 <targetPath>assets</targetPath>
-                <directory>src/main/resources/assets/build</directory>
+                <directory>src/main/resources/assets/app</directory>
             </resource>
         </resources>
         <pluginManagement>
