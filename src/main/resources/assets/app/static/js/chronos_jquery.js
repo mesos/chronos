@@ -96,6 +96,21 @@ $(function() {
     populateJobModal("", "", "", [], schedule, false, "scheduled", false);
   });
 
+  // Handle new_job button click.
+  $('#new_dependent_job').click( function() {
+    var d = new Date();
+    var year = d.getUTCFullYear();
+    var month = ('0' + (d.getUTCMonth()+1)).slice(-2);
+    var day = ('0' + d.getUTCDate()).slice(-2);
+    var hour = ('0' + d.getUTCHours()).slice(-2);
+    var minute = ('0' + d.getUTCMinutes()).slice(-2);
+    var second = ('0' + d.getUTCSeconds()).slice(-2);
+    var dstring = year+"-"+month+"-"+day;
+    var tstring = hour+":"+minute+":"+second;
+    var schedule = "R/"+dstring+"T"+tstring+"Z/PT6H";
+    populateJobModal("", "", "", [], schedule, false, "dependent", false);
+  });
+
 
   // Handle modal submission.
   $('#job-modal-submit').click( function(e) {
@@ -217,18 +232,16 @@ $(function() {
   });
 
   $('#repeatsInput, #dateInput, #timeInput, #periodInput').change( function() {
-    if ($('#modificationType').val() != "editing") {
-      if ($(this).val().length > 0) {
-        $('#parentsInput').prop('readonly', true);
-      }
-      else {
-        if ( $('#repeatsInput').val().length == 0 &&
-             $('#dateInput').val().length == 0 &&
-             $('#timeInput').val().length == 0 &&
-             $('#periodInput').val().length == 0) {
-              // Enable when all of them are empty.
-              $('#parentsInput').prop('readonly', false);
-        }
+    if ($(this).val().length > 0) {
+      $('#parentsInput').prop('readonly', true);
+    }
+    else {
+      if ( $('#repeatsInput').val().length == 0 &&
+           $('#dateInput').val().length == 0 &&
+           $('#timeInput').val().length == 0 &&
+           $('#periodInput').val().length == 0) {
+            // Enable when all of them are empty.
+            $('#parentsInput').prop('readonly', false);
       }
     }
   });
@@ -495,8 +508,15 @@ function populateJobModal(name, command, owner, parents, schedule, disabled, typ
       $('#jobModalLabel').html('Create new job');
       $('#nameInput').prop("readonly", false);
       $('#modificationType').val("creating");
-      // Create a scheduled job by default.
-      $('#parentsInput').prop("readonly", true);
+      if (type === "dependent") {
+        $('#repeatsInput').prop("readonly", true);
+        $('#dateInput').prop("readonly", true);
+        $('#timeInput').prop("readonly", true);
+        $('#periodInput').prop("readonly", true);
+        $('#parentsInput').prop("readonly", false);
+      } else {
+        $('#parentsInput').prop("readonly", true);
+      }
     }
   });
 }
