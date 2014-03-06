@@ -160,12 +160,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val dependencyBasedJobs = ListBuffer[DependencyBasedJob]()
 
       jobs.foreach {
-        x =>
-          if (x.isInstanceOf[DependencyBasedJob]) {
-            dependencyBasedJobs += x.asInstanceOf[DependencyBasedJob]
-          } else {
-            scheduleBasedJobs += x.asInstanceOf[ScheduleBasedJob]
-          }
+        case x: DependencyBasedJob =>
+          dependencyBasedJobs += x
+        case x: ScheduleBasedJob =>
+          scheduleBasedJobs += x
+        case x: Any =>
+          throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
+
       }
 
       if (scheduleBasedJobs.nonEmpty) {
