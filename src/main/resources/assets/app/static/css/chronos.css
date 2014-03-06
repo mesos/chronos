@@ -1,0 +1,14 @@
+.tablesorter {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body .modal-admin {
+  width: 800px;
+  margin-left: -400px;
+}
+
+textarea {
+  resize: vertical;
+}
