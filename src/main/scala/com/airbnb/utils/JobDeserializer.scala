@@ -72,7 +72,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskCpu()
       else 0
 
-    val disks =
+    val disk =
       if (node.has("disk") && node.get("disk") != null && node.get("disk").asInt != 0) node.get("disk").asInt
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskDisk()
       else 0
@@ -101,13 +101,13 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled,
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         uris = uris, highPriority = highPriority)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disks, mem = mem, disabled = disabled,
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         uris = uris,  highPriority = highPriority)
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")

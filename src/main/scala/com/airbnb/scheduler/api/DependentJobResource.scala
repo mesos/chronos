@@ -31,20 +31,24 @@ class DependentJobResource @Inject()(
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
 
-      val oldJob = oldJobOpt.get.asInstanceOf[DependencyBasedJob]
+      val oldJob = oldJobOpt.get
 
       //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
       assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
 
-      require(oldJob.getClass == newJob.getClass, "To update a job, the new job must be of the same type!")
       require(newJob.parents.nonEmpty, "Error, parent does not exist")
 
       log.info("Received replace request for job:" + newJob.toString)
       require(!jobGraph.lookupVertex(newJob.name).isEmpty, "Job '%s' not found".format(newJob.name))
       //TODO(FL): Put all the logic for registering, deregistering and replacing dependency based jobs into one place.
       val parents = jobGraph.parentJobs(newJob)
-      val oldParents = jobGraph.parentJobs(oldJob)
-      oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
+      oldJob match {
+        case j: DependencyBasedJob =>
+          val oldParents = jobGraph.parentJobs(j)
+          oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
+          jobScheduler.removeSchedule(j)
+        case _ =>
+      }
       log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
       jobScheduler.replaceJob(oldJob, newJob)
 

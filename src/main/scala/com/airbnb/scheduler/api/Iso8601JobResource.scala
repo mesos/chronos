@@ -35,10 +35,16 @@ class Iso8601JobResource @Inject()(
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
       val oldJob = oldJobOpt.get
-      require(oldJob.getClass == newJob.getClass, "To update a job, the new job must be of the same type!")
 
       if (!Iso8601Expressions.canParse(newJob.schedule)) {
         return Response.status(Response.Status.BAD_REQUEST).build()
+      }
+
+      oldJob match {
+        case j: DependencyBasedJob =>
+          val oldParents = jobGraph.parentJobs(j)
+          oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
+        case _ =>
       }
 
       jobScheduler.updateJob(oldJob, newJob)
@@ -73,4 +79,5 @@ class Iso8601JobResource @Inject()(
   def put(newJob: ScheduleBasedJob): Response = {
     handleRequest(newJob)
   }
+
 }
