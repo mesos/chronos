@@ -2,6 +2,7 @@ package com.airbnb.scheduler.config
 
 import org.rogach.scallop.ScallopConf
 import java.net.InetSocketAddress
+import org.joda.time.Period
 
 
 /**
@@ -125,6 +126,10 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val mesosRole = opt[String]("mesos_role",
     descr = "The Mesos role to run tasks under",
     default = Some("*"))
+
+  lazy val taskEpsilon = opt[Int]("task_epsilon",
+    descr = "The default epsilon value for tasks, in seconds",
+    default = Some(60))
 
   // Chronos version
   lazy val version =

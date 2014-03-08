@@ -24,7 +24,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     val name = node.get("name").asText
     val command = node.get("command").asText
     val epsilon = {
-      if (node.has("epsilon")) Period.parse(node.get("epsilon").asText) else Period.seconds(60)
+      if (node.has("epsilon")) Period.parse(node.get("epsilon").asText) else Period.seconds(JobDeserializer.config.taskEpsilon())
     }
     val executor =
       if (node.has("executor") && node.get("executor") != null) node.get("executor").asText
