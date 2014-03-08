@@ -39,6 +39,8 @@ Also join us on IRC in #mesos on freenode.
     - [Describing the Dependency Graph](#describing-the-dependency-graph)
     - [Asynchronous Jobs](#asynchronous-jobs)
     - [Obtaining Remote Executables](#obtaining-remote-executables)
+    - [Job Configuration](#job-configuration)
+    - [Sample Job](#sample-job)
 * [Debugging Chronos Jobs](#debugging-chronos-jobs)
 * [Notes](#notes)
     - [Environment Variables Mesos Looks For](#environment-variables-mesos-looks-for)
@@ -282,6 +284,57 @@ _Note_: You will probably need to url-encode the mesos task id in order to submi
 When specifying the `command` field in your job hash, use the `url-runner.bash` (make sure it's deployed on all slaves). Alternatively,
 you can also use a url in the command field, if your mesos was compiled with cURL libraries.
 
+### Job Configuration
+
+| Field               | Description                                                                                              | Default                        |
+| ------------------- |----------------------------------------------------------------------------------------------------------| -------------------------------|
+| name                | Name of job.                                                                                             | -                              |
+| command             | Command to execute.                                                                                      | -                              |
+| epsilon             | If, for any reason, a job can't be started at the scheduled time, this is the window in which Chronos will attempt to run the job again | `PT60S` or `--task_epsilon`. |
+| executor            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
+| executorFlogs       | Flags to pass to Mesos executor.                                                                         | -                              |
+| retries             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
+| owner               | Email addresses to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
+| async               | Execute using Async executor.                                                                            | `false`                        |
+| successCount        | Number of successes since the job was last modified.                                                     | -                              |
+| errorCount          | Number of errors since the job was last modified.                                                        | -                              |
+| lastSuccess         | Date of last successful attempt.                                                                         | -                              |
+| lastError           | Date of last failed attempt.                                                                             | -                              |
+| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpus`   |
+| mem                 | Amount of Mesos Memory for this job.                                                                     | `100` or `--mesos_task_mem`    |
+| disk                | Amount of Mesos disk for this job.                                                                       | `100` or `--mesos_task_cpus`   |
+| disabled            | If set to true, this job will not be run.                                                                | `false`                        |
+| uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
+| schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
+| parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
+
+
+### Sample Job
+
+```json
+{
+   "name":"camus_kafka2hdfs",
+   "command":"/srv/data-infra/kafka/camus/kafka_hdfs_job.bash",
+   "epsilon":"PT30M",
+   "executor":"",
+   "executorFlags":"",
+   "retries":2,
+   "owner":"bofh@your-company.com",
+   "async":false,
+   "successCount":190,
+   "errorCount":3,
+   "lastSuccess":"2014-03-08T16:57:17.507Z",
+   "lastError":"2014-03-01T00:10:15.957Z",
+   "cpus":1.0,
+   "disk":10240,
+   "mem":1024,
+   "disabled":false,
+   "uris":[
+   ],
+   "schedule":"R/2014-03-08T20:00:00.000Z/PT2H"
+}
+```
+
 ## Debugging Chronos Jobs
 
 Chronos itself can be configured just like [dropwizard-logging][logging] via the configuration file. If there's something going wrong with the framework itself look here for information. Individual jobs log with their task id on the mesos slaves.
@@ -346,16 +399,14 @@ the output from running it with debug enabled:
 
     bash -x bin/installer.bash
 
-If the bug is in building mesos from scratch, please [submit those bugs directly to mesos](https://issues.apache.org/jira/browse/MESOS).
+If the bug is in building Mesos from scratch, please [submit those bugs directly to mesos](https://issues.apache.org/jira/browse/MESOS).
 
 If the bug occurs while running Chronos, please include the following
 information:
 
 * The command used to launch Chronos, for example:
 
-        java -cp target/chronos.jar com.airbnb.scheduler.Main server config/local_scheduler_nozk.yml
-
-* The YAML file used to configure Chronos.
+        java -cp target/chronos.jar com.airbnb.scheduler.Main <args>
 
 * The version of Mesos you are running.
 
