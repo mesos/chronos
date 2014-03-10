@@ -150,18 +150,25 @@ jobs_to_be_updated = []
 # Update scheduled jobs first
 jobs.each do |name,job|
   if job.include? 'schedule'
-    existing_job = scheduled_jobs[name]
-    new_job = job
-    # Caveat: when comparing scheduled jobs, we have to ignore part of the
-    # schedule field because it gets updated by chronos.
-    existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
-    new_schedule = new_job['schedule']
-    new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
-    if options.force || !scheduled_jobs.include?(name) || existing_job.to_s != new_job.to_s
-      new_job['schedule'] = new_schedule
+    if scheduled_jobs.include? name
+      existing_job = scheduled_jobs[name]
+      new_job = job
+      # Caveat: when comparing scheduled jobs, we have to ignore part of the
+      # schedule field because it gets updated by chronos.
+      existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
+      new_schedule = new_job['schedule']
+      new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
+      if options.force || !scheduled_jobs.include?(name) || existing_job.to_s != new_job.to_s
+        new_job['schedule'] = new_schedule
+        jobs_to_be_updated << {
+          :new => job,
+          :old => scheduled_jobs[name],
+        }
+      end
+    else
       jobs_to_be_updated << {
         :new => job,
-        :old => scheduled_jobs[name],
+        :old => nil,
       }
     end
   end
@@ -172,13 +179,20 @@ dependent_jobs_to_be_updated = []
 dependent_jobs_to_be_updated_set = Set.new
 jobs.each do |name,job|
   if job.include? 'parents'
-    existing_job = dependent_jobs[name]
-    new_job = job
-    if options.force || !dependent_jobs.include?(name) || existing_job.to_s != new_job.to_s
-      dependent_jobs_to_be_updated_set.add(job['name'])
+    if dependent_jobs.include? name
+      existing_job = dependent_jobs[name]
+      new_job = job
+      if options.force || !dependent_jobs.include?(name) || existing_job.to_s != new_job.to_s
+        dependent_jobs_to_be_updated_set.add(job['name'])
+        dependent_jobs_to_be_updated << {
+          :new => job,
+          :old => dependent_jobs[name],
+        }
+      end
+    else
       dependent_jobs_to_be_updated << {
         :new => job,
-        :old => dependent_jobs[name],
+        :old => nil,
       }
     end
   end
@@ -218,7 +232,7 @@ if !dependent_jobs_to_be_updated.empty?
 end
 
 if !jobs_to_be_updated.empty?
-puts "These jobs will be updated:"
+  puts "These jobs will be updated:"
 end
 
 jobs_to_be_updated.each do |j|
