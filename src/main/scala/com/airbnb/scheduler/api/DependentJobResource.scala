@@ -26,7 +26,7 @@ class DependentJobResource @Inject()(
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  def handleRequest(newJob: DependencyBasedJob) = {
+  def handleRequest(newJob: DependencyBasedJob): Response = {
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))

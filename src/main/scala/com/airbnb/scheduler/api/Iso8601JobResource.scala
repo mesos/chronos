@@ -30,7 +30,7 @@ class Iso8601JobResource @Inject()(
 
   val iso8601JobSubmissions = new AtomicLong(0)
 
-  def handleRequest(newJob: ScheduleBasedJob) = {
+  def handleRequest(newJob: ScheduleBasedJob): Response = {
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
