@@ -30,36 +30,7 @@ class Iso8601JobResource @Inject()(
 
   val iso8601JobSubmissions = new AtomicLong(0)
 
-  @POST
-  @Timed
-  def post(job: ScheduleBasedJob): Response = {
-    try {
-      log.info("Received request for job:" + job.toString)
-      require(JobUtils.isValidJobName(job.name),
-        "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
-      if (!Iso8601Expressions.canParse(job.schedule)) return Response.status(Response.Status.BAD_REQUEST).build()
-
-      //TODO(FL): Create a wrapper class that handles adding & removing jobs!
-      jobScheduler.registerJob(List(job), persist = true)
-      iso8601JobSubmissions.incrementAndGet()
-      log.info("Added job to JobGraph")
-      Response.noContent().build()
-    } catch {
-      case ex: IllegalArgumentException => {
-        log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build
-      }
-      case ex: Throwable => {
-        log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build
-      }
-    }
-  }
-
-  @PUT
-  @Timed
-  def put(newJob: ScheduleBasedJob): Response = {
+  def handleRequest(newJob: ScheduleBasedJob) = {
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
@@ -89,5 +60,17 @@ class Iso8601JobResource @Inject()(
         return Response.serverError().build
       }
     }
+  }
+
+  @POST
+  @Timed
+  def post(newJob: ScheduleBasedJob): Response = {
+    handleRequest(newJob)
+  }
+
+  @PUT
+  @Timed
+  def put(newJob: ScheduleBasedJob): Response = {
+    handleRequest(newJob)
   }
 }

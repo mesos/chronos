@@ -26,34 +26,7 @@ class DependentJobResource @Inject()(
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  @POST
-  @Timed
-  def post(job: DependencyBasedJob): Response = {
-    try {
-      log.info("Received request for job:" + job.toString)
-
-      require(JobUtils.isValidJobName(job.name),
-        "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
-      if (job.parents.isEmpty) throw new Exception("Error, parent does not exist")
-
-      jobScheduler.registerJob(List(job), persist = true)
-      Response.noContent().build()
-    } catch {
-      case ex: IllegalArgumentException => {
-        log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
-      }
-      case ex: Throwable => {
-        log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build()
-      }
-    }
-  }
-
-  @PUT
-  @Timed
-  def put(newJob: DependencyBasedJob): Response = {
+  def handleRequest(newJob: DependencyBasedJob) = {
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
@@ -94,4 +67,17 @@ class DependentJobResource @Inject()(
       }
     }
   }
+
+  @POST
+  @Timed
+  def post(newJob: DependencyBasedJob): Response = {
+    handleRequest(newJob)
+  }
+
+  @PUT
+  @Timed
+  def put(newJob: DependencyBasedJob): Response = {
+    handleRequest(newJob)
+  }
+
 }
