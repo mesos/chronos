@@ -30,7 +30,9 @@ class Iso8601JobResource @Inject()(
 
   val iso8601JobSubmissions = new AtomicLong(0)
 
-  def handleRequest(job: ScheduleBasedJob): Response = {
+  @POST
+  @Timed
+  def post(job: ScheduleBasedJob): Response = {
     try {
       log.info("Received request for job:" + job.toString)
       require(JobUtils.isValidJobName(job.name),
@@ -55,15 +57,37 @@ class Iso8601JobResource @Inject()(
     }
   }
 
-  @POST
-  @Timed
-  def post(job: ScheduleBasedJob): Response = {
-    handleRequest(job)
-  }
-
   @PUT
   @Timed
-  def put(job: ScheduleBasedJob): Response = {
-    handleRequest(job)
+  def put(newJob: ScheduleBasedJob): Response = {
+    try {
+      val oldJobOpt = jobGraph.lookupVertex(newJob.name)
+      require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
+      val oldJob = oldJobOpt.get
+      require(oldJob.getClass == newJob.getClass, "To update a job, the new job must be of the same type!")
+
+      if (!Iso8601Expressions.canParse(newJob.schedule)) {
+        return Response.status(Response.Status.BAD_REQUEST).build()
+      }
+
+      jobScheduler.updateJob(oldJob, newJob)
+
+      log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
+        newJob.name,
+        new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
+        new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
+
+      Response.noContent().build()
+    } catch {
+      case ex: IllegalArgumentException => {
+        log.log(Level.INFO, "Bad Request", ex)
+        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+          .build
+      }
+      case ex: Throwable => {
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        return Response.serverError().build
+      }
+    }
   }
 }
