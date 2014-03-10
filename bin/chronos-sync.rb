@@ -124,6 +124,9 @@ Dir.chdir(options.config_path) do
       if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
         raise "Name from #{fn} doesn't match job name"
       end
+      if parsed.include? 'schedule'
+        raise "Scheduled job from #{fn} must not contain a schedule!"
+      end
     end
   end
 
@@ -134,6 +137,9 @@ Dir.chdir(options.config_path) do
       jobs[parsed['name']] = parsed
       if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
         raise "Name from #{fn} doesn't match job name"
+      end
+      if parsed.include? 'parents'
+        raise "Scheduled job from #{fn} must not contain parents!"
       end
     end
   end
