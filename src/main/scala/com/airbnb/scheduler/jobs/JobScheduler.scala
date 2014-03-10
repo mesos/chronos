@@ -458,46 +458,53 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     assert(jobName != null, "BaseJob cannot be null")
 
     //TODO(FL): wrap with lock.
-    val jobOption = jobGraph.lookupVertex(jobName)
-    if (jobOption.isEmpty) {
-      log.warning("-----------------------------------")
-      log.warning("Warning, no job found in graph for:" + jobName)
-      log.warning("-----------------------------------")
-      //This might happen during loading stage in case of failover.
-      return (None, None)
-    }
-
-    val (recurrences, nextDate, _) = Iso8601Expressions.parse(schedule)
-    log.finest("Recurrences: '%d', next date: '%s'".format(recurrences, stream.schedule))
-    //nextDate has to be > (now - epsilon) & < (now + timehorizon) , for it to be scheduled!
-    if (recurrences == 0) {
-      log.info("Finished all recurrences of job '%s'".format(jobName))
-      //We're not removing the job here because it may still be required if a pending task fails.
-      return (None, None)
-    } else {
-      val job = jobOption.get
-      if (nextDate.isAfter(now.minus(job.epsilon)) && nextDate.isBefore(now.plus(scheduleHorizon))) {
-        log.info("Task ready for scheduling: %s".format(nextDate))
-        //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
-        val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
-        return (Some(task), stream.tail())
-      }
-      //The nextDate has passed already beyond epsilon.
-      //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
-      if (!nextDate.isBefore(now)) {
-        return (None, Some(stream))
-      }
-      //Needs to be scheduled at a later time, after schedule horizon.
-      log.fine("No need to work on schedule: '%s' yet".format(nextDate))
-      if (stream.tail().isEmpty) {
-        //TODO(FL): Verify that this can go.
-        persistenceStore.removeJob(job)
-        log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
+    try {
+      val jobOption = jobGraph.lookupVertex(jobName)
+      if (jobOption.isEmpty) {
+        log.warning("-----------------------------------")
+        log.warning("Warning, no job found in graph for:" + jobName)
+        log.warning("-----------------------------------")
+        //This might happen during loading stage in case of failover.
         return (None, None)
       }
-      else log.info("tail:" + stream.tail().get.schedule)
-      return next(now, stream.tail().get)
+
+      val (recurrences, nextDate, _) = Iso8601Expressions.parse(schedule)
+      log.finest("Recurrences: '%d', next date: '%s'".format(recurrences, stream.schedule))
+      //nextDate has to be > (now - epsilon) & < (now + timehorizon) , for it to be scheduled!
+      if (recurrences == 0) {
+        log.info("Finished all recurrences of job '%s'".format(jobName))
+        //We're not removing the job here because it may still be required if a pending task fails.
+        (None, None)
+      } else {
+        val job = jobOption.get
+        if (nextDate.isAfter(now.minus(job.epsilon)) && nextDate.isBefore(now.plus(scheduleHorizon))) {
+          log.info("Task ready for scheduling: %s".format(nextDate))
+          //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
+          val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
+          return (Some(task), stream.tail())
+        }
+        //The nextDate has passed already beyond epsilon.
+        //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
+        if (!nextDate.isBefore(now)) {
+          return (None, Some(stream))
+        }
+        //Needs to be scheduled at a later time, after schedule horizon.
+        log.fine("No need to work on schedule: '%s' yet".format(nextDate))
+        if (stream.tail().isEmpty) {
+          //TODO(FL): Verify that this can go.
+          persistenceStore.removeJob(job)
+          log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
+          return (None, None)
+        }
+        else log.info("tail:" + stream.tail().get.schedule)
+      }
+    } catch {
+      case ex: IllegalArgumentException => {
+        log.warning(s"Corrupt job in stream for $jobName")
+        return (None, None)
+      }
     }
+    next(now, stream.tail().get)
   }
 
   // Generates a new ScheduleStream based on a DateTime and a ScheduleStream. Side effects of this method
