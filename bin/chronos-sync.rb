@@ -154,9 +154,9 @@ jobs.each do |name,job|
     new_job = job
     # Caveat: when comparing scheduled jobs, we have to ignore part of the
     # schedule field because it gets updated by chronos.
-    existing_job['schedule'] = existing_job['schedule'].gsub(/^R\/[^\/]+\//, '')
+    existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
     new_schedule = new_job['schedule']
-    new_job['schedule'] = new_job['schedule'].gsub(/^R\/[^\/]+\//, '')
+    new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
     if options.force || !scheduled_jobs.include?(name) || existing_job.to_s != new_job.to_s
       new_job['schedule'] = new_schedule
       jobs_to_be_updated << {
