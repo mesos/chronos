@@ -259,7 +259,7 @@ jobs_to_be_updated.each do |j|
 
   puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
 
-  res = Net::HTTP.start(uri.hostname, uri.port) do |http|
+  res = Net::HTTP.start(uri.hostname, port: uri.port, use_ssl: (uri.port == 443)) do |http|
     http.request(req)
   end
 
