@@ -189,8 +189,6 @@ class MesosJobFramework @Inject()(
                   sufficient(x.getName) = true
                 }
               }
-              case y =>
-                // not sufficient, skip
             }
           case _ =>
             log.warning("Ignoring offered resource: %s".format(x.getType.toString))
