@@ -92,8 +92,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   def replaceJob(oldJob: BaseJob, newJob: BaseJob) {
-    assert(newJob.getClass == oldJob.getClass,
-      "Can only update job attributes, not the type of a job!")
     lock.synchronized {
       jobGraph.replaceVertex(oldJob, newJob)
       persistenceStore.persistJob(newJob)
@@ -106,9 +104,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
    * @param newJob
    */
   def updateJob(oldJob: BaseJob, newJob: BaseJob) {
-    assert(newJob.getClass == oldJob.getClass,
-      "Can only update job attributes, not the type of a job!")
-
     //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
     assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
 
@@ -200,25 +195,15 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  def deregisterJob(job: BaseJob, persist: Boolean = false, forceCascade: Boolean = false) {
+  def deregisterJob(job: BaseJob, persist: Boolean = false) {
     require(isLeader, "Cannot deregister a job with this scheduler, not the leader!")
     lock.synchronized {
       log.info("Removing vertex")
-      val orphans = jobGraph.getChildren(job.name)
-        .map(c => jobGraph.lookupVertex(c).get.asInstanceOf[DependencyBasedJob])
-        .filter(j => j.parents.size == 1)
-
-      require(orphans.size == 0 || forceCascade,
-        "The job %s has children and won't be removed unless the force-cascade is given".format(job))
-
-      orphans.foreach({
-        x =>
-          log.warning("Removing orphan: %s".format(x.name))
-          deregisterJob(x, persist, forceCascade)
-      })
 
       jobGraph.getChildren(job.name)
-        .map(x => jobGraph.lookupVertex(x).get.asInstanceOf[DependencyBasedJob])
+        .map(x => jobGraph.lookupVertex(x).get)
+        .filter(x => x match { case j: DependencyBasedJob => true case _ => false })
+        .map(x => x.asInstanceOf[DependencyBasedJob])
         .filter(x => x.parents.size > 1)
         .foreach({
         childJob =>
@@ -576,7 +561,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  private def removeSchedule(deletedStream: BaseJob) {
+  def removeSchedule(deletedStream: BaseJob) {
     lock.synchronized {
       log.fine("Removing schedules: ")
       streams = streams.filter(_.jobName != deletedStream.name)

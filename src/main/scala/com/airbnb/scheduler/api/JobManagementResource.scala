@@ -32,23 +32,61 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Path(PathConstants.jobPatternPath)
   @DELETE
   @Timed
-  def delete(@PathParam("jobName") jobName: String, @QueryParam("force") force: Boolean): Response = {
+  def delete(@PathParam("jobName") jobName: String): Response = {
     try {
       require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
-      require(jobGraph.getChildren(jobName).isEmpty || force,
-      "The job '%s' has children, you cannot delete it without deleting it's children first".format(jobName))
       val job = jobGraph.lookupVertex(jobName).get
-      jobScheduler.sendNotification(job, "[CHRONOS] - Your job '%s' was deleted!".format(jobName))
-      if (force) {
-        log.warning("Force deleting job '%s'".format(jobName))
-        jobScheduler.sendNotification(job, "[CHRONOS] - WARNING!",
-          Some(
-            ("You may have corrupted the state by force deleting '%s'." +
-             "Make sure you forward this messsage to an administrator unless you know what you're doing!")
-              .format(jobName)))
+      val children = jobGraph.getChildren(jobName)
+      if (children.nonEmpty) {
+        job match {
+          case j: DependencyBasedJob =>
+            val parents = jobGraph.parentJobs(j)
+            children.foreach {
+              child =>
+                val childJob = jobGraph.lookupVertex(child).get.asInstanceOf[DependencyBasedJob]
+                val newParents = childJob.parents.filter{name => name != job.name} ++ j.parents
+                val newChild = childJob.copy(parents = newParents)
+                jobScheduler.replaceJob(childJob, newChild)
+                parents.foreach {p =>
+                  jobGraph.removeDependency(p.name, job.name)
+                  jobGraph.addDependency(p.name, newChild.name)
+                }
+            }
+          case j: ScheduleBasedJob =>
+            children.foreach {
+              child =>
+                jobGraph.lookupVertex(child).get match {
+                  case childJob: DependencyBasedJob =>
+                    val newChild = new ScheduleBasedJob(
+                      schedule = j.schedule,
+                      name = childJob.name,
+                      command = childJob.command,
+                      epsilon = childJob.epsilon,
+                      successCount = childJob.successCount,
+                      errorCount = childJob.errorCount,
+                      executor = childJob.executor,
+                      executorFlags = childJob.executorFlags,
+                      retries = childJob.retries,
+                      owner = childJob.owner,
+                      lastError = childJob.lastError,
+                      lastSuccess = childJob.lastSuccess,
+                      async = childJob.async,
+                      cpus = childJob.cpus,
+                      disk = childJob.disk,
+                      mem = childJob.mem,
+                      disabled = childJob.disabled,
+                      uris = childJob.uris,
+                      highPriority = childJob.highPriority
+                    )
+                    jobScheduler.updateJob(childJob, newChild)
+                  case _ =>
+                }
+            }
+        }
       }
+      jobScheduler.sendNotification(job, "[CHRONOS] - Your job '%s' was deleted!".format(jobName))
 
-      jobScheduler.deregisterJob(job, persist = true, forceCascade = force)
+      jobScheduler.deregisterJob(job, persist = true)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException => {
