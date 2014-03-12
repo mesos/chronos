@@ -269,7 +269,6 @@ jobs_to_be_updated.each do |j|
   else
     $stderr.puts "Error updating job #{job['name']}!"
     $stderr.puts res.value
-    raise "Unable to update job #{job['name']}"
   end
 
   # Pause after each request so we don't explode chronos
