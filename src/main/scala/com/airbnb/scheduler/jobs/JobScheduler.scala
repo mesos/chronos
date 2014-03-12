@@ -107,25 +107,23 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
     assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
 
-    if (oldJob.isInstanceOf[ScheduleBasedJob]) {
-      lock.synchronized {
-        val scheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
-
-        if (!newJob.disabled) {
-          val newStreams = List(JobUtils.makeScheduleStream(scheduleBasedJob, DateTime.now(DateTimeZone.UTC)))
-            .filter(_.nonEmpty).map(_.get)
-          if (newStreams.nonEmpty) {
-            log.info("updating ScheduleBasedJob:" + newJob.toString)
-            val tmpStreams = streams.filter(_.head()._2 != newJob.name)
-            streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
+    newJob match {
+      case scheduleBasedJob: ScheduleBasedJob =>
+        lock.synchronized {
+          if (!scheduleBasedJob.disabled) {
+            val newStreams = List(JobUtils.makeScheduleStream(scheduleBasedJob, DateTime.now(DateTimeZone.UTC)))
+              .filter(_.nonEmpty).map(_.get)
+            if (newStreams.nonEmpty) {
+              log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
+              val tmpStreams = streams.filter(_.head()._2 != scheduleBasedJob.name)
+              streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
+            }
+          } else {
+            log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
+            val tmpStreams = streams.filter(_.head()._2 != scheduleBasedJob.name)
+            streams = iteration(DateTime.now(DateTimeZone.UTC), tmpStreams)
           }
         }
-        else {
-          log.info("updating ScheduleBasedJob:" + newJob.toString)
-          val tmpStreams = streams.filter(_.head()._2 != newJob.name)
-          streams = iteration(DateTime.now(DateTimeZone.UTC), tmpStreams)
-        }
-      }
     }
     replaceJob(oldJob, newJob)
   }
