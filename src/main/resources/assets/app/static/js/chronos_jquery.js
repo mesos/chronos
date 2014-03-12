@@ -76,11 +76,6 @@ $(function() {
     populateWithContent(name, true);
   });
 
-  $('[id^="duplicate."]').click( function() {
-    var name = $(this).attr("id").split(".")[1];
-    populateWithContent(name, false);
-  });
-
   // Add animations to dropdown.
   $('.dropdown').on('show.bs.dropdown', function(e){
     $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
@@ -304,7 +299,6 @@ function buildResultsTable() {
        '        <li class="btn-group">',
        '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
        '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
-       '          <button class="btn btn-info" title="Duplicate Job" data-toggle="modal" data-target="#jobModal" id="duplicate.'+name+'"><span class="glyphicon glyphicon-file"></span></button>',
        '          <button class="btn btn-warning" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
        '          <button class="btn btn-danger" title="Delete" id="delete.'+name+'"><span class="glyphicon glyphicon-trash"></span></button>',
        '        </li>',
