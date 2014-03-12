@@ -55,10 +55,11 @@ class Iso8601JobResource @Inject()(
           case j: DependencyBasedJob =>
             val oldParents = jobGraph.parentJobs(j)
             oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
-          case _ =>
+            jobScheduler.replaceJob(oldJob, newJob)
+          case j: ScheduleBasedJob =>
+            jobScheduler.updateJob(oldJob, newJob)
         }
 
-        jobScheduler.updateJob(oldJob, newJob)
 
         log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
           newJob.name,

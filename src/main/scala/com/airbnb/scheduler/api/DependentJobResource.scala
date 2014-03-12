@@ -57,11 +57,12 @@ class DependentJobResource @Inject()(
             val oldParents = jobGraph.parentJobs(j)
             oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
             jobScheduler.removeSchedule(j)
-          case _ =>
+            jobScheduler.replaceJob(oldJob, newJob)
+          case j: ScheduleBasedJob =>
+            jobScheduler.updateJob(oldJob, newJob)
         }
-        log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
-        jobScheduler.replaceJob(oldJob, newJob)
 
+        log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
         log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
           newJob.name,
           new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
