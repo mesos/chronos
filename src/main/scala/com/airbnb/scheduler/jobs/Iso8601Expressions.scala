@@ -17,18 +17,25 @@ object Iso8601Expressions {
    * @param input the input string which is a ISO8601 expression consisting of Repetition, Start and Period.
    * @return a three tuple (repetitions, start, period)
    */
-  def parse(input: String): (Long, DateTime, Period) = {
-    val iso8601ExpressionRegex(repeatStr, startStr, periodStr) = input
-    val repeat: Long = {
-      if (repeatStr.length == 1)
-        -1L
-      else
-        repeatStr.substring(1).toLong
-    }
+  def parse(input: String): Option[(Long, DateTime, Period)] = {
+    try {
+      val iso8601ExpressionRegex(repeatStr, startStr, periodStr) = input
+      val repeat: Long = {
+        if (repeatStr.length == 1)
+          -1L
+        else
+          repeatStr.substring(1).toLong
+      }
 
-    val start: DateTime = DateTime.parse(startStr)
-    val period: Period = ISOPeriodFormat.standard.parsePeriod(periodStr)
-    (repeat, start, period)
+      val start: DateTime = DateTime.parse(startStr)
+      val period: Period = ISOPeriodFormat.standard.parsePeriod(periodStr)
+      Some((repeat, start, period))
+    } catch {
+      case e: scala.MatchError =>
+        None
+      case e: IllegalArgumentException =>
+        None
+    }
   }
 
   /**
@@ -37,11 +44,14 @@ object Iso8601Expressions {
    * @param input
    * @return
    */
-  def canParse(input: String): Boolean =
-    input match {
-      case iso8601ExpressionRegex(repeatStr, startStr, periodStr) => true
-      case _ => false
+  def canParse(input: String): Boolean = {
+    parse(input) match {
+      case Some((_, _, _)) =>
+        true
+      case None =>
+        false
     }
+  }
 
   /**
    * Creates a valid Iso8601Expression based on the input parameters.

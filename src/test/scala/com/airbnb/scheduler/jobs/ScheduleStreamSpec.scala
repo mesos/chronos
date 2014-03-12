@@ -18,12 +18,6 @@ class ScheduleStreamSpec extends SpecificationWithJUnit {
       stream.tail.get.tail.get.tail.get.tail must_== None
     }
 
-    "throw an exception if a schedule is invalid" in {
-      val orgSchedule = "2012-01-01T00:00:00.000Z"
-      val stream = new ScheduleStream(orgSchedule, null)
-      stream.tail.get must throwA[scala.MatchError]
-    }
-
     "return a infinite schedule when no repetition is specified" in {
       val orgSchedule = "R/2012-01-01T00:00:00.000Z/P1D"
       val stream = new ScheduleStream(orgSchedule, null)

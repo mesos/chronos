@@ -297,18 +297,21 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         in between */
       if (job.isInstanceOf[ScheduleBasedJob]) {
         val scheduleBasedJob: ScheduleBasedJob = job.asInstanceOf[ScheduleBasedJob]
-        val (recurrences, _, _) = Iso8601Expressions.parse(scheduleBasedJob.schedule)
-        if (recurrences == 0) {
-          log.info("Disabling job that reached a zero-recurrence count!")
+        Iso8601Expressions.parse(scheduleBasedJob.schedule) match {
+          case Some((recurrences, _, _)) =>
+            if (recurrences == 0) {
+              log.info("Disabling job that reached a zero-recurrence count!")
 
-          val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
-          sendNotification(
-            job,
-            "job '%s' disabled".format(job.name),
-            Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
-                    |Please consider either removing your job, or updating its schedule and re-enabling it.
-                  """.stripMargin.format(job.name)))
-          replaceJob(scheduleBasedJob, disabledJob)
+              val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
+              sendNotification(
+                job,
+                "job '%s' disabled".format(job.name),
+                Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
+                        |Please consider either removing your job, or updating its schedule and re-enabling it.
+                      """.stripMargin.format(job.name)))
+              replaceJob(scheduleBasedJob, disabledJob)
+            }
+          case None =>
         }
       }
     }
@@ -457,36 +460,40 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       }
     }
 
-    val (recurrences, nextDate, _) = Iso8601Expressions.parse(schedule)
-    log.finest("Recurrences: '%d', next date: '%s'".format(recurrences, stream.schedule))
-    //nextDate has to be > (now - epsilon) & < (now + timehorizon) , for it to be scheduled!
-    if (recurrences == 0) {
-      log.info("Finished all recurrences of job '%s'".format(jobName))
-      //We're not removing the job here because it may still be required if a pending task fails.
-      (None, None)
-    } else {
-      val job = jobOption.get
-      if (nextDate.isAfter(now.minus(job.epsilon)) && nextDate.isBefore(now.plus(scheduleHorizon))) {
-        log.info("Task ready for scheduling: %s".format(nextDate))
-        //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
-        val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
-        return (Some(task), stream.tail())
-      }
-      //The nextDate has passed already beyond epsilon.
-      //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
-      if (!nextDate.isBefore(now)) {
-        return (None, Some(stream))
-      }
-      //Needs to be scheduled at a later time, after schedule horizon.
-      log.fine("No need to work on schedule: '%s' yet".format(nextDate))
-      if (stream.tail().isEmpty) {
-        //TODO(FL): Verify that this can go.
-        persistenceStore.removeJob(job)
-        log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
-        return (None, None)
-      }
-      else log.info("tail:" + stream.tail().get.schedule)
-      next(now, stream.tail().get)
+    Iso8601Expressions.parse(schedule) match {
+      case Some((recurrences, nextDate, _)) =>
+        log.finest("Recurrences: '%d', next date: '%s'".format(recurrences, stream.schedule))
+        //nextDate has to be > (now - epsilon) & < (now + timehorizon) , for it to be scheduled!
+        if (recurrences == 0) {
+          log.info("Finished all recurrences of job '%s'".format(jobName))
+          //We're not removing the job here because it may still be required if a pending task fails.
+          (None, None)
+        } else {
+          val job = jobOption.get
+          if (nextDate.isAfter(now.minus(job.epsilon)) && nextDate.isBefore(now.plus(scheduleHorizon))) {
+            log.info("Task ready for scheduling: %s".format(nextDate))
+            //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
+            val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
+            return (Some(task), stream.tail())
+          }
+          //The nextDate has passed already beyond epsilon.
+          //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
+          if (!nextDate.isBefore(now)) {
+            return (None, Some(stream))
+          }
+          //Needs to be scheduled at a later time, after schedule horizon.
+          log.fine("No need to work on schedule: '%s' yet".format(nextDate))
+          if (stream.tail().isEmpty) {
+            //TODO(FL): Verify that this can go.
+            persistenceStore.removeJob(job)
+            log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
+            return (None, None)
+          }
+          else log.info("tail:" + stream.tail().get.schedule)
+          next(now, stream.tail().get)
+        }
+      case None =>
+        next(now, stream.tail().get)
     }
   }
 

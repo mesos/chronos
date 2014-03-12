@@ -102,34 +102,42 @@ object JobUtils {
     }
   }
 
-  def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime)  = {
-    val (_, scheduledTime, _) = Iso8601Expressions.parse(job.schedule)
-    if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
-      skipForward(job, dateTime)
-    } else {
-      Some(new ScheduleStream(job.schedule, job.name))
+  def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime) = {
+    Iso8601Expressions.parse(job.schedule) match {
+      case Some((_, scheduledTime, _)) =>
+        if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
+          skipForward(job, dateTime)
+        } else {
+          Some(new ScheduleStream(job.schedule, job.name))
+        }
+      case None =>
+        skipForward(job, dateTime)
     }
   }
 
   def skipForward(job: ScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
-    val (rec, start, per)  = Iso8601Expressions.parse(job.schedule)
-    val skip = Seconds.secondsBetween(start, dateTime).getSeconds / per.toStandardSeconds.getSeconds
-    if (rec == -1) {
-      val nStart = start.plus(per.multipliedBy(skip))
-      log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
-        .format(skip, start.toString(DateTimeFormat.fullDate),
-        nStart.toString(DateTimeFormat.fullDate)))
-      Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name))
-    } else if (rec < skip) {
-      log.warning("Filtered job as it is no longer valid.")
-      None
-    } else {
-      val nRec = rec - skip
-      val nStart = start.plus(per.multipliedBy(skip))
-      log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
-        .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
-        nStart.toString(DateTimeFormat.fullDate)))
-      Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name))
+    Iso8601Expressions.parse(job.schedule) match {
+      case Some((rec, start, per)) =>
+        val skip = Seconds.secondsBetween(start, dateTime).getSeconds / per.toStandardSeconds.getSeconds
+        if (rec == -1) {
+          val nStart = start.plus(per.multipliedBy(skip))
+          log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
+            .format(skip, start.toString(DateTimeFormat.fullDate),
+              nStart.toString(DateTimeFormat.fullDate)))
+          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name))
+        } else if (rec < skip) {
+          log.warning("Filtered job as it is no longer valid.")
+          None
+        } else {
+          val nRec = rec - skip
+          val nStart = start.plus(per.multipliedBy(skip))
+          log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
+            .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
+              nStart.toString(DateTimeFormat.fullDate)))
+          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name))
+        }
+      case None =>
+        None
     }
   }
 }

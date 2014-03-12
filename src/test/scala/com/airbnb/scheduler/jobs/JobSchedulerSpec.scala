@@ -109,9 +109,15 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       // Horizon is 5 minutes, so lookforward until 00:06:01.000Z
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
       val (isoExpr, _) = newScheduleStreams(0).head()
-      val (_, date, _) = Iso8601Expressions.parse(isoExpr)
 
+      var date: DateTime = new DateTime()
+      Iso8601Expressions.parse(isoExpr) match {
+        case Some((_, d, _)) =>
+          date = d
+        case None =>
+      }
       date must_== DateTime.parse("2012-01-01T00:07:00.000Z")
+
       there were 6.times(mockTaskManager).scheduleDelayedTask(any[ScheduledTask], anyLong, any[Boolean])
     }
 
@@ -129,9 +135,15 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(horizon, null, mockGraph, mock[PersistenceStore], jobMetrics = mock[JobMetrics])
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
       val (isoExpr, _) = newScheduleStreams(0).head()
-      val (_, date, _) = Iso8601Expressions.parse(isoExpr)
 
+      var date: DateTime = new DateTime()
+      Iso8601Expressions.parse(isoExpr) match {
+        case Some((_, d, _)) =>
+          date = d
+        case None =>
+      }
       date must_== DateTime.parse("2012-01-10T00:00:00.000Z")
+
     }
 
     "Multiple tasks must be scheduled if they're within epsilon and before time-horizon" in {
