@@ -124,6 +124,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             streams = iteration(DateTime.now(DateTimeZone.UTC), tmpStreams)
           }
         }
+      case _ =>
     }
     replaceJob(oldJob, newJob)
   }
