@@ -33,28 +33,40 @@ class Iso8601JobResource @Inject()(
   def handleRequest(newJob: ScheduleBasedJob): Response = {
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
-      require(!oldJobOpt.isEmpty, "Job '%s' not found".format(oldJobOpt.get.name))
-      val oldJob = oldJobOpt.get
+      if (oldJobOpt.isEmpty) {
+        log.info("Received request for job:" + newJob.toString)
+        require(JobUtils.isValidJobName(newJob.name),
+          "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
+        if (!Iso8601Expressions.canParse(newJob.schedule)) return Response.status(Response.Status.BAD_REQUEST).build()
 
-      if (!Iso8601Expressions.canParse(newJob.schedule)) {
-        return Response.status(Response.Status.BAD_REQUEST).build()
+        //TODO(FL): Create a wrapper class that handles adding & removing jobs!
+        jobScheduler.registerJob(List(newJob), persist = true)
+        iso8601JobSubmissions.incrementAndGet()
+        log.info("Added job to JobGraph")
+        Response.noContent().build()
+      } else {
+        val oldJob = oldJobOpt.get
+
+        if (!Iso8601Expressions.canParse(newJob.schedule)) {
+          return Response.status(Response.Status.BAD_REQUEST).build()
+        }
+
+        oldJob match {
+          case j: DependencyBasedJob =>
+            val oldParents = jobGraph.parentJobs(j)
+            oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
+          case _ =>
+        }
+
+        jobScheduler.updateJob(oldJob, newJob)
+
+        log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
+          newJob.name,
+          new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
+          new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
+
+        Response.noContent().build()
       }
-
-      oldJob match {
-        case j: DependencyBasedJob =>
-          val oldParents = jobGraph.parentJobs(j)
-          oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
-        case _ =>
-      }
-
-      jobScheduler.updateJob(oldJob, newJob)
-
-      log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
-        newJob.name,
-        new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
-        new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
-
-      Response.noContent().build()
     } catch {
       case ex: IllegalArgumentException => {
         log.log(Level.INFO, "Bad Request", ex)
