@@ -202,10 +202,10 @@ end
 remaining_attempts = 100
 while !dependent_jobs_to_be_updated.empty? && remaining_attempts > 0
   remaining_attempts -= 1
-  jobs = dependent_jobs_to_be_updated.dup
+  these_jobs = dependent_jobs_to_be_updated.dup
   to_delete = []
-  jobs.each_index do |idx|
-    job = jobs[idx][:new]
+  these_jobs.each_index do |idx|
+    job = these_jobs[idx][:new]
     parents = job['parents']
     # Add only the jobs for which their parents have already been added.
     can_be_added = true
@@ -216,7 +216,7 @@ while !dependent_jobs_to_be_updated.empty? && remaining_attempts > 0
       end
     end
     if can_be_added
-      jobs_to_be_updated << jobs[idx]
+      jobs_to_be_updated << these_jobs[idx]
       to_delete << idx
       dependent_jobs_to_be_updated_set.delete(job['name'])
     end
