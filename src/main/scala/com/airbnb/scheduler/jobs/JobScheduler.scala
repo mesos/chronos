@@ -494,7 +494,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           next(now, stream.tail().get)
         }
       case None =>
-        next(now, stream.tail().get)
+        log.warning(s"Couldn't parse date for $jobName")
+        (None, Some(stream))
     }
   }
 
