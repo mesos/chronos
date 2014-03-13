@@ -259,17 +259,20 @@ jobs_to_be_updated.each do |j|
 
   puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
 
-  res = Net::HTTP.start(uri.hostname, port: uri.port, use_ssl: (uri.port == 443)) do |http|
-    http.request(req)
-  end
+	begin
+		res = Net::HTTP.start(uri.hostname, port: uri.port, use_ssl: (uri.port == 443)) do |http|
+			http.request(req)
+		end
 
-  case res
-  when Net::HTTPSuccess, Net::HTTPRedirection
-    # OK
-  else
-    $stderr.puts "Error updating job #{job['name']}!"
-    $stderr.puts res.value
-  end
+		case res
+		when Net::HTTPSuccess, Net::HTTPRedirection
+			# OK
+		end
+	rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
+		Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+		$stderr.puts "Error updating job #{job['name']}!"
+		$stderr.puts res.value
+	end
 
   # Pause after each request so we don't explode chronos
   sleep 0.1
