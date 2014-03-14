@@ -145,7 +145,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   /**
-   * This method should be used to register schedule based jobs.
+   * This method should be used to register jobs.
    */
   def registerJob(jobs: List[BaseJob], persist: Boolean = false, dateTime: DateTime = DateTime.now(DateTimeZone.UTC)) {
     lock.synchronized {
@@ -412,7 +412,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
    */
   def iteration(dateTime: DateTime, schedules: List[ScheduleStream]): List[ScheduleStream] = {
     log.info("Checking schedules with time horizon:%s".format(scheduleHorizon.toString))
-    return removeOldSchedules(schedules.map(s => scheduleStream(dateTime, s)))
+    removeOldSchedules(schedules.map(s => scheduleStream(dateTime, s)))
   }
 
   def run(dateSupplier: () => DateTime) {
@@ -536,11 +536,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
          This isn't really transactional but should be sufficiently reliable for most usecases. To outline why it is not
          really transactional. To fix this, we need to add a new state into ZK that stores the successful tasks.
        */
-      val updatedJob = encapsulatedJob.asInstanceOf[ScheduleBasedJob].copy(stream.get.schedule)
+      encapsulatedJob match {
+        case job: ScheduleBasedJob =>
+          val updatedJob = job.copy(stream.get.schedule)
 
-      log.info("Saving updated job:" + updatedJob)
-      persistenceStore.persistJob(updatedJob)
-      jobGraph.replaceVertex(encapsulatedJob, updatedJob)
+        case _ =>
+          log.warning(s"Job ${encapsulatedJob.name} is not a scheduled job!")
+      }
 
       if (stream.isEmpty) {
         return stream
