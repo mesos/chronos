@@ -27,7 +27,8 @@ class MetricReporterService(config: GangliaConfiguration,
   def startUp() {
     this.reporter = config.gangliaHostPort.get match {
       case Some(MetricReporterService.HostPort(host: String, port: Int)) => {
-        val ganglia = new GMetric(host, port, UDPAddressingMode.MULTICAST, 1)
+        val ganglia = new GMetric(host, port, UDPAddressingMode.MULTICAST, 1,
+          true, null, config.gangliaSpoofHost())
         val reporter = GangliaReporter.forRegistry(registry)
           .prefixedWith(config.gangliaGroupPrefix())
           .convertRatesTo(TimeUnit.SECONDS)
