@@ -119,13 +119,17 @@ Dir.chdir(options.config_path) do
   Dir.chdir('dependent') do
     Dir.glob('*.yaml') do |fn|
       lines = File.open(fn).readlines().join
-      parsed = YAML.load(lines)
-      jobs[parsed['name']] = parsed
-      if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
-        raise "Name from #{fn} doesn't match job name"
-      end
-      if parsed.include? 'schedule'
-        raise "Scheduled job from #{fn} must not contain a schedule!"
+      begin
+        parsed = YAML.load(lines)
+        jobs[parsed['name']] = parsed
+        if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
+          puts "Name from #{fn} doesn't match job name"
+        end
+        if parsed.include? 'schedule'
+          puts "Scheduled job from #{fn} must not contain a schedule!"
+        end
+      rescue Psych::SyntaxError => e
+        $stderr.puts "Parsing error when reading dependent/#{fn}"
       end
     end
   end
@@ -133,13 +137,17 @@ Dir.chdir(options.config_path) do
   Dir.chdir('scheduled') do
     Dir.glob('*.yaml') do |fn|
       lines = File.open(fn).readlines().join
-      parsed = YAML.load(lines)
-      jobs[parsed['name']] = parsed
-      if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
-        raise "Name from #{fn} doesn't match job name"
-      end
-      if parsed.include? 'parents'
-        raise "Scheduled job from #{fn} must not contain parents!"
+      begin
+        parsed = YAML.load(lines)
+        jobs[parsed['name']] = parsed
+        if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
+          puts "Name from #{fn} doesn't match job name"
+        end
+        if parsed.include? 'parents'
+          puts "Scheduled job from #{fn} must not contain parents!"
+        end
+      rescue Psych::SyntaxError => e
+        $stderr.puts "Parsing error when reading scheduled/#{fn}"
       end
     end
   end
@@ -259,20 +267,20 @@ jobs_to_be_updated.each do |j|
 
   puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
 
-	begin
-		res = Net::HTTP.start(uri.hostname, port: uri.port, use_ssl: (uri.port == 443)) do |http|
-			http.request(req)
-		end
+  begin
+    res = Net::HTTP.start(uri.hostname, port: uri.port, use_ssl: (uri.port == 443)) do |http|
+      http.request(req)
+    end
 
-		case res
-		when Net::HTTPSuccess, Net::HTTPRedirection
-			# OK
-		end
-	rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
-		Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-		$stderr.puts "Error updating job #{job['name']}!"
-		$stderr.puts res.value
-	end
+    case res
+    when Net::HTTPSuccess, Net::HTTPRedirection
+      # OK
+    end
+  rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
+    Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+    $stderr.puts "Error updating job #{job['name']}!"
+    $stderr.puts res.value
+  end
 
   # Pause after each request so we don't explode chronos
   sleep 0.1
