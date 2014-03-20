@@ -20,5 +20,6 @@ trait GangliaConfiguration extends ScallopConf {
 
   lazy val gangliaSpoofHost = opt[String]("ganglia_spoof",
     descr = "IP:host to spoof for Ganglia",
-    default = Some(java.net.InetAddress.getLocalHost().getHostName()))
+    default = Some(java.net.InetAddress.getLocalHost().getHostName() +
+      ":" + java.net.InetAddress.getLocalHost().getHostName()))
 }
