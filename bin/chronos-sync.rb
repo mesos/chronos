@@ -7,6 +7,7 @@ require 'open-uri'
 require 'fileutils'
 require 'net/http'
 require 'time'
+require 'date'
 require 'yaml'
 require 'set'
 
@@ -155,6 +156,8 @@ end
 
 jobs_to_be_updated = []
 
+cur_datetime = Time.now.to_datetime
+
 # Update scheduled jobs first
 jobs.each do |name,job|
   if job.include? 'schedule'
@@ -167,6 +170,14 @@ jobs.each do |name,job|
       new_schedule = new_job['schedule']
       new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
       if options.force || !scheduled_jobs.include?(name) || strip_job(existing_job).to_s != strip_job(new_job).to_s
+        # Check if scheduled start time is in the past
+        start_time = DateTime.iso8601(/^R\d*\/([^\/]+)\//.match(new_schedule)[1])
+        if start_time < cur_datetime
+          split_schedule = new_schedule.split(/\//)
+          new_new_schedule = [split_schedule[0], Time.now.utc.iso8601(3), split_schedule[2]].join('/')
+          puts "Schedule for '#{new_job['name']}' begins in the past!  Resetting to from #{new_schedule} to #{new_new_schedule}"
+          new_schedule = new_new_schedule
+        end
         new_job['schedule'] = new_schedule
         jobs_to_be_updated << {
           :new => job,
