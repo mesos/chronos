@@ -25,10 +25,12 @@ To get a full list of options, use start-chronos.bash --help:
       -g, --ganglia_host_port  <arg>            Host and port for Ganglia
           --ganglia_reporting_interval  <arg>   Ganglia reporting interval (seconds)
                                                 (default = 60)
+          --ganglia_spoof  <arg>                IP:host to spoof for Ganglia
+                                                (default = actual hostname)
       -h, --hostname  <arg>                     The advertised hostname stored in
                                                 ZooKeeper so another standby host can
                                                 redirect to this elected leader
-                                                (default = Macintosh.local)
+                                                (default = actual hostname)
           --http_credentials  <arg>             Credentials for accessing the http
                                                 service.If empty, anyone can access
                                                 the HTTP endpoint. A
