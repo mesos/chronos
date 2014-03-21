@@ -52,8 +52,8 @@ def strip_job(job)
   newjob.delete 'errorCount'
   newjob.delete 'lastSuccess'
   newjob.delete 'lastError'
-  newjob.delete 'epsilon'
   newjob.delete 'async'
+  newjob.delete 'epsilon'
   newjob.delete 'retries'
   newjob.delete 'executor'
   newjob.delete 'executorFlags'
@@ -166,7 +166,7 @@ jobs.each do |name,job|
       existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
       new_schedule = new_job['schedule']
       new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
-      if options.force || !scheduled_jobs.include?(name) || existing_job.to_s != new_job.to_s
+      if options.force || !scheduled_jobs.include?(name) || strip_job(existing_job).to_s != strip_job(new_job).to_s
         new_job['schedule'] = new_schedule
         jobs_to_be_updated << {
           :new => job,
