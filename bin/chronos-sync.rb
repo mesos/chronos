@@ -156,7 +156,7 @@ end
 
 jobs_to_be_updated = []
 
-cur_datetime = Time.now.to_datetime
+cur_datetime = Time.now.utc.to_datetime
 
 # Update scheduled jobs first
 jobs.each do |name,job|
@@ -174,7 +174,9 @@ jobs.each do |name,job|
         start_time = DateTime.iso8601(/^R\d*\/([^\/]+)\//.match(new_schedule)[1])
         if start_time < cur_datetime
           split_schedule = new_schedule.split(/\//)
-          new_new_schedule = [split_schedule[0], Time.now.utc.iso8601(3), split_schedule[2]].join('/')
+          # Reset start time to the next available
+          new_start_time = start_time + (cur_datetime - start_time).to_f.ceil
+          new_new_schedule = [split_schedule[0], new_start_time.iso8601(3), split_schedule[2]].join('/')
           puts "Schedule for '#{new_job['name']}' begins in the past!  Resetting to from #{new_schedule} to #{new_new_schedule}"
           new_schedule = new_new_schedule
         end
