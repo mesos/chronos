@@ -58,6 +58,7 @@ def strip_job(job)
   newjob.delete 'retries'
   newjob.delete 'executor'
   newjob.delete 'executorFlags'
+  newjob.delete 'disabled'
   newjob
 end
 
