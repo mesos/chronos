@@ -204,7 +204,7 @@ jobs.each do |name,job|
     if dependent_jobs.include? name
       existing_job = dependent_jobs[name]
       new_job = job
-      if options.force || !dependent_jobs.include?(name) || existing_job.to_s != new_job.to_s
+      if options.force || !dependent_jobs.include?(name) || strip_job(existing_job).to_s != strip_job(new_job).to_s
         dependent_jobs_to_be_updated_set.add(job['name'])
         dependent_jobs_to_be_updated << {
           :new => job,
