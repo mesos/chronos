@@ -201,7 +201,7 @@ class MesosJobFramework @Inject()(
 
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
 
-    log.info("Launching task with offer: " + mesosTask)
+    log.info("Launching task from offer: " + offer + " with task: " + mesosTask)
 
     import scala.collection.JavaConverters._
     if (runningJobs.contains(job.name)) {
