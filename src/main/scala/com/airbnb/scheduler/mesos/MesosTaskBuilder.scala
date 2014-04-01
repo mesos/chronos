@@ -29,18 +29,19 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   final val diskResourceName = "disk"
 
   def scalarResource(name: String, value: Double, offer: Offer) = {
+    // For a given named resource and value,
+    // find and return the role that matches the name and exceeds the value.
+    // Give preference to reserved offers first (those whose roles do not match "*")
     import scala.collection.JavaConverters._
-    val role = offer.getResourcesList.asScala.find({x =>
-      x.getType match {
-        case Value.Type.SCALAR =>
-          x.getName == name && x.getScalar.getValue >= value
-        case _ =>
-          false
-      }
-    }) match {
+    val resources = offer.getResourcesList.asScala
+    val reservedResources = resources.filter({x => x.hasRole && x.getRole != "*"})
+    val reservedResource = reservedResources.find({x => x.getName == name && x.getScalar.getValue >= value})
+    val role = reservedResource match {
       case Some(x) =>
+        // We found a good candidate earlier, just use that.
         x.getRole
       case None =>
+        // We did not find a good candidate earlier, so use the unreserved role.
         "*"
     }
     Resource.newBuilder
