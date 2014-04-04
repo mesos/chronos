@@ -303,7 +303,7 @@ function buildResultsTable() {
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
        '        <li class="btn-group">',
        '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
-       '          <button class="btn btn-primary" title="Get Logs" id="logs.'+name+'"><span class="glyphicon glyphicon-list"></span></button>',
+       '          <button class="btn btn-primary" title="Get Logs" data-toggle="modal" data-target="#logModal" id="logs.'+name+'"><span class="glyphicon glyphicon-list"></span></button>',
        '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
        '          <button class="btn btn-warning" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
        '          <button class="btn btn-danger" title="Delete" id="delete.'+name+'"><span class="glyphicon glyphicon-trash"></span></button>',
