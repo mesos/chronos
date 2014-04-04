@@ -76,6 +76,11 @@ $(function() {
     populateWithContent(name, true);
   });
 
+  $('[id^="logs."').click( function() {
+    var name = $(this).attr("id").split(".")[1];
+    populateLogModal(name);
+  })
+
   // Add animations to dropdown.
   $('.dropdown').on('show.bs.dropdown', function(e){
     $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
@@ -298,6 +303,7 @@ function buildResultsTable() {
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
        '        <li class="btn-group">',
        '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
+       '          <button class="btn btn-primary" title="Get Logs" id="logs.'+name+'"><span class="glyphicon glyphicon-list"></span></button>',
        '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
        '          <button class="btn btn-warning" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
        '          <button class="btn btn-danger" title="Delete" id="delete.'+name+'"><span class="glyphicon glyphicon-trash"></span></button>',
@@ -321,6 +327,12 @@ function buildResultsTable() {
     trstrings.push(trstring)
   });
   $('#jobData').html(trstrings.join("\n"));
+}
+
+function populateLogModal(name) {
+  $('#logModal').on('show.bs.modal'), function() {
+    $('#logModalLabel').val("Logs for job" + name);
+  }
 }
 
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing, cpus, mem, disk) {
