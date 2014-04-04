@@ -76,6 +76,11 @@ $(function() {
     populateWithContent(name, true);
   });
 
+  $('[id^="logs."]').click( function() {
+    var name = $(this).attr("id").split(".")[1];
+    populateLogModal(name);
+  })
+
   // Add animations to dropdown.
   $('.dropdown').on('show.bs.dropdown', function(e){
     $(this).find('.dropdown-menu').first().stop(true, true).slideDown();
@@ -298,6 +303,7 @@ function buildResultsTable() {
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
        '        <li class="btn-group">',
        '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
+       '          <button class="btn btn-primary" title="Get Logs" data-toggle="modal" data-target="#logModal" id="logs.'+name+'"><span class="glyphicon glyphicon-list"></span></button>',
        '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
        '          <button class="btn btn-warning" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
        '          <button class="btn btn-danger" title="Delete" id="delete.'+name+'"><span class="glyphicon glyphicon-trash"></span></button>',
@@ -321,6 +327,90 @@ function buildResultsTable() {
     trstrings.push(trstring)
   });
   $('#jobData').html(trstrings.join("\n"));
+}
+
+function getMesosMasterStateData(hostname) {
+  var state = {};
+  var path = "http://" + hostname + ":5050/state.json";
+  $.ajax({
+    url: path,
+    dataType: 'json',
+    success: function(output) {
+      state = output;
+    },
+    async: false
+  });
+  return state;
+}
+function getMesosSlaveStateData(hostname) {
+  var state = {};
+  var path = "http://" + hostname + ":5051/slave(1)/state.json";
+  $.ajax({
+    url: path,
+    dataType: 'json',
+    success: function(output) {
+      state = output;
+    },
+    async: false
+  });
+  return state;
+}
+
+function getInfoForJob(jobName, masterState) {
+  // Return a path for the most recently completed run of `jobName`.
+  $.each(masterState.frameworks, function(i, v) {
+    if (v.name.indexOf("chronos") !== -1) {
+      $.each(chronos_framework.completed_tasks, function(i, ct) {
+        if (ct.indexOf(jobName) !== -1) {
+          $.each(masterState.slaves, function(i, slv) {
+            if (slv.id == ct.slave_id) {
+              var slave_hostname = slv["hostname"];
+              var executor_id = ct["id"];
+              var slave_state = getMesosSlaveStateData(slave_hostname);
+              $.each(slave_state.completed_frameworks, function (i, cf) {
+                if (cf.name.indexOf("chronos") !== -1) {
+                  $.each(cf.completed_executors, function(i, ce) {
+                    if (ce.id == executor_id) {
+                      return {"hostname": slave_hostname, "directory": ce.directory};
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
+function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
+  var path = "http://" + slave_hostname + ":5051/read.json?path=" + encodeURI(directory) + "%2F" + output_stream + "&offset=0&length=8000";
+  var stream_content;
+  $.ajax({
+    url: path,
+    datatype: 'json',
+    success: function(output) {
+      stream_content = output["data"];
+    },
+    async: false
+  });
+  return stream_content;
+}
+
+function getLogs(job_name, output_stream) {
+  // Change this to the production cluster hostname before pushing to production.
+  var masterState = getMesosMasterStateData("nn1.h2.musta.ch");
+  var info = getInfoForJob(job_name, masterState);
+  return getLogsGivenSlaveAndPath(info["hostname"], info["directory"], output_stream);
+}
+
+function populateLogModal(name) {
+  $('#logModal').on('show.bs.modal', function() {
+    $('#logModalLabel').val("Logs for job" + name);
+    $('#stdoutTextarea').val(getLogs(name, "stdout"));
+    $('#stderrTextarea').val(getLogs(name, "stderr"));
+  });
 }
 
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing, cpus, mem, disk) {

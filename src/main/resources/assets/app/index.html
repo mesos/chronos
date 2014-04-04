@@ -129,5 +129,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Log modal -->
+    <div class="modal fade" id="logModal" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title" id="logModalLabel">Job Log details</h4>
+          </div>
+          <div class="modal-body">
+            <ul class="nav nav-tabs">
+              <li class="active"><a href="#stdout" data-toggle="tab">Stdout</a></li>
+              <li><a href="#stderr" data-toggle="tab">Stderr</a></li>
+            </ul>
+          </div>
+          <div class="tab-content">
+            <div class="tab-pane fade active in" id="stdout">
+              <textarea id="stdoutTextarea">Loading standard out...</textarea>
+            </div>
+            <div class="tab-pane fade" id="stderr">
+              <textarea id="stderrTextarea">Loading standard error...</textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
