@@ -373,7 +373,7 @@ function getInfoForJob(jobName, masterState) {
                     if (ce.id == executor_id) {
                       return {"hostname": slave_hostname, "directory": ce.directory};
                     }
-                  }
+                  });
                 }
               });
             }
