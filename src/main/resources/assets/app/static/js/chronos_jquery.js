@@ -369,7 +369,7 @@ function getInfoForJob(jobName, masterState) {
               var slave_state = getMesosSlaveStateData(slave_hostname);
               $.each(slave_state.completed_frameworks, function (i, cf) {
                 if (cf.name.indexOf("chronos") !== -1) {
-                  $.each(cf.completed_executors, function(i, ce)) {
+                  $.each(cf.completed_executors, function(i, ce) {
                     if (ce.id == executor_id) {
                       return {"hostname": slave_hostname, "directory": ce.directory};
                     }
