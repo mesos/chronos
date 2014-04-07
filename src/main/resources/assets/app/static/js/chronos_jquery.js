@@ -79,6 +79,7 @@ $(function() {
   $('[id^="logs."]').click( function() {
     var name = $(this).attr("id").split(".")[1];
     populateLogModal(name);
+    console.log("Booyahkahsha " + name);
   })
 
   // Add animations to dropdown.
