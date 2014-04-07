@@ -76,7 +76,7 @@ $(function() {
     populateWithContent(name, true);
   });
 
-  $('[id^="logs."').click( function() {
+  $('[id^="logs."]').click( function() {
     var name = $(this).attr("id").split(".")[1];
     populateLogModal(name);
   })
