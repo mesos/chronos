@@ -333,7 +333,7 @@ function getMesosMasterStateData(hostname) {
   var state = {};
   var path = hostname + ":5050/state.json";
   $.ajax({
-    url: path
+    url: path,
     dataType: 'json',
     success: function(output) {
       state = output;
@@ -346,7 +346,7 @@ function getMesosSlaveStateData(hostname) {
   var state = {};
   var path = hostname + ":5051/slave(1)/state.json";
   $.ajax({
-    url: path
+    url: path,
     dataType: 'json',
     success: function(output) {
       state = output;
