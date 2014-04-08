@@ -6,7 +6,6 @@ import java.util.concurrent.{Future, Executors}
 import java.util.concurrent.atomic.{AtomicReference, AtomicBoolean}
 import java.util.logging.{Level, Logger}
 
-import com.airbnb.notification.MailClient
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.scheduler.mesos.MesosDriverFactory
@@ -609,9 +608,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
     running.set(false)
     schedulerThreadFuture.get.cancel(true)
-    reset()
 
-    candidate.offerLeadership(this)
+    System.exit(1)
   }
 
   def onElected(cmd: ExceptionalCommand[JoinException]) {
