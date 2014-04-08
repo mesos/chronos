@@ -1,0 +1,9 @@
+Package: [[name]]
+Version: [[version]]
+Section: misc
+Priority: optional
+Architecture: all
+Depends: java-runtime-headless
+Maintainer: Damien Hardy <dhardy@viadeoteam.com>
+Description: Chronos scheduler by Airbnb
+Distribution: [[debian.distribution]]

@@ -2,4 +2,6 @@ language: scala
 scala:
   - "2.10.2"
 jdk:
-  - openjdk6
+  - openjdk7
+
+script: "mvn clean package"
