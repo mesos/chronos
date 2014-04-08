@@ -79,7 +79,6 @@ $(function() {
   $('[id^="logs."]').click( function() {
     var name = $(this).attr("id").split(".")[1];
     populateLogModal(name);
-    console.log("Booyahkahsha " + name);
   })
 
   // Add animations to dropdown.
@@ -407,11 +406,11 @@ function getLogs(job_name, output_stream) {
 }
 
 function populateLogModal(name) {
-  $('#logModal').on('show.bs.modal'), function() {
+  $('#logModal').on('show.bs.modal', function() {
     $('#logModalLabel').val("Logs for job" + name);
     $('#stdoutTextarea').val(getLogs(name, "stdout"));
     $('#stderrTextarea').val(getLogs(name, "stderr"));
-  }
+  });
 }
 
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing, cpus, mem, disk) {
