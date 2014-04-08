@@ -331,7 +331,7 @@ function buildResultsTable() {
 
 function getMesosMasterStateData(hostname) {
   var state = {};
-  var path = hostname + ":5050/state.json";
+  var path = "http://" + hostname + ":5050/state.json";
   $.ajax({
     url: path,
     dataType: 'json',
@@ -344,7 +344,7 @@ function getMesosMasterStateData(hostname) {
 }
 function getMesosSlaveStateData(hostname) {
   var state = {};
-  var path = hostname + ":5051/slave(1)/state.json";
+  var path = "http://" + hostname + ":5051/slave(1)/state.json";
   $.ajax({
     url: path,
     dataType: 'json',
@@ -385,7 +385,7 @@ function getInfoForJob(jobName, masterState) {
 }
 
 function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
-  var path = slave_hostname + ":5051/read.json?path=" + encodeURI(directory) + "%2F" + output_stream + "&offset=0&length=8000";
+  var path = "http://" + slave_hostname + ":5051/read.json?path=" + encodeURI(directory) + "%2F" + output_stream + "&offset=0&length=8000";
   var stream_content;
   $.ajax({
     url: path,
