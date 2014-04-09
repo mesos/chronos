@@ -10,15 +10,15 @@ import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.scheduler.mesos.MesosDriverFactory
 import com.google.inject.Inject
-import com.twitter.common.zookeeper.Candidate.Leader
-import com.twitter.common.base.ExceptionalCommand
-import com.twitter.common.zookeeper.Group.JoinException
-import com.twitter.common.zookeeper.Candidate
 import org.joda.time.{DateTimeZone, Period, DateTime, Duration}
 import org.joda.time.format.DateTimeFormat
 import com.google.common.util.concurrent.AbstractIdleService
 import akka.actor.ActorRef
 import org.apache.mesos.Protos.TaskStatus
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.apache.curator.framework.api.CuratorWatcher
+import org.apache.zookeeper.WatchedEvent
 
 /**
  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
@@ -27,21 +27,22 @@ import org.apache.mesos.Protos.TaskStatus
  * A lot of the methods in this class are broken into small pieces to allow for better unit testing.
  * @author Florian Leibert (flo@leibert.de)
  */
-//TODO(FL): Modify the candidate to be an Option!
 class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val taskManager: TaskManager,
                              val jobGraph: JobGraph,
                              val persistenceStore: PersistenceStore,
                              val mesosDriver: MesosDriverFactory = null,
-                             val candidate: Candidate = null,
+                             val curator: CuratorFramework = null,
+                             val leaderLatch: LeaderLatch = null,
+                             val leaderPath: String = null,
                              val notificationClients: List[ActorRef] = List(),
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics,
                              val jobStats: JobStats)
-//Allows us to let Chaos manage the lifecycle of this class.
+  //Allows us to let Chaos manage the lifecycle of this class.
   extends AbstractIdleService
-  with Leader {
+  {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
@@ -56,13 +57,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   val leader = new AtomicBoolean(false)
   var streams: List[ScheduleStream] = List()
-  var abdicateCmd: ExceptionalCommand[JoinException] = null
 
-  def isLeader: Boolean = leader.get
+  def isLeader: Boolean = leader.get()
 
   def getLeader: String = {
     try {
-      new String(candidate.getLeaderData.get())
+      leaderLatch.getLeader.getId
     } catch {
       case e : Exception => {
         log.log(Level.SEVERE, "Error trying to talk to zookeeper. Exiting.", e)
@@ -611,44 +611,53 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   override def startUp() {
     assert(!running.get, "This scheduler is already running!")
     log.info("Trying to become leader.")
-    candidate.offerLeadership(this)
+
+    leaderLatch.start()
+    watchElection()
   }
 
   override def shutDown() {
     running.set(false)
     log.info("Shutting down job scheduler")
 
-    if (abdicateCmd != null) {
-      log.info("Abdicating.")
-      abdicateCmd.execute()
-      abdicateCmd = null
-    }
+    leaderLatch.close(LeaderLatch.CloseMode.NOTIFY_LEADER)
   }
 
   //End Service interface
+
+  def watchElection() {
+    curator.getChildren.usingWatcher(new CuratorWatcher {
+      override def process(event: WatchedEvent) {
+        val wasLeader: Boolean = leader.get()
+        val isLeader: Boolean = leaderLatch.hasLeadership
+
+        leader.set(isLeader)
+
+        if (wasLeader && !isLeader) {
+          // Voted down
+          onDefeated()
+        } else if (!wasLeader && isLeader) {
+          // Voted up
+          onElected()
+        }
+      }
+    }).inBackground().forPath(leaderPath)
+  }
 
   //Begin Leader interface, which is required for CandidateImpl.
   def onDefeated() {
     mesosDriver.close()
 
     log.info("Defeated. Not the current leader.")
-    if (abdicateCmd != null) {
-      log.warning("Abdicate command present.")
-      abdicateCmd = null
-    }
     running.set(false)
     schedulerThreadFuture.get.cancel(true)
 
     System.exit(1)
   }
 
-  def onElected(cmd: ExceptionalCommand[JoinException]) {
+  def onElected() {
     log.info("Elected as leader.")
-    if (abdicateCmd != null) {
-      log.warning("Abdicate command exists already!")
-    }
-    abdicateCmd = cmd
-    leader.set(true)
+
     running.set(true)
     lock.synchronized {
       //It's important to load the tasks first, otherwise a job that's due will trigger a task right away.

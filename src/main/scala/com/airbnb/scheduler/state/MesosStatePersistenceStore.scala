@@ -7,17 +7,17 @@ import scala.Some
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.airbnb.scheduler.jobs._
 import com.google.inject.Inject
-import com.twitter.common.zookeeper.{ZooKeeperUtils, ZooKeeperClient}
 import org.apache.mesos.state.{InMemoryState, State}
+import org.apache.curator.framework.CuratorFramework
 
 /**
  * Handles storage and retrieval of job and task level data within the cluster.
  * @author Florian Leibert (flo@leibert.de)
  */
 
-class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
-                                            val config: SchedulerConfiguration,
-                                            val state: State = new InMemoryState)
+class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
+                                           val config: SchedulerConfiguration,
+                                           val state: State = new InMemoryState)
   extends PersistenceStore {
 
   val log = Logger.getLogger(getClass.getName)
@@ -153,7 +153,7 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
     val success = (newVar.get.value.deep == data.deep)
 
     log.info("State update successful: " + success)
-    return success
+    success
   }
 
   private def remove(name: String): Boolean = {
@@ -162,12 +162,12 @@ class MesosStatePersistenceStore @Inject()(val zk: ZooKeeperClient,
       val path = "%s/%s".format(config.zooKeeperStatePath, name)
       //Once state supports deletion, we can remove the ZK wiring.
       def fnc(s: String) {
-        if (zk.get.exists(path, false)!=null) {
-          zk.get.delete(path, ZooKeeperUtils.ANY_VERSION)
+        if (zk.checkExists().forPath(path) != null) {
+          zk.delete().forPath(path)
         }
       }
       retry[String, Unit](2, 0, path, fnc)
-      (zk.get.exists(path, false) == null)
+      zk.checkExists().forPath(path) == null
     } catch {
       case t: Throwable => {
         log.log(Level.WARNING, "Error while deleting zookeeper node: %s".format(name), t)
