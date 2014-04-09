@@ -21,24 +21,25 @@
         <scala.abi>2.10.3</scala.abi>
 
         <!-- runtime deps versions -->
+        <akka.version>2.2.1</akka.version>
+        <cassandra-driver-core.version>2.0.1</cassandra-driver-core.version>
         <chaos.version>0.4.8</chaos.version>
-        <mesos-utils.version>0.0.4</mesos-utils.version>
         <commons-math3.version>3.2</commons-math3.version>
+        <curator-framework.version>2.4.1</curator-framework.version>
         <guava.version>14.0.1</guava.version>
         <guice.version>3.0</guice.version>
         <jgrapht.version>0.8.3</jgrapht.version>
         <joda-convert.version>1.3.1</joda-convert.version>
         <joda-time.version>2.2</joda-time.version>
         <mesos.version>0.16.0</mesos.version>
+        <lz4.version>1.2.0</lz4.version>
+        <mesos-utils.version>0.0.4</mesos-utils.version>
+        <metrics.version>3.0.2</metrics.version>
         <protobuf.version>2.4.1</protobuf.version>
         <twitter-commons.version>0.0.44</twitter-commons.version>
-        <metrics.version>3.0.2</metrics.version>
-        <akka.version>2.2.1</akka.version>
         <raven.version>4.1.2</raven.version>
-        <cassandra-driver-core.version>2.0.1</cassandra-driver-core.version>
-        <lz4.version>1.2.0</lz4.version>
 
-      <!-- test deps versions -->
+        <!-- test deps versions -->
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
         <specs2.version>2.2.2</specs2.version>
@@ -56,11 +57,6 @@
 
     <repositories>
         <repository>
-            <id>twitter-repo</id>
-            <name>Twitter Maven2 Repository</name>
-            <url>http://maven.twttr.com/</url>
-        </repository>
-        <repository>
             <id>mesosphere-public-repo</id>
             <name>Mesosphere Public Snapshot Repo</name>
             <url>http://downloads.mesosphere.io/maven</url>
@@ -77,14 +73,6 @@
             <url>http://repo1.maven.org/maven2</url>
             <snapshots>
                 <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-        <pluginRepository>
-            <id>artifactory</id>
-            <name>Twitter Artifactory</name>
-            <url>http://artifactory.local.twitter.com/repo</url>
-            <snapshots>
-                <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
@@ -149,14 +137,14 @@
             <version>${jgrapht.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.twitter.common.zookeeper</groupId>
-            <artifactId>candidate</artifactId>
-            <version>${twitter-commons.version}</version>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>${curator-framework.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.twitter.common.zookeeper</groupId>
-            <artifactId>client</artifactId>
-            <version>0.0.37</version>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${curator-framework.version}</version>
         </dependency>
         <dependency>
             <groupId>com.codahale.metrics</groupId>
@@ -225,6 +213,12 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-report-plugin</artifactId>
             <version>${maven-surefire-plugins.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>${curator-framework.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

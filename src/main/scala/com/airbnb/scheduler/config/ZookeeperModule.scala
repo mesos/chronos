@@ -1,19 +1,18 @@
 package com.airbnb.scheduler.config
 
-import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 import com.airbnb.scheduler.state.{PersistenceStore, MesosStatePersistenceStore}
-import com.google.inject._
-import com.twitter.common.base.Supplier
-import com.twitter.common.quantity.Amount
-import com.twitter.common.quantity.Time
-import com.twitter.common.zookeeper._
+import com.google.inject.{AbstractModule, Inject, Provides, Singleton}
 import org.apache.mesos.state.{State, ZooKeeperState}
-import org.apache.zookeeper.ZooDefs
 import mesosphere.mesos.util.FrameworkIdUtil
 import mesosphere.chaos.http.HttpConf
+import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
+import org.apache.curator.retry.ExponentialBackoffRetry
+import com.airbnb.scheduler.jobs.ZookeeperService
+import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.apache.curator.utils.EnsurePath
 
 /**
  * Guice glue-code for zookeeper related things.
@@ -29,11 +28,21 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Inject
   @Singleton
   @Provides
-  def provideZookeeperClient(): ZooKeeperClient = {
-    import collection.JavaConversions._
-    new ZooKeeperClient(
-      Amount.of(config.zooKeeperTimeout().toInt, Time.MILLISECONDS),
-      parseZkServers())
+  def provideZookeeperClient(): CuratorFramework = {
+    val curatorBuilder = CuratorFrameworkFactory.builder()
+            .connectionTimeoutMs(config.zooKeeperTimeout().toInt)
+            .canBeReadOnly(true)
+            .connectString(validateZkServers())
+            .retryPolicy(new ExponentialBackoffRetry(1000, 100))
+
+    curatorBuilder.build()
+  }
+
+  @Inject
+  @Singleton
+  @Provides
+  def provideZookeeperService(curator: CuratorFramework): ZookeeperService = {
+    new ZookeeperService(curator)
   }
 
   @Inject
@@ -49,10 +58,9 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Inject
   @Singleton
   @Provides
-  def provideStore(zk: ZooKeeperClient, state: State): PersistenceStore = {
-    ZooKeeperUtils.ensurePath(zk,
-      ZooDefs.Ids.OPEN_ACL_UNSAFE,
-      config.zooKeeperStatePath)
+  def provideStore(zk: CuratorFramework, state: State): PersistenceStore = {
+    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperStatePath)
+    ensurePath.ensure(zk.getZookeeperClient)
 
     new MesosStatePersistenceStore(zk, config, state)
   }
@@ -66,23 +74,20 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Inject
   @Singleton
   @Provides
-  def provideCandidate(zk: ZooKeeperClient): Candidate = {
-    log.info("Using hostname:" + config.hostname())
-    return new CandidateImpl(new Group(zk, ZooDefs.Ids.OPEN_ACL_UNSAFE,
-      config.zooKeeperCandidatePath),
-      new Supplier[Array[Byte]] {
-        def get() = {
-          "%s:%d".format(config.hostname(), config.httpPort()).getBytes
-        }
-      })
+  def provideLeaderLatch(curator: CuratorFramework): LeaderLatch = {
+    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperCandidatePath)
+    ensurePath.ensure(curator.getZookeeperClient)
+
+    val id = "%s:%d".format(config.hostname(), config.httpPort())
+    new LeaderLatch(curator, config.zooKeeperCandidatePath, id)
   }
 
-  private def parseZkServers(): List[InetSocketAddress] = {
-    val servers = config.zookeeperServers().split(",")
-    servers.map({
+  private def validateZkServers(): String = {
+    val servers: Array[String] = config.zookeeperServers().split(",")
+    servers.foreach({
       server =>
         require(server.split(":").size == 2, "Error, zookeeper servers must be provided in the form host1:port2,host2:port2")
-        new InetSocketAddress(server.split(":")(0), server.split(":")(1).toInt)
-    }).toList
+    })
+    servers.mkString(",")
   }
 }

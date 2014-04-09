@@ -1,11 +1,6 @@
 package com.airbnb.scheduler.state
 
 import com.airbnb.scheduler.jobs._
-import com.airbnb.scheduler.config.SchedulerConfiguration
-import com.google.protobuf.ByteString
-import com.twitter.common.zookeeper.ZooKeeperClient
-import org.apache.mesos.Protos.{SlaveID, TaskID, TaskInfo}
-import org.apache.zookeeper.ZooKeeper
 import org.joda.time.Hours
 import org.specs2.mutable._
 import org.specs2.mock._
