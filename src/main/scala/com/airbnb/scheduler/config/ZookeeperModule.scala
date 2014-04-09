@@ -75,6 +75,9 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideLeaderLatch(curator: CuratorFramework): LeaderLatch = {
+    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperCandidatePath)
+    ensurePath.ensure(curator.getZookeeperClient)
+
     val id = "%s:%d".format(config.hostname(), config.httpPort())
     new LeaderLatch(curator, config.zooKeeperCandidatePath, id)
   }
