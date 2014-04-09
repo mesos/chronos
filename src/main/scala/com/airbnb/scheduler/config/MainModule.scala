@@ -11,14 +11,15 @@ import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.notification.{MailClient,RavenClient}
 import com.google.inject.{Inject, Provides, Singleton, AbstractModule}
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, ThreadFactoryBuilder, MoreExecutors}
-import com.twitter.common.zookeeper.Candidate
 import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
 import mesosphere.mesos.util.FrameworkIdUtil
-import akka.actor.{ActorRefFactory, ActorRef, ActorSystem, Props}
+import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import scala.concurrent.duration._
+import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.apache.curator.framework.CuratorFramework
 
 /**
  * Guice glue code of application logic components.
@@ -66,14 +67,24 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
                             dependencyScheduler: JobGraph,
                             persistenceStore: PersistenceStore,
                             mesosSchedulerDriver: MesosDriverFactory,
-                            candidate: Candidate,
+                            curator: CuratorFramework,
+                            leaderLatch: LeaderLatch,
                             notificationClients: List[ActorRef],
-                            metrics: JobMetrics,
-                            stats: JobStats): JobScheduler = {
-    new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
-      taskManager, dependencyScheduler, persistenceStore,
-      mesosSchedulerDriver, candidate, notificationClients, config.failureRetryDelayMs(),
-      config.disableAfterFailures(), metrics, stats)
+                            metrics: JobMetrics): JobScheduler = {
+    new JobScheduler(
+      scheduleHorizon = Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
+      taskManager = taskManager,
+      jobGraph = dependencyScheduler,
+      persistenceStore = persistenceStore,
+      mesosDriver = mesosSchedulerDriver,
+      curator = curator,
+      leaderLatch = leaderLatch,
+      leaderPath = config.zooKeeperCandidatePath,
+      notificationClients = notificationClients,
+      failureRetryDelay = config.failureRetryDelayMs(),
+      disableAfterFailures = config.disableAfterFailures(),
+      jobMetrics = metrics,
+      jobStats = stats)
   }
 
   @Singleton
