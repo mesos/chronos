@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.airbnb.scheduler.api._
 import com.airbnb.scheduler.config._
-import com.airbnb.scheduler.jobs.{MetricReporterService, JobScheduler}
+import com.airbnb.scheduler.jobs.{ZookeeperService, MetricReporterService, JobScheduler}
 import mesosphere.chaos.{AppConfiguration, App}
 import mesosphere.chaos.http.{HttpService, HttpConf, HttpModule}
 import mesosphere.chaos.metrics.MetricsModule
@@ -42,6 +42,7 @@ object Main extends App {
     with GangliaConfiguration with CassandraConfiguration
 
   run(Seq(
+    classOf[ZookeeperService],
     classOf[HttpService],
     classOf[JobScheduler],
     classOf[MetricReporterService]

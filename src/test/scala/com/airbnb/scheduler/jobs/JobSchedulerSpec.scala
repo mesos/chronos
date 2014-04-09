@@ -1,11 +1,10 @@
 package com.airbnb.scheduler.jobs
 
 import com.airbnb.scheduler.graph.JobGraph
-import com.airbnb.scheduler.state.{MesosStatePersistenceStore, PersistenceStore}
+import com.airbnb.scheduler.state.PersistenceStore
 import org.joda.time._
 import org.specs2.mock._
 import org.specs2.mutable._
-import com.twitter.common.zookeeper.ZooKeeperClient
 
 class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
 
@@ -254,6 +253,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
 
     val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1S", jobName)
     val scheduler = new JobScheduler(Period.hours(1), mock[TaskManager], mockGraph, store, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+    scheduler.leader.set(true)
 
     val startTime = DateTime.parse("2012-01-01T00:00:00.000Z")
     var t: DateTime = startTime
