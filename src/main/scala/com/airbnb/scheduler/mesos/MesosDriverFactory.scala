@@ -24,10 +24,14 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
     mesosDriver.get
   }
 
+  def start() {
+    get().start()
+  }
+
   def close() {
     assert(mesosDriver.nonEmpty, "Attempted to close a non initialized driver")
     if (mesosDriver.isEmpty) {
-      System.exit(1);
+      System.exit(1)
     }
 
     mesosDriver.get.stop(true)
