@@ -538,7 +538,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       encapsulatedJob match {
         case job: ScheduleBasedJob =>
           val updatedJob = job.copy(stream.get.schedule)
-
+          log.info("Saving updated job:" + updatedJob)
+          persistenceStore.persistJob(updatedJob)
+          jobGraph.replaceVertex(encapsulatedJob, updatedJob)
         case _ =>
           log.warning(s"Job ${encapsulatedJob.name} is not a scheduled job!")
       }
