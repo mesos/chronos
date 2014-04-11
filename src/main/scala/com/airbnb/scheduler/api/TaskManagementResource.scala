@@ -13,6 +13,7 @@ import com.airbnb.scheduler.state.PersistenceStore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.inject.Inject
 import com.codahale.metrics.annotation.Timed
+import org.apache.mesos.Protos.{TaskID, TaskStatus}
 
 /**
  * The REST API for managing tasks such as updating the status of an asynchronous task.
@@ -44,10 +45,10 @@ class TaskManagementResource @Inject()(
 
       if (taskNotification.statusCode == 0) {
         log.info("Task completed successfully '%s'".format(id))
-        jobScheduler.handleFinishedTask(id)
+        jobScheduler.handleFinishedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).build)
       } else {
         log.info("Task failed '%s'".format(id))
-        jobScheduler.handleFailedTask(id)
+        jobScheduler.handleFailedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).build)
       }
       Response.noContent().build()
     } catch {

@@ -28,7 +28,8 @@ object Main extends App {
       new MetricsModule,
       new MainModule(conf),
       new ZookeeperModule(conf),
-      new JobMetricsModule(conf)
+      new JobMetricsModule(conf),
+      new JobStatsModule(conf)
     )
   }
 
@@ -38,7 +39,7 @@ object Main extends App {
 
   lazy val conf = new ScallopConf(args)
     with HttpConf with AppConfiguration with SchedulerConfiguration
-    with GangliaConfiguration
+    with GangliaConfiguration with CassandraConfiguration
 
   run(Seq(
     classOf[HttpService],
