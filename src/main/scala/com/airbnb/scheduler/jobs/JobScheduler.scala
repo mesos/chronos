@@ -18,6 +18,7 @@ import org.joda.time.{DateTimeZone, Period, DateTime, Duration}
 import org.joda.time.format.DateTimeFormat
 import com.google.common.util.concurrent.AbstractIdleService
 import akka.actor.ActorRef
+import org.apache.mesos.Protos.TaskStatus
 
 /**
  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
@@ -36,7 +37,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val notificationClients: List[ActorRef] = List(),
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
-                             val jobMetrics: JobMetrics)
+                             val jobMetrics: JobMetrics,
+                             val jobStats: JobStats)
 //Allows us to let Chaos manage the lifecycle of this class.
   extends AbstractIdleService
   with Leader {
@@ -234,13 +236,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       }
     }
   }
-
-  /**
-   * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
-   * launch tasks for dependent jobs
-   * @param taskId
-   */
-  def handleFinishedTask(taskId: String) {
+  def handleStartedTask(taskStatus: TaskStatus) {
+    val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
       return
@@ -251,10 +248,34 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     if (jobOption.isEmpty) {
       log.warning("Job '%s' no longer registered.".format(jobName))
     } else {
-      val (_, start, _) = TaskUtils.parseTaskId(taskId)
+      val job = jobOption.get
+      val (_, _, attempt) = TaskUtils.parseTaskId(taskId)
+      jobStats.jobStarted(job, taskStatus, attempt)
+    }
+  }
+
+  /**
+   * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
+   * launch tasks for dependent jobs
+   * @param taskId
+   */
+  def handleFinishedTask(taskStatus: TaskStatus) {
+    val taskId = taskStatus.getTaskId.getValue
+    if (!TaskUtils.isValidVersion(taskId)) {
+      log.warning("Found old or invalid task, ignoring!")
+      return
+    }
+    val jobName = TaskUtils.getJobNameForTaskId(taskId)
+    val jobOption = jobGraph.lookupVertex(jobName)
+
+    if (jobOption.isEmpty) {
+      log.warning("Job '%s' no longer registered.".format(jobName))
+    } else {
+      val (_, start, attempt) = TaskUtils.parseTaskId(taskId)
       jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
       jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
+      jobStats.jobFinished(job, taskStatus, attempt)
 
       val newJob = {
         //TODO(FL): Refactor this section and handle the two job types separately.
@@ -317,7 +338,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  def handleFailedTask(taskId: String, message: Option[String] = None) {
+  def handleFailedTask(taskStatus: TaskStatus) {
+    val taskId = taskStatus.getTaskId.getValue
+    val message = if(taskStatus.hasMessage && taskStatus.getMessage.nonEmpty) {
+      Some(taskStatus.getMessage)
+    } else {
+      None
+    }
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
     } else {
@@ -326,6 +353,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) => {
+          jobStats.jobFailed(job, taskStatus, attempt)
           val hasAttemptsLeft: Boolean = attempt < job.retries
 
           val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&

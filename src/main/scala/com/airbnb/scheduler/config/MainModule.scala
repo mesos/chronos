@@ -5,7 +5,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.logging.{Level, Logger}
 
 import com.airbnb.scheduler.mesos.{MesosTaskBuilder, MesosDriverFactory, MesosJobFramework}
-import com.airbnb.scheduler.jobs.{JobMetrics, TaskManager, JobScheduler}
+import com.airbnb.scheduler.jobs.{JobStats, JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
 import com.airbnb.notification.{MailClient,RavenClient}
@@ -68,11 +68,12 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
                             mesosSchedulerDriver: MesosDriverFactory,
                             candidate: Candidate,
                             notificationClients: List[ActorRef],
-                            metrics: JobMetrics): JobScheduler = {
+                            metrics: JobMetrics,
+                            stats: JobStats): JobScheduler = {
     new JobScheduler(Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
       taskManager, dependencyScheduler, persistenceStore,
       mesosSchedulerDriver, candidate, notificationClients, config.failureRetryDelayMs(),
-      config.disableAfterFailures(), metrics)
+      config.disableAfterFailures(), metrics, stats)
   }
 
   @Singleton

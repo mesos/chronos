@@ -9,7 +9,6 @@ import com.google.inject.Inject
 import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 
-import scala.collection.mutable.HashSet
 import scala.collection.mutable.HashMap
 import mesosphere.mesos.util.FrameworkIdUtil
 import com.airbnb.utils.JobDeserializer
@@ -96,6 +95,9 @@ class MesosJobFramework @Inject()(
     val (jobName, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
+        scheduler.handleStartedTask(taskStatus)
+      case TaskState.TASK_STAGING =>
+        scheduler.handleStartedTask(taskStatus)
       case _ =>
         runningJobs.remove(jobName)
     }
@@ -108,18 +110,18 @@ class MesosJobFramework @Inject()(
         if (scheduler.isTaskAsync(taskStatus.getTaskId.getValue)) {
           log.info("Asynchronous task: '%s', not updating job-graph.".format(taskStatus.getTaskId.getValue))
         } else {
-          scheduler.handleFinishedTask(taskStatus.getTaskId.getValue)
+          scheduler.handleFinishedTask(taskStatus)
         }
       case TaskState.TASK_FAILED =>
-        log.warning("Task with id '%s' FAILED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus.getTaskId.getValue, Some(taskStatus.getMessage))
+        log.info("Task with id '%s' FAILED".format(taskStatus.getTaskId.getValue))
+        scheduler.handleFailedTask(taskStatus)
       case TaskState.TASK_LOST =>
-        log.warning("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus.getTaskId.getValue, Some(taskStatus.getMessage))
+        log.info("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
+        scheduler.handleFailedTask(taskStatus)
       case TaskState.TASK_RUNNING =>
-        log.warning("Task with id '%s' RUNNING.".format(taskStatus.getTaskId.getValue))
+        log.info("Task with id '%s' RUNNING.".format(taskStatus.getTaskId.getValue))
       case _ =>
-        log.info("Unknown TaskState:" + taskStatus.getState + " for task: " + taskStatus.getTaskId.getValue)
+        log.warning("Unknown TaskState:" + taskStatus.getState + " for task: " + taskStatus.getTaskId.getValue)
     }
   }
 

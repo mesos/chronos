@@ -5,6 +5,7 @@ import java.util.logging.Logger
 
 import org.joda.time.{DateTimeZone, DateTime}
 import com.airbnb.scheduler.state.PersistenceStore
+import org.apache.mesos.Protos.{TaskID, TaskStatus, TaskState}
 
 /**
  * This file contains a number of classes and objects for dealing with tasks. Tasks are the actual units of work that
@@ -24,6 +25,10 @@ object TaskUtils {
 
   def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
    taskIdTemplate.format(due.getMillis, attempt, job.name)
+  }
+
+  def getTaskStatus(job: BaseJob, due: DateTime, attempt: Int = 0): TaskStatus = {
+    TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(getTaskId(job, due, attempt))).setState(TaskState.TASK_STAGING).build
   }
 
   def parseTaskId(id: String): (String, Long, Int) = {
