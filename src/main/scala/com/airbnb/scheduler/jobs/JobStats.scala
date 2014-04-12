@@ -28,7 +28,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
                   """
                     |(
                     |   id             VARCHAR,
-                    |   timestamp      TIMESTAMP,
+                    |   ts             TIMESTAMP,
                     |   job_name       VARCHAR,
                     |   job_owner      VARCHAR,
                     |   job_schedule   VARCHAR,
@@ -38,7 +38,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
                     |   message        VARCHAR,
                     |   attempt        INT,
                     |   is_failure     BOOLEAN,
-                    | PRIMARY KEY (id, timestamp))
+                    | PRIMARY KEY (id, ts))
                     | WITH bloom_filter_fp_chance=0.100000 AND
                     | compaction = {'class':'LeveledCompactionStrategy'}
                   """.stripMargin
@@ -67,7 +67,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
           job match {
             case job: ScheduleBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable()} (id, timestamp, job_name, job_owner, job_schedule, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
+                s"INSERT INTO ${config.cassandraTable()} (id, ts, job_name, job_owner, job_schedule, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
@@ -85,7 +85,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
               ))
             case job: DependencyBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable()} (id, timestamp, job_name, job_owner, job_parents, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
+                s"INSERT INTO ${config.cassandraTable()} (id, ts, job_name, job_owner, job_parents, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
@@ -122,7 +122,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
           job match {
             case job: ScheduleBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable()} (id, timestamp, job_name, job_owner, job_schedule, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
+                s"INSERT INTO ${config.cassandraTable()} (id, ts, job_name, job_owner, job_schedule, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
@@ -140,7 +140,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
               ))
             case job: DependencyBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable()} (id, timestamp, job_name, job_owner, job_parents, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
+                s"INSERT INTO ${config.cassandraTable()} (id, ts, job_name, job_owner, job_parents, task_state, slave_id, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?) USING TTL ${config.cassandraTtl()}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
@@ -177,7 +177,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
           job match {
             case job: ScheduleBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable()} (id, timestamp, job_name, job_owner, job_schedule, task_state, slave_id, attempt, message, is_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true) USING TTL ${config.cassandraTtl()}"
+                s"INSERT INTO ${config.cassandraTable()} (id, ts, job_name, job_owner, job_schedule, task_state, slave_id, attempt, message, is_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true) USING TTL ${config.cassandraTtl()}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
@@ -196,7 +196,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
               ))
             case job: DependencyBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable} (id, timestamp, job_name, job_owner, job_parents, task_state, slave_id, attempt, message, is_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true) USING TTL ${config.cassandraTtl}"
+                s"INSERT INTO ${config.cassandraTable} (id, ts, job_name, job_owner, job_parents, task_state, slave_id, attempt, message, is_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true) USING TTL ${config.cassandraTtl}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
