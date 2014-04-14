@@ -50,7 +50,8 @@ class JobSchedulerElectionSpec
       curator = curator,
       leaderLatch = leaderLatch,
       leaderPath = leaderPath,
-      jobMetrics = mock[JobMetrics]
+      jobMetrics = mock[JobMetrics],
+      jobStats = mock[JobStats]
     )
 
     val ensurePath: EnsurePath = new EnsurePath(leaderPath)
