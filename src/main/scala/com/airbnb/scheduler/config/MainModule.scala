@@ -70,7 +70,8 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
                             curator: CuratorFramework,
                             leaderLatch: LeaderLatch,
                             notificationClients: List[ActorRef],
-                            metrics: JobMetrics): JobScheduler = {
+                            metrics: JobMetrics,
+                            stats: JobStats): JobScheduler = {
     new JobScheduler(
       scheduleHorizon = Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
       taskManager = taskManager,
