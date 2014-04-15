@@ -365,16 +365,16 @@ function getInfoForJob(jobName, masterState) {
   // Return a path for the most recently completed run of `jobName`.
   $.each(masterState.frameworks, function(i, framework) {
     if (framework.name.indexOf("chronos") !== -1) {
-      $.each(framework.completed_tasks, function(i, ct) {
-        if (ct.indexOf(jobName) !== -1) {
-          $.each(masterState.slaves, function(i, slv) {
+      $.each(framework.completed_tasks, function(j, ct) {
+        if (ct.name.indexOf(jobName) !== -1) {
+          $.each(masterState.slaves, function(k, slv) {
             if (slv.id == ct.slave_id) {
               var slave_hostname = slv["hostname"];
               var executor_id = ct["id"];
               var slave_state = getMesosSlaveStateData(slave_hostname);
-              $.each(slave_state.completed_frameworks, function (i, cf) {
+              $.each(slave_state.completed_frameworks, function(l, cf) {
                 if (cf.name.indexOf("chronos") !== -1) {
-                  $.each(cf.completed_executors, function(i, ce) {
+                  $.each(cf.completed_executors, function(m, ce) {
                     if (ce.id == executor_id) {
                       return {"hostname": slave_hostname, "directory": ce.directory};
                     }
