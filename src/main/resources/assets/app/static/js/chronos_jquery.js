@@ -329,6 +329,11 @@ function buildResultsTable() {
   $('#jobData').html(trstrings.join("\n"));
 }
 
+function getMesosLeaderHostname(main_host) {
+  var state = getMesosMasterStateData(main_host);
+  return state["leader_hostname"];
+}
+
 function getMesosMasterStateData(hostname) {
   var state = {};
   var path = "http://" + hostname + ":5050/state.json";
@@ -356,39 +361,54 @@ function getMesosSlaveStateData(hostname) {
   return state;
 }
 
+String.prototype.endsWith = function(suffix) {
+  return this.indexOf(suffix, this.length - suffix.length) !== -1;
+}
+
+String.prototype.contains = function(needle) {
+  return this.indexOf(needle) !== -1;
+}
+
 function getInfoForJob(jobName, masterState) {
   // Return a path for the most recently completed run of `jobName`.
-  $.each(masterState.frameworks, function(i, v) {
-    if (v.name.indexOf("chronos") !== -1) {
-      $.each(chronos_framework.completed_tasks, function(i, ct) {
-        if (ct.indexOf(jobName) !== -1) {
-          $.each(masterState.slaves, function(i, slv) {
-            if (slv.id == ct.slave_id) {
-              var slave_hostname = slv["hostname"];
-              var executor_id = ct["id"];
+  // Find completed chronos framework
+  for (var i = 0; i < masterState.frameworks.length; i++) {
+    var framework = masterState.frameworks[i];
+    if (framework.name.contains("chronos")) {
+      for (var j = 0; j < framework.completed_tasks.length; j++) {
+        var completed_task = framework.completed_tasks[j];
+        if (completed_task.name.endsWith(jobName)) {
+          for (var k = 0; k < masterState.slaves.length; k++) {
+            var slave = masterState.slaves[k];
+            if (slave.id == completed_task.slave_id) {
+              var slave_hostname = slave.hostname;
+              var executor_id = completed_task.id;
               var slave_state = getMesosSlaveStateData(slave_hostname);
-              $.each(slave_state.completed_frameworks, function (i, cf) {
-                if (cf.name.indexOf("chronos") !== -1) {
-                  $.each(cf.completed_executors, function(i, ce) {
-                    if (ce.id == executor_id) {
-                      return {"hostname": slave_hostname, "directory": ce.directory};
+              for (var l = 0; l < slave_state.completed_frameworks.length; l++) {
+                var completed_framework = slave_state.completed_frameworks[l];
+                if (completed_framework.name.contains("chronos")) {
+                  for (var m = 0; m < completed_framework.completed_executors.length; m++) {
+                    var completed_executor = completed_framework.completed_executors[m];
+                    if (completed_executor.id == executor_id) {
+                      return {"hostname": slave_hostname, "directory": completed_executor.directory};
                     }
-                  });
+                  }
                 }
-              });
+              }
             }
-          });
+          }
         }
-      });
+      }
     }
-  });
+  }
+  return {};
 }
 
 function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
-  var path = "http://" + slave_hostname + ":5051/read.json?path=" + encodeURI(directory) + "%2F" + output_stream + "&offset=0&length=8000";
+  var path = "http://" + slave_hostname + ":5051/files/read.json?path=" + directory + "/" + output_stream + "&offset=0&length=8000";
   var stream_content;
   $.ajax({
-    url: path,
+    url: encodeURI(path),
     datatype: 'json',
     success: function(output) {
       stream_content = output["data"];
@@ -398,23 +418,33 @@ function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
   return stream_content;
 }
 
-function getLogs(job_name, output_stream) {
+function getLogs(job_name) {
   // Change this to the production cluster hostname before pushing to production.
-  var masterState = getMesosMasterStateData("nn1.h2.musta.ch");
+  var leader_hostname = getMesosLeaderHostname("nn1.h2.musta.ch");
+  var masterState= getMesosMasterStateData(leader_hostname);
   var info = getInfoForJob(job_name, masterState);
-  return getLogsGivenSlaveAndPath(info["hostname"], info["directory"], output_stream);
+  if ("hostname" in info) {
+    var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
+    var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
+  } else {
+    var stdout = "It looks like this job hasn't run at all since we restarted chronos.";
+    var stderr = "It looks like this job hasn't run at all since we restarted chronos.";
+  }
+
+  return {"stdout": stdout, "stderr": stderr};
 }
 
 function populateLogModal(name) {
-  $('#logModal').on('show.bs.modal', function() {
+  $('#logModal').one('show.bs.modal', function() {
     $('#logModalLabel').val("Logs for job" + name);
-    $('#stdoutTextarea').val(getLogs(name, "stdout"));
-    $('#stderrTextarea').val(getLogs(name, "stderr"));
+    var logs = getLogs(name);
+    $('#stdoutTextarea').val(logs.stdout);
+    $('#stderrTextarea').val(logs.stderr);
   });
 }
 
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing, cpus, mem, disk) {
-  $('#jobModal').on('show.bs.modal', function() {
+  $('#jobModal').one('show.bs.modal', function() {
     // If creating a new job, pass empty strings.
     $('#nameInput').val(name);
     $('#commandInput').val(command);
