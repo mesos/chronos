@@ -363,9 +363,9 @@ function getMesosSlaveStateData(hostname) {
 
 function getInfoForJob(jobName, masterState) {
   // Return a path for the most recently completed run of `jobName`.
-  $.each(masterState.frameworks, function(i, v) {
-    if (v.name.indexOf("chronos") !== -1) {
-      $.each(chronos_framework.completed_tasks, function(i, ct) {
+  $.each(masterState.frameworks, function(i, framework) {
+    if (framework.name.indexOf("chronos") !== -1) {
+      $.each(framework.completed_tasks, function(i, ct) {
         if (ct.indexOf(jobName) !== -1) {
           $.each(masterState.slaves, function(i, slv) {
             if (slv.id == ct.slave_id) {
