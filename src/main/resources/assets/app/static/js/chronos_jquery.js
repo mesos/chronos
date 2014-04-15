@@ -361,32 +361,46 @@ function getMesosSlaveStateData(hostname) {
   return state;
 }
 
+String.prototype.endsWith = function(suffix) {
+  return this.indexOf(suffix, this.length - suffix.length) !== -1;
+}
+
+String.prototype.contains = function(needle) {
+  return this.indexOf(needle) !== -1;
+}
+
 function getInfoForJob(jobName, masterState) {
   // Return a path for the most recently completed run of `jobName`.
-  $.each(masterState.frameworks, function(i, framework) {
-    if (framework.name.indexOf("chronos") !== -1) {
-      $.each(framework.completed_tasks, function(j, ct) {
-        if (ct.name.indexOf(jobName) !== -1) {
-          $.each(masterState.slaves, function(k, slv) {
-            if (slv.id == ct.slave_id) {
-              var slave_hostname = slv["hostname"];
-              var executor_id = ct["id"];
+  // Find completed chronos framework
+  for (var i = 0; i < masterState.frameworks.length; i++) {
+    var framework = masterState.frameworks[i];
+    if (framework.name.contains("chronos")) {
+      for (var j = 0; j < framework.completed_tasks.length; j++) {
+        var completed_task = framework.completed_tasks[j];
+        if (completed_task.name.endsWith(jobName)) {
+          for (var k = 0; k < masterState.slaves.length; k++) {
+            var slave = masterState.slaves[k];
+            if (slave.id == completed_task.slave_id) {
+              var slave_hostname = slave.hostname;
+              var executor_id = completed_task.id;
               var slave_state = getMesosSlaveStateData(slave_hostname);
-              $.each(slave_state.completed_frameworks, function(l, cf) {
-                if (cf.name.indexOf("chronos") !== -1) {
-                  $.each(cf.completed_executors, function(m, ce) {
-                    if (ce.id == executor_id) {
-                      return {"hostname": slave_hostname, "directory": ce.directory};
+              for (var l = 0; l < slave_state.completed_frameworks.length; l++) {
+                var completed_framework = slave_state.completed_frameworks[l];
+                if (completed_framework.name.contains("chronos")) {
+                  for (var m = 0; m < completed_framework.completed_executors.length; m++) {
+                    var completed_executor = completed_framework.completed_executors[m];
+                    if (completed_executor.id == executor_id) {
+                      return {"hostname": slave_hostname, "directory": completed_executor.directory};
                     }
-                  });
+                  }
                 }
-              });
+              }
             }
-          });
+          }
         }
-      });
+      }
     }
-  });
+  }
 }
 
 function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
