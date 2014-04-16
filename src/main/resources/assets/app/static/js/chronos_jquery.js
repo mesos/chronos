@@ -407,7 +407,7 @@ function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
   var path = "http://" + slave_hostname + ":5051/files/read.json?path=" + directory + "/" + output_stream + "&offset=0&length=8000";
   var stream_content;
   $.ajax({
-    url: endcodeURI(path),
+    url: encodeURI(path),
     datatype: 'json',
     success: function(output) {
       stream_content = output["data"];
