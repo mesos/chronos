@@ -423,7 +423,7 @@ function getLogs(job_name) {
   var leader_hostname = getMesosLeaderHostname("nn1.h2.musta.ch");
   var masterState= getMesosMasterStateData(leader_hostname);
   var info = getInfoForJob(job_name, masterState);
-  if (hostname in info) {
+  if ("hostname" in info) {
     var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
     var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
   } else {
