@@ -404,10 +404,10 @@ function getInfoForJob(jobName, masterState) {
 }
 
 function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
-  var path = "http://" + slave_hostname + ":5051/read.json?path=" + encodeURI(directory) + "%2F" + output_stream + "&offset=0&length=8000";
+  var path = "http://" + slave_hostname + ":5051/files/read.json?path=" + directory + "/" + output_stream + "&offset=0&length=8000";
   var stream_content;
   $.ajax({
-    url: path,
+    url: endcodeURI(path),
     datatype: 'json',
     success: function(output) {
       stream_content = output["data"];
@@ -417,19 +417,22 @@ function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
   return stream_content;
 }
 
-function getLogs(job_name, output_stream) {
+function getLogs(job_name) {
   // Change this to the production cluster hostname before pushing to production.
   var leader_hostname = getMesosLeaderHostname("nn1.h2.musta.ch");
   var masterState= getMesosMasterStateData(leader_hostname);
   var info = getInfoForJob(job_name, masterState);
-  return getLogsGivenSlaveAndPath(info["hostname"], info["directory"], output_stream);
+  var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
+  var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
+  return {"stdout": stdout, "stderr": stderr};
 }
 
 function populateLogModal(name) {
   $('#logModal').on('show.bs.modal', function() {
     $('#logModalLabel').val("Logs for job" + name);
-    $('#stdoutTextarea').val(getLogs(name, "stdout"));
-    $('#stderrTextarea').val(getLogs(name, "stderr"));
+    var logs = getLogs(name);
+    $('#stdoutTextarea').val(logs.stdout);
+    $('#stderrTextarea').val(logs.stderr);
   });
 }
 
