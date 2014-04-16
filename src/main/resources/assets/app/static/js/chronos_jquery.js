@@ -401,6 +401,7 @@ function getInfoForJob(jobName, masterState) {
       }
     }
   }
+  return {};
 }
 
 function getLogsGivenSlaveAndPath(slave_hostname, directory, output_stream) {
@@ -422,8 +423,14 @@ function getLogs(job_name) {
   var leader_hostname = getMesosLeaderHostname("nn1.h2.musta.ch");
   var masterState= getMesosMasterStateData(leader_hostname);
   var info = getInfoForJob(job_name, masterState);
-  var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
-  var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
+  if (hostname in info) {
+    var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
+    var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
+  } else {
+    var stdout = "It looks like this job hasn't run successfully since we restarted chronos.";
+    var stderr = "It looks like this job hasn't run successfully since we restarted chronos.";
+  }
+
   return {"stdout": stdout, "stderr": stderr};
 }
 
