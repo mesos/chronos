@@ -424,11 +424,12 @@ function getLogs(job_name) {
   var masterState= getMesosMasterStateData(leader_hostname);
   var info = getInfoForJob(job_name, masterState);
   if ("hostname" in info) {
+    console.log("Getting log given slave and path for " + job_name);
     var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
     var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
   } else {
-    var stdout = "It looks like this job hasn't run successfully since we restarted chronos.";
-    var stderr = "It looks like this job hasn't run successfully since we restarted chronos.";
+    var stdout = "It looks like this job hasn't run at all since we restarted chronos.";
+    var stderr = "It looks like this job hasn't run at all since we restarted chronos.";
   }
 
   return {"stdout": stdout, "stderr": stderr};
