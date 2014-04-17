@@ -436,7 +436,7 @@ function getLogs(job_name) {
 }
 
 function populateLogModal(name) {
-  $('#logModal').on('show.bs.modal', function() {
+  $('#logModal').one('show.bs.modal', function() {
     $('#logModalLabel').val("Logs for job" + name);
     var logs = getLogs(name);
     $('#stdoutTextarea').val(logs.stdout);
