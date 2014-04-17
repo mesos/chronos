@@ -424,7 +424,6 @@ function getLogs(job_name) {
   var masterState= getMesosMasterStateData(leader_hostname);
   var info = getInfoForJob(job_name, masterState);
   if ("hostname" in info) {
-    console.log("Getting log given slave and path for " + job_name);
     var stdout = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stdout");
     var stderr = getLogsGivenSlaveAndPath(info.hostname, info.directory, "stderr");
   } else {
@@ -445,7 +444,7 @@ function populateLogModal(name) {
 }
 
 function populateJobModal(name, command, owner, parents, schedule, disabled, type, isEditing, cpus, mem, disk) {
-  $('#jobModal').on('show.bs.modal', function() {
+  $('#jobModal').one('show.bs.modal', function() {
     // If creating a new job, pass empty strings.
     $('#nameInput').val(name);
     $('#commandInput').val(command);

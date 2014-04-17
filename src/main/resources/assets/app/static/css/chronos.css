@@ -10,5 +10,5 @@ body .modal-admin {
 }
 
 textarea {
-  resize: vertical;
+  width:100%
 }
