@@ -17,4 +17,8 @@ trait GangliaConfiguration extends ScallopConf {
   lazy val gangliaGroupPrefix = opt[String]("ganglia_group_prefix",
     descr = "Group prefix for Ganglia",
     default = Some(""))
+
+  lazy val gangliaSpoofHost = opt[String]("ganglia_spoof",
+    descr = "IP:host to spoof for Ganglia",
+    default = None)
 }
