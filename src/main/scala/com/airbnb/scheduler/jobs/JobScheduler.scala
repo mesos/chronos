@@ -85,7 +85,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   def isTaskAsync(taskId: String): Boolean = {
-    val TaskUtils.taskIdPattern(jobName, _, _) = taskId
+    val TaskUtils.taskIdPattern(_, _, jobName) = taskId
     jobGraph.lookupVertex(jobName) match {
       case Some(baseJob: BaseJob) => baseJob.async
       case _ => false
