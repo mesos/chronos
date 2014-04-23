@@ -252,6 +252,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val job = jobOption.get
       val (_, _, attempt) = TaskUtils.parseTaskId(taskId)
       jobStats.jobStarted(job, taskStatus, attempt)
+
+      job match {
+        case j: DependencyBasedJob =>
+          jobGraph.resetDependencyInvocations(j.name)
+        case _ =>
+      }
     }
   }
 
@@ -260,7 +266,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
    * launch tasks for dependent jobs
    * @param taskId
    */
-  def handleFinishedTask(taskStatus: TaskStatus) {
+  def handleFinishedTask(taskStatus: TaskStatus, taskDate: Option[DateTime] = None) { // `taskDate` is purely for unit testing
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
@@ -300,8 +306,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           x =>
             val dependentJob = jobGraph.getJobForName(x).get
             if (!dependentJob.disabled) {
+              val date = taskDate match {
+                case Some(d) => d
+                case None => DateTime.now(DateTimeZone.UTC)
+              }
               taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
-                DateTime.now(DateTimeZone.UTC)), dependentJob.highPriority)
+                date), dependentJob.highPriority)
 
               log.fine("Enqueued depedent job." + x)
             }
@@ -355,6 +365,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       jobOption match {
         case Some(job) => {
           jobStats.jobFailed(job, taskStatus, attempt)
+
           val hasAttemptsLeft: Boolean = attempt < job.retries
 
           val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&
@@ -512,14 +523,16 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           }
           //Needs to be scheduled at a later time, after schedule horizon.
           log.fine("No need to work on schedule: '%s' yet".format(nextDate))
-          if (stream.tail().isEmpty) {
+          val tail = stream.tail()
+          if (tail.isEmpty) {
             //TODO(FL): Verify that this can go.
             persistenceStore.removeJob(job)
             log.warning("\n\nWARNING\n\nReached the tail of the streams which should have been never reached \n\n")
-            return (None, None)
+            (None, None)
+          } else {
+            log.info("tail: " + tail.get.schedule + " now: " + now)
+            next(now, tail.get)
           }
-          else log.info("tail:" + stream.tail().get.schedule)
-          next(now, stream.tail().get)
         }
       case None =>
         log.warning(s"Couldn't parse date for $jobName")

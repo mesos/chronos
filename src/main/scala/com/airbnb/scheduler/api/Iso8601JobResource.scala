@@ -23,8 +23,7 @@ import com.airbnb.scheduler.jobs.ScheduleBasedJob
 @Consumes(Array(MediaType.APPLICATION_JSON))
 class Iso8601JobResource @Inject()(
   val jobScheduler: JobScheduler,
-  val jobGraph: JobGraph,
-  val configuration: SchedulerConfiguration) {
+  val jobGraph: JobGraph) {
 
   private val log = Logger.getLogger(getClass.getName)
 
