@@ -5,7 +5,6 @@ import javax.ws.rs.{Path, POST, Produces, PUT}
 import javax.ws.rs.core.Response
 import scala.Array
 
-import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.graph.JobGraph
 import com.google.inject.Inject
@@ -21,8 +20,7 @@ import com.codahale.metrics.annotation.Timed
 @Produces(Array("application/json"))
 class DependentJobResource @Inject()(
     val jobScheduler: JobScheduler,
-    val jobGraph: JobGraph,
-    val configuration: SchedulerConfiguration) {
+    val jobGraph: JobGraph) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 

@@ -95,8 +95,6 @@ object JobUtils {
               //Setup all the dependencies
               y: BaseJob =>
                 scheduler.jobGraph.addDependency(y.name, x.name)
-                scheduler.jobGraph.dag.getAllEdges(y.name, x.name)
-                  .foreach(e => scheduler.jobGraph.edgeInvocationCount.put(e, y.successCount))
             }
         }
     }
