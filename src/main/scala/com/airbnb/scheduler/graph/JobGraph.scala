@@ -50,7 +50,7 @@ class JobGraph {
   }
 
   def getJobForName(name: String): Option[BaseJob] = {
-    return jobNameMapping.get(name)
+    jobNameMapping.get(name)
   }
 
   def replaceVertex(oldVertex: BaseJob, newVertex: BaseJob) {
@@ -160,7 +160,7 @@ class JobGraph {
       }
     }
     log.info("Dependents: [%s]".format(results.mkString(",")))
-    return results.toList
+    results.toList
   }
 
   def getChildren(job: String): Iterable[String] = {
