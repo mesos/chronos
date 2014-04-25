@@ -47,7 +47,7 @@ open("#{options.uri}/scheduler/jobs") do |f|
   json = JSON.parse(data.first)
 end
 
-def strip_job(job)
+def normalize_job(job)
   newjob = job.dup
   newjob.delete 'successCount'
   newjob.delete 'errorCount'
@@ -59,6 +59,16 @@ def strip_job(job)
   newjob.delete 'executor'
   newjob.delete 'executorFlags'
   newjob.delete 'disabled'
+
+  # Define optional fields, if not present
+  newjob['uris'] = [] if !newjob.include?('uris')
+
+  # Sort these guys
+  if newjob.include?('parents')
+    newjob['parents'] = newjob['parents'].sort
+  end
+  newjob['uris'] = newjob['uris'].sort
+
   newjob
 end
 
@@ -73,7 +83,7 @@ scheduled_jobs = {}
 dependent_jobs = {}
 
 json.each do |j|
-  stripped_job = strip_job(j)
+  stripped_job = normalize_job(j)
   if j.include? 'schedule'
     scheduled_jobs[j['name']] = stripped_job
   else
@@ -170,7 +180,7 @@ jobs.each do |name,job|
       existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
       new_schedule = new_job['schedule']
       new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
-      if options.force || !scheduled_jobs.include?(name) || strip_job(existing_job).to_s != strip_job(new_job).to_s
+      if options.force || !scheduled_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
         # Check if scheduled start time is in the past
         start_time = DateTime.iso8601(/^R\d*\/([^\/]+)\//.match(new_schedule)[1])
         if start_time < cur_datetime
@@ -204,7 +214,7 @@ jobs.each do |name,job|
     if dependent_jobs.include? name
       existing_job = dependent_jobs[name]
       new_job = job
-      if options.force || !dependent_jobs.include?(name) || strip_job(existing_job).to_s != strip_job(new_job).to_s
+      if options.force || !dependent_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
         dependent_jobs_to_be_updated_set.add(job['name'])
         dependent_jobs_to_be_updated << {
           :new => job,
