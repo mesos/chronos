@@ -252,6 +252,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val job = jobOption.get
       val (_, _, attempt) = TaskUtils.parseTaskId(taskId)
       jobStats.jobStarted(job, taskStatus, attempt)
+
+      job match {
+        case j: DependencyBasedJob =>
+          jobGraph.resetDependencyInvocations(j.name)
+        case _ =>
+      }
     }
   }
 
@@ -359,6 +365,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       jobOption match {
         case Some(job) => {
           jobStats.jobFailed(job, taskStatus, attempt)
+
           val hasAttemptsLeft: Boolean = attempt < job.retries
 
           val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&

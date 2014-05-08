@@ -163,6 +163,16 @@ class JobGraph {
     results.toList
   }
 
+  def resetDependencyInvocations(vertex: String) {
+    val edges = getEdgesToParents(vertex)
+    lock.synchronized {
+      edges.foreach({
+        edge =>
+          edgeInvocationCount.put(edge, 0)
+      })
+    }
+  }
+
   def getChildren(job: String): Iterable[String] = {
     import collection.JavaConversions._
     lock.synchronized {
