@@ -302,8 +302,8 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | lastSuccess         | Date of last successful attempt.                                                                         | -                              |
 | lastError           | Date of last failed attempt.                                                                             | -                              |
 | cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpus`   |
-| mem                 | Amount of Mesos Memory for this job.                                                                     | `100` or `--mesos_task_mem`    |
-| disk                | Amount of Mesos disk for this job.                                                                       | `100` or `--mesos_task_cpus`   |
+| mem                 | Amount of Mesos Memory in MB for this job.                                                               | `128` or `--mesos_task_mem`    |
+| disk                | Amount of Mesos disk in MB for this job.                                                                 | `256` or `--mesos_task_disk`   |
 | disabled            | If set to true, this job will not be run.                                                                | `false`                        |
 | uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
