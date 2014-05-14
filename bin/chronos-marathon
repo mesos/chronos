@@ -7,7 +7,7 @@ echo "Chronos home set to $chronos_home"
 export JAVA_LIBRARY_PATH="/usr/local/lib:/lib:/usr/lib"
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/lib}"
 export LD_LIBRARY_PATH="$JAVA_LIBRARY_PATH:$LD_LIBRARY_PATH"
-export PORT0="${PORT0:-4400}"
+export PORT0="${PORT0:-8080}"
 
 flags=()
 
