@@ -293,7 +293,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | command             | Command to execute.                                                                                      | -                              |
 | epsilon             | If, for any reason, a job can't be started at the scheduled time, this is the window in which Chronos will attempt to run the job again | `PT60S` or `--task_epsilon`. |
 | executor            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
-| executorFlogs       | Flags to pass to Mesos executor.                                                                         | -                              |
+| executorFlags       | Flags to pass to Mesos executor.                                                                         | -                              |
 | retries             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | owner               | Email addresses to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
 | async               | Execute using Async executor.                                                                            | `false`                        |
@@ -301,9 +301,9 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | errorCount          | Number of errors since the job was last modified.                                                        | -                              |
 | lastSuccess         | Date of last successful attempt.                                                                         | -                              |
 | lastError           | Date of last failed attempt.                                                                             | -                              |
-| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpus`   |
+| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpu`   |
 | mem                 | Amount of Mesos Memory for this job.                                                                     | `100` or `--mesos_task_mem`    |
-| disk                | Amount of Mesos disk for this job.                                                                       | `100` or `--mesos_task_cpus`   |
+| disk                | Amount of Mesos disk for this job.                                                                       | `100` or `--mesos_task_disk`   |
 | disabled            | If set to true, this job will not be run.                                                                | `false`                        |
 | uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
