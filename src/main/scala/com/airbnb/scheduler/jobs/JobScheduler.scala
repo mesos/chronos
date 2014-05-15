@@ -334,7 +334,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
         in between */
       if (job.isInstanceOf[ScheduleBasedJob]) {
-        val scheduleBasedJob: ScheduleBasedJob = job.asInstanceOf[ScheduleBasedJob]
+        val scheduleBasedJob: ScheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
         Iso8601Expressions.parse(scheduleBasedJob.schedule) match {
           case Some((recurrences, _, _)) =>
             if (recurrences == 0) {
