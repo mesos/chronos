@@ -453,7 +453,7 @@ If you use the cURL command line tool, you can use the `-L` flag and hit any Chr
 
 ### Zookeeper
 
-Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/service/chronos`. This value can be changed via the configuration file.
+Chronos registers itself with [Zookeeper][Zookeeper] at the location `/chronos/state`. This value can be changed via the configuration file.
 
 
 [arx]: https://github.com/solidsnack/arx
