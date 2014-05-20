@@ -402,7 +402,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                   case _ => throw new IllegalArgumentException("Cannot handle unknown task type")
                 }
             }
-            replaceJob(job, newJob)
+            updateJob(job, newJob)
 
             // Handle failure by either disabling the job and notifying the owner,
             // or just notifying the owner.
