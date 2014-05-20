@@ -241,106 +241,6 @@
     </dependency>
   </dependencies>
 
-<<<<<<< HEAD
-    <build>
-        <resources>
-            <resource>
-                <targetPath>assets</targetPath>
-                <directory>src/main/resources/assets/app</directory>
-            </resource>
-        </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>net.alchim31.maven</groupId>
-                    <artifactId>scala-maven-plugin</artifactId>
-                    <version>${scala-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>2.${commons-math3.version}</version>
-                    <configuration>
-                        <source>${java.abi}</source>
-                        <target>${java.abi}</target>
-                        <showDeprecation>true</showDeprecation>
-                        <showWarnings>true</showWarnings>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>scala-compile-first</id>
-                        <phase>process-resources</phase>
-                        <configuration>
-                            <args>
-                                <param>-unchecked</param>
-                                <param>-deprecation</param>
-                                <param>-encoding</param>
-                                <param>utf8</param>
-                            </args>
-                        </configuration>
-                        <goals>
-                            <goal>add-source</goal>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>scala-test-compile</id>
-                        <phase>process-test-resources</phase>
-                        <configuration>
-                            <args>
-                                <param>-unchecked</param>
-                                <param>-deprecation</param>
-                                <param>-encoding</param>
-                                <param>utf8</param>
-                            </args>
-                        </configuration>
-                        <goals>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                    <jvmArgs>
-                        <jvmArg>-Xmx2G</jvmArg>
-                    </jvmArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
-                <inherited>true</inherited>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.airbnb.scheduler.Main</mainClass>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-=======
   <build>
     <resources>
       <resource>
@@ -439,7 +339,6 @@
           </archive>
         </configuration>
       </plugin>
->>>>>>> b51d3b5... Fix for dependency invocation handling, tests.
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
