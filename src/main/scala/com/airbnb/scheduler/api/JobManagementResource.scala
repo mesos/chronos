@@ -84,7 +84,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
             }
         }
       }
-      jobScheduler.sendNotification(job, "[CHRONOS] - Your job '%s' was deleted!".format(jobName))
+      jobScheduler.sendNotification(job, "[Chronos] - Your job '%s' was deleted!".format(jobName))
 
       jobScheduler.deregisterJob(job, persist = true)
       Response.noContent().build
