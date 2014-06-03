@@ -4,7 +4,7 @@
 
   <groupId>com.airbnb</groupId>
   <artifactId>chronos</artifactId>
-  <version>2.1.0_mesos-0.14.0-rc4</version>
+  <version>2.2.0_mesos-0.18.2-SNAPSHOT</version>
   <inceptionYear>2012</inceptionYear>
 
   <prerequisites>
@@ -17,13 +17,13 @@
 
     <!-- language versions -->
     <java.abi>1.6</java.abi>
-    <scala.version>2.10.3</scala.version>
-    <scala.abi>2.10.3</scala.abi>
+    <scala.version>2.10.4</scala.version>
+    <scala.abi>2.10.4</scala.abi>
 
     <!-- runtime deps versions -->
     <akka.version>2.2.1</akka.version>
     <cassandra-driver-core.version>2.0.1</cassandra-driver-core.version>
-    <chaos.version>0.4.8</chaos.version>
+    <chaos.version>0.5.6</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
     <curator-framework.version>2.4.1</curator-framework.version>
     <guava.version>14.0.1</guava.version>
@@ -32,10 +32,9 @@
     <joda-convert.version>1.6</joda-convert.version>
     <joda-time.version>2.2</joda-time.version>
     <lz4.version>1.2.0</lz4.version>
-    <mesos.version>0.16.0</mesos.version>
-    <mesos-utils.version>0.0.4</mesos-utils.version>
+    <mesos.version>0.18.2</mesos.version>
+    <mesos-utils.version>${mesos.version}-1</mesos-utils.version>
     <metrics.version>3.0.2</metrics.version>
-    <protobuf.version>2.4.1</protobuf.version>
     <twitter-commons.version>0.0.44</twitter-commons.version>
     <raven.version>4.1.2</raven.version>
 
@@ -116,11 +115,6 @@
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
       <version>${guice.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>${protobuf.version}</version>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>

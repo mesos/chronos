@@ -41,10 +41,10 @@ object Main extends App {
     with HttpConf with AppConfiguration with SchedulerConfiguration
     with GangliaConfiguration with CassandraConfiguration
 
-  run(Seq(
+  run(
     classOf[ZookeeperService],
     classOf[HttpService],
     classOf[JobScheduler],
     classOf[MetricReporterService]
-  ))
+  )
 }
