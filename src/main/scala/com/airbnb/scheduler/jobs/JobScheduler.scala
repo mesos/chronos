@@ -384,13 +384,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               .plus(new Duration(failureRetryDelay)), attempt + 1)
             taskManager.persistTask(taskId, job)
             taskManager.enqueue(newTaskId, job.highPriority)
-            message match {
-              case Some(message) =>
-                sendNotification(job, "job '%s' failed!  This job will be retried.".format(job.name),
-                  Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
-                      .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
-              case None =>
-            }
           } else {
             val disableJob =
               (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
