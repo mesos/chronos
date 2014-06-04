@@ -1,10 +1,12 @@
-function ajaxAction(verb, endpoint, shouldReload) {
+function ajaxAction(verb, endpoint, shouldReload, payload, content) {
   // Makes the ajax call to specified endpoing using specified verb.
   // If shouldReload is true, reload the page on success.
   // Always reload the page on failure.
   $.ajax({
     type: verb,
-    url: endpoint
+    url: endpoint,
+    data: payload,
+    contentType: content
   }).done( function(data, textStatus, jqXHR) {
     if (shouldReload) {
       location.reload(true);
@@ -36,6 +38,19 @@ function populateWithContent(name, isEditing) {
     schedule = "";
   }
   populateJobModal(name, command, owner, parentString, schedule, disabled, type, isEditing, cpus, mem, disk)
+}
+
+function toggle(name) {
+  var job = entries[name];
+  job["disabled"] = !job["disabled"];
+  var result = confirm('Toggling job ' + name + ', click to continue.');
+  if (result) {
+    if (job["parents"]) {
+      ajaxAction("POST", "/scheduler/dependent", true, JSON.stringify(job), "application/json");
+    } else {
+      ajaxAction("POST", "/scheduler/iso8601", true, JSON.stringify(job), "application/json");
+    }
+  }
 }
 
 $(function() {
@@ -74,6 +89,11 @@ $(function() {
   $('[id^="edit."]').click( function() {
     var name = $(this).attr("id").split(".")[1];
     populateWithContent(name, true);
+  });
+
+  $('[id^="toggle."]').click( function() {
+    var name = $(this).attr("id").split(".")[1];
+    toggle(name);
   });
 
   // Add animations to dropdown.
@@ -290,6 +310,15 @@ function buildResultsTable() {
     var entry95 = entry.stats["95thPercentile"];
     var entry75 = entry.stats["75thPercentile"];
     var entry50 = entry.stats["median"];
+    var toggle_icon = "";
+    var toggle_verb = "";
+    if (disabled) {
+      toggle_icon = "plus-sign";
+      toggle_verb = "Enable";
+    } else {
+      toggle_icon = "minus-sign";
+      toggle_verb = "Disable";
+    }
     var trstring =
       ['<tr>',
        '  <td title="'+escapeHtml(command)+'">',
@@ -298,8 +327,9 @@ function buildResultsTable() {
        '      <ul class="dropdown-menu" style="background:none; border:none; box-shadow:none;" role="menu">',
        '        <li class="btn-group">',
        '          <button class="btn btn-success" title="Force Run" id="run.'+name+'"><span class="glyphicon glyphicon-play"></span></button>',
-       '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
        '          <button class="btn btn-warning" title="Force Stop" id="kill.'+name+'"><span class="glyphicon glyphicon-stop"></span></button>',
+       '          <button class="btn btn-primary" title="'+toggle_verb+' Job"  id="toggle.'+name+'"><span class="glyphicon glyphicon-'+toggle_icon+'"></span></button>',
+       '          <button class="btn btn-primary" title="Modify Job" data-toggle="modal" data-target="#jobModal" id="edit.'+name+'"><span class="glyphicon glyphicon-wrench"></span></button>',
        '          <button class="btn btn-danger" title="Delete" id="delete.'+name+'"><span class="glyphicon glyphicon-trash"></span></button>',
        '        </li>',
        '      </ul>',
