@@ -129,12 +129,13 @@ end
 jobs = {}
 Dir.chdir(options.config_path) do
   Dir.chdir('dependent') do
-    Dir.glob('*.yaml') do |fn|
+    paths = Dir.glob('*.yaml') + Dir.glob('*.yml')
+    paths.each do |fn|
       lines = File.open(fn).readlines().join
       begin
         parsed = YAML.load(lines)
         jobs[parsed['name']] = parsed
-        if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
+        if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
           puts "Name from #{fn} doesn't match job name"
         end
         if parsed.include? 'schedule'
@@ -147,12 +148,13 @@ Dir.chdir(options.config_path) do
   end
 
   Dir.chdir('scheduled') do
-    Dir.glob('*.yaml') do |fn|
+    paths = Dir.glob('*.yaml') + Dir.glob('*.yml')
+    paths.each do |fn|
       lines = File.open(fn).readlines().join
       begin
         parsed = YAML.load(lines)
         jobs[parsed['name']] = parsed
-        if fn.gsub(/\.yaml$/, '') != sanitize_name(parsed['name'].gsub(/\.yaml$/, ''))
+        if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
           puts "Name from #{fn} doesn't match job name"
         end
         if parsed.include? 'parents'
