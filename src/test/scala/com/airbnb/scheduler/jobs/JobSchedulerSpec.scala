@@ -5,11 +5,36 @@ import com.airbnb.scheduler.state.PersistenceStore
 import org.joda.time._
 import org.specs2.mock._
 import org.specs2.mutable._
+import org.apache.mesos.Protos.{TaskState, TaskID, TaskStatus}
 
 class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
 
   //TODO(FL): Write more specs for the REST framework.
   "JobScheduler" should {
+    "Sends OOM specific messages" in {
+      val epsilon = Minutes.minutes(1).toPeriod
+      val jobName = "FOO"
+      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
+
+      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
+
+      val mockGraph = mock[JobGraph]
+      mockGraph.lookupVertex(jobName).returns(Some(job1))
+
+      val horizon = Minutes.minutes(10).toPeriod
+      //TODO(FL): Mock the DispatchQueue here and below
+      val schedules = new JobScheduler(horizon, null, mockGraph, mock[PersistenceStore], jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val (task1, stream1) = schedules.next(new DateTime("2012-01-01T00:00:00.000Z"), singleJobStream)
+      task1.get.due must beEqualTo(DateTime.parse("2012-01-01T00:00:01.000Z"))
+
+      val r = TaskID.newBuilder.setValue(task1.get.taskId).build
+      val t = TaskStatus.newBuilder.setMessage("Memory limit exceeded: Requested: 50MB Maximum Used: 50MB\n\nMEMORY STATISTICS:\ncache 4096\nrss 25313280\nmapped_file 0\npgpgin 17032\npgpgout 10859\nswap 0\npgfault 20795").setTaskId(r).setState(TaskState.TASK_FAILED).build
+
+      schedules.handleFailedTask(t)
+
+      task1.get.due must beEqualTo(DateTime.parse("2012-01-01T00:00:01.000Z"))
+    }
+
     "Construct a task for a given time when the schedule is within epsilon" in {
       val epsilon = Minutes.minutes(1).toPeriod
       val jobName = "FOO"

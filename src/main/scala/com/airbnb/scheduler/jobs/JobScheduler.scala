@@ -371,7 +371,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&
             (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
 
-          if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
+          val hadOOMFailure: Boolean = message.getOrElse("").contains("Memory limit exceeded")
+
+          if (!hadOOMFailure && hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
             /* Schedule the retry up to 60 seconds in the future */
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
@@ -416,9 +418,16 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               log.warning("Job failed beyond retries!")
               message match {
                 case Some(message) =>
-                  sendNotification(job, "[Chronos] job '%s' failed!".format(job.name),
-                    Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
-                        .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
+                    if (hadOOMFailure) {
+                      sendNotification(job, "[Chronos] job '%s' ran out of memory!".format(job.name),
+                        Some("Increase the memory available to the job in the Chronos config and resubmit the job.\n" +
+                          "'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
+                            .format(DateTime.now(DateTimeZone.UTC), job.retries, message)));
+                    } else {
+                      sendNotification(job, "[Chronos] job '%s' failed!".format(job.name),
+                        Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
+                          .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
+                    }
                 case None =>
                   sendNotification(job, "[Chronos] job '%s' failed!".format(job.name),
                     Some("\n'%s'. Retries attempted: %d.\n"
