@@ -12,6 +12,7 @@ import org.apache.mesos.Protos._
 import scala.collection.mutable.HashMap
 import mesosphere.mesos.util.FrameworkIdUtil
 import com.airbnb.utils.JobDeserializer
+import mesosphere.util.BackToTheFuture
 
 /**
  * Provides the interface to mesos. Receives callbacks from mesos when resources are offered, declined etc.
@@ -35,6 +36,9 @@ class MesosJobFramework @Inject()(
   /* Overridden methods from MesosScheduler */
   @Override
   def registered(schedulerDriver: SchedulerDriver, frameworkID: FrameworkID, masterInfo: MasterInfo) {
+    // This is required by setIdIfExists but not used there...
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import BackToTheFuture.Implicits.defaultTimeout
     log.info("Registered")
     log.info("Master info:" + masterInfo.toString)
     frameworkIdUtil.store(frameworkID)

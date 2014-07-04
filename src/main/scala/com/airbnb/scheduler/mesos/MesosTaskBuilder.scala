@@ -2,7 +2,7 @@ package com.airbnb.scheduler.mesos
 
 import java.util.logging.Logger
 
-import com.airbnb.scheduler.jobs.BaseJob
+import com.airbnb.scheduler.jobs.{Container, BaseJob}
 import com.google.protobuf.ByteString
 import com.google.common.base.Charsets
 import org.apache.mesos.Protos._
@@ -11,6 +11,7 @@ import scala.collection.Map
 import javax.inject.Inject
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import scala.collection.JavaConverters._
+import org.apache.mesos.Protos.CommandInfo.ContainerInfo
 
 /**
  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
@@ -103,10 +104,17 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
               .setValue(uri)
               .build()
           })
-          CommandInfo.newBuilder()
+          val commandInfoBuilder = CommandInfo.newBuilder()
             .setValue(job.command)
             .setEnvironment(environment)
             .addAllUris(uriProtos.asJava)
+          if (job.container != Container() && !job.container.image.isEmpty) {
+            val containerInfoBuilder = ContainerInfo.newBuilder()
+            containerInfoBuilder.setImage(job.container.image)
+            job.container.options.zipWithIndex.foreach { case (option, i) => containerInfoBuilder.setOptions(i, option) }
+            commandInfoBuilder.setContainer(containerInfoBuilder)
+          }
+          commandInfoBuilder
         })
     }
 
