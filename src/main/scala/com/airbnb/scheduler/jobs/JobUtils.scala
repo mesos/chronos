@@ -10,7 +10,7 @@ import com.google.common.base.{Joiner, Charsets}
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.joda.time.{Seconds, DateTime}
 import org.joda.time.format.DateTimeFormat
-import com.airbnb.utils.{JobDeserializer, JobSerializer}
+import com.airbnb.utils.{ContainerDeserializer, ContainerSerializer, JobDeserializer, JobSerializer}
 
 /**
  * @author Florian Leibert (flo@leibert.de)
@@ -29,6 +29,8 @@ object JobUtils {
 
   mod.addSerializer(classOf[BaseJob], new JobSerializer)
   mod.addDeserializer(classOf[BaseJob], new JobDeserializer)
+  mod.addSerializer(classOf[Container], new ContainerSerializer)
+
   objectMapper.registerModule(mod)
 
   def toBytes[T <: BaseJob](job: T): Array[Byte] =

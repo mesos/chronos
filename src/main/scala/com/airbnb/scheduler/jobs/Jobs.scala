@@ -4,7 +4,7 @@ package com.airbnb.scheduler.jobs
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.{JsonSerialize, JsonDeserialize}
 import org.joda.time.{Period, Minutes}
-import com.airbnb.utils.{JobDeserializer}
+import com.airbnb.utils.{ContainerDeserializer, JobDeserializer}
 
 /**
  * BaseJob encapsulates job specific information. BaseJob is defined for all tasks within a job.
@@ -30,6 +30,7 @@ trait BaseJob {
   def errorCount: Long = 0L
   def executor: String = ""
   def executorFlags: String = ""
+  def container: Container = Container()
   def retries: Int = 2
   def owner: String = ""
   def lastSuccess: String = ""
@@ -44,6 +45,11 @@ trait BaseJob {
   def highPriority: Boolean = false
 }
 
+case class Container(
+   @JsonProperty val image: String = "",
+   @JsonProperty val options: Seq[String] = List()
+)
+
 @JsonDeserialize(using = classOf[JobDeserializer])
 case class ScheduleBasedJob(
     @JsonProperty schedule: String,
@@ -54,6 +60,7 @@ case class ScheduleBasedJob(
     @JsonProperty override val errorCount: Long = 0L,
     @JsonProperty override val executor: String = "",
     @JsonProperty override val executorFlags: String = "",
+    @JsonProperty override val container: Container = Container(),
     @JsonProperty override val retries: Int = 2,
     @JsonProperty override val owner: String = "",
     @JsonProperty override val lastSuccess: String = "",
@@ -79,6 +86,7 @@ case class DependencyBasedJob(
     @JsonProperty override val errorCount: Long = 0L,
     @JsonProperty override val executor: String = "",
     @JsonProperty override val executorFlags: String = "",
+    @JsonProperty override val container: Container = Container(),
     @JsonProperty override val retries: Int = 2,
     @JsonProperty override val owner: String = "",
     @JsonProperty override val lastSuccess: String = "",

@@ -1,6 +1,6 @@
 package com.airbnb.utils
 
-import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
+import com.airbnb.scheduler.jobs.{Container, BaseJob, DependencyBasedJob, ScheduleBasedJob}
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDeserializer}
 import org.joda.time.Period
@@ -30,10 +30,13 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("executor") && node.get("executor") != null) node.get("executor").asText
       else ""
 
-
     val executorFlags =
       if (node.has("executorFlags") && node.get("executorFlags") != null) node.get("executorFlags").asText
       else ""
+
+    val container =
+      if (node.has("container") && node.get("container") != null) ContainerDeserializer.deserialize(node.get("container"))
+      else null
 
     val retries =
       if (node.has("retries") && node.get("retries") != null) node.get("retries").asInt
@@ -100,17 +103,30 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
       new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
-        executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        executor = executor, executorFlags = executorFlags, container = container, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         uris = uris, highPriority = highPriority)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
-        executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        executorFlags = executorFlags, container = container, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         uris = uris,  highPriority = highPriority)
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }
+  }
+}
+
+object ContainerDeserializer {
+  def deserialize(node: JsonNode): Container = {
+    val image = if (node.has("image") && node.get("image") != null) node.get("image").asText else ""
+    var options = scala.collection.mutable.ListBuffer[String]()
+    if (node.has("options")) {
+      for (option <- node.path("options")) {
+        options += option.asText()
+      }
+    }
+    Container(image, options)
   }
 }

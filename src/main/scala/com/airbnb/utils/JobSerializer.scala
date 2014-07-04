@@ -1,6 +1,6 @@
 package com.airbnb.utils
 
-import com.airbnb.scheduler.jobs.{ScheduleBasedJob, DependencyBasedJob, BaseJob}
+import com.airbnb.scheduler.jobs.{Container, ScheduleBasedJob, DependencyBasedJob, BaseJob}
 import com.fasterxml.jackson.databind.{SerializerProvider, JsonSerializer}
 import com.fasterxml.jackson.core.JsonGenerator
 
@@ -26,6 +26,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
 
     json.writeFieldName("executorFlags")
     json.writeString(baseJob.executorFlags)
+
+    json.writeFieldName("container")
+    json.writeObject(baseJob.container)
 
     json.writeFieldName("retries")
     json.writeNumber(baseJob.retries)
@@ -78,6 +81,22 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }
+
+    json.writeEndObject()
+  }
+}
+
+class ContainerSerializer  extends JsonSerializer[Container] {
+  def serialize(container: Container , json: JsonGenerator, provider: SerializerProvider) {
+    json.writeStartObject()
+
+    json.writeFieldName("image")
+    json.writeString(container.image)
+
+    json.writeFieldName("options")
+    json.writeStartArray()
+    container.options.foreach(json.writeString(_))
+    json.writeEndArray()
 
     json.writeEndObject()
   }
