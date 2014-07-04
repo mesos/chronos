@@ -3,7 +3,7 @@ package com.airbnb.scheduler.api
 import mesosphere.chaos.http.{LogConfigServlet, PingServlet, RestModule}
 import com.google.inject.{Singleton, Provides, Scopes}
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.airbnb.scheduler.jobs.BaseJob
+import com.airbnb.scheduler.jobs.{Container, BaseJob}
 import javax.inject.Named
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider
@@ -14,7 +14,7 @@ import com.google.inject.name.Names
 import com.codahale.metrics.servlets.MetricsServlet
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.google.inject.servlet.ServletModule
-import com.airbnb.utils.{JobSerializer, JobDeserializer}
+import com.airbnb.utils.{ContainerSerializer, ContainerDeserializer, JobSerializer, JobDeserializer}
 
 /**
  * @author Tobi Knaup
@@ -62,6 +62,7 @@ class ChronosRestModule extends ServletModule {
     val mod =  new SimpleModule("JobModule")
     mod.addSerializer(classOf[BaseJob], new JobSerializer)
     mod.addDeserializer(classOf[BaseJob], new JobDeserializer)
+    mod.addSerializer(classOf[Container], new ContainerSerializer)
     mapper.registerModule(DefaultScalaModule)
     mapper.registerModule(mod)
     new JacksonMessageBodyProvider(mapper,
