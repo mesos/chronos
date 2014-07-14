@@ -83,6 +83,11 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskMem()
       else 0
 
+    val errorsSinceLastSuccess =
+      if (node.has("errorsSinceLastSuccess") && node.get("errorsSinceLastSuccess") != null)
+        node.get("errorsSinceLastSuccess").asLong
+      else 0L
+
     var uris = scala.collection.mutable.ListBuffer[String]()
     if (node.has("uris")) {
       for (uri <- node.path("uris")) {
