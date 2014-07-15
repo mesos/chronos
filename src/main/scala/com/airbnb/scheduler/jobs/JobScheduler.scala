@@ -367,9 +367,15 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           jobStats.jobFailed(job, taskStatus, attempt)
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
-
-          val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&
-            (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
+          val hadRecentSuccess: Boolean = try {
+            job.lastError.length > 0 && job.lastSuccess.length > 0 &&
+              (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
+          } catch {
+            case ex: IllegalArgumentException =>
+              log.warning(s"Couldn't parse last run date from ${job.name}")
+              false
+            case _ : Throwable => false
+          }
 
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
