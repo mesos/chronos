@@ -145,15 +145,16 @@ Dir.chdir(options.config_path) do
         parsed = YAML.load(lines)
         jobs[parsed['name']] = parsed
         if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
-          puts "Name from '#{fn}' doesn't match job name of '#{parsed['name']}'"
+          puts "Name from 'dependent/#{fn}' doesn't match job name of '#{parsed['name']}'"
+          puts "  expected 'dependent/#{sanitize_name(parsed['name'])}.yaml'"
           valid = false
         end
         if parsed.include? 'schedule'
-          puts "Dependent job from '#{fn}' must not contain a schedule!"
+          puts "Dependent job from 'dependent/#{fn}' must not contain a schedule!"
           valid = false
         end
       rescue Psych::SyntaxError => e
-        $stderr.puts "Parsing error when reading dependent/#{fn}"
+        $stderr.puts "Parsing error when reading 'dependent/#{fn}'"
         valid = false
       end
     end
@@ -167,15 +168,16 @@ Dir.chdir(options.config_path) do
         parsed = YAML.load(lines)
         jobs[parsed['name']] = parsed
         if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
-          puts "Name from '#{fn}' doesn't match job name of '#{parsed['name']}'"
+          puts "Name from 'scheduled/#{fn}' doesn't match job name of '#{parsed['name']}'"
+          puts "  expected 'scheduled/#{sanitize_name(parsed['name'])}.yaml'"
           valid = false
         end
         if parsed.include? 'parents'
-          puts "Scheduled job from '#{fn}' must not contain parents!"
+          puts "Scheduled job from 'scheduled/#{fn}' must not contain parents!"
           valid = false
         end
       rescue Psych::SyntaxError => e
-        $stderr.puts "Parsing error when reading scheduled/#{fn}"
+        $stderr.puts "Parsing error when reading 'scheduled/#{fn}'"
         valid = false
       end
     end
