@@ -231,7 +231,12 @@ class MesosJobFramework @Inject()(
       log.info("Task '%s' not launched because it appears to be runing".format(taskId))
       mesosDriver.get().declineOffer(offer.getId)
     } else {
-      val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
+      val status: Protos.Status =
+        mesosDriver.get().launchTasks(
+        List(offer.getId).asJava,
+        List(mesosTask).asJava,
+        filters
+      )
       if (status == Protos.Status.DRIVER_RUNNING) {
         val deleted = taskManager.removeTask(taskId)
         log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
