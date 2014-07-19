@@ -10,8 +10,10 @@ import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 
 import scala.collection.mutable.HashMap
+import scala.collection.JavaConverters._
 import mesosphere.mesos.util.FrameworkIdUtil
 import com.airbnb.utils.JobDeserializer
+import scala.math.Ordering.Implicits._
 
 /**
  * Provides the interface to mesos. Receives callbacks from mesos when resources are offered, declined etc.
@@ -51,6 +53,19 @@ class MesosJobFramework @Inject()(
     log.warning("Disconnected")
   }
 
+  def getScalarValueOrElse(opt: Option[Resource], value: Double): Double = {
+    opt.map(x => x.getScalar.getValue).getOrElse(value)
+  }
+
+  def getReservedResources(offer: Offer): (Double, Double) = {
+    val resources = offer.getResourcesList.asScala
+    val reservedResources = resources.filter({x => x.hasRole && x.getRole != "*"})
+    (
+      getScalarValueOrElse(reservedResources.find(x => x.getName == "cpus"), 0),
+      getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0)
+    )
+  }
+
   //TODO(FL): Persist the UPDATED task or job into ZK such that on failover / reload, we don't have to step through the
   //          entire task stream.
   @Override
@@ -79,7 +94,13 @@ class MesosJobFramework @Inject()(
         }
       }
     }
-    getNextTask(offers.asScala.toList)
+
+    // Sorting like this ensures that offers with the most amount of
+    // reserved resources are preferred first over other offers.
+    getNextTask(
+      offers.asScala.toList
+        .sortWith(getReservedResources(_) > getReservedResources(_))
+    )
   }
 
   @Override
@@ -210,7 +231,12 @@ class MesosJobFramework @Inject()(
       log.info("Task '%s' not launched because it appears to be runing".format(taskId))
       mesosDriver.get().declineOffer(offer.getId)
     } else {
-      val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
+      val status: Protos.Status =
+        mesosDriver.get().launchTasks(
+        List(offer.getId).asJava,
+        List(mesosTask).asJava,
+        filters
+      )
       if (status == Protos.Status.DRIVER_RUNNING) {
         val deleted = taskManager.removeTask(taskId)
         log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
