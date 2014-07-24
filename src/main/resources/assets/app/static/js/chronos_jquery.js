@@ -46,7 +46,7 @@ function toggle(name) {
   var result = confirm('Toggling job ' + name + ', click to continue.');
   if (result) {
     if (job["parents"]) {
-      ajaxAction("POST", "/scheduler/dependent", true, JSON.stringify(job), "application/json");
+      ajaxAction("POST", "/scheduler/dependency", true, JSON.stringify(job), "application/json");
     } else {
       ajaxAction("POST", "/scheduler/iso8601", true, JSON.stringify(job), "application/json");
     }
