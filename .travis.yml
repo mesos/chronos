@@ -1,5 +1,7 @@
 language: scala
+install: true # disable travis' default mvn install before running the tests
 scala:
   - "2.10.2"
 jdk:
   - openjdk6
+script: mvn clean test package
