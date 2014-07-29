@@ -460,7 +460,7 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/se
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [json]: http://www.json.org/
 [mesos]: https://mesos.apache.org/ "Apache Mesos"
-[logging]: http://dropwizard.codahale.com/manual/core/#logging
+[logging]: http://dropwizard.io/manual/core.html#logging
 [Zookeeper]: https://zookeeper.apache.org/
 
 
