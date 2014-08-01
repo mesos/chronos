@@ -85,7 +85,9 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       failureRetryDelay = config.failureRetryDelayMs(),
       disableAfterFailures = config.disableAfterFailures(),
       jobMetrics = metrics,
-      jobStats = stats)
+      jobStats = stats,
+      clusterName = config.clusterName()
+      )
   }
 
   @Singleton

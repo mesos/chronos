@@ -30,6 +30,10 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "The look-ahead time for scheduling tasks in seconds",
     default = Some(60))
 
+  lazy val clusterName = opt[String]("cluster_name",
+    descr = "The name of the cluster where Chronos is run",
+    default = Some("Default-Cluster-Name"))
+
   def zookeeperServers() : String = {
     if (zookeeperServersString().startsWith("zk://")) {
       return zookeeperServersString().replace("zk://", "").replaceAll("/.*", "")
