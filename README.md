@@ -1,5 +1,7 @@
 # Chronos
 
+__New detailed documentation for Mesos available via the [Mesosphere Website](http://mesosphere.io/docs/)__
+
 Chronos is Airbnb's replacement for `cron`.
 It is a distributed and fault-tolerant scheduler that runs on top of [Apache Mesos][mesos].
 You can use it to orchestrate jobs. It supports custom Mesos executors as well
