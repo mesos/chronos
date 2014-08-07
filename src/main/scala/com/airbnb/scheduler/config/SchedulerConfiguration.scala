@@ -32,7 +32,7 @@ trait SchedulerConfiguration extends ScallopConf {
 
   lazy val clusterName = opt[String]("cluster_name",
     descr = "The name of the cluster where Chronos is run",
-    default = Some(""))
+    default = null)
 
   def zookeeperServers() : String = {
     if (zookeeperServersString().startsWith("zk://")) {
