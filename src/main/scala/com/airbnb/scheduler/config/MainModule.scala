@@ -91,7 +91,8 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
       disableAfterFailures = config.disableAfterFailures(),
       jobMetrics = metrics,
       jobStats = stats,
-      clusterName = config.clusterName.get)
+      clusterName = config.clusterName.get
+      )
   }
 
   @Singleton
