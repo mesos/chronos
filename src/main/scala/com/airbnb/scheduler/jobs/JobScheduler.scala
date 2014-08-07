@@ -40,7 +40,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics,
                              val jobStats: JobStats,
-                             val clusterName: String = null)
+                             val clusterName: Option[String] = None)
   //Allows us to let Chaos manage the lifecycle of this class.
   extends AbstractIdleService
   {
@@ -409,7 +409,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             }
             updateJob(job, newJob)
 
-            val clusterPrefix = getClusterPrefix(Option(clusterName))
+            val clusterPrefix = getClusterPrefix(clusterName)
 
             // Handle failure by either disabling the job and notifying the owner,
             // or just notifying the owner.
