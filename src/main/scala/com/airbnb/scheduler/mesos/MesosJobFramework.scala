@@ -1,7 +1,6 @@
 package com.airbnb.scheduler.mesos
 
 import java.util.logging.Logger
-import scala.Some
 
 import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.config.SchedulerConfiguration
@@ -228,7 +227,7 @@ class MesosJobFramework @Inject()(
 
     import scala.collection.JavaConverters._
     if (runningJobs.contains(job.name)) {
-      log.info("Task '%s' not launched because it appears to be runing".format(taskId))
+      log.info("Task '%s' not launched because it appears to be running".format(taskId))
       mesosDriver.get().declineOffer(offer.getId)
     } else {
       val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
