@@ -69,7 +69,7 @@
     <pluginRepository>
       <id>repo1</id>
       <name>Maven Central</name>
-      <url>http://repo1.maven.org/maven2</url>
+      <url>https://repo1.maven.org/maven2</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
