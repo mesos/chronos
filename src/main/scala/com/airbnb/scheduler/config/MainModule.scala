@@ -20,6 +20,8 @@ import akka.util.Timeout
 import scala.concurrent.duration._
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.CuratorFramework
+import scala.concurrent.ExecutionContext
+import mesosphere.util.BackToTheFuture
 
 /**
  * Guice glue code of application logic components.
@@ -44,6 +46,9 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Singleton
   @Provides
   def provideFrameworkInfo(frameworkIdUtil: FrameworkIdUtil): FrameworkInfo = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import BackToTheFuture.Implicits.defaultTimeout
+
     val frameworkInfo = FrameworkInfo.newBuilder()
       .setName(config.mesosFrameworkName())
       .setCheckpoint(config.mesosCheckpoint())
