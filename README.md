@@ -356,7 +356,7 @@ $ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config -c
 After that, you can run the normal sync like this:
 
 ```
-$ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config -c
+$ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config
 ```
 
 You can also forcefully update the configuration in Chronos from disk by
