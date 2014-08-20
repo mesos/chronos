@@ -196,7 +196,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
               ))
             case job: DependencyBasedJob =>
               val query =
-                s"INSERT INTO ${config.cassandraTable} (id, ts, job_name, job_owner, job_parents, task_state, slave_id, attempt, message, is_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true) USING TTL ${config.cassandraTtl}"
+                s"INSERT INTO ${config.cassandraTable} (id, ts, job_name, job_owner, job_parents, task_state, slave_id, attempt, message, is_failure) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, true) USING TTL ${config.cassandraTtl()}"
               val prepared = statements.getOrElseUpdate(query, {
                 session.prepare(
                   new SimpleStatement(query).setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency())).asInstanceOf[RegularStatement]
