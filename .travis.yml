@@ -1,4 +1,7 @@
 language: scala
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y nodejs
 install: true # disable travis' default mvn install before running the tests
 scala:
   - "2.10.2"
