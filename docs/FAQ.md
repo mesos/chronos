@@ -59,4 +59,4 @@ You can try starting your mesos slaves with switch users disabled. To do this, s
 ## I found a bug!
 
 That's too bad, please start by consulting [our guidelines on Reporting
-Bugs](/airbnb/chronos#reporting-bugs).
+Bugs](/README.md#reporting-bugs).

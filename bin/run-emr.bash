@@ -27,7 +27,7 @@ function get_emr_jobtracker() {
 
 function get_chronos_host() {
   # Replace this. We use SRV records at airbnb for services, you can use any DNS name, with round robin if you want.
-	echo "`dig +short +tcp _*._*.chronos.your.zonify.record.com SRV | cut -d' ' -f 4 | tail -n1`:4400"
+	echo "`dig +short +tcp _*._*.chronos.your.zonify.record.com SRV | cut -d' ' -f 4 | tail -n1`:8080"
 }
 
 function encode {
