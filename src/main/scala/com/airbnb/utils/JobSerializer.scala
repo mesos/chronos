@@ -60,10 +60,16 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("disabled")
     json.writeBoolean(baseJob.disabled)
 
+    json.writeFieldName("errorsSinceLastSuccess")
+    json.writeNumber(baseJob.errorsSinceLastSuccess)
+
     json.writeFieldName("uris")
     json.writeStartArray()
     baseJob.uris.foreach(json.writeString(_))
     json.writeEndArray()
+
+    json.writeFieldName("highPriority")
+    json.writeBoolean(baseJob.highPriority)
 
     if (baseJob.container != null) {
       json.writeFieldName("container")
