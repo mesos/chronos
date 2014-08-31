@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDes
 import org.joda.time.Period
 import scala.collection.JavaConversions._
 import com.airbnb.scheduler.config.SchedulerConfiguration
+import org.joda.time.{DateTimeZone, DateTime}
 
 object JobDeserializer {
   var config: SchedulerConfiguration = _
@@ -137,7 +138,12 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         uris = uris,  highPriority = highPriority, container = container)
     } else {
-      throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
+      /* schedule now */
+      new ScheduleBasedJob("R1//PT24H", name = name, command = command,
+        epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
+        executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        uris = uris,  highPriority = highPriority, container = container)
     }
   }
 }

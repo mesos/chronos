@@ -1,6 +1,6 @@
 package com.airbnb.scheduler.jobs
 
-import org.joda.time.{Period, DateTime}
+import org.joda.time.{Period, DateTime, DateTimeZone}
 import org.joda.time.format.{ISODateTimeFormat, ISOPeriodFormat}
 
 /**
@@ -27,7 +27,7 @@ object Iso8601Expressions {
           repeatStr.substring(1).toLong
       }
 
-      val start: DateTime = DateTime.parse(startStr)
+      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC) else DateTime.parse(startStr)
       val period: Period = ISOPeriodFormat.standard.parsePeriod(periodStr)
       Some((repeat, start, period))
     } catch {

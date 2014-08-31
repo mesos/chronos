@@ -188,11 +188,13 @@ The JSON hash you send to Chronos should contain the following fields:
 * Command: the actual command that will be executed by Chronos
 * Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
     * Number of times to repeat the job; put just 'R' to repeat forever
-    * The start time of the job
+    * The start time of the job, an empty start time means start immediately
     * The run interval
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
+
+A job without *schedule* field will has a "R1//PT24H" schedule by default.
 
 Here is an example job hash:
 ```json
