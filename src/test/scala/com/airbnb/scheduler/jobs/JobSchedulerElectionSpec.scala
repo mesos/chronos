@@ -64,7 +64,10 @@ class JobSchedulerElectionSpec
     curators.foreach(c => c.start())
     curators.foreach(c => c.getZookeeperClient.blockUntilConnectedOrTimedOut())
 
-    schedulers.foreach(s => s.startUp())
+    schedulers.foreach({ s =>
+      s.startUp()
+      Thread.sleep(100)
+    })
     awaitElection(latches)
 
     var maxWaits = 100
