@@ -139,6 +139,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
 
       volumeBuilder.build()
     }.foreach(builder.addVolumes)
+    builder.setType(ContainerInfo.Type.DOCKER)
     builder.setDocker(DockerInfo.newBuilder().setImage(job.container.image).build()).build
   }
 
