@@ -391,8 +391,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             taskManager.persistTask(taskId, job)
             taskManager.enqueue(newTaskId, job.highPriority)
           } else {
-            val disableJob =
-              (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
+            val disableJob = (!hasAttemptsLeft) ||
+              ((disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures))
 
             val newJob = {
                 job match {
