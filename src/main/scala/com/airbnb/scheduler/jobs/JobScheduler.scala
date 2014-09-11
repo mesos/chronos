@@ -372,6 +372,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       jobOption match {
         case Some(job) => {
           jobStats.jobFailed(job, taskStatus, attempt)
+          val clusterPrefix = getClusterPrefix(clusterName)
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
@@ -386,6 +387,16 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
+
+            message match {
+              case Some(message) =>
+                if (message.contains("Memory limit exceeded"))
+                sendNotification(job, "%s[Chronos] job '%s' failed!".format(clusterPrefix, job.name),
+                  Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
+                    .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
+              case _ =>
+            }
+
             /* Schedule the retry up to 60 seconds in the future */
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
               .plus(new Duration(failureRetryDelay)), attempt + 1)
@@ -409,8 +420,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                 }
             }
             updateJob(job, newJob)
-
-            val clusterPrefix = getClusterPrefix(clusterName)
 
             // Handle failure by either disabling the job and notifying the owner,
             // or just notifying the owner.
