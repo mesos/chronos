@@ -15,6 +15,8 @@ options = OpenStruct.new
 options.update_from_chronos = false
 options.force = false
 options.validate = false
+options.delete_missing = false
+options.skip_sync = false
 
 opts = OptionParser.new do |o|
   o.banner = "Usage: #{$0} [options]"
@@ -32,6 +34,12 @@ opts = OptionParser.new do |o|
   end
   o.on("-V", "--validate", "Validate jobs, don't do anything else. Overrides other options.") do |t|
     options.validate = true
+  end
+  o.on("--delete-missing", "Prompt to delete missing jobs") do
+    options.delete_missing = true
+  end
+  o.on("--skip-sync", "Skip syncing local jobs") do
+    options.skip_sync = true
   end
 end
 
@@ -215,165 +223,190 @@ if options.validate
   end
 end
 
-jobs_to_be_updated = []
+if !options.skip_sync
+  jobs_to_be_updated = []
 
-cur_datetime = Time.now.utc.to_datetime
+  cur_datetime = Time.now.utc.to_datetime
 
-# Update scheduled jobs first
-jobs.each do |name,job|
-  if job.include? 'schedule'
-    if scheduled_jobs.include? name
-      existing_job = scheduled_jobs[name]
-      new_job = job
-      # Caveat: when comparing scheduled jobs, we have to ignore part of the
-      # schedule field because it gets updated by chronos.
-      existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
-      new_schedule = new_job['schedule']
-      new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
-      if options.force || !scheduled_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
-        # Check if scheduled start time is in the past
-        start_time = DateTime.iso8601(/^R\d*\/([^\/]+)\//.match(new_schedule)[1])
-        if start_time < cur_datetime
-          split_schedule = new_schedule.split(/\//)
-          # Reset start time to the next available
-          new_start_time = start_time + (cur_datetime - start_time).to_f.ceil
-          new_new_schedule = [split_schedule[0], new_start_time.iso8601(3), split_schedule[2]].join('/')
-          puts "Schedule for '#{new_job['name']}' begins in the past!  Resetting to from #{new_schedule} to #{new_new_schedule}"
-          new_schedule = new_new_schedule
+  # Update scheduled jobs first
+  jobs.each do |name,job|
+    if job.include? 'schedule'
+      if scheduled_jobs.include? name
+        existing_job = scheduled_jobs[name]
+        new_job = job
+        # Caveat: when comparing scheduled jobs, we have to ignore part of the
+        # schedule field because it gets updated by chronos.
+        existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
+        new_schedule = new_job['schedule']
+        new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
+        if options.force || !scheduled_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
+          # Check if scheduled start time is in the past
+          start_time = DateTime.iso8601(/^R\d*\/([^\/]+)\//.match(new_schedule)[1])
+          if start_time < cur_datetime
+            split_schedule = new_schedule.split(/\//)
+            # Reset start time to the next available
+            new_start_time = start_time + (cur_datetime - start_time).to_f.ceil
+            new_new_schedule = [split_schedule[0], new_start_time.iso8601(3), split_schedule[2]].join('/')
+            puts "Schedule for '#{new_job['name']}' begins in the past!  Resetting to from #{new_schedule} to #{new_new_schedule}"
+            new_schedule = new_new_schedule
+          end
+          new_job['schedule'] = new_schedule
+          jobs_to_be_updated << {
+            :new => job,
+            :old => scheduled_jobs[name],
+          }
         end
-        new_job['schedule'] = new_schedule
+      else
         jobs_to_be_updated << {
           :new => job,
-          :old => scheduled_jobs[name],
+          :old => nil,
         }
       end
-    else
-      jobs_to_be_updated << {
-        :new => job,
-        :old => nil,
-      }
     end
   end
-end
 
-# The order for updating dependent jobs matters.
-dependent_jobs_to_be_updated = []
-dependent_jobs_to_be_updated_set = Set.new
-jobs.each do |name,job|
-  if job.include? 'parents'
-    if dependent_jobs.include? name
-      existing_job = dependent_jobs[name]
-      new_job = job
-      if options.force || !dependent_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
-        dependent_jobs_to_be_updated_set.add(job['name'])
+  # The order for updating dependent jobs matters.
+  dependent_jobs_to_be_updated = []
+  dependent_jobs_to_be_updated_set = Set.new
+  jobs.each do |name,job|
+    if job.include? 'parents'
+      if dependent_jobs.include? name
+        existing_job = dependent_jobs[name]
+        new_job = job
+        if options.force || !dependent_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
+          dependent_jobs_to_be_updated_set.add(job['name'])
+          dependent_jobs_to_be_updated << {
+            :new => job,
+            :old => dependent_jobs[name],
+          }
+        end
+      else
         dependent_jobs_to_be_updated << {
           :new => job,
-          :old => dependent_jobs[name],
+          :old => nil,
         }
       end
-    else
-      dependent_jobs_to_be_updated << {
-        :new => job,
-        :old => nil,
-      }
     end
   end
-end
 
-# TODO: detect circular dependencies more intelligently
-remaining_attempts = 100
-while !dependent_jobs_to_be_updated.empty? && remaining_attempts > 0
-  remaining_attempts -= 1
-  these_jobs = dependent_jobs_to_be_updated.dup
-  to_delete = []
-  these_jobs.each_index do |idx|
-    job = these_jobs[idx][:new]
-    parents = job['parents']
-    # Add only the jobs for which their parents have already been added.
-    can_be_added = true
-    parents.each do |p|
-      if dependent_jobs_to_be_updated_set.include?(p)
-        # This job can't be added yet.
-        can_be_added = false
+  # TODO: detect circular dependencies more intelligently
+  remaining_attempts = 100
+  while !dependent_jobs_to_be_updated.empty? && remaining_attempts > 0
+    remaining_attempts -= 1
+    these_jobs = dependent_jobs_to_be_updated.dup
+    to_delete = []
+    these_jobs.each_index do |idx|
+      job = these_jobs[idx][:new]
+      parents = job['parents']
+      # Add only the jobs for which their parents have already been added.
+      can_be_added = true
+      parents.each do |p|
+        if dependent_jobs_to_be_updated_set.include?(p)
+          # This job can't be added yet.
+          can_be_added = false
+        end
+      end
+      if can_be_added
+        jobs_to_be_updated << these_jobs[idx]
+        to_delete << idx
+        dependent_jobs_to_be_updated_set.delete(job['name'])
       end
     end
-    if can_be_added
-      jobs_to_be_updated << these_jobs[idx]
-      to_delete << idx
-      dependent_jobs_to_be_updated_set.delete(job['name'])
+    to_delete = to_delete.sort.reverse
+    to_delete.each do |idx|
+      dependent_jobs_to_be_updated.delete_at idx
     end
   end
-  to_delete = to_delete.sort.reverse
-  to_delete.each do |idx|
-    dependent_jobs_to_be_updated.delete_at idx
+
+  if !dependent_jobs_to_be_updated.empty?
+    jobs_to_be_updated += dependent_jobs_to_be_updated
   end
-end
 
-if !dependent_jobs_to_be_updated.empty?
-  jobs_to_be_updated += dependent_jobs_to_be_updated
-end
-
-if !jobs_to_be_updated.empty?
-  puts "These jobs will be updated:"
-end
-
-jobs_to_be_updated.each do |j|
-  puts "About to update #{j[:new]['name']}"
-  puts
-  puts "Old job:", YAML.dump(j[:old])
-  puts
-  puts "New job:", YAML.dump(j[:new])
-  puts
-end
-
-jobs_to_be_updated.each do |j|
-  job = j[:new]
-  method = nil
-  if job.include? 'schedule'
-    method = 'iso8601'
-  else
-    method = 'dependency'
+  if !jobs_to_be_updated.empty?
+    puts "These jobs will be updated:"
   end
-  uri = URI("#{options.uri}/scheduler/#{method}")
-  req = Net::HTTP::Put.new(uri.request_uri)
-  req.body = JSON.generate(job)
-  req.content_type = 'application/json'
 
-  puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
+  jobs_to_be_updated.each do |j|
+    puts "About to update #{j[:new]['name']}"
+    puts
+    puts "Old job:", YAML.dump(j[:old])
+    puts
+    puts "New job:", YAML.dump(j[:new])
+    puts
+  end
+
+  jobs_to_be_updated.each do |j|
+    job = j[:new]
+    method = nil
+    if job.include? 'schedule'
+      method = 'iso8601'
+    else
+      method = 'dependency'
+    end
+    uri = URI("#{options.uri}/scheduler/#{method}")
+    req = Net::HTTP::Put.new(uri.request_uri)
+    req.body = JSON.generate(job)
+    req.content_type = 'application/json'
+
+    puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
+
+    begin
+      res = Net::HTTP.start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https') do |http|
+        http.request(req)
+      end
+
+      case res
+      when Net::HTTPSuccess, Net::HTTPRedirection
+        # OK
+      end
+    rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
+      Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
+      $stderr.puts "Error updating job #{job['name']}!"
+      $stderr.puts res.value
+    end
+
+    # Pause after each request so we don't explode chronos
+    sleep 0.1
+  end
+
+  puts "Finished checking/updating jobs"
+  puts
+end
+
+def delete_job(options, job_name)
+  uri = URI("#{options.uri}/scheduler/job/#{job_name}")
+  req = Net::HTTP::Delete.new(uri.request_uri)
+
+  puts "Sending DELETE for `#{job_name}` to #{uri.request_uri}"
 
   begin
     res = Net::HTTP.start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https') do |http|
       http.request(req)
     end
-
-    case res
-    when Net::HTTPSuccess, Net::HTTPRedirection
-      # OK
-    end
+    raise Net::HTTPBadResponse if !res.is_a?(Net::HTTPNoContent)
   rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
     Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Net::ProtocolError => e
-    $stderr.puts "Error updating job #{job['name']}!"
-    $stderr.puts res.value
+    $stderr.puts "Error deleting job #{job_name}!"
+    $stderr.puts res.inspect
   end
-
-  # Pause after each request so we don't explode chronos
-  sleep 0.1
 end
 
-puts "Finished checking/updating jobs"
-puts
-
 # Look for jobs in chronos which don't exist here, print a warning
-def check_if_defined(jobs, name)
+def check_if_defined(jobs, name, options)
   if !jobs.include?(name)
-    $stderr.puts "The job #{name} exists in chronos, but is not defined!"
+    if options.delete_missing
+      $stdout.print "The job #{name} exists in chronos, but is not defined! Delete [yN]? "
+      delete_job(options, name) if $stdin.gets.chomp.downcase == "y"
+    else
+      $stderr.puts "The job #{name} exists in chronos, but is not defined!"
+    end
   end
 end
 
 dependent_jobs.each do |name, job|
-  check_if_defined(jobs, name)
+  check_if_defined(jobs, name, options)
 end
 
 scheduled_jobs.each do |name, job|
-  check_if_defined(jobs, name)
+  check_if_defined(jobs, name, options)
 end
