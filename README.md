@@ -228,7 +228,7 @@ This should be a JSON list of all jobs which must run at least once before this 
 * Method: __POST__
 * Example:
 
-        curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/scheduler/iso8601
+        curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/scheduler/dependency
 
 Here is a more elaborate example for a dependency job hash:
 
