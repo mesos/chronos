@@ -4,7 +4,7 @@ before_install:
   - sudo apt-get install -y nodejs
 install: true # disable travis' default mvn install before running the tests
 scala:
-  - "2.10.2"
+  - "2.10.3"
 jdk:
-  - openjdk6
+  - openjdk7
 script: mvn clean test package
