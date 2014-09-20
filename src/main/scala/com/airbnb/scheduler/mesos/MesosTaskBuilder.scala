@@ -154,9 +154,14 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
 
   def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob) {
     log.info("Appending executor:" + job.executor + ", flags:" + job.executorFlags + ", command:" + job.command)
+    val command = CommandInfo.newBuilder()
+      .setValue(job.executor)
+    if (job.runAsUser.nonEmpty) {
+      command.setUser(job.runAsUser)
+    }
     val executor = ExecutorInfo.newBuilder()
       .setExecutorId(ExecutorID.newBuilder().setValue("shell-wrapper-executor"))
-      .setCommand(CommandInfo.newBuilder().setValue(job.executor))
+      .setCommand(command.build())
     if (job.container != null) {
       executor.setContainer(createContainerInfo(job))
     }
