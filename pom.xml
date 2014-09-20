@@ -22,7 +22,7 @@
 
     <!-- runtime deps versions -->
     <akka.version>2.2.1</akka.version>
-    <cassandra-driver-core.version>2.0.3</cassandra-driver-core.version>
+    <cassandra-driver-core.version>2.1.0</cassandra-driver-core.version>
     <chaos.version>0.5.6</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
     <curator-framework.version>2.6.0</curator-framework.version>
@@ -34,7 +34,7 @@
     <lz4.version>1.2.0</lz4.version>
     <mesos.version>0.20.0</mesos.version>
     <mesos-utils.version>${mesos.version}-1</mesos-utils.version>
-    <metrics.version>3.0.2</metrics.version>
+    <metrics.version>3.1.0</metrics.version>
     <raven.version>4.1.2</raven.version>
 
     <!-- test deps versions -->
@@ -163,8 +163,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.codahale.metrics</groupId>
-      <artifactId>metrics-ganglia</artifactId>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-graphite</artifactId>
       <version>${metrics.version}</version>
     </dependency>
     <dependency>

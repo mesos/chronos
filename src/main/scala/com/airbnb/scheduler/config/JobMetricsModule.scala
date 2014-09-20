@@ -10,7 +10,7 @@ import com.codahale.metrics.MetricRegistry
 
 
 
-class JobMetricsModule (config: GangliaConfiguration) extends AbstractModule {
+class JobMetricsModule (config: GraphiteConfiguration) extends AbstractModule {
 
   def configure() {
     bind(classOf[JobMetrics]).in(Scopes.SINGLETON)

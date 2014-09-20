@@ -39,7 +39,7 @@ object Main extends App {
 
   lazy val conf = new ScallopConf(args)
     with HttpConf with AppConfiguration with SchedulerConfiguration
-    with GangliaConfiguration with CassandraConfiguration
+    with GraphiteConfiguration with CassandraConfiguration
 
   run(
     classOf[ZookeeperService],
