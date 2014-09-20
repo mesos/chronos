@@ -214,7 +214,7 @@ class MesosJobFramework @Inject()(
   @Override
   def error(schedulerDriver: SchedulerDriver, message: String) {
     log.info("Error: " + message)
-    scheduler.stop()
+    scheduler.shutDown()
   }
 
   /**
