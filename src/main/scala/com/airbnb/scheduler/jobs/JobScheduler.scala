@@ -697,6 +697,5 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     log.info("Starting mesos driver")
     mesosDriver.start()
   }
-
   //End Leader interface
 }

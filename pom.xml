@@ -26,7 +26,7 @@
     <chaos.version>0.5.6</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
     <curator-framework.version>2.6.0</curator-framework.version>
-    <guava.version>18.0</guava.version>
+    <guava.version>16.0.1</guava.version>
     <guice.version>3.0</guice.version>
     <jgrapht.version>0.9.0</jgrapht.version>
     <joda-convert.version>1.7</joda-convert.version>
