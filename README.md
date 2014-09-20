@@ -305,13 +305,14 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | errorCount          | Number of errors since the job was last modified.                                                        | -                              |
 | lastSuccess         | Date of last successful attempt.                                                                         | -                              |
 | lastError           | Date of last failed attempt.                                                                             | -                              |
-| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpu`   |
+| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpu`    |
 | mem                 | Amount of Mesos Memory in MB for this job.                                                               | `128` or `--mesos_task_mem`    |
 | disk                | Amount of Mesos disk in MB for this job.                                                                 | `256` or `--mesos_task_disk`   |
 | disabled            | If set to true, this job will not be run.                                                                | `false`                        |
 | uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
+| runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
 
 
 ### Sample Job

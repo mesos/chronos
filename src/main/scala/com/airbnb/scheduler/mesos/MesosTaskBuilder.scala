@@ -85,30 +85,32 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         .setName("mesos_task_id").setValue(taskIdStr))
       .addVariables(Variable.newBuilder()
         .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
-    if (!job.executor.isEmpty) {
+    if (job.executor.nonEmpty) {
       appendExecutorData(taskInfo, job)
     } else {
-      taskInfo.setCommand(
-        if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
-          val uri1 = CommandInfo.URI.newBuilder()
-            .setValue(job.command)
-            .setExecutable(true).build()
+      val command = CommandInfo.newBuilder()
+      if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
+        val uri1 = CommandInfo.URI.newBuilder()
+          .setValue(job.command)
+          .setExecutable(true).build()
 
-          CommandInfo.newBuilder().addUris(uri1)
-            .setValue("\"." + job.command.substring(
-              job.command.lastIndexOf("/")) + "\"")
-            .setEnvironment(environment)
-        } else {
-          val uriProtos = job.uris.map(uri => {
-            CommandInfo.URI.newBuilder()
-              .setValue(uri)
-              .build()
-          })
-          CommandInfo.newBuilder()
-            .setValue(job.command)
-            .setEnvironment(environment)
-            .addAllUris(uriProtos.asJava)
+        command.addUris(uri1)
+          .setValue("\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
+          .setEnvironment(environment)
+      } else {
+        val uriProtos = job.uris.map(uri => {
+          CommandInfo.URI.newBuilder()
+            .setValue(uri)
+            .build()
         })
+        command.setValue(job.command)
+          .setEnvironment(environment)
+          .addAllUris(uriProtos.asJava)
+      }
+      if (job.runAsUser.nonEmpty) {
+        command.setUser(job.runAsUser)
+      }
+      taskInfo.setCommand(command.build())
       if (job.container != null) {
         taskInfo.setContainer(createContainerInfo(job))
       }

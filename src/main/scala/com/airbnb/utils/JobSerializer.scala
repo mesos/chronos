@@ -71,6 +71,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("highPriority")
     json.writeBoolean(baseJob.highPriority)
 
+    json.writeFieldName("runAsUser")
+    json.writeString(baseJob.runAsUser)
+
     if (baseJob.container != null) {
       json.writeFieldName("container")
       json.writeStartObject()

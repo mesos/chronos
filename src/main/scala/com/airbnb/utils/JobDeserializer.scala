@@ -100,6 +100,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("highPriority") && node.get("highPriority") != null) node.get("highPriority").asBoolean()
       else false
 
+    val runAsUser =
+      if (node.has("runAsUser") && node.get("runAsUser") != null) node.get("runAsUser").asText
+      else JobDeserializer.config.user()
+
     var container: DockerContainer = null
     if (node.has("container")) {
       val containerNode = node.get("container")
@@ -130,20 +134,23 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority, container = container)
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
+        runAsUser = runAsUser, container = container)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority, container = container)
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        runAsUser = runAsUser, container = container)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority, container = container)
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        runAsUser = runAsUser, container = container)
     }
   }
 }
