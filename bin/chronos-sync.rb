@@ -67,6 +67,7 @@ def normalize_job(job)
   newjob.delete 'errorCount'
   newjob.delete 'lastSuccess'
   newjob.delete 'lastError'
+  newjob.delete 'errorsSinceLastSuccess'
   newjob.delete 'async'
   newjob.delete 'epsilon'
   newjob.delete 'retries'
