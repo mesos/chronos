@@ -150,6 +150,12 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
 
     val newVar = state.store(existingVar.mutate(data))
 
+    // to avoid throw NullPointerException
+    if (newVar.get == null) {
+      log.warning("State update failed.")
+      return false
+    }
+
     val success = (newVar.get.value.deep == data.deep)
 
     log.info("State update successful: " + success)
