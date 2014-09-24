@@ -71,8 +71,6 @@ trait SchedulerConfiguration extends ScallopConf {
 
   def zooKeeperStatePath = "%s/state".format(zooKeeperPath())
 
-  def zooKeeperLeaderPath = "%s/leader".format(zooKeeperPath())
-
   def zooKeeperCandidatePath = "%s/candidate".format(zooKeeperPath())
 
   lazy val mailServer = opt[String]("mail_server",
