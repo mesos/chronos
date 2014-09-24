@@ -102,7 +102,7 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
           proxy.getInputStream.close
           responseOutputStream.close
         } catch {
-          case t: Throwable => log.log(Level.WARNING, "Exception while proxying!", t)
+          case t: Exception => log.log(Level.WARNING, "Exception while proxying!", t)
         }
       }
     }

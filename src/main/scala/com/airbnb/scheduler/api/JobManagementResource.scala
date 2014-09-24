@@ -94,7 +94,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
       }
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         return Response.serverError().build
       }
@@ -114,7 +114,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
       }
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response.serverError().build
       }
@@ -137,7 +137,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
       }
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         return Response.serverError().build
       }
@@ -157,7 +157,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       })
       return Response.ok(jobs.toList).build
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
@@ -212,7 +212,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       }.toList.slice(_offset, _offset + _limit)
       Response.ok(filteredJobs).build
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }

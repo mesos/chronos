@@ -51,7 +51,7 @@ object TaskUtils {
       val TaskUtils.taskIdPattern(_, _, jobName) = taskId
       jobName
     } catch {
-      case t: Throwable =>
+      case t: Exception =>
         log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
           "Warning, dependents will not be triggered!")
         return ""

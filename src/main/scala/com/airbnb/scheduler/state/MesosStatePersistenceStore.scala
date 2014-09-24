@@ -49,7 +49,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     try {
       Some(fnc(i))
     } catch {
-      case t: Throwable => if (attempt < max) {
+      case t: Exception => if (attempt < max) {
         log.log(Level.WARNING, "Retrying attempt:" + attempt, t)
         retry(max, attempt + 1, i, fnc)
       } else {
@@ -175,7 +175,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
       retry[String, Unit](2, 0, path, fnc)
       zk.checkExists().forPath(path) == null
     } catch {
-      case t: Throwable => {
+      case t: Exception => {
         log.log(Level.WARNING, "Error while deleting zookeeper node: %s".format(name), t)
       }
       false
