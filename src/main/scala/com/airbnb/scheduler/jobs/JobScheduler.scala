@@ -341,9 +341,10 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               log.info("Disabling job that reached a zero-recurrence count!")
 
               val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
+              val clusterPrefix = getClusterPrefix(clusterName)
               sendNotification(
                 job,
-                "job '%s' disabled".format(job.name),
+                "%s[Chronos] job '%s' disabled".format(clusterPrefix, job.name),
                 Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
                         |Please consider either removing your job, or updating its schedule and re-enabling it.
                       """.stripMargin.format(job.name)))
