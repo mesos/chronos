@@ -344,7 +344,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               val clusterPrefix = getClusterPrefix(clusterName)
               sendNotification(
                 job,
-                "%s[Chronos] job '%s' disabled".format(clusterPrefix, job.name),
+                "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
                 Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
                         |Please consider either removing your job, or updating its schedule and re-enabling it.
                       """.stripMargin.format(job.name)))
@@ -419,11 +419,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                 + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
               message match {
                 case Some(message) =>
-                  sendNotification(job, "%s[Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
+                  sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
                     Some("\nFailed at '%s', %d failures since last success\nThe scheduler provided this message:\n\n%s"
                         .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, message)))
                 case None =>
-                  sendNotification(job, "%s[Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
+                  sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
                     Some("\nFailed at '%s', %d failures since last success\n"
                         .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess)))
               }
@@ -431,11 +431,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               log.warning("Job failed beyond retries!")
               message match {
                 case Some(message) =>
-                  sendNotification(job, "%s[Chronos] job '%s' failed!".format(clusterPrefix, job.name),
+                  sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
                     Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
                         .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
                 case None =>
-                  sendNotification(job, "%s[Chronos] job '%s' failed!".format(clusterPrefix, job.name),
+                  sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
                     Some("\n'%s'. Retries attempted: %d.\n"
                         .format(DateTime.now(DateTimeZone.UTC), job.retries)))
               }
