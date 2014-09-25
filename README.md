@@ -255,7 +255,7 @@ Here is a more elaborate example for a dependency job hash:
 ###Adding a Docker Job
 
 A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
-To configure it, an additional container argument is required,  which contains a type, an image, and optional arguments (hostpath, mode, and volume). 
+To configure it, an additional container argument is required, which contains a type, an image, and optional arguments (hostPath, mode, and volumes). 
 
 * Endpoint: __/scheduler/iso8601__ or __/scheduler/depdency__
 * Method: __POST__
@@ -340,7 +340,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
-
+| container           | This contains the  subfields for the container. type, image (req)| mode, hostPath, volumes (optional).   | -                              |
 
 ### Sample Job
 
