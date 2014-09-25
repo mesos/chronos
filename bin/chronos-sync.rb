@@ -35,6 +35,14 @@ opts = OptionParser.new do |o|
   o.on("-V", "--validate", "Validate jobs, don't do anything else. Overrides other options.") do |t|
     options.validate = true
   end
+  o.on("--http-auth", "--http-auth CRED", "Authentication credentials in the user:password form") do |t|
+    cred_split = t.split(':')
+    if cred_split.length != 2
+      raise OptionParser::InvalidArgument
+    end
+    options.http_auth_user = cred_split[0].strip
+    options.http_auth_pass = cred_split[1].strip
+  end
   o.on("--delete-missing", "Prompt to delete missing jobs") do
     options.delete_missing = true
   end
@@ -53,11 +61,21 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
   abort
 end
 
+def parse_scheduler_jobs(file)
+      data = file.readlines()
+      JSON.parse(data.first)
+end
+
 json = nil
 if !options.validate
-  open("#{options.uri}/scheduler/jobs") do |f|
-    data = f.readlines()
-    json = JSON.parse(data.first)
+  if (defined? options.http_auth_user) && (defined? options.http_auth_pass)
+    open("#{options.uri}/scheduler/jobs", :http_basic_authentication => ["#{options.http_auth_user}", "#{options.http_auth_pass}"]) do |f|
+      json = parse_scheduler_jobs(f)
+    end
+  else
+    open("#{options.uri}/scheduler/jobs") do |f|
+      json = parse_scheduler_jobs(f)
+    end
   end
 end
 
