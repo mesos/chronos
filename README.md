@@ -259,7 +259,9 @@ To configure it, an additional container argument is required, which contains a 
 
 * Endpoint: __/scheduler/iso8601__ or __/scheduler/depdency__
 * Method: __POST__
-* Example: curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+* Example:
+
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
 
 ```json
 {
