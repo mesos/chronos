@@ -26,7 +26,7 @@ trait NotificationClient extends Actor {
       try {
         sendNotification(job, to, subject, message)
       } catch {
-        case t: Throwable => log.log(Level.WARNING, "Caught a throwable while trying to send mail.", t)
+        case t: Exception => log.log(Level.WARNING, "Caught a Exception while trying to send mail.", t)
       }
     case Terminated(_) =>
       log.warning("Actor has exited, no longer sending out email notifications!")

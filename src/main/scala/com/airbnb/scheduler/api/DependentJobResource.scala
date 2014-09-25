@@ -75,7 +75,7 @@ class DependentJobResource @Inject()(
         return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
       }
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         return Response.serverError().build()
       }

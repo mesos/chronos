@@ -381,7 +381,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             case ex: IllegalArgumentException =>
               log.warning(s"Couldn't parse last run date from ${job.name}")
               false
-            case _ : Throwable => false
+            case _ : Exception => false
           }
 
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {

@@ -63,6 +63,9 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideStore(zk: CuratorFramework, state: State): PersistenceStore = {
+    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperStatePath)
+    ensurePath.ensure(zk.getZookeeperClient)
+
     new MesosStatePersistenceStore(zk, config, state)
   }
 
