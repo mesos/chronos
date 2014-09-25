@@ -38,6 +38,7 @@ Also join us on IRC in #mesos on freenode.
     - [Manually Starting a Job](#manually-starting-a-job)
     - [Adding a Scheduled Job](#adding-a-scheduled-job)
     - [Adding a Dependent Job](#adding-a-dependent-job)
+    - [Adding a Docker Job] (#adding-a-docker-job)
     - [Describing the Dependency Graph](#describing-the-dependency-graph)
     - [Asynchronous Jobs](#asynchronous-jobs)
     - [Obtaining Remote Executables](#obtaining-remote-executables)
@@ -251,6 +252,32 @@ Here is a more elaborate example for a dependency job hash:
 }
 ```
 
+###Adding a Docker Job
+
+A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
+To configure it, an additional container argument is required, which contains a type, an image, and optional arguments (hostPath, mode, and volumes). 
+
+* Endpoint: __/scheduler/iso8601__ or __/scheduler/depdency__
+* Method: __POST__
+* Example:
+
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+
+```json
+{
+ "schedule": "R\/2014-09-25T17:22:00Z\/PT2M",
+ "name": "dockerjob",
+   "container": {
+   "type": "DOCKER",
+   "image": "libmesos/ubuntu"
+  },
+ "cpus": "0.5",
+ "mem": "512",
+ "uris": [],
+ "command": "while sleep 10; do date =u %T; done"
+}
+```
+
 ### Describing the Dependency Graph
 
 Chronos allows to describe the dependency graph and has an endpoint to return this graph in form of a dotfile.
@@ -313,7 +340,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
-
+| container           | This contains the  subfields for the container. type, image (req)| mode, hostPath, volumes (optional).   | -                              |
 
 ### Sample Job
 
