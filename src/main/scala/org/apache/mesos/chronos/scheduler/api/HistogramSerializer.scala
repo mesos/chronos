@@ -4,10 +4,7 @@ import com.codahale.metrics.{Histogram, Snapshot}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 
-/**
- * Author: @andykram
- */
-class HistogramSerializer extends JsonSerializer[Histogram] {
+object HistogramSerializerUtil {
   def serialize(hist: Histogram, json: JsonGenerator, provider: SerializerProvider) {
     val snapshot: Snapshot = hist.getSnapshot
     json.writeStartObject()
@@ -34,6 +31,15 @@ class HistogramSerializer extends JsonSerializer[Histogram] {
     json.writeNumber(snapshot.size())
 
     json.writeEndObject()
+  }
+}
+
+/**
+ * Author: @andykram
+ */
+class HistogramSerializer extends JsonSerializer[Histogram] {
+  def serialize(hist: Histogram, json: JsonGenerator, provider: SerializerProvider) {
+    HistogramSerializerUtil.serialize(hist, json, provider)
     json.close()
   }
 }

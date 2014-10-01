@@ -5,9 +5,16 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.config.{CassandraConfiguration, SchedulerConfiguration}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
+
+import com.codahale.metrics.Histogram
+import com.datastax.driver.core.Row
+import com.datastax.driver.core.ColumnDefinitions
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
+
 import com.codahale.metrics.annotation.Timed
 import com.google.inject.Inject
 import org.joda.time.{DateTime, DateTimeZone}
@@ -25,9 +32,16 @@ import scala.collection.mutable.ListBuffer
 class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                                       val jobGraph: JobGraph,
                                       val configuration: SchedulerConfiguration,
+                                      val cassandraConfig: CassandraConfiguration,
                                       val jobMetrics: JobMetrics) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
+
+  private val objectMapper = new ObjectMapper
+  private val mod =  new SimpleModule("JobManagementResourceModule")
+
+  mod.addSerializer(classOf[JobStatWrapper], new JobStatWrapperSerializer)
+  objectMapper.registerModule(mod)
 
   @Path(PathConstants.jobPatternPath)
   @DELETE
@@ -105,9 +119,14 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Path(PathConstants.jobStatsPatternPath)
   def getStat(@PathParam("jobName") jobName: String): Response = {
     try {
-      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
-      val job = jobGraph.getJobForName(jobName).get
-      Response.ok(jobMetrics.getJsonStats(jobName)).build()
+      require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
+
+      val histoStats = jobMetrics.getJobHistogramStats(jobName)
+      val jobStatsList: List[TaskStat] = jobScheduler.jobStats.getMostRecentTaskStatsByJob(jobName, cassandraConfig.jobHistoryLimit())
+      val jobStatsWrapper = new JobStatWrapper(jobStatsList, histoStats)
+
+      val wrapperStr = objectMapper.writeValueAsString(jobStatsWrapper)
+      Response.ok(wrapperStr).build()
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)

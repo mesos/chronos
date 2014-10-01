@@ -1,0 +1,21 @@
+{{#if tasks}}
+<div class="detail">Job history</div>
+<table class="table table-condensed">
+  <tr>
+    <th>Task Id</th>
+    <th>Start Time</th>
+    <th>End Time</th>
+    <th class="text-center">Duration</th>
+    <th class="text-center">Status</th>
+  </tr>
+{{#each tasks}}
+  <tr>
+    <td>{{taskId}}</td>
+    <td>{{startTime}}</td>
+    <td>{{endTime}}</td>
+    <td class="text-center">{{duration}}</td>
+    <td class="text-center {{#if statusClass}}count-{{statusClass}}{{/if}}">{{status}}</td>
+  </tr>
+{{/each}}
+</table>
+{{/if}}

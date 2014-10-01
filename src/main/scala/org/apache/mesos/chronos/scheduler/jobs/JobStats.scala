@@ -13,7 +13,7 @@ import org.apache.mesos.Protos.{TaskState, TaskStatus}
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{HashMap}
+import scala.collection.mutable.{HashMap, Map}
 
 object CurrentState extends Enumeration {
   type CurrentState = Value
@@ -80,6 +80,173 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     jobStates.remove(job.name)
   }
 
+  /**
+   * Queries Cassandra table for past and current job statistics by jobName
+   * and limits by numTasks. The result is not sorted by execution time
+   * @param jobName
+   * @param numTasks
+   * @return list of cassandra rows
+   */
+  private def getTaskDataByJob(jobName: String): Option[List[Row]] = {
+    var rowsListFinal: Option[List[Row]] = None
+    try {
+      getSession match {
+        case Some(session: Session) =>
+          val query = s"SELECT * FROM ${config.cassandraTable()} WHERE ${JOB_NAME}='${jobName}';"
+          val prepared = statements.getOrElseUpdate(query, {
+            session.prepare(
+              new SimpleStatement(query)
+                .setConsistencyLevel(readConsistencyLevel())
+                .asInstanceOf[RegularStatement]
+            )
+          })
+
+          val resultSet = session.execute(prepared.bind())
+          val rowsList = resultSet.all().asScala.toList
+          rowsListFinal = Some(rowsList)
+        case None => rowsListFinal = None
+      }
+    } catch {
+      case e: NoHostAvailableException =>
+        resetSession()
+        log.log(Level.WARNING, "No hosts were available, will retry next time.", e)
+      case e: QueryExecutionException =>
+        log.log(Level.WARNING,"Query execution failed:", e)
+      case e: QueryValidationException =>
+        log.log(Level.WARNING,"Query validation failed:", e)
+    }
+    rowsListFinal
+  }
+
+  /**
+   * Compare function for TaskStat by most recent date.
+   */
+  private def recentDateCompareFnc(a: TaskStat, b: TaskStat): Boolean = {
+    var compareAscDate = a.taskStartTs match {
+      case Some(aTs: DateTime) => {
+        b.taskStartTs  match {
+          case Some(bTs: DateTime) => {
+            aTs.compareTo(bTs) <= 0
+          }
+          case None => {
+            false
+          }
+        }
+      }
+      case None => {
+        true
+      }
+    }
+    !compareAscDate
+  }
+
+  /**
+   * Determines if row from Cassandra represents a valid Mesos task
+   * @param row
+   * @return true if valid, false otherwise
+   */
+  private def isValidTaskData(row: Row): Boolean = {
+    if (row == null) {
+      false
+    } else {
+      val cDefs = row.getColumnDefinitions();
+      cDefs.contains(JOB_NAME) &&
+        cDefs.contains(TASK_ID) &&
+        cDefs.contains(TIMESTAMP) &&
+        cDefs.contains(TASK_STATE) &&
+        cDefs.contains(SLAVE_ID) &&
+        cDefs.contains(IS_FAILURE)
+    }
+  }
+
+  /**
+   * Parses the contents of the data row and updates the TaskStat object
+   * @param taskStat
+   * @param row
+   * @return updated TaskStat object
+   */
+  private def updateTaskStat(taskStat: TaskStat, row: Row): TaskStat = {
+    var taskTimestamp = row.getDate(TIMESTAMP)
+    var taskState = row.getString(TASK_STATE)
+    var slaveId = row.getString(SLAVE_ID)
+    var isFailure = row.getBool(IS_FAILURE)
+
+    if (TaskState.TASK_RUNNING.toString == taskState) {
+      taskStat.setTaskStartTs(taskTimestamp)
+      taskStat.setTaskStatus(ChronosTaskStatus.Running)
+    } else if ((TaskState.TASK_FINISHED.toString() == taskState) ||
+        (TaskState.TASK_FAILED.toString() == taskState) ||
+        (TaskState.TASK_KILLED.toString() == taskState) ||
+        (TaskState.TASK_LOST.toString() == taskState)) {
+
+      //terminal state
+      taskStat.setTaskEndTs(taskTimestamp)
+      if (TaskState.TASK_FINISHED.toString() == taskState) {
+        taskStat.setTaskStatus(ChronosTaskStatus.Success)
+      } else {
+        taskStat.setTaskStatus(ChronosTaskStatus.Fail)
+      }
+    }
+    taskStat
+  }
+
+  /**
+   * Returns a list of tasks (TaskStat) found for the specified job name
+   * @param jobName
+   * @return list of past and current running tasks for the job
+   */
+  private def getParsedTaskStatsByJob(jobName: String): List[TaskStat] = {
+    val taskMap = Map[String, TaskStat]()
+
+    val rowsListOpt = getTaskDataByJob(jobName) match {
+      case Some(rowsList) => {
+        for (row <- rowsList) {
+          /*
+           * Go through all the rows and construct a job history.
+           * Group elements by task id
+           */
+          if (isValidTaskData(row)) {
+            var taskId = row.getString(TASK_ID)
+            var taskStat = taskMap.getOrElseUpdate(taskId,
+                new TaskStat(taskId,
+                    row.getString(JOB_NAME),
+                    row.getString(SLAVE_ID)))
+            updateTaskStat(taskStat, row)
+          } else {
+            log.info("Invalid row found in cassandra table for jobName=%s".format(jobName))
+          }
+        }
+      }
+      case None => {
+        log.info("No row list found for jobName=%s".format(jobName))
+      }
+    }
+
+    taskMap.values.toList
+  }
+
+  /**
+   * Returns most recent tasks by jobName and returns only numTasks
+   * @param jobName
+   * @param numTasks
+   * @return returns a list of past and currently running tasks,
+   *         the first element is the most recent.
+   */
+  def getMostRecentTaskStatsByJob(jobName: String, numTasks: Int): List[TaskStat] = {
+    val taskStatList = getParsedTaskStatsByJob(jobName)
+
+    /*
+     * Data is not sorted yet, so sort jobs by most recent date
+     */
+    var sortedDescTaskStatList = taskStatList.sortWith(recentDateCompareFnc)
+
+    /*
+     * limit output here
+     */
+    sortedDescTaskStatList = sortedDescTaskStatList.slice(0, numTasks)
+    sortedDescTaskStatList
+  }
+
   def jobQueued(job: BaseJob, attempt: Int) {
     updateJobState(job.name, CurrentState.queued)
   }
@@ -116,7 +283,11 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
         clusterBuilder match {
           case Some(c) =>
             try {
-              val session = c.build.connect(config.cassandraKeyspace())
+              val session = c.build.connect()
+              session.execute(new SimpleStatement(
+                s"USE ${config.cassandraKeyspace()};"
+              ))
+
               session.execute(new SimpleStatement(
                 s"CREATE TABLE IF NOT EXISTS ${config.cassandraTable()}" +
                   """
@@ -136,6 +307,9 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
                     | WITH bloom_filter_fp_chance=0.100000 AND
                     | compaction = {'class':'LeveledCompactionStrategy'}
                   """.stripMargin
+              ))
+              session.execute(new SimpleStatement(
+                s"CREATE INDEX IF NOT EXISTS ON ${config.cassandraTable()} (${JOB_NAME});"
               ))
               _session = Some(session)
               _session
@@ -309,5 +483,14 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
         log.log(Level.WARNING,"Query validation failed: ", e)
     }
 
+  }
+
+  private def readConsistencyLevel() : ConsistencyLevel = {
+    if (ConsistencyLevel.ANY.name().equalsIgnoreCase(config.cassandraConsistency())) {
+      //reads do not support ANY
+      ConsistencyLevel.ONE
+    } else {
+      ConsistencyLevel.valueOf(config.cassandraConsistency())
+    }
   }
 }

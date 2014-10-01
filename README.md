@@ -53,6 +53,7 @@ Also join us on IRC in #mesos on freenode.
 * [Appendix](#appendix)
     - [Finding a Node to Talk To](#finding-a-node-to-talk-to)
     - [Zookeeper](#zookeeper)
+    - [Cassandra](#cassandra)
     - [Install Chronos on Amazon Linux](#install-chronos-on-amazon-linux)
 
 
@@ -65,6 +66,7 @@ If you get an error while compiling Mesos, please consult the [FAQ](docs/FAQ.md)
 * 8601 Repeating Interval Notation
 * Handles dependencies
 * Job Stats (e.g. 50th, 75th, 95th and 99th percentile timing, failure/success)
+* Job History (e.g. job duration, start time, end time, failure/success)
 * Fault Tolerance (Hot Master)
 * Configurable Retries
 * Multiple Workers (i.e. Mesos Slaves)
@@ -126,6 +128,11 @@ The screenshot should give you a good idea of what Chronos can do.
 ![Chronos UI screenshot](https://raw.github.com/mesos/chronos/master/docs/chronos_ui-1.png "Chronos UI overview")
 
 ![Chronos UI screenshot new job](https://raw.github.com/mesos/chronos/master/docs/chronos_ui-new-job.png "Chronos UI new job")
+
+Additionally, Chronos can show statistics on past job execution. This may include aggregate statistics such as number of
+successful and failed executions. Per job execution statistics (i.e. duration and status) are also available, if a
+[cassandra cluster](http://cassandra.apache.org) is attached to Chronos. Please see the "Configuring Chronos" section
+on how to do this.
 
 ## API
 
@@ -553,6 +560,10 @@ If you use the cURL command line tool, you can use the `-L` flag and hit any Chr
 
 Chronos registers itself with [Zookeeper][Zookeeper] at the location `/chronos/state`. This value can be changed via the configuration file.
 
+### Cassandra
+
+Chronos uses [Cassandra] for task reporting. By default, Chronos attempts to connect to the `metrics` keyspace.
+
 
 [arx]: https://github.com/solidsnack/arx
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
@@ -560,7 +571,7 @@ Chronos registers itself with [Zookeeper][Zookeeper] at the location `/chronos/s
 [mesos]: https://mesos.apache.org/ "Apache Mesos"
 [logging]: http://dropwizard.io/manual/core.html#logging
 [Zookeeper]: https://zookeeper.apache.org/
-
+[Cassandra]: http://cassandra.apache.org
 
 ### Install Chronos on Amazon Linux
 

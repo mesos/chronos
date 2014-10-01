@@ -96,8 +96,13 @@ function($, Backbone, _, moment, BaseJobValidations) {
         }, {});
       };
       $.getJSON(url, function(data) {
-        if (!data || !data.count) { return null; }
-        model.set({stats: formatStats(data)});
+        if (!data) { return null; }
+        if (data.histogram && data.histogram.count) {
+          model.set({stats: formatStats(data.histogram)});
+        }
+        if (data.taskStatHistory) {
+          model.set({taskStatHistory: data.taskStatHistory});
+        }
       });
     },
 
