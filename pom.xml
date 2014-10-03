@@ -4,7 +4,7 @@
 
   <groupId>com.airbnb</groupId>
   <artifactId>chronos</artifactId>
-  <version>2.2.0_mesos-0.18.2-SNAPSHOT</version>
+  <version>2.2.0_mesos-0.20.0-SNAPSHOT</version>
   <inceptionYear>2012</inceptionYear>
 
   <prerequisites>
@@ -16,26 +16,25 @@
     <assets.dir>${basedir}/src/main/resources/assets</assets.dir>
 
     <!-- language versions -->
-    <java.abi>1.6</java.abi>
+    <java.abi>1.7</java.abi>
     <scala.version>2.10.4</scala.version>
     <scala.abi>2.10.4</scala.abi>
 
     <!-- runtime deps versions -->
     <akka.version>2.2.1</akka.version>
-    <cassandra-driver-core.version>2.0.1</cassandra-driver-core.version>
+    <cassandra-driver-core.version>2.1.0</cassandra-driver-core.version>
     <chaos.version>0.5.6</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
-    <curator-framework.version>2.4.1</curator-framework.version>
-    <guava.version>14.0.1</guava.version>
+    <curator-framework.version>2.6.0</curator-framework.version>
+    <guava.version>16.0.1</guava.version>
     <guice.version>3.0</guice.version>
     <jgrapht.version>0.9.0</jgrapht.version>
-    <joda-convert.version>1.6</joda-convert.version>
-    <joda-time.version>2.2</joda-time.version>
+    <joda-convert.version>1.7</joda-convert.version>
+    <joda-time.version>2.3</joda-time.version>
     <lz4.version>1.2.0</lz4.version>
-    <mesos.version>0.18.2</mesos.version>
+    <mesos.version>0.20.0</mesos.version>
     <mesos-utils.version>${mesos.version}-1</mesos-utils.version>
-    <metrics.version>3.0.2</metrics.version>
-    <twitter-commons.version>0.0.44</twitter-commons.version>
+    <metrics.version>3.1.0</metrics.version>
     <raven.version>4.1.2</raven.version>
 
     <!-- test deps versions -->
@@ -49,7 +48,7 @@
     <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
     <maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-    <maven-shade-plugin.version>2.1</maven-shade-plugin.version>
+    <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
     <maven-surefire-plugins.version>2.14.1</maven-surefire-plugins.version>
     <scala-maven-plugin.version>3.1.0</scala-maven-plugin.version>
   </properties>
@@ -61,6 +60,11 @@
       <url>http://downloads.mesosphere.io/maven</url>
     </repository>
     <repository>
+      <id>apache-public-repo</id>
+      <name>Apache Public Repo</name>
+      <url>https://repository.apache.org/content/repositories/releases</url>
+    </repository>
+    <repository>
       <id>libs-folder</id>
       <url>file://${basedir}/lib</url>
     </repository>
@@ -69,7 +73,7 @@
     <pluginRepository>
       <id>repo1</id>
       <name>Maven Central</name>
-      <url>http://repo1.maven.org/maven2</url>
+      <url>https://repo1.maven.org/maven2</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -97,11 +101,17 @@
       <groupId>mesosphere</groupId>
       <artifactId>chaos</artifactId>
       <version>${chaos.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.codahale.metrics</groupId>
+          <artifactId>metrics-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>mesosphere</groupId>
-      <artifactId>mesos-utils</artifactId>
+      <artifactId>mesos-utils_2.10</artifactId>
       <version>${mesos-utils.version}</version>
     </dependency>
 
@@ -159,14 +169,20 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.codahale.metrics</groupId>
-      <artifactId>metrics-ganglia</artifactId>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-graphite</artifactId>
       <version>${metrics.version}</version>
     </dependency>
     <dependency>
       <groupId>com.datastax.cassandra</groupId>
       <artifactId>cassandra-driver-core</artifactId>
       <version>${cassandra-driver-core.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.codahale.metrics</groupId>
+          <artifactId>metrics-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.jpountz.lz4</groupId>

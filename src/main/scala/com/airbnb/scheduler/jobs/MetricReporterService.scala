@@ -1,14 +1,13 @@
 package com.airbnb.scheduler.jobs
 
-import com.airbnb.scheduler.config.{GangliaConfiguration, SchedulerConfiguration}
-import com.codahale.metrics.ganglia.GangliaReporter
+import java.net.InetSocketAddress
+
+import com.airbnb.scheduler.config.GraphiteConfiguration
+import com.codahale.metrics.graphite.{Graphite, GraphiteReporter}
 import java.util.concurrent.TimeUnit
 import com.google.common.util.concurrent.AbstractIdleService
 
 import com.codahale.metrics.MetricRegistry
-import com.codahale.metrics.ganglia.GangliaReporter.Builder
-import info.ganglia.gmetric4j.gmetric.GMetric
-import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode
 
 object MetricReporterService {
   object HostPort {
@@ -19,25 +18,21 @@ object MetricReporterService {
   }
 }
 
-class MetricReporterService(config: GangliaConfiguration,
+class MetricReporterService(config: GraphiteConfiguration,
                             registry: MetricRegistry)
     extends AbstractIdleService {
-  private[this] var reporter: Option[GangliaReporter] = None
+  private[this] var reporter: Option[GraphiteReporter] = None
 
   def startUp() {
-    this.reporter = config.gangliaHostPort.get match {
+    this.reporter = config.graphiteHostPort.get match {
       case Some(MetricReporterService.HostPort(host: String, port: Int)) => {
-        val ganglia = config.gangliaSpoofHost.get match {
-          case Some(spoof: String) => new GMetric(host, port,
-            UDPAddressingMode.MULTICAST, 1, true, null, spoof)
-          case _ => new GMetric(host, port, UDPAddressingMode.MULTICAST, 1)
-        }
-        val reporter = GangliaReporter.forRegistry(registry)
-          .prefixedWith(config.gangliaGroupPrefix())
+        val graphite = new Graphite(new InetSocketAddress(host, port))
+        val reporter = GraphiteReporter.forRegistry(registry)
+          .prefixedWith(config.graphiteGroupPrefix())
           .convertRatesTo(TimeUnit.SECONDS)
           .convertDurationsTo(TimeUnit.MILLISECONDS)
-          .build(ganglia)
-        reporter.start(config.gangliaReportIntervalSeconds(), TimeUnit.SECONDS)
+          .build(graphite)
+        reporter.start(config.graphiteReportIntervalSeconds(), TimeUnit.SECONDS)
         Some(reporter)
       }
       case _ => None
@@ -46,7 +41,7 @@ class MetricReporterService(config: GangliaConfiguration,
 
   def shutDown() {
     this.reporter match {
-      case Some(r: GangliaReporter) => r.stop()
+      case Some(r: GraphiteReporter) => r.stop()
       case _ => // Nothing to shutdown!
     }
   }

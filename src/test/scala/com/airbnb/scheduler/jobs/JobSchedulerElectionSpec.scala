@@ -1,8 +1,10 @@
 package com.airbnb.scheduler.jobs
 
+import java.util.concurrent.TimeUnit
+
 import org.specs2.mock.Mockito
 import org.mockito.Mockito.doNothing
-import org.apache.curator.test.{TestingZooKeeperServer, InstanceSpec, TestingCluster}
+import org.apache.curator.test.{InstanceSpec, TestingCluster}
 import org.joda.time.Period
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
@@ -10,11 +12,10 @@ import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.retry.ExponentialBackoffRetry
 
-import org.apache.curator.utils.EnsurePath
+import org.apache.curator.utils.{CloseableUtils, EnsurePath}
 import com.airbnb.scheduler.mesos.MesosDriverFactory
-import org.junit.{After, Before, Test}
+import org.junit.Test
 import org.junit.Assert.{assertFalse, assertTrue}
-
 
 class JobSchedulerElectionSpec
         extends Mockito
@@ -22,15 +23,20 @@ class JobSchedulerElectionSpec
   var port = 8080
 
   def scheduler(connectString: String): (JobScheduler, CuratorFramework, LeaderLatch) = {
-    val curatorBuilder = CuratorFrameworkFactory.builder()
-            .connectionTimeoutMs(10)
+    val curator = CuratorFrameworkFactory.builder()
+            .connectionTimeoutMs(10000)
             .canBeReadOnly(true)
             .connectString(connectString)
-            .retryPolicy(new ExponentialBackoffRetry(1000, 100))
+            .retryPolicy(new ExponentialBackoffRetry(1000, 20))
+            .build()
 
-    val curator = curatorBuilder.build()
+    curator.start()
+    curator.blockUntilConnected(10000, TimeUnit.MILLISECONDS)
+    curator.getZookeeperClient.blockUntilConnectedOrTimedOut()
+    assertTrue(curator.getZookeeperClient.isConnected)
+
     val leaderPath = "/chronos/state/candidate"
-    val leaderLatch = new LeaderLatch(curator, leaderPath, s"127.0.0.1:${port}")
+    val leaderLatch = new LeaderLatch(curator, leaderPath, s"127.0.0.1:$port")
     val persistenceStore = mock[PersistenceStore]
     val mesosDriver: MesosDriverFactory = mock[MesosDriverFactory]
 
@@ -61,10 +67,12 @@ class JobSchedulerElectionSpec
   }
 
   def startAndWaitForElection(curators: List[CuratorFramework], schedulers: List[JobScheduler], latches: List[LeaderLatch]) {
-    curators.foreach(c => c.start())
     curators.foreach(c => c.getZookeeperClient.blockUntilConnectedOrTimedOut())
 
-    schedulers.foreach(s => s.startUp())
+    schedulers.foreach({ s =>
+      s.startUp()
+      Thread.sleep(100)
+    })
     awaitElection(latches)
 
     var maxWaits = 100
@@ -83,24 +91,11 @@ class JobSchedulerElectionSpec
     println(s"Waited ${100 - maxWaits} for election")
   }
 
-  var testCluster: TestingCluster = null
-
-  @Before
-  def createAndStartCluster() {
-    testCluster = new TestingCluster(3)
-    testCluster.start()
-
-    Thread.sleep(5)
-  }
-
-  @After
-  def stopCluster() {
-    testCluster.stop()
-    testCluster = null
-  }
-
   @Test
   def testJobSchedulerShouldElectOnlyOneLeader() {
+    val testCluster = new TestingCluster(3)
+    testCluster.start()
+
     val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
     val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
 
@@ -110,10 +105,19 @@ class JobSchedulerElectionSpec
 
     assertTrue("One scheduler, but not both, should be leader", scheduler1.isLeader ^ scheduler2.isLeader)
     assertTrue("One scheduler, but not both, should be running", scheduler1.running.get() ^ scheduler2.running.get())
+
+    CloseableUtils.closeQuietly(latch1)
+    CloseableUtils.closeQuietly(curator1)
+    CloseableUtils.closeQuietly(latch2)
+    CloseableUtils.closeQuietly(curator2)
+    CloseableUtils.closeQuietly(testCluster)
   }
 
   @Test
   def testElectLeaderOnZkFailure() {
+    val testCluster = new TestingCluster(3)
+    testCluster.start()
+
     val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
     val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
 
@@ -127,6 +131,12 @@ class JobSchedulerElectionSpec
 
     awaitElection(List(latch1, latch2))
     assertTrue("After ZK node failure, one candidate, but not both, must be elected", latch1.hasLeadership ^ latch2.hasLeadership)
+
+    CloseableUtils.closeQuietly(latch1)
+    CloseableUtils.closeQuietly(curator1)
+    CloseableUtils.closeQuietly(latch2)
+    CloseableUtils.closeQuietly(curator2)
+    CloseableUtils.closeQuietly(testCluster)
   }
 
   @Test
@@ -152,5 +162,10 @@ class JobSchedulerElectionSpec
 
     assertTrue("Reserve scheduler should start running after master failure", follower.running.get())
     assertFalse("Former master scheduler should not be running after failure", leader.running.get())
+
+    CloseableUtils.closeQuietly(curator1)
+    CloseableUtils.closeQuietly(latch2)
+    CloseableUtils.closeQuietly(curator2)
+    CloseableUtils.closeQuietly(testCluster)
   }
 }

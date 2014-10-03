@@ -1,11 +1,13 @@
 package com.airbnb.utils
 
-import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
+import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob, Volume, VolumeMode, DockerContainer}
 import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDeserializer}
 import org.joda.time.Period
 import scala.collection.JavaConversions._
 import com.airbnb.scheduler.config.SchedulerConfiguration
+import org.joda.time.{DateTimeZone, DateTime}
 
 object JobDeserializer {
   var config: SchedulerConfiguration = _
@@ -82,6 +84,11 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskMem()
       else 0
 
+    val errorsSinceLastSuccess =
+      if (node.has("errorsSinceLastSuccess") && node.get("errorsSinceLastSuccess") != null)
+        node.get("errorsSinceLastSuccess").asLong
+      else 0L
+
     var uris = scala.collection.mutable.ListBuffer[String]()
     if (node.has("uris")) {
       for (uri <- node.path("uris")) {
@@ -93,6 +100,31 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("highPriority") && node.get("highPriority") != null) node.get("highPriority").asBoolean()
       else false
 
+    val runAsUser =
+      if (node.has("runAsUser") && node.get("runAsUser") != null) node.get("runAsUser").asText
+      else JobDeserializer.config.user()
+
+    var container: DockerContainer = null
+    if (node.has("container")) {
+      val containerNode = node.get("container")
+      // TODO: Add support for more containers when they're added.
+      val volumes = scala.collection.mutable.ListBuffer[Volume]()
+      if (containerNode.has("volumes")) {
+        containerNode.get("volumes").elements().map {
+          case node: ObjectNode => {
+            val hostPath =
+              if (node.has("hostPath")) Option(node.get("hostPath").asText)
+              else None
+            val mode =
+              if (node.has("mode")) Option(VolumeMode.withName(node.get("mode").asText.toUpperCase))
+              else None
+            Volume(hostPath, node.get("containerPath").asText, mode)
+          }
+        }.foreach(volumes.add)
+      }
+      container = DockerContainer(containerNode.get("image").asText, volumes)
+    }
+
     var parentList = scala.collection.mutable.ListBuffer[String]()
     if (node.has("parents")) {
       for (parent <- node.path("parents")) {
@@ -102,15 +134,23 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        uris = uris, highPriority = highPriority)
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
+        runAsUser = runAsUser, container = container)
     } else if (node.has("schedule")) {
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        uris = uris,  highPriority = highPriority)
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        runAsUser = runAsUser, container = container)
     } else {
-      throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
+      /* schedule now */
+      new ScheduleBasedJob("R1//PT24H", name = name, command = command,
+        epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
+        executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        runAsUser = runAsUser, container = container)
     }
   }
 }

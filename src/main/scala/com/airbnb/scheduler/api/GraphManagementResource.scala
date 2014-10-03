@@ -36,7 +36,7 @@ class GraphManagementResource @Inject()(
     try {
       return Response.ok(jobGraph.makeDotFile()).build
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
@@ -53,7 +53,7 @@ class GraphManagementResource @Inject()(
       Exporter.export(buffer, jobGraph)
       return Response.ok(buffer.toString).build
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }

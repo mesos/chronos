@@ -132,12 +132,12 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     persistenceStore.removeTask(taskId)
   }
 
-    def enqueue(taskId: String, highPriority: Boolean) {
-      /* Don't want to change previous logging if we don't have to... */
-      log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
-      val _priority = if(highPriority) HIGH_PRIORITY else NORMAL_PRIORITY
-      queues(_priority).add(taskId)
-    }
+  def enqueue(taskId: String, highPriority: Boolean) {
+    /* Don't want to change previous logging if we don't have to... */
+    log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
+    val _priority = if(highPriority) HIGH_PRIORITY else NORMAL_PRIORITY
+    queues(_priority).add(taskId)
+  }
 
   /**
    * Enqeueues a wrapped Task with a calculated delay, after this time, the job is added to the job queue. This means

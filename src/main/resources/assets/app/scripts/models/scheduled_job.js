@@ -163,7 +163,7 @@ function(Backbone,
     },
 
     parseStartTime: function(time) {
-      if (time == undefined) {
+      if (!time) {
         return 'undefined';
       }
 

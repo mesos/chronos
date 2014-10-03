@@ -60,10 +60,47 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("disabled")
     json.writeBoolean(baseJob.disabled)
 
+    json.writeFieldName("errorsSinceLastSuccess")
+    json.writeNumber(baseJob.errorsSinceLastSuccess)
+
     json.writeFieldName("uris")
     json.writeStartArray()
     baseJob.uris.foreach(json.writeString(_))
     json.writeEndArray()
+
+    json.writeFieldName("highPriority")
+    json.writeBoolean(baseJob.highPriority)
+
+    json.writeFieldName("runAsUser")
+    json.writeString(baseJob.runAsUser)
+
+    if (baseJob.container != null) {
+      json.writeFieldName("container")
+      json.writeStartObject()
+      // TODO: Handle more container types when added.
+      json.writeFieldName("type")
+      json.writeString("docker")
+      json.writeFieldName("image")
+      json.writeString(baseJob.container.image)
+      json.writeFieldName("volumes")
+      json.writeStartArray()
+      baseJob.container.volumes.foreach { v =>
+        json.writeStartObject()
+        v.hostPath.map { hostPath =>
+          json.writeFieldName("hostPath")
+          json.writeString(hostPath)
+        }
+        json.writeFieldName("containerPath")
+        json.writeString(v.containerPath)
+        v.mode.map { mode =>
+          json.writeFieldName("mode")
+          json.writeString(mode.toString)
+        }
+        json.writeEndObject()
+      }
+      json.writeEndArray()
+      json.writeEndObject()
+    }
 
     if (baseJob.isInstanceOf[DependencyBasedJob]) {
       val depJob = baseJob.asInstanceOf[DependencyBasedJob]

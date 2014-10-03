@@ -29,13 +29,17 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideZookeeperClient(): CuratorFramework = {
-    val curatorBuilder = CuratorFrameworkFactory.builder()
+    val curator = CuratorFrameworkFactory.builder()
             .connectionTimeoutMs(config.zooKeeperTimeout().toInt)
             .canBeReadOnly(true)
             .connectString(validateZkServers())
-            .retryPolicy(new ExponentialBackoffRetry(1000, 100))
+            .retryPolicy(new ExponentialBackoffRetry(1000, 10))
+            .build()
 
-    curatorBuilder.build()
+    curator.start()
+    log.info("Connecting to ZK...")
+    curator.blockUntilConnected()
+    curator
   }
 
   @Inject

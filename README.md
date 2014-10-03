@@ -1,4 +1,6 @@
-# Chronos
+# Chronos [![Build Status](https://travis-ci.org/airbnb/chronos.svg?branch=master)](https://travis-ci.org/airbnb/chronos)
+
+__New detailed documentation for Mesos available via the [Mesosphere Website](http://mesosphere.io/docs/)__
 
 Chronos is Airbnb's replacement for `cron`.
 It is a distributed and fault-tolerant scheduler that runs on top of [Apache Mesos][mesos].
@@ -36,6 +38,7 @@ Also join us on IRC in #mesos on freenode.
     - [Manually Starting a Job](#manually-starting-a-job)
     - [Adding a Scheduled Job](#adding-a-scheduled-job)
     - [Adding a Dependent Job](#adding-a-dependent-job)
+    - [Adding a Docker Job] (#adding-a-docker-job)
     - [Describing the Dependency Graph](#describing-the-dependency-graph)
     - [Asynchronous Jobs](#asynchronous-jobs)
     - [Obtaining Remote Executables](#obtaining-remote-executables)
@@ -126,8 +129,8 @@ The screenshot should give you a good idea of what Chronos can do.
 ## API
 
 You can communicate with Chronos using a RESTful [JSON][] API over HTTP.
-Chronos nodes usually listen on `port 4400` for API requests.
-All examples in this section assume that you've found a running leader at `chronos-node.airbnb.com:4400`.
+Chronos nodes usually listen on `port 8080` for API requests.
+All examples in this section assume that you've found a running leader at `chronos-node.airbnb.com:8080`.
 
 ### Leaders
 
@@ -138,7 +141,7 @@ The leader is the only node that responds to API requests, but if you attempt to
 
 * Endpoint: __/scheduler/jobs__
 * Method: __GET__
-* Example: `curl -L -X GET chronos-node:4400/scheduler/jobs`
+* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs`
 * Response: JSON data
 
 A job listing returns a JSON list containing all of the jobs.
@@ -157,7 +160,7 @@ Get a job name from the job listing above. Then:
 
 * Endpoint: __/scheduler/job/jobName__
 * Method: __DELETE__
-* Example: `curl -L -X DELETE chronos-node:4400/scheduler/job/request_event_counter_hourly`
+* Example: `curl -L -X DELETE chronos-node:8080/scheduler/job/request_event_counter_hourly`
 * Response: HTTP 204
 
 ### Deleting All Tasks for a Job
@@ -166,7 +169,7 @@ Deleting tasks for a job is useful if a job gets stuck. Get a job name from the 
 
 * Endpoint: __/scheduler/task/kill/jobName__
 * Method: __DELETE__
-* Example: `curl -L -X DELETE chronos-node:4400/scheduler/task/kill/request_event_counter_hourly`
+* Example: `curl -L -X DELETE chronos-node:8080/scheduler/task/kill/request_event_counter_hourly`
 * Response: HTTP 204
 
 ### Manually Starting a Job
@@ -175,7 +178,7 @@ You can manually start a job by issuing an HTTP request.
 
 * Endpoint: __/scheduler/job__
 * Method: __PUT__
-* Example: `curl -L -X PUT chronos-node:4400/scheduler/job/request_event_counter_hourly`
+* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/request_event_counter_hourly`
 * Response: HTTP 204
 
 ### Adding a Scheduled Job
@@ -186,11 +189,13 @@ The JSON hash you send to Chronos should contain the following fields:
 * Command: the actual command that will be executed by Chronos
 * Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
     * Number of times to repeat the job; put just 'R' to repeat forever
-    * The start time of the job
+    * The start time of the job, an empty start time means start immediately
     * The run interval
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
+
+A job without *schedule* field will has a "R1//PT24H" schedule by default.
 
 Here is an example job hash:
 ```json
@@ -210,7 +215,7 @@ Once you've generated the hash, send it to Chronos like so:
 * Method: __POST__
 * Example:
 
-        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:4400/scheduler/iso8601
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
 
 * Response: HTTP 204
 
@@ -224,7 +229,7 @@ This should be a JSON list of all jobs which must run at least once before this 
 * Method: __POST__
 * Example:
 
-        curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:4400/scheduler/iso8601
+        curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/scheduler/dependency
 
 Here is a more elaborate example for a dependency job hash:
 
@@ -247,6 +252,32 @@ Here is a more elaborate example for a dependency job hash:
 }
 ```
 
+###Adding a Docker Job
+
+A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
+To configure it, an additional container argument is required, which contains a type (req), an image (req), and volumes (optional). 
+
+* Endpoint: __/scheduler/iso8601__ or __/scheduler/depdency__
+* Method: __POST__
+* Example:
+
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+
+```json
+{
+ "schedule": "R\/2014-09-25T17:22:00Z\/PT2M",
+ "name": "dockerjob",
+   "container": {
+   "type": "DOCKER",
+   "image": "libmesos/ubuntu"
+  },
+ "cpus": "0.5",
+ "mem": "512",
+ "uris": [],
+ "command": "while sleep 10; do date =u %T; done"
+}
+```
+
 ### Describing the Dependency Graph
 
 Chronos allows to describe the dependency graph and has an endpoint to return this graph in form of a dotfile.
@@ -255,7 +286,7 @@ Chronos allows to describe the dependency graph and has an endpoint to return th
 * Method: __GET__
 * Example:
 ```bash
-    curl -L -X GET chronos-node:4400/scheduler/graph/dot
+    curl -L -X GET chronos-node:8080/scheduler/graph/dot
 ```
 
 ### Asynchronous Jobs
@@ -273,7 +304,7 @@ Reporting job completion to Chronos is done via another API call:
 * Method: __PUT__
 * Example:
 ```bash
-    curl -L -X PUT -H "Content-Type: application/json" -d '{"statusCode":0}' chronos-node:4400/scheduler/task/my_job_run_555_882083xkj302
+    curl -L -X PUT -H "Content-Type: application/json" -d '{"statusCode":0}' chronos-node:8080/scheduler/task/my_job_run_555_882083xkj302
 ```
 
 The task id is auto-generated by Chronos. It will be available in your job's environment as `$mesos_task_id`.
@@ -293,7 +324,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | command             | Command to execute.                                                                                      | -                              |
 | epsilon             | If, for any reason, a job can't be started at the scheduled time, this is the window in which Chronos will attempt to run the job again | `PT60S` or `--task_epsilon`. |
 | executor            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
-| executorFlogs       | Flags to pass to Mesos executor.                                                                         | -                              |
+| executorFlags       | Flags to pass to Mesos executor.                                                                         | -                              |
 | retries             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | owner               | Email addresses to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
 | async               | Execute using Async executor.                                                                            | `false`                        |
@@ -301,14 +332,15 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | errorCount          | Number of errors since the job was last modified.                                                        | -                              |
 | lastSuccess         | Date of last successful attempt.                                                                         | -                              |
 | lastError           | Date of last failed attempt.                                                                             | -                              |
-| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpus`   |
-| mem                 | Amount of Mesos Memory for this job.                                                                     | `100` or `--mesos_task_mem`    |
-| disk                | Amount of Mesos disk for this job.                                                                       | `100` or `--mesos_task_cpus`   |
+| cpus                | Amount of Mesos CPUs for this job.                                                                       | `0.1` or `--mesos_task_cpu`    |
+| mem                 | Amount of Mesos Memory in MB for this job.                                                               | `128` or `--mesos_task_mem`    |
+| disk                | Amount of Mesos disk in MB for this job.                                                                 | `256` or `--mesos_task_disk`   |
 | disabled            | If set to true, this job will not be run.                                                                | `false`                        |
 | uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
-
+| runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
+| container           | This contains the subfields for the container, type (req), image (req), and volumes (optional).          | -                              |
 
 ### Sample Job
 
@@ -354,7 +386,7 @@ $ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config -c
 After that, you can run the normal sync like this:
 
 ```
-$ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config -c
+$ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config
 ```
 
 You can also forcefully update the configuration in Chronos from disk by
@@ -453,14 +485,14 @@ If you use the cURL command line tool, you can use the `-L` flag and hit any Chr
 
 ### Zookeeper
 
-Chronos registers itself with [Zookeeper][Zookeeper] at the location `/airbnb/service/chronos`. This value can be changed via the configuration file.
+Chronos registers itself with [Zookeeper][Zookeeper] at the location `/chronos/state`. This value can be changed via the configuration file.
 
 
 [arx]: https://github.com/solidsnack/arx
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [json]: http://www.json.org/
 [mesos]: https://mesos.apache.org/ "Apache Mesos"
-[logging]: http://dropwizard.codahale.com/manual/core/#logging
+[logging]: http://dropwizard.io/manual/core.html#logging
 [Zookeeper]: https://zookeeper.apache.org/
 
 

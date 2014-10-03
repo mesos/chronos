@@ -11,6 +11,7 @@ import scala.collection.Map
 import javax.inject.Inject
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import scala.collection.JavaConverters._
+import org.apache.mesos.Protos.ContainerInfo.DockerInfo
 
 /**
  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
@@ -84,30 +85,35 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         .setName("mesos_task_id").setValue(taskIdStr))
       .addVariables(Variable.newBuilder()
         .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
-    if (!job.executor.isEmpty) {
+    if (job.executor.nonEmpty) {
       appendExecutorData(taskInfo, job)
     } else {
-      taskInfo.setCommand(
-        if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
-          val uri1 = CommandInfo.URI.newBuilder()
-            .setValue(job.command)
-            .setExecutable(true).build()
+      val command = CommandInfo.newBuilder()
+      if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
+        val uri1 = CommandInfo.URI.newBuilder()
+          .setValue(job.command)
+          .setExecutable(true).build()
 
-          CommandInfo.newBuilder().addUris(uri1)
-            .setValue("\"." + job.command.substring(
-              job.command.lastIndexOf("/")) + "\"")
-            .setEnvironment(environment)
-        } else {
-          val uriProtos = job.uris.map(uri => {
-            CommandInfo.URI.newBuilder()
-              .setValue(uri)
-              .build()
-          })
-          CommandInfo.newBuilder()
-            .setValue(job.command)
-            .setEnvironment(environment)
-            .addAllUris(uriProtos.asJava)
+        command.addUris(uri1)
+          .setValue("\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
+          .setEnvironment(environment)
+      } else {
+        val uriProtos = job.uris.map(uri => {
+          CommandInfo.URI.newBuilder()
+            .setValue(uri)
+            .build()
         })
+        command.setValue(job.command)
+          .setEnvironment(environment)
+          .addAllUris(uriProtos.asJava)
+      }
+      if (job.runAsUser.nonEmpty) {
+        command.setUser(job.runAsUser)
+      }
+      taskInfo.setCommand(command.build())
+      if (job.container != null) {
+        taskInfo.setContainer(createContainerInfo(job))
+      }
     }
 
     val mem = if (job.mem > 0) job.mem else conf.mesosTaskMem()
@@ -121,6 +127,24 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     return taskInfo
   }
 
+  def createContainerInfo(job: BaseJob): ContainerInfo = {
+    val builder = ContainerInfo.newBuilder()
+    job.container.volumes.map { v =>
+      val volumeBuilder = Volume.newBuilder().setContainerPath(v.containerPath)
+      v.hostPath.map { h =>
+        volumeBuilder.setHostPath(h)
+      }
+
+      v.mode.map { m =>
+        volumeBuilder.setMode(Volume.Mode.valueOf(m.toString.toUpperCase))
+      }
+
+      volumeBuilder.build()
+    }.foreach(builder.addVolumes)
+    builder.setType(ContainerInfo.Type.DOCKER)
+    builder.setDocker(DockerInfo.newBuilder().setImage(job.container.image).build()).build
+  }
+
   def getExecutorName(x: String) = "%s".format(x)
 
   def getDataBytes(executorFlags: String, executorArgs: String) = {
@@ -130,10 +154,18 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
 
   def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob) {
     log.info("Appending executor:" + job.executor + ", flags:" + job.executorFlags + ", command:" + job.command)
-    taskInfo.setExecutor(
-      ExecutorInfo.newBuilder()
-        .setExecutorId(ExecutorID.newBuilder().setValue("shell-wrapper-executor"))
-        .setCommand(CommandInfo.newBuilder().setValue(job.executor)))
+    val command = CommandInfo.newBuilder()
+      .setValue(job.executor)
+    if (job.runAsUser.nonEmpty) {
+      command.setUser(job.runAsUser)
+    }
+    val executor = ExecutorInfo.newBuilder()
+      .setExecutorId(ExecutorID.newBuilder().setValue("shell-wrapper-executor"))
+      .setCommand(command.build())
+    if (job.container != null) {
+      executor.setContainer(createContainerInfo(job))
+    }
+    taskInfo.setExecutor(executor)
       .setData(getDataBytes(job.executorFlags, job.command))
   }
 }

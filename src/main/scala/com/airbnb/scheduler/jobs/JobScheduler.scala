@@ -39,7 +39,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
                              val jobMetrics: JobMetrics,
-                             val jobStats: JobStats)
+                             val jobStats: JobStats,
+                             val clusterName: Option[String] = None)
   //Allows us to let Chaos manage the lifecycle of this class.
   extends AbstractIdleService
   {
@@ -60,6 +61,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   var streams: List[ScheduleStream] = List()
 
   def isLeader: Boolean = leader.get()
+
+  def getClusterPrefix(clusterName: Option[String]) = clusterName match {
+    case Some(clusterName) => s"[$clusterName] "
+    case None => ""
+  }
 
   def getLeader: String = {
     try {
@@ -328,16 +334,17 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
         in between */
       if (job.isInstanceOf[ScheduleBasedJob]) {
-        val scheduleBasedJob: ScheduleBasedJob = job.asInstanceOf[ScheduleBasedJob]
+        val scheduleBasedJob: ScheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
         Iso8601Expressions.parse(scheduleBasedJob.schedule) match {
           case Some((recurrences, _, _)) =>
             if (recurrences == 0) {
               log.info("Disabling job that reached a zero-recurrence count!")
 
               val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
+              val clusterPrefix = getClusterPrefix(clusterName)
               sendNotification(
                 job,
-                "job '%s' disabled".format(job.name),
+                "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
                 Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
                         |Please consider either removing your job, or updating its schedule and re-enabling it.
                       """.stripMargin.format(job.name)))
@@ -367,9 +374,15 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           jobStats.jobFailed(job, taskStatus, attempt)
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
-
-          val hadRecentSuccess: Boolean = job.lastError.length > 0 && job.lastSuccess.length > 0 &&
-            (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
+          val hadRecentSuccess: Boolean = try {
+            job.lastError.length > 0 && job.lastSuccess.length > 0 &&
+              (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
+          } catch {
+            case ex: IllegalArgumentException =>
+              log.warning(s"Couldn't parse last run date from ${job.name}")
+              false
+            case _ : Exception => false
+          }
 
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
@@ -395,7 +408,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                   case _ => throw new IllegalArgumentException("Cannot handle unknown task type")
                 }
             }
-            replaceJob(job, newJob)
+            updateJob(job, newJob)
+
+            val clusterPrefix = getClusterPrefix(clusterName)
 
             // Handle failure by either disabling the job and notifying the owner,
             // or just notifying the owner.
@@ -404,11 +419,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                 + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
               message match {
                 case Some(message) =>
-                  sendNotification(job, "[Chronos] JOB DISABLED: '%s'".format(job.name),
+                  sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
                     Some("\nFailed at '%s', %d failures since last success\nThe scheduler provided this message:\n\n%s"
                         .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, message)))
                 case None =>
-                  sendNotification(job, "[Chronos] JOB DISABLED: '%s'".format(job.name),
+                  sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
                     Some("\nFailed at '%s', %d failures since last success\n"
                         .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess)))
               }
@@ -416,11 +431,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               log.warning("Job failed beyond retries!")
               message match {
                 case Some(message) =>
-                  sendNotification(job, "[Chronos] job '%s' failed!".format(job.name),
+                  sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
                     Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
                         .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
                 case None =>
-                  sendNotification(job, "[Chronos] job '%s' failed!".format(job.name),
+                  sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
                     Some("\n'%s'. Retries attempted: %d.\n"
                         .format(DateTime.now(DateTimeZone.UTC), job.retries)))
               }
@@ -683,6 +698,5 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     log.info("Starting mesos driver")
     mesosDriver.start()
   }
-
   //End Leader interface
 }

@@ -1,17 +1,20 @@
 package com.airbnb.scheduler.mesos
 
 import java.util.logging.Logger
-import scala.Some
 
 import com.airbnb.scheduler.jobs._
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.google.inject.Inject
 import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
+import org.joda.time.DateTime
 
 import scala.collection.mutable.HashMap
+import scala.collection.JavaConverters._
 import mesosphere.mesos.util.FrameworkIdUtil
 import com.airbnb.utils.JobDeserializer
+import scala.math.Ordering.Implicits._
+import mesosphere.util.BackToTheFuture
 
 /**
  * Provides the interface to mesos. Receives callbacks from mesos when resources are offered, declined etc.
@@ -27,7 +30,17 @@ class MesosJobFramework @Inject()(
   extends Scheduler {
 
   private[this] val log = Logger.getLogger(getClass.getName)
-  private var runningJobs = new HashMap[String, String]
+
+  private class ChronosTask(val slaveId: String,
+                            var taskStatus: Option[TaskStatus] = None) {
+    override def toString: String = {
+      s"slaveId=$slaveId, taskStatus=${taskStatus.getOrElse("none").toString}"
+    }
+  }
+
+  private var lastReconciliation = DateTime.now.plusSeconds(config.reconciliationInterval())
+
+  private var runningTasks = new HashMap[String, ChronosTask]
   JobDeserializer.config = config
 
   val frameworkName = "chronos"
@@ -35,6 +48,9 @@ class MesosJobFramework @Inject()(
   /* Overridden methods from MesosScheduler */
   @Override
   def registered(schedulerDriver: SchedulerDriver, frameworkID: FrameworkID, masterInfo: MasterInfo) {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import BackToTheFuture.Implicits.defaultTimeout
+
     log.info("Registered")
     log.info("Master info:" + masterInfo.toString)
     frameworkIdUtil.store(frameworkID)
@@ -49,6 +65,19 @@ class MesosJobFramework @Inject()(
   @Override
   def disconnected(schedulerDriver: SchedulerDriver) {
     log.warning("Disconnected")
+  }
+
+  def getScalarValueOrElse(opt: Option[Resource], value: Double): Double = {
+    opt.map(x => x.getScalar.getValue).getOrElse(value)
+  }
+
+  def getReservedResources(offer: Offer): (Double, Double) = {
+    val resources = offer.getResourcesList.asScala
+    val reservedResources = resources.filter({x => x.hasRole && x.getRole != "*"})
+    (
+      getScalarValueOrElse(reservedResources.find(x => x.getName == "cpus"), 0),
+      getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0)
+    )
   }
 
   //TODO(FL): Persist the UPDATED task or job into ZK such that on failover / reload, we don't have to step through the
@@ -79,13 +108,43 @@ class MesosJobFramework @Inject()(
         }
       }
     }
-    getNextTask(offers.asScala.toList)
+
+    // Sorting like this ensures that offers with the most amount of
+    // reserved resources are preferred first over other offers.
+    getNextTask(
+      offers.asScala.toList
+        .sortWith(getReservedResources(_) > getReservedResources(_))
+    )
+
+    // Perform a reconciliation, if needed.
+    reconcile(schedulerDriver)
   }
 
   @Override
   def offerRescinded(schedulerDriver: SchedulerDriver, offerID: OfferID) {
     //TODO(FL): Handle this case! In practice this isn't a problem as we have retries.
     log.warning("Offer rescinded for offer:" + offerID.getValue)
+  }
+
+  def reconcile(schedulerDriver: SchedulerDriver): Unit = {
+    if (DateTime.now().isAfter(lastReconciliation.plusSeconds(config.reconciliationInterval()))) {
+      lastReconciliation = DateTime.now()
+
+      val taskStatuses = runningTasks.keys.flatMap(id => runningTasks.get(id))
+
+      log.info("Performing task reconciliation with the Mesos master")
+      schedulerDriver.reconcileTasks(taskStatuses.flatMap(task => task.taskStatus).asJavaCollection)
+    }
+ }
+
+  def updateRunningTask(jobName: String, taskStatus: TaskStatus): Unit = {
+    runningTasks.get(jobName) match {
+      case Some(chronosTask) =>
+        chronosTask.taskStatus = Some(taskStatus)
+      case _ =>
+        runningTasks.put(jobName, new ChronosTask(taskStatus.getSlaveId.getValue, Some(taskStatus)))
+        log.warning(s"Received status update for untracked jobName=$jobName")
+    }
   }
 
   @Override
@@ -96,10 +155,12 @@ class MesosJobFramework @Inject()(
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
         scheduler.handleStartedTask(taskStatus)
+        updateRunningTask(jobName, taskStatus)
       case TaskState.TASK_STAGING =>
         scheduler.handleStartedTask(taskStatus)
+        updateRunningTask(jobName, taskStatus)
       case _ =>
-        runningJobs.remove(jobName)
+        runningTasks.remove(jobName)
     }
 
     //TOOD(FL): Add statistics for jobs
@@ -123,6 +184,9 @@ class MesosJobFramework @Inject()(
       case _ =>
         log.warning("Unknown TaskState:" + taskStatus.getState + " for task: " + taskStatus.getTaskId.getValue)
     }
+
+    // Perform a reconciliation, if needed.
+    reconcile(schedulerDriver)
   }
 
   @Override
@@ -135,11 +199,11 @@ class MesosJobFramework @Inject()(
     log.warning("Slave lost")
 
     // Remove any running jobs from this slave
-    val jobs = runningJobs.filter {
+    val jobs = runningTasks.filter {
       case (k, v) =>
-        slaveID.getValue == v
+        slaveID.getValue == v.slaveId
     }
-    runningJobs --= jobs.keys
+    runningTasks --= jobs.keys
   }
 
   @Override
@@ -150,7 +214,7 @@ class MesosJobFramework @Inject()(
   @Override
   def error(schedulerDriver: SchedulerDriver, message: String) {
     log.info("Error: " + message)
-    scheduler.stop()
+    scheduler.shutDown()
   }
 
   /**
@@ -167,7 +231,7 @@ class MesosJobFramework @Inject()(
       System.currentTimeMillis))
     import collection.JavaConversions._
 
-    var sufficient = scala.collection.mutable.Map[String, Boolean]().withDefaultValue(false)
+    val sufficient = scala.collection.mutable.Map[String, Boolean]().withDefaultValue(false)
     logOffer(offer)
     offer.getResourcesList.foreach({x =>
         log.info(x.getScalar.getValue.getClass.getName)
@@ -206,16 +270,21 @@ class MesosJobFramework @Inject()(
     log.info("Launching task from offer: " + offer + " with task: " + mesosTask)
 
     import scala.collection.JavaConverters._
-    if (runningJobs.contains(job.name)) {
+    if (runningTasks.contains(job.name)) {
       log.info("Task '%s' not launched because it appears to be runing".format(taskId))
       mesosDriver.get().declineOffer(offer.getId)
     } else {
-      val status: Protos.Status = mesosDriver.get().launchTasks(offer.getId, List(mesosTask).asJava, filters)
+      val status: Protos.Status =
+        mesosDriver.get().launchTasks(
+        List(offer.getId).asJava,
+        List(mesosTask).asJava,
+        filters
+      )
       if (status == Protos.Status.DRIVER_RUNNING) {
         val deleted = taskManager.removeTask(taskId)
         log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
           .format(taskId, deleted))
-        runningJobs.put(job.name, offer.getSlaveId.getValue)
+        runningTasks.put(job.name, new ChronosTask(offer.getSlaveId.getValue))
       }
 
       //TODO(FL): Handle case if mesos can't launch the task.

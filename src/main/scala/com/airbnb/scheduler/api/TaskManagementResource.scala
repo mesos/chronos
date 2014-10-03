@@ -13,7 +13,7 @@ import com.airbnb.scheduler.state.PersistenceStore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.inject.Inject
 import com.codahale.metrics.annotation.Timed
-import org.apache.mesos.Protos.{TaskID, TaskStatus}
+import org.apache.mesos.Protos.{TaskID, TaskStatus, TaskState}
 
 /**
  * The REST API for managing tasks such as updating the status of an asynchronous task.
@@ -45,14 +45,14 @@ class TaskManagementResource @Inject()(
 
       if (taskNotification.statusCode == 0) {
         log.info("Task completed successfully '%s'".format(id))
-        jobScheduler.handleFinishedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).build)
+        jobScheduler.handleFinishedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).setState(TaskState.TASK_FINISHED).build)
       } else {
         log.info("Task failed '%s'".format(id))
-        jobScheduler.handleFailedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).build)
+        jobScheduler.handleFailedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).setState(TaskState.TASK_FAILED).build)
       }
       Response.noContent().build()
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
@@ -70,7 +70,7 @@ class TaskManagementResource @Inject()(
       taskManager.removeTasks(job)
       return Response.noContent().build()
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }
@@ -87,7 +87,7 @@ class TaskManagementResource @Inject()(
       taskManager.queues.foreach(_.clear())
       return Response.noContent().build()
     } catch {
-      case ex: Throwable => {
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
       }

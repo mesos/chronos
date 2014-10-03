@@ -1,10 +1,9 @@
 package com.airbnb.scheduler.jobs
 
-
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.annotation.{JsonSerialize, JsonDeserialize}
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.joda.time.{Period, Minutes}
-import com.airbnb.utils.{JobDeserializer}
+import com.airbnb.utils.JobDeserializer
 
 /**
  * BaseJob encapsulates job specific information. BaseJob is defined for all tasks within a job.
@@ -42,6 +41,8 @@ trait BaseJob {
   def errorsSinceLastSuccess: Long = 0L
   def uris: Seq[String] = List()
   def highPriority: Boolean = false
+  def runAsUser: String = ""
+  def container: DockerContainer = null
 }
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -65,7 +66,9 @@ case class ScheduleBasedJob(
     @JsonProperty override val disabled: Boolean = false,
     @JsonProperty override val errorsSinceLastSuccess: Long = 0L,
     @JsonProperty override val uris: Seq[String] = List(),
-    @JsonProperty override val highPriority: Boolean = false)
+    @JsonProperty override val highPriority: Boolean = false,
+    @JsonProperty override val runAsUser: String = "",
+    @JsonProperty override val container: DockerContainer = null)
   extends BaseJob
 
 
@@ -90,5 +93,7 @@ case class DependencyBasedJob(
     @JsonProperty override val disabled: Boolean = false,
     @JsonProperty override val errorsSinceLastSuccess: Long = 0L,
     @JsonProperty override val uris: Seq[String] = List(),
-    @JsonProperty override val highPriority: Boolean = false)
+    @JsonProperty override val highPriority: Boolean = false,
+    @JsonProperty override val runAsUser: String = "",
+    @JsonProperty override val container: DockerContainer = null)
   extends BaseJob
