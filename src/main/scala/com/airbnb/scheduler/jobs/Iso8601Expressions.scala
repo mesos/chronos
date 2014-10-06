@@ -2,6 +2,7 @@ package com.airbnb.scheduler.jobs
 
 import org.joda.time.{Period, DateTime, DateTimeZone}
 import org.joda.time.format.{ISODateTimeFormat, ISOPeriodFormat}
+import java.util.TimeZone
 
 /**
  * Parsing, creating and validation for Iso8601 expressions.
@@ -27,7 +28,7 @@ object Iso8601Expressions {
           repeatStr.substring(1).toLong
       }
 
-      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC) else DateTime.parse(startStr)
+      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC) else convertToDateTime(startStr)
       val period: Period = ISOPeriodFormat.standard.parsePeriod(periodStr)
       Some((repeat, start, period))
     } catch {
@@ -65,5 +66,26 @@ object Iso8601Expressions {
       "R%d/%s/%s".format(recurrences, formatter.print(startDate), ISOPeriodFormat.standard.print(period))
     else
       "R/%s/%s".format(formatter.print(startDate), ISOPeriodFormat.standard.print(period))
+  }
+
+  /**
+   * Creates a DateTime object from an input string.  This parses the object by first checking for a time zone and then
+   * using a datetime formatter to format the date and time.
+   * @param dateTimeStr the input date time string with optional time zone
+   * @return the date time
+   */
+  def convertToDateTime(dateTimeStr: String): DateTime = {
+    val endTZIndex = dateTimeStr.length
+    val beginTZIndex = dateTimeStr.indexOf("TZ:")
+    if (beginTZIndex != -1) {
+      val timeZoneStr = dateTimeStr.substring(beginTZIndex + 3, endTZIndex)
+      val newDateTimeStr = dateTimeStr.substring(0, beginTZIndex) + "Z"
+      val timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(timeZoneStr))
+      val dateTime =  DateTime.parse(newDateTimeStr)
+      dateTime.withZoneRetainFields(timeZone)
+    }
+    else {
+      DateTime.parse(dateTimeStr)
+    }
   }
 }
