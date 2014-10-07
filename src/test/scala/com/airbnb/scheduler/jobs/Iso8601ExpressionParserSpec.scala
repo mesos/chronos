@@ -67,5 +67,57 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
       fail must beEqualTo(false)
     }
 
+    "Test parse error using two time zone options at once (Z and PST)" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00ZTZ:PST/P1D") match {
+        case None =>
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+    "Test parse error with lower case tz" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00tz:PST/P1D") match {
+        case None =>
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+    "Test parse error using two time zone options at once (EDT and PST)" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00-04:00TZ:PST/P1D") match {
+        case None =>
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+      "Test parse error when period is not specified" in {
+        val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00TZ:PST") match {
+          case None =>
+            false
+          case _ =>
+            true
+        }
+        fail must beEqualTo(false)
+      }
+
+    "Test parse error when time zone is specified without time" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01TZ:PST") match {
+        case None =>
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+
+
   }
 }
