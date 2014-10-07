@@ -208,10 +208,10 @@ The JSON hash you send to Chronos should contain the following fields:
      	s    = one or more digits representing a decimal fraction of a second
 
      	TZD  = time zone designator (Z or +hh:mm or -hh:mm or TZ:code)
-      
-	Please note that time zone codes are supported by appending TZ: to the end of the time specification.
-      	For example, if I want to start the job at 6:32:00 Pacific Standard Time, I would use the following schedule: R10/2012-10-01T06:32:00TZ:PST/PT2S. All time zones in java.util.Timezone#getAvailableIDs() are supported.
-      	Alternatively, if the user does not want to use the time zone code, the user can specify the time zone using the standard ISO8601 offset format, i.e. 2012-10-01T06:32:00-08:00 for Pacific Standard Time.
+
+        Please note that time zone codes are supported by appending TZ: to the end of the time specification.
+        For example, if I want to start the job at 6:32:00 Pacific Standard Time, I would use the following schedule: R10/2012-10-01T06:32:00TZ:PST/PT2S. All time zones in java.util.Timezone#getAvailableIDs() are supported.
+        Alternatively, if the user does not want to use the time zone code, the user can specify the time zone using the standard ISO8601 offset format, i.e. 2012-10-01T06:32:00-08:00 for Pacific Standard Time.
     * The run interval
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
