@@ -189,7 +189,7 @@ The JSON hash you send to Chronos should contain the following fields:
 * Command: the actual command that will be executed by Chronos
 * Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
     * Number of times to repeat the job; put just 'R' to repeat forever
-    * The start time of the job, an empty start time means start immediately. Our format is as follows and is ISO 8601 with an optional time zone code:
+    * The start time of the job, an empty start time means start immediately. Our format is as follows and is ISO8601 with an optional time zone code:
       
         YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00) where:
 
