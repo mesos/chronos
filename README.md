@@ -194,12 +194,19 @@ The JSON hash you send to Chronos should contain the following fields:
         YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00) where:
 
      	YYYY = four-digit year
-     	MM   = two-digit month (01=January, etc.)
+
+        MM   = two-digit month (01=January, etc.)
+
      	DD   = two-digit day of month (01 through 31)
+
      	hh   = two digits of hour (00 through 23) (am/pm NOT allowed)
+
      	mm   = two digits of minute (00 through 59)
+
      	ss   = two digits of second (00 through 59)
+
      	s    = one or more digits representing a decimal fraction of a second
+
      	TZD  = time zone designator (Z or +hh:mm or -hh:mm or TZ:code)
       
 	Please note that time zone codes are supported by appending TZ: to the end of the time specification.
