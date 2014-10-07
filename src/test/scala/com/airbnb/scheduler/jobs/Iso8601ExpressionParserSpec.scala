@@ -37,5 +37,35 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
       fail must beEqualTo(false)
     }
 
+    "properly parse time zone (BST)" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00TZ:BST/P1D") match {
+        case Some(tuple) =>
+          tuple._1 must_== -1L
+          tuple._2 must_== Iso8601Expressions.convertToDateTime("2008-03-01T13:00:00TZ:BST")
+          tuple._2.getMillis must_== DateTime.parse("2008-03-01T13:00:00+06:00").getMillis
+          //This is a hack because Period's equals seems broken!
+          tuple._3.toString must_== new Period(Days.ONE).toString
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+    "properly parse time zone (PST)" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00TZ:PST/P1D") match {
+        case Some(tuple) =>
+          tuple._1 must_== -1L
+          tuple._2 must_== Iso8601Expressions.convertToDateTime("2008-03-01T13:00:00TZ:PST")
+          tuple._2.getMillis must_== DateTime.parse("2008-03-01T13:00:00-08:00").getMillis
+          //This is a hack because Period's equals seems broken!
+          tuple._3.toString must_== new Period(Days.ONE).toString
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
   }
 }
