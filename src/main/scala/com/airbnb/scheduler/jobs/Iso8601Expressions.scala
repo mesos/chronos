@@ -10,7 +10,7 @@ import java.util.TimeZone
  */
 object Iso8601Expressions {
   private[this] val formatter = ISODateTimeFormat.dateTime
-  val iso8601ExpressionRegex = """(R[0-9]*)/(.*)/(P.*)?""".r
+  val iso8601ExpressionRegex = """(R[0-9]*)/(.*)/(P.*)""".r
 
   /**
    * Parses a ISO8601 expression into a tuple consisting of the number of repetitions (or -1 for infinity),
@@ -20,7 +20,11 @@ object Iso8601Expressions {
    */
   def parse(input: String): Option[(Long, DateTime, Period)] = {
     try {
-      val iso8601ExpressionRegex(repeatStr, startStr, periodStr) = input
+      val iso8601ExpressionRegex(repeatStr, startStr, endStr) = input
+      val splitStr = endStr.split("/")
+      val periodStr = splitStr(0)
+      val timeZoneStr = if (splitStr.size == 2) splitStr(1) else ""
+
       val repeat: Long = {
         if (repeatStr.length == 1)
           -1L
@@ -28,7 +32,7 @@ object Iso8601Expressions {
           repeatStr.substring(1).toLong
       }
 
-      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC) else convertToDateTime(startStr)
+      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC) else convertToDateTime(startStr, timeZoneStr)
       val period: Period = ISOPeriodFormat.standard.parsePeriod(periodStr)
       Some((repeat, start, period))
     } catch {
@@ -74,18 +78,14 @@ object Iso8601Expressions {
    * @param dateTimeStr the input date time string with optional time zone
    * @return the date time
    */
-  def convertToDateTime(dateTimeStr: String): DateTime = {
-    val endTZIndex = dateTimeStr.length
-    val beginTZIndex = dateTimeStr.indexOf("TZ:")
-    if (beginTZIndex != -1) {
-      val timeZoneStr = dateTimeStr.substring(beginTZIndex + 3, endTZIndex)
-      val newDateTimeStr = dateTimeStr.substring(0, beginTZIndex) + "Z"
-      val timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(timeZoneStr))
-      val dateTime =  DateTime.parse(newDateTimeStr)
+  def convertToDateTime(dateTimeStr: String, timeZoneStr: String): DateTime = {
+    val dateTime = DateTime.parse(dateTimeStr)
+    if (timeZoneStr.length > 3 && timeZoneStr.startsWith("TZ:")) {
+      val substringZone = timeZoneStr.substring(3, timeZoneStr.length)
+      val timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(substringZone))
       dateTime.withZoneRetainFields(timeZone)
-    }
-    else {
-      DateTime.parse(dateTimeStr)
+    } else {
+      dateTime
     }
   }
 }
