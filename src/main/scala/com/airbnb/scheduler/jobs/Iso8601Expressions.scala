@@ -20,10 +20,12 @@ object Iso8601Expressions {
    */
   def parse(input: String): Option[(Long, DateTime, Period)] = {
     try {
-      val iso8601ExpressionRegex(repeatStr, startStr, endStr) = input
-      val splitStr = endStr.split("/")
-      val periodStr = splitStr(0)
-      val timeZoneStr = if (splitStr.size == 2) splitStr(1) else ""
+     //check for optional time zone argument
+     val timeZoneSplit = input.split("/TZ:")
+     val inputStr = timeZoneSplit(0)
+     val timeZoneStr = if (timeZoneSplit.length == 2) timeZoneSplit(1) else ""
+
+      val iso8601ExpressionRegex(repeatStr, startStr, periodStr) = inputStr
 
       val repeat: Long = {
         if (repeatStr.length == 1)
@@ -80,9 +82,8 @@ object Iso8601Expressions {
    */
   def convertToDateTime(dateTimeStr: String, timeZoneStr: String): DateTime = {
     val dateTime = DateTime.parse(dateTimeStr)
-    if (timeZoneStr.length > 3 && timeZoneStr.startsWith("TZ:")) {
-      val substringZone = timeZoneStr.substring(3, timeZoneStr.length)
-      val timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(substringZone))
+    if (timeZoneStr.length > 0) {
+      val timeZone = DateTimeZone.forTimeZone(TimeZone.getTimeZone(timeZoneStr))
       dateTime.withZoneRetainFields(timeZone)
     } else {
       dateTime

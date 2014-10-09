@@ -65,13 +65,23 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
       fail must beEqualTo(false)
     }
 
-    "Test no time zone change when time zone is not input correctly, i.e. lower tz" in {
-      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00Z/P1D/tz:PST") match {
+    "properly parse time zone (Europe/Paris)" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00Z/P1D/TZ:Europe/Paris") match {
         case Some((repetitions, startTime, period)) =>
           repetitions must_== -1L
-          startTime.getMillis must_==  DateTime.parse("2008-03-01T13:00:00Z").getMillis
+          startTime.getMillis must_== DateTime.parse("2008-03-01T13:00:00+01:00").getMillis
           //This is a hack because Period's equals seems broken!
           period.toString must_== new Period(Days.ONE).toString
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+    "Test error when time zone is not input correctly, i.e. lower tz" in {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00Z/P1D/tz:PST") match {
+        case None =>
           false
         case _ =>
           true
