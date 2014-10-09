@@ -187,9 +187,9 @@ The heart of job scheduling is a JSON POST request.
 The JSON hash you send to Chronos should contain the following fields:
 * Name: the job name
 * Command: the actual command that will be executed by Chronos
-* Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
+* Schedule: The scheduling for the job, in ISO8601 format. Consists of 4 parts (the final part is optional)  separated by '/':
     * Number of times to repeat the job; put just 'R' to repeat forever
-    * The start time of the job, an empty start time means start immediately. Our format is as follows and is ISO8601 with an optional time zone code:
+    * The start time of the job, an empty start time means start immediately. Our format is ISO8601:
       
         YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00) where:
 
@@ -207,12 +207,13 @@ The JSON hash you send to Chronos should contain the following fields:
 
      	s    = one or more digits representing a decimal fraction of a second
 
-     	TZD  = time zone designator (Z or +hh:mm or -hh:mm or TZ:code)
+     	TZD  = time zone designator (Z or +hh:mm or -hh:mm)
 
-        Please note that time zone codes are supported by appending TZ: to the end of the time specification.
-        For example, if I want to start the job at 6:32:00 Pacific Standard Time, I would use the following schedule: R10/2012-10-01T06:32:00TZ:PST/PT2S. All time zones in java.util.Timezone#getAvailableIDs() are supported.
-        Alternatively, if the user does not want to use the time zone code, the user can specify the time zone using the standard ISO8601 offset format, i.e. 2012-10-01T06:32:00-08:00 for Pacific Standard Time.
     * The run interval
+    * The time zone code (optional) 
+       
+      For example, if I want to start the job at 6:32:00 Pacific Standard Time, I would use the following schedule: R10/2012-10-01T06:32:00/PT2S/TZ:PST. All time zones in java.util.Timezone#getAvailableIDs() are supported.
+      If this option is used, it will take precedence over the offset in the ISO8601 specification.  
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
