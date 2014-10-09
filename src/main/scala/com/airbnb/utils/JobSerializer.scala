@@ -99,6 +99,17 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeEndObject()
       }
       json.writeEndArray()
+      json.writeFieldName("environmentVariables")
+      json.writeStartArray()
+      baseJob.container.environmentVariables.foreach { v =>
+        json.writeStartObject()
+        json.writeFieldName("name")
+        json.writeString(v.name)
+        json.writeFieldName("value")
+        json.writeString(v.value)
+        json.writeEndObject()
+      }
+      json.writeEndArray()
       json.writeEndObject()
     }
 

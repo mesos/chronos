@@ -25,7 +25,11 @@ class SerDeTest extends SpecificationWithJUnit {
         Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RO)),
         Volume(None, "container/dir", None)
       )
-      val container = DockerContainer("dockerImage", volumes)
+      val environmentVariables = Seq(
+        EnvironmentVariable("FOO", "BAR"),
+        EnvironmentVariable("AAAA", "BBBB")
+      )
+      val container = DockerContainer("dockerImage", volumes, environmentVariables)
 
       val a = new DependencyBasedJob(Set("B", "C", "D", "E"), "A", "noop", Minutes.minutes(5).toPeriod, 10L,
         20L, "fooexec", "fooflags", 7, "foo@bar.com", "TODAY", "YESTERDAY", true, container = container)
@@ -47,7 +51,11 @@ class SerDeTest extends SpecificationWithJUnit {
         Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW)),
         Volume(None, "container/dir", None)
       )
-      val container = DockerContainer("dockerImage", volumes)
+      val environmentVariables = Seq(
+        EnvironmentVariable("FOO", "BAR"),
+        EnvironmentVariable("AAAA", "BBBB")
+      )
+      val container = DockerContainer("dockerImage", volumes, environmentVariables)
 
       val a = new ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
         "fooexec", "fooflags", 7, "foo@bar.com", "TODAY", "YESTERDAY", true, container = container)

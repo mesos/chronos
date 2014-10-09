@@ -17,4 +17,9 @@ case class Volume(
 
 case class DockerContainer(
   @JsonProperty image: String,
-  @JsonProperty volumes: Seq[Volume])
+  @JsonProperty volumes: Seq[Volume],
+  @JsonProperty environmentVariables: Seq[EnvironmentVariable])
+
+case class EnvironmentVariable(
+  @JsonProperty name: String,
+  @JsonProperty value: String)
