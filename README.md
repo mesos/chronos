@@ -217,8 +217,8 @@ The JSON hash you send to Chronos should contain the following fields:
   * For example, the effective time zone for the following is `Pacific Standard Time`
     * ```json
       {
-        "Schedule": "R/2014-10-10T18:32:00Z/PT60M",
-        "ScheduleTimeZone": "PST"
+        "schedule": "R/2014-10-10T18:32:00Z/PT60M",
+        "scheduleTimeZone": "PST"
       }
       ```
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
