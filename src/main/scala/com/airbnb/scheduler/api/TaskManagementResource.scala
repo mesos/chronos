@@ -4,7 +4,7 @@ import java.util.logging.{Level, Logger}
 import javax.ws.rs.{DELETE, Path, PathParam, Produces, PUT,  WebApplicationException}
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import scala.reflect.BeanProperty
+import scala.beans.BeanProperty
 
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import com.airbnb.scheduler.graph.JobGraph
