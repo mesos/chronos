@@ -420,24 +420,26 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               message match {
                 case Some(message) =>
                   sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
-                    Some("\nFailed at '%s', %d failures since last success\nThe scheduler provided this message:\n\n%s"
-                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, message)))
+                    Some("\nFailed at '%s', %d failures since last success\nTask id: %s\nThe scheduler provided this message:\n\n%s"
+                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess,
+                                taskId, message)))
                 case None =>
                   sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
-                    Some("\nFailed at '%s', %d failures since last success\n"
-                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess)))
+                    Some("\nFailed at '%s', %d failures since last success\nTask id: %s\n"
+                        .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, taskId)))
               }
             } else {
               log.warning("Job failed beyond retries!")
               message match {
                 case Some(message) =>
                   sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
-                    Some("\n'%s'. Retries attempted: %d.\nThe scheduler provided this message:\n\n%s"
-                        .format(DateTime.now(DateTimeZone.UTC), job.retries, message)))
+                    Some("\n'%s'. Retries attempted: %d.\nTask id: %s\nThe scheduler provided this message:\n\n%s"
+                        .format(DateTime.now(DateTimeZone.UTC), job.retries,
+                                taskId, message)))
                 case None =>
                   sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
-                    Some("\n'%s'. Retries attempted: %d.\n"
-                        .format(DateTime.now(DateTimeZone.UTC), job.retries)))
+                    Some("\n'%s'. Retries attempted: %d.\nTask id: %s\n"
+                        .format(DateTime.now(DateTimeZone.UTC), job.retries, taskId)))
               }
             }
             jobMetrics.updateJobStatus(jobName, success = false)
