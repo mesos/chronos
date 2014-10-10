@@ -36,7 +36,8 @@ class Iso8601JobResource @Inject()(
         log.info("Received request for job:" + newJob.toString)
         require(JobUtils.isValidJobName(newJob.name),
           "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
-        if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) return Response.status(Response.Status.BAD_REQUEST).build()
+        if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone))
+          return Response.status(Response.Status.BAD_REQUEST).build()
 
         //TODO(FL): Create a wrapper class that handles adding & removing jobs!
         jobScheduler.registerJob(List(newJob), persist = true)
