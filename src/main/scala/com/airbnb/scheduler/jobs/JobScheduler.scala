@@ -335,7 +335,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         in between */
       if (job.isInstanceOf[ScheduleBasedJob]) {
         val scheduleBasedJob: ScheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
-        Iso8601Expressions.parse(scheduleBasedJob.schedule) match {
+        Iso8601Expressions.parse(scheduleBasedJob.schedule, scheduleBasedJob.scheduleTimeZone) match {
           case Some((recurrences, _, _)) =>
             if (recurrences == 0) {
               log.info("Disabling job that reached a zero-recurrence count!")
@@ -485,7 +485,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
    */
   @tailrec
   final def next(now: DateTime, stream: ScheduleStream): (Option[ScheduledTask], Option[ScheduleStream]) = {
-    val (schedule, jobName) = stream.head()
+    val (schedule, jobName, scheduleTimeZone) = stream.head()
 
     log.info("Calling next for stream: %s, jobname: %s".format(stream.schedule, jobName))
     assert(schedule != null && !schedule.equals(""), "No valid schedule found: " + schedule)
@@ -508,7 +508,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       }
     }
 
-    Iso8601Expressions.parse(schedule) match {
+    Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
       case Some((recurrences, nextDate, _)) =>
         log.finest("Recurrences: '%d', next date: '%s'".format(recurrences, stream.schedule))
         //nextDate has to be > (now - epsilon) & < (now + timehorizon) , for it to be scheduled!

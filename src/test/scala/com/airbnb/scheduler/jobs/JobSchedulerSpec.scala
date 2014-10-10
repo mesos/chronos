@@ -107,7 +107,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       // First one passed, next invocation is 01:01 (b/c of 20 second epsilon)
       // Horizon is 5 minutes, so lookforward until 00:06:01.000Z
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _) = newScheduleStreams(0).head()
+      val (isoExpr, _, _) = newScheduleStreams(0).head()
 
       var date: DateTime = new DateTime()
       Iso8601Expressions.parse(isoExpr) match {
@@ -133,7 +133,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val horizon = Minutes.minutes(60).toPeriod
       val scheduler = new JobScheduler(horizon, null, mockGraph, mock[PersistenceStore], jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _) = newScheduleStreams(0).head()
+      val (isoExpr, _, _) = newScheduleStreams(0).head()
 
       var date: DateTime = new DateTime()
       Iso8601Expressions.parse(isoExpr) match {
