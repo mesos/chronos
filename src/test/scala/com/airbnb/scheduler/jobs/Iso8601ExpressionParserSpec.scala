@@ -6,11 +6,11 @@ import org.specs2.mutable._
 class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
   "Iso8601Expressions$" should {
     "reject non-iso8601 expressions" in {
-      Iso8601Expressions.parse("FOO", "") should be (None)
+      Iso8601Expressions.parse("FOO") should be (None)
     }
 
     "properly parse expression" in {
-      val fail = Iso8601Expressions.parse("R5/2008-03-01T13:00:00Z/P1D", "") match {
+      val fail = Iso8601Expressions.parse("R5/2008-03-01T13:00:00Z/P1D") match {
         case Some((repetitions, startTime, period)) =>
           repetitions must_== 5L
           startTime must_== DateTime.parse("2008-03-01T13:00:00Z")
@@ -24,7 +24,7 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
     }
 
     "properly parse infinite repetition" in {
-      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00Z/P1D", "") match {
+      val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00Z/P1D") match {
         case Some((repetitions, startTime, period)) =>
           repetitions must_== -1L
           startTime must_== DateTime.parse("2008-03-01T13:00:00Z")

@@ -18,7 +18,7 @@ object Iso8601Expressions {
    * @param input the input string which is a ISO8601 expression consisting of Repetition, Start and Period.
    * @return a three tuple (repetitions, start, period)
    */
-  def parse(input: String, timeZoneStr: String): Option[(Long, DateTime, Period)] = {
+  def parse(input: String, timeZoneStr: String = ""): Option[(Long, DateTime, Period)] = {
     try {
 
       val iso8601ExpressionRegex(repeatStr, startStr, periodStr) = input
@@ -47,7 +47,7 @@ object Iso8601Expressions {
    * @param input
    * @return
    */
-  def canParse(input: String, timeZoneStr: String): Boolean = {
+  def canParse(input: String, timeZoneStr: String = ""): Boolean = {
     parse(input, timeZoneStr) match {
       case Some((_, _, _)) =>
         true

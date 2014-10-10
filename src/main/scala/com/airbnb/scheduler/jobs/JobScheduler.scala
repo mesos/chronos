@@ -485,7 +485,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
    */
   @tailrec
   final def next(now: DateTime, stream: ScheduleStream): (Option[ScheduledTask], Option[ScheduleStream]) = {
-    val (schedule, scheduleTimeZone, jobName) = stream.head()
+    val (schedule, jobName, scheduleTimeZone) = stream.head()
 
     log.info("Calling next for stream: %s, jobname: %s".format(stream.schedule, jobName))
     assert(schedule != null && !schedule.equals(""), "No valid schedule found: " + schedule)

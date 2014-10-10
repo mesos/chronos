@@ -138,19 +138,18 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         runAsUser = runAsUser, container = container)
     } else if (node.has("schedule")) {
         val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
-        new ScheduleBasedJob(node.get("schedule").asText, scheduleTimeZone = scheduleTimeZone, name = name,
-        command = command,epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
-        executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
-        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
-        runAsUser = runAsUser, container = container)
-    } else {
-      /* schedule now */
-      new ScheduleBasedJob("R1//PT24H", scheduleTimeZone = "", name = name, command = command,
+        new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone)
+    } else {
+      /* schedule now */
+      new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
+        errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
+        lastError = lastError, lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem,
+        disabled = disabled, errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container)
     }
   }

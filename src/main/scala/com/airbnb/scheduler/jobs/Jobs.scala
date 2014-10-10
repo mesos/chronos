@@ -48,7 +48,6 @@ trait BaseJob {
 @JsonDeserialize(using = classOf[JobDeserializer])
 case class ScheduleBasedJob(
     @JsonProperty schedule: String,
-    @JsonProperty scheduleTimeZone : String = "",
     @JsonProperty override val name: String,
     @JsonProperty override val command: String,
     @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,
@@ -69,7 +68,8 @@ case class ScheduleBasedJob(
     @JsonProperty override val uris: Seq[String] = List(),
     @JsonProperty override val highPriority: Boolean = false,
     @JsonProperty override val runAsUser: String = "",
-    @JsonProperty override val container: DockerContainer = null)
+    @JsonProperty override val container: DockerContainer = null,
+    @JsonProperty scheduleTimeZone : String = "")
   extends BaseJob
 
 

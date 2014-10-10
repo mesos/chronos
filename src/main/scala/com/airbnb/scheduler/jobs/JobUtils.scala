@@ -106,7 +106,7 @@ object JobUtils {
         if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
           skipForward(job, dateTime)
         } else {
-          Some(new ScheduleStream(job.schedule, job.scheduleTimeZone, job.name))
+          Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
         }
       case None =>
         skipForward(job, dateTime)
@@ -122,7 +122,7 @@ object JobUtils {
           log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
             .format(skip, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.scheduleTimeZone, job.name))
+          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name,  job.scheduleTimeZone))
         } else if (rec < skip) {
           log.warning("Filtered job as it is no longer valid.")
           None
@@ -132,7 +132,7 @@ object JobUtils {
           log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
             .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.scheduleTimeZone, job.name))
+          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
         }
       case None =>
         None

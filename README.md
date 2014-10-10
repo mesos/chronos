@@ -210,8 +210,17 @@ The JSON hash you send to Chronos should contain the following fields:
      	TZD  = time zone designator (Z or +hh:mm or -hh:mm)
 
     * The run interval
-* ScheduleTimeZone: For example, if I want to start the job at 6:32:00 AM Pacific Standard Time, I would use the following field: "scheduleTimeZone": "PST" along with this schedule field,
-"schedule" = "R/2014-10-10T18:32:00Z/PT60M". All time zones in java.util.Timezone#getAvailableIDs() are supported. If this field is used, it will take precedence over any offset in the ISO8601 specification for the schedule field.
+* ScheduleTimeZone: The TimeZone name to use when scheduling the job.
+  * This field takes precedence over any time zone specified in Schedule.
+  * All system time zones supported by [`java.util.Timezone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
+    * See [List of tz database time zones](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+  * For example, the effective time zone for the following is `Pacific Standard Time`
+    * ```json
+      {
+        "Schedule": "R/2014-10-10T18:32:00Z/PT60M",
+        "ScheduleTimeZone": "PST"
+      }
+      ```
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background

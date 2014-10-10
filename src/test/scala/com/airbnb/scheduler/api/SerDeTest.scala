@@ -49,7 +49,7 @@ class SerDeTest extends SpecificationWithJUnit {
       )
       val container = DockerContainer("dockerImage", volumes)
 
-      val a = new ScheduleBasedJob("FOO/BAR/BAM", "", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
+      val a = new ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
         "fooexec", "fooflags", 7, "foo@bar.com", "TODAY", "YESTERDAY", true, container = container)
 
       val aStr = objectMapper.writeValueAsString(a)
