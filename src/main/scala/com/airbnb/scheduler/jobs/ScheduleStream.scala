@@ -6,10 +6,10 @@ package com.airbnb.scheduler.jobs
  * The schedule consists of a string representation of an ISO8601 expression as well as a BaseJob.
  * @author Florian Leibert (flo@leibert.de)
  */
-class ScheduleStream(val schedule: String, val jobName: String) {
+class ScheduleStream(val schedule: String, val scheduleTimeZone : String, val jobName: String) {
 
-  def head(): (String, String) = {
-    (schedule, jobName)
+  def head(): (String, String, String) = {
+    (schedule, scheduleTimeZone, jobName)
   }
 
   /**
@@ -18,12 +18,14 @@ class ScheduleStream(val schedule: String, val jobName: String) {
    */
   def tail(): Option[ScheduleStream] = {
     //TODO(FL) Represent the schedule as a data structure instead of a string.
-    Iso8601Expressions.parse(schedule) match {
+    Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
       case Some((rec, start, per)) =>
         if (rec == -1)
-          return Some(new ScheduleStream(Iso8601Expressions.create(rec, start.plus(per), per), jobName))
+          return Some(new ScheduleStream(Iso8601Expressions.create(rec, start.plus(per), per), scheduleTimeZone,
+            jobName))
         else if (rec > 0)
-          return Some(new ScheduleStream(Iso8601Expressions.create(rec - 1, start.plus(per), per), jobName))
+          return Some(new ScheduleStream(Iso8601Expressions.create(rec - 1, start.plus(per), per), scheduleTimeZone,
+            jobName))
         else
           return None
       case None =>

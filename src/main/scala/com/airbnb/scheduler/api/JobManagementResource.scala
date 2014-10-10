@@ -59,6 +59,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                   case childJob: DependencyBasedJob =>
                     val newChild = new ScheduleBasedJob(
                       schedule = j.schedule,
+                      scheduleTimeZone = j.scheduleTimeZone,
                       name = childJob.name,
                       command = childJob.command,
                       epsilon = childJob.epsilon,

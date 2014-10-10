@@ -48,6 +48,7 @@ trait BaseJob {
 @JsonDeserialize(using = classOf[JobDeserializer])
 case class ScheduleBasedJob(
     @JsonProperty schedule: String,
+    @JsonProperty scheduleTimeZone : String = "",
     @JsonProperty override val name: String,
     @JsonProperty override val command: String,
     @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,

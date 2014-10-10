@@ -15,7 +15,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val jobName = "FOO"
       val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
 
-      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
+      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", "", jobName)
 
       val mockGraph = mock[JobGraph]
       mockGraph.lookupVertex(jobName).returns(Some(job1))
@@ -35,7 +35,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val jobName = "FOO"
       val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
 
-      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
+      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", "", jobName)
 
       val mockGraph = mock[JobGraph]
       mockGraph.lookupVertex(jobName).returns(Some(job1))
@@ -52,7 +52,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val jobName = "FOO"
       val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
 
-      val singleJobStream = new ScheduleStream("R0/2012-01-01T00:00:01.000Z/PT1M", jobName)
+      val singleJobStream = new ScheduleStream("R0/2012-01-01T00:00:01.000Z/PT1M", "", jobName)
 
       val mockGraph = mock[JobGraph]
       mockGraph.lookupVertex(jobName).returns(Some(job1))
@@ -72,7 +72,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val mockGraph = mock[JobGraph]
       mockGraph.lookupVertex(jobName).returns(Some(job1))
 
-      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
+      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", "", jobName)
 
       val horizon = Minutes.minutes(10).toPeriod
       val scheduler = new JobScheduler(horizon, null, mockGraph, mock[PersistenceStore], jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
@@ -87,7 +87,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
 
       //2012-01-01T00:00:00.000 -> 2012-01-01T00:09:00.000
-      val jobStream = new ScheduleStream("R10/2012-01-01T00:00:00.000Z/PT1M", jobName)
+      val jobStream = new ScheduleStream("R10/2012-01-01T00:00:00.000Z/PT1M", "", jobName)
       // 1st planned invocation @ 2012-01-01T00:00:00.000Z (missed)
       // 2nd planned invocation @ 2012-01-01T00:01:00.000Z (executed)
       // 3rd planned invocation @ 2012-01-01T00:02:00.000Z (scheduled)
@@ -107,10 +107,10 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       // First one passed, next invocation is 01:01 (b/c of 20 second epsilon)
       // Horizon is 5 minutes, so lookforward until 00:06:01.000Z
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _) = newScheduleStreams(0).head()
+      val (isoExpr, _, _) = newScheduleStreams(0).head()
 
       var date: DateTime = new DateTime()
-      Iso8601Expressions.parse(isoExpr) match {
+      Iso8601Expressions.parse(isoExpr, "") match {
         case Some((_, d, _)) =>
           date = d
         case None =>
@@ -125,7 +125,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val jobName = "FOO"
       val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
 
-      val jobStream = new ScheduleStream("R10/2012-01-10T00:00:00.000Z/PT1M", jobName)
+      val jobStream = new ScheduleStream("R10/2012-01-10T00:00:00.000Z/PT1M", "", jobName)
 
       val mockGraph = mock[JobGraph]
       mockGraph.lookupVertex(jobName).returns(Some(job1))
@@ -133,10 +133,10 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val horizon = Minutes.minutes(60).toPeriod
       val scheduler = new JobScheduler(horizon, null, mockGraph, mock[PersistenceStore], jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _) = newScheduleStreams(0).head()
+      val (isoExpr, _, _) = newScheduleStreams(0).head()
 
       var date: DateTime = new DateTime()
-      Iso8601Expressions.parse(isoExpr) match {
+      Iso8601Expressions.parse(isoExpr, "") match {
         case Some((_, d, _)) =>
           date = d
         case None =>
@@ -148,8 +148,8 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     "Multiple tasks must be scheduled if they're within epsilon and before time-horizon" in {
       val epsilon = Minutes.minutes(5).toPeriod
       val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-      val jobStream = new ScheduleStream("R60/2012-01-01T00:00:00.000Z/PT1S", jobName)
+      val job1 = new ScheduleBasedJob(schedule = "", scheduleTimeZone = "", name = jobName, command = "", epsilon = epsilon)
+      val jobStream = new ScheduleStream("R60/2012-01-01T00:00:00.000Z/PT1S", "", jobName)
 
       val mockGraph = mock[JobGraph]
       mockGraph.lookupVertex(jobName).returns(Some(job1))
@@ -167,10 +167,10 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     "Infinite task must be scheduled" in {
       val epsilon = Seconds.seconds(60).toPeriod
       val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
+      val job1 = new ScheduleBasedJob(schedule = "", scheduleTimeZone = "", name = jobName, command = "", epsilon = epsilon)
 
 
-      val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1M", jobName)
+      val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1M", "", jobName)
 
       val horizon = Seconds.seconds(30).toPeriod
       val mockTaskManager = mock[TaskManager]
@@ -213,8 +213,8 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
 
   "Removing tasks must also remove the streams" in {
     val epsilon = Seconds.seconds(60).toPeriod
-    val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "FOO", "CMD", epsilon)
-    val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "BAR", "CMD", epsilon)
+    val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "", "FOO", "CMD", epsilon)
+    val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "", "BAR", "CMD", epsilon)
 
     val horizon = Seconds.seconds(30).toPeriod
     val mockTaskManager = mock[TaskManager]
@@ -247,11 +247,11 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     val jobName = "FOO"
     val jobCmd = "BARCMD"
 
-    val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1S", jobName , jobCmd, epsilon)
+    val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1S", "", jobName , jobCmd, epsilon)
     val mockGraph = mock[JobGraph]
     mockGraph.lookupVertex(job1.name).returns(Some(job1))
 
-    val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1S", jobName)
+    val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1S", "", jobName)
     val scheduler = new JobScheduler(Period.hours(1), mock[TaskManager], mockGraph, store, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
     scheduler.leader.set(true)
 
@@ -260,14 +260,14 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     var stream = scheduler.iteration(startTime, List(jobStream))
     t = t.plus(Period.millis(1).toPeriod)
     stream = scheduler.iteration(t, stream)
-    val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1S", jobName , jobCmd, epsilon, 0)
+    val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1S", "",  jobName , jobCmd, epsilon, 0)
     there was one(store).persistJob(job2)
     there was one(mockGraph).replaceVertex(job1, job2)
   }
 
   "Missed executions have to be skipped" in {
     val epsilon = Seconds.seconds(60).toPeriod
-    val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
+    val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "", "job1", "CMD", epsilon)
 
     val mockTaskManager = mock[TaskManager]
     val jobGraph = new JobGraph

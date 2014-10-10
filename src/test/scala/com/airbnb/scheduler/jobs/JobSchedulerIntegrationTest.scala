@@ -17,7 +17,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
   "JobScheduler" should {
     "A job creates a failed task and then a successful task from a synchronous job" in {
       val epsilon = Hours.hours(2).toPeriod
-      val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
+      val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "", "job1", "CMD", epsilon)
 
       val exec = MoreExecutors.listeningDecorator(new ScheduledThreadPoolExecutor(1))
 
@@ -44,10 +44,10 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
       there was one(persistenceStore)
-        .persistJob(new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
+        .persistJob(new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "", "job1", "CMD", epsilon))
 
       there was one(persistenceStore)
-        .persistJob(new ScheduleBasedJob("R4/2012-01-02T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
+        .persistJob(new ScheduleBasedJob("R4/2012-01-02T00:00:00.000Z/P1D", "", "job1", "CMD", epsilon))
     }
 
     "Executing a job updates the job counts and errors" in {
@@ -257,9 +257,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
     "Tests that complex dependent jobs run when they should" in {
       val epsilon = Minutes.minutes(20).toPeriod
       val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-        name = "job1", command = "fooo", epsilon = epsilon, disabled=false)
+        scheduleTimeZone = "", name = "job1", command = "fooo", epsilon = epsilon, disabled=false)
       val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-        name = "job2", command = "fooo", epsilon = epsilon, disabled=false)
+        scheduleTimeZone = "", name = "job2", command = "fooo", epsilon = epsilon, disabled=false)
 
       val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled=false)
       val job4 = new DependencyBasedJob(Set("job1", "job2"), name = "job4", command = "CMD", disabled=false)
