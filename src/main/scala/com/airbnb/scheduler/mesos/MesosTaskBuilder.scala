@@ -87,6 +87,16 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
       .addVariables(Variable.newBuilder()
         .setName("CHRONOS_JOB_NAME").setValue(job.name))
+        
+    if (job.container != null && job.container.environmentVariables.nonEmpty) {
+        // Add environment variables from the container to the 
+        // environment builder
+    	job.container.environmentVariables.foreach (env => 
+    	  environment.addVariables(Variable.newBuilder()
+            .setName(env.name).setValue(env.value))
+    	)
+    }
+    
     if (job.executor.nonEmpty) {
       appendExecutorData(taskInfo, job)
     } else {

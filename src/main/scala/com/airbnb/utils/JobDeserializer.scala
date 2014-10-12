@@ -8,6 +8,7 @@ import org.joda.time.Period
 import scala.collection.JavaConversions._
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import org.joda.time.{DateTimeZone, DateTime}
+import com.airbnb.scheduler.jobs.EnvironmentVariable
 
 object JobDeserializer {
   var config: SchedulerConfiguration = _
@@ -122,7 +123,15 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
           }
         }.foreach(volumes.add)
       }
-      container = DockerContainer(containerNode.get("image").asText, volumes)
+      val envVariables = scala.collection.mutable.ListBuffer[EnvironmentVariable]()
+      if (containerNode.has("environmentVariables")) {
+        containerNode.get("environmentVariables").elements().map {
+          case node: ObjectNode => {
+            EnvironmentVariable(node.get("name").asText(), node.get("value").asText)
+          }
+        }.foreach(envVariables.add)
+      }
+      container = DockerContainer(containerNode.get("image").asText, volumes, envVariables)
     }
 
     var parentList = scala.collection.mutable.ListBuffer[String]()
