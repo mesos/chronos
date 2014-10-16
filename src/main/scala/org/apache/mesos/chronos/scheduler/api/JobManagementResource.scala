@@ -119,10 +119,11 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Path(PathConstants.jobStatsPatternPath)
   def getStat(@PathParam("jobName") jobName: String): Response = {
     try {
-      require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
+      val jobOpt = jobGraph.lookupVertex(jobName)
+      require(!jobOpt.isEmpty, "Job '%s' not found".format(jobName))
 
       val histoStats = jobMetrics.getJobHistogramStats(jobName)
-      val jobStatsList: List[TaskStat] = jobScheduler.jobStats.getMostRecentTaskStatsByJob(jobName, cassandraConfig.jobHistoryLimit())
+      val jobStatsList: List[TaskStat] = jobScheduler.jobStats.getMostRecentTaskStatsByJob(jobOpt.get, cassandraConfig.jobHistoryLimit())
       val jobStatsWrapper = new JobStatWrapper(jobStatsList, histoStats)
 
       val wrapperStr = objectMapper.writeValueAsString(jobStatsWrapper)
@@ -158,6 +159,45 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response.serverError().build
+    }
+  }
+
+  /**
+   * Allows an user to update the elements processed count for a job that
+   * supports data tracking. The processed count has to be non-negative.
+   */
+  @POST
+  @Path(PathConstants.jobTaskProgressPath)
+  def updateTaskProgress(@PathParam("jobName") jobName: String,
+          @PathParam("taskId") taskId: String,
+          taskStat: TaskStat) : Response = {
+    try {
+      var jobOpt = jobGraph.lookupVertex(jobName)
+      require(!jobOpt.isEmpty, "Job '%s' not found".format(jobName))
+      require(TaskUtils.isValidVersion(taskId), "Invalid task id format %s".format(taskId))
+      require(jobOpt.get.dataProcessingJobType, "Job '%s' is not enabled to track data".format(jobName))
+
+      taskStat.numAdditionalElementsProcessed match {
+        case Some(num: Int) => {
+          //NOTE: 0 is a valid value
+          require(num >= 0,
+            "numAdditionalElementsProcessed (%d) is not positive".format(num))
+
+          jobScheduler.jobStats.updateTaskProgress(jobOpt.get, taskId, num)
+        }
+        case None =>
+      }
+      Response.noContent().build
+    } catch {
+      case ex: IllegalArgumentException => {
+        log.log(Level.INFO, "Bad Request", ex)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+          .build()
+      }
+      case ex: Exception => {
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        Response.serverError().build
+      }
     }
   }
 

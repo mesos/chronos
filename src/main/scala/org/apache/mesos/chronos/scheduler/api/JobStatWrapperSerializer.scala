@@ -71,6 +71,15 @@ class JobStatWrapperSerializer extends JsonSerializer[JobStatWrapper] {
       json.writeFieldName("status")
       json.writeString(taskStat.taskStatus.toString())
 
+      //only write elements processed, ignore numAdditionalElementsProcessed
+      taskStat.numElementsProcessed match {
+        case Some(num: Long) => {
+          json.writeFieldName("numElementsProcessed")
+          json.writeNumber(num)
+        }
+        case None =>
+      }
+
       json.writeEndObject()
     }
     json.writeEndArray()

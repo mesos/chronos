@@ -71,6 +71,8 @@ trait BaseJob {
   def arguments: Seq[String] = List()
 
   def softError: Boolean = false
+
+  def dataProcessingJobType: Boolean = false
 }
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -101,7 +103,8 @@ case class ScheduleBasedJob(
                              @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List(),
                              @JsonProperty override val shell: Boolean = true,
                              @JsonProperty override val arguments: Seq[String] = List(),
-                             @JsonProperty override val softError: Boolean = false)
+                             @JsonProperty override val softError: Boolean = false,
+                             override val dataProcessingJobType: Boolean = false)
   extends BaseJob
 
 
@@ -132,5 +135,6 @@ case class DependencyBasedJob(
                                @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List(),
                                @JsonProperty override val shell: Boolean = true,
                                @JsonProperty override val arguments: Seq[String] = List(),
-                               @JsonProperty override val softError: Boolean = false)
+                               @JsonProperty override val softError: Boolean = false,
+                               override val dataProcessingJobType: Boolean = false)
   extends BaseJob

@@ -23,17 +23,18 @@ object CurrentState extends Enumeration {
 class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) {
 
   // Cassandra table column names
-  private val TASK_ID: String  = "id"
-  private val TIMESTAMP: String = "ts"
+  private val ATTEMPT: String = "attempt"
+  private val ELEMENTS_PROCESSED = "elements_processed"
+  private val IS_FAILURE: String = "is_failure"
   private val JOB_NAME: String = "job_name"
   private val JOB_OWNER: String = "job_owner"
-  private val JOB_SCHEDULE: String = "job_schedule"
   private val JOB_PARENTS: String = "job_parents"
-  private val TASK_STATE: String = "task_state"
-  private val SLAVE_ID: String = "slave_id"
+  private val JOB_SCHEDULE: String = "job_schedule"
   private val MESSAGE: String = "message"
-  private val ATTEMPT: String = "attempt"
-  private val IS_FAILURE: String = "is_failure"
+  private val SLAVE_ID: String = "slave_id"
+  private val TASK_ID: String  = "id"
+  private val TASK_STATE: String = "task_state"
+  private val TIMESTAMP: String = "ts"
 
   protected val jobStates = new HashMap[String, CurrentState.Value]()
 
@@ -83,16 +84,16 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   /**
    * Queries Cassandra table for past and current job statistics by jobName
    * and limits by numTasks. The result is not sorted by execution time
-   * @param jobName
+   * @param job
    * @param numTasks
    * @return list of cassandra rows
    */
-  private def getTaskDataByJob(jobName: String): Option[List[Row]] = {
+  private def getTaskDataByJob(job: BaseJob): Option[List[Row]] = {
     var rowsListFinal: Option[List[Row]] = None
     try {
       getSession match {
         case Some(session: Session) =>
-          val query = s"SELECT * FROM ${config.cassandraTable()} WHERE ${JOB_NAME}='${jobName}';"
+          val query = s"SELECT * FROM ${config.cassandraTable()} WHERE ${JOB_NAME}='${job.name}';"
           val prepared = statements.getOrElseUpdate(query, {
             session.prepare(
               new SimpleStatement(query)
@@ -138,6 +139,53 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       }
     }
     !compareAscDate
+  }
+
+  /**
+   * Queries Cassandra stat table to get the element processed count
+   * for a specific job and a specific task
+   * @param jobName
+   * @param taskId
+   * @return element processed count
+   */
+  private def getTaskStatCount(job: BaseJob, taskId: String): Option[Long] = {
+    var taskStatCount: Option[Long] = None
+    try {
+      getSession match {
+        case Some(session: Session) => {
+          val query = s"SELECT * FROM ${config.cassandraStatCountTable()} WHERE job_name='${job.name}' AND task_id='${taskId}';"
+          val prepared = statements.getOrElseUpdate(query, {
+            session.prepare(
+              new SimpleStatement(query)
+                .setConsistencyLevel(readConsistencyLevel())
+                .asInstanceOf[RegularStatement]
+            )
+          })
+          val resultSet = session.execute(prepared.bind())
+
+          //should just be one row
+          val resultRow = resultSet.one()
+          if (resultRow != null) {
+            var cDef = resultRow.getColumnDefinitions()
+            if (cDef.contains(ELEMENTS_PROCESSED)) {
+              taskStatCount = Some(resultRow.getLong(ELEMENTS_PROCESSED))
+            }
+          } else {
+            log.info("No elements processed count found for job_name %s taskId %s".format(job.name, taskId))
+          }
+        }
+        case None =>
+      }
+    } catch {
+      case e: NoHostAvailableException =>
+        resetSession()
+        log.log(Level.WARNING, "No hosts were available, will retry next time.", e)
+      case e: QueryExecutionException =>
+        log.log(Level.WARNING,"Query execution failed:", e)
+      case e: QueryValidationException =>
+        log.log(Level.WARNING,"Query validation failed:", e)
+    }
+    taskStatCount
   }
 
   /**
@@ -192,13 +240,13 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
 
   /**
    * Returns a list of tasks (TaskStat) found for the specified job name
-   * @param jobName
+   * @param job
    * @return list of past and current running tasks for the job
    */
-  private def getParsedTaskStatsByJob(jobName: String): List[TaskStat] = {
+  private def getParsedTaskStatsByJob(job: BaseJob): List[TaskStat] = {
     val taskMap = Map[String, TaskStat]()
 
-    val rowsListOpt = getTaskDataByJob(jobName) match {
+    val rowsListOpt = getTaskDataByJob(job) match {
       case Some(rowsList) => {
         for (row <- rowsList) {
           /*
@@ -213,12 +261,12 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
                     row.getString(SLAVE_ID)))
             updateTaskStat(taskStat, row)
           } else {
-            log.info("Invalid row found in cassandra table for jobName=%s".format(jobName))
+            log.info("Invalid row found in cassandra table for jobName=%s".format(job.name))
           }
         }
       }
       case None => {
-        log.info("No row list found for jobName=%s".format(jobName))
+        log.info("No row list found for jobName=%s".format(job.name))
       }
     }
 
@@ -226,14 +274,14 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   }
 
   /**
-   * Returns most recent tasks by jobName and returns only numTasks
-   * @param jobName
+   * Returns most recent tasks by job and returns only numTasks
+   * @param job
    * @param numTasks
    * @return returns a list of past and currently running tasks,
    *         the first element is the most recent.
    */
-  def getMostRecentTaskStatsByJob(jobName: String, numTasks: Int): List[TaskStat] = {
-    val taskStatList = getParsedTaskStatsByJob(jobName)
+  def getMostRecentTaskStatsByJob(job: BaseJob, numTasks: Int): List[TaskStat] = {
+    val taskStatList = getParsedTaskStatsByJob(job)
 
     /*
      * Data is not sorted yet, so sort jobs by most recent date
@@ -244,7 +292,72 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
      * limit output here
      */
     sortedDescTaskStatList = sortedDescTaskStatList.slice(0, numTasks)
+
+    if (job.dataProcessingJobType) {
+      /*
+       * Retrieve stat count for these tasks. This should be done
+       * after slicing as an optimization.
+       */
+      for (taskStat <- sortedDescTaskStatList) {
+        var elementCount = getTaskStatCount(job, taskStat.taskId)
+        taskStat.numElementsProcessed = elementCount
+      }
+    }
+
     sortedDescTaskStatList
+  }
+
+  /**
+   * Updates the number of elements processed by a task. This method
+   * is not idempotent
+   * @param job
+   * @param taskId
+   * @param addtionalElementsProcessed
+   */
+  def updateTaskProgress(job: BaseJob,
+      taskId: String,
+      additionalElementsProcessed: Long) {
+    try {
+      getSession match {
+        case Some(session: Session) =>
+          val validateQuery = s"SELECT * FROM ${config.cassandraTable()} WHERE job_name='${job.name}' AND id='${taskId}';"
+          var prepared = statements.getOrElseUpdate(validateQuery, {
+            session.prepare(
+              new SimpleStatement(validateQuery)
+                .setConsistencyLevel(readConsistencyLevel())
+                .asInstanceOf[RegularStatement]
+            )
+          })
+          val validateResultSet = session.execute(prepared.bind())
+
+          if (validateResultSet.one() != null) {
+            /*
+             * Only update stat count if entry exists in main table.
+             */
+            val query = s"UPDATE ${config.cassandraStatCountTable()}"+
+              s" SET elements_processed = elements_processed + ${additionalElementsProcessed}"+
+              s" WHERE job_name='${job.name}' AND task_id='${taskId}';"
+            prepared = statements.getOrElseUpdate(query, {
+              session.prepare(
+                new SimpleStatement(query)
+                  .asInstanceOf[RegularStatement]
+              )
+            })
+          } else {
+            throw new IllegalArgumentException("Task id  %s not found".format(taskId))
+          }
+          val resultSet = session.executeAsync(prepared.bind())
+        case None =>
+      }
+    } catch {
+      case e: NoHostAvailableException =>
+        resetSession()
+        log.log(Level.WARNING, "No hosts were available, will retry next time.", e)
+      case e: QueryExecutionException =>
+        log.log(Level.WARNING,"Query execution failed:", e)
+      case e: QueryValidationException =>
+        log.log(Level.WARNING,"Query validation failed:", e)
+    }
   }
 
   def jobQueued(job: BaseJob, attempt: Int) {
@@ -311,6 +424,24 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
               session.execute(new SimpleStatement(
                 s"CREATE INDEX IF NOT EXISTS ON ${config.cassandraTable()} (${JOB_NAME});"
               ))
+
+              /*
+               * highest bloom filter to reduce memory consumption and reducing
+               * false positives
+               */
+              session.execute(new SimpleStatement(
+                s"CREATE TABLE IF NOT EXISTS ${config.cassandraStatCountTable()}" +
+                  """
+                    |(
+                    |   task_id              VARCHAR,
+                    |   job_name             VARCHAR,
+                    |   elements_processed   COUNTER,
+                    | PRIMARY KEY (job_name, task_id))
+                    | WITH bloom_filter_fp_chance=0.100000 AND
+                    | compaction = {'class':'LeveledCompactionStrategy'}
+                  """.stripMargin
+              ))
+
               _session = Some(session)
               _session
             } catch {

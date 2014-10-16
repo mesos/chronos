@@ -20,6 +20,10 @@ trait CassandraConfiguration extends ScallopConf {
     descr = "Table to use for Cassandra",
     default = Some("chronos"))
 
+  lazy val cassandraStatCountTable = opt[String]("cassandra_stat_count_table",
+    descr = "Table to track stat counts in Cassandra",
+    default = Some("chronos_stat_count"))
+
   lazy val cassandraConsistency = opt[String]("cassandra_consistency",
     descr = "Consistency to use for Cassandra",
     default = Some("ANY"))
