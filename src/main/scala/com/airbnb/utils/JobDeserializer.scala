@@ -8,6 +8,7 @@ import org.joda.time.Period
 import scala.collection.JavaConversions._
 import com.airbnb.scheduler.config.SchedulerConfiguration
 import org.joda.time.{DateTimeZone, DateTime}
+import com.airbnb.scheduler.jobs.EnvironmentVariable
 
 object JobDeserializer {
   var config: SchedulerConfiguration = _
@@ -95,6 +96,15 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         uris += uri.asText()
       }
     }
+    
+    var environmentVariables = scala.collection.mutable.ListBuffer[EnvironmentVariable]()
+    if (node.has("environmentVariables")) {
+        node.get("environmentVariables").elements().map {
+          case node: ObjectNode => {
+            EnvironmentVariable(node.get("name").asText(), node.get("value").asText)
+          }
+        }.foreach(environmentVariables.add)
+    }
 
     val highPriority =
       if (node.has("highPriority") && node.get("highPriority") != null) node.get("highPriority").asBoolean()
@@ -135,7 +145,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
-        runAsUser = runAsUser, container = container)
+        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables)
     } else if (node.has("schedule")) {
         val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
         new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
@@ -143,14 +153,15 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
-        runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone)
+        runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
+        environmentVariables = environmentVariables)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
         lastError = lastError, lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem,
         disabled = disabled, errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
-        runAsUser = runAsUser, container = container)
+        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables)
     }
   }
 }

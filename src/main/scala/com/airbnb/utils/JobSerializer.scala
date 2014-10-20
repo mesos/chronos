@@ -68,6 +68,18 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     baseJob.uris.foreach(json.writeString(_))
     json.writeEndArray()
 
+    json.writeFieldName("environmentVariables")
+    json.writeStartArray()
+    baseJob.environmentVariables.foreach { v =>
+    	json.writeStartObject()
+    	json.writeFieldName("name")
+    	json.writeString(v.name)
+    	json.writeFieldName("value")
+    	json.writeString(v.value)
+    	json.writeEndObject()
+    }
+    json.writeEndArray()
+    
     json.writeFieldName("highPriority")
     json.writeBoolean(baseJob.highPriority)
 
