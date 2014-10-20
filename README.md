@@ -189,8 +189,38 @@ The JSON hash you send to Chronos should contain the following fields:
 * Command: the actual command that will be executed by Chronos
 * Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
     * Number of times to repeat the job; put just 'R' to repeat forever
-    * The start time of the job, an empty start time means start immediately
+    * The start time of the job, an empty start time means start immediately. Our format is ISO8601:
+      
+        YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00) where:
+
+     	YYYY = four-digit year
+
+        MM   = two-digit month (01=January, etc.)
+
+     	DD   = two-digit day of month (01 through 31)
+
+     	hh   = two digits of hour (00 through 23) (am/pm NOT allowed)
+
+     	mm   = two digits of minute (00 through 59)
+
+     	ss   = two digits of second (00 through 59)
+
+     	s    = one or more digits representing a decimal fraction of a second
+
+     	TZD  = time zone designator (Z or +hh:mm or -hh:mm)
+
     * The run interval
+* ScheduleTimeZone: The time zone name to use when scheduling the job.
+  * This field takes precedence over any time zone specified in Schedule.
+  * All system time zones supported by [`java.util.Timezone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
+    * See [List of tz database time zones](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+  * For example, the effective time zone for the following is `Pacific Standard Time`
+    * ```json
+      {
+        "schedule": "R/2014-10-10T18:32:00Z/PT60M",
+        "scheduleTimeZone": "PST"
+      }
+      ```
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
@@ -338,6 +368,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | disabled            | If set to true, this job will not be run.                                                                | `false`                        |
 | uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
+| scheduleTimeZone    | The time zone for the given schedule.									 | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
 | container           | This contains the subfields for the container, type (req), image (req), and volumes (optional).          | -                              |

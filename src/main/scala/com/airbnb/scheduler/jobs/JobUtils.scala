@@ -101,12 +101,12 @@ object JobUtils {
   }
 
   def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime) = {
-    Iso8601Expressions.parse(job.schedule) match {
+    Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((_, scheduledTime, _)) =>
         if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
           skipForward(job, dateTime)
         } else {
-          Some(new ScheduleStream(job.schedule, job.name))
+          Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
         }
       case None =>
         skipForward(job, dateTime)
@@ -114,7 +114,7 @@ object JobUtils {
   }
 
   def skipForward(job: ScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
-    Iso8601Expressions.parse(job.schedule) match {
+    Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((rec, start, per)) =>
         val skip = Seconds.secondsBetween(start, dateTime).getSeconds / per.toStandardSeconds.getSeconds
         if (rec == -1) {
@@ -122,7 +122,7 @@ object JobUtils {
           log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
             .format(skip, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name))
+          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name,  job.scheduleTimeZone))
         } else if (rec < skip) {
           log.warning("Filtered job as it is no longer valid.")
           None
@@ -132,7 +132,7 @@ object JobUtils {
           log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
             .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name))
+          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
         }
       case None =>
         None

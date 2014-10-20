@@ -68,7 +68,8 @@ case class ScheduleBasedJob(
     @JsonProperty override val uris: Seq[String] = List(),
     @JsonProperty override val highPriority: Boolean = false,
     @JsonProperty override val runAsUser: String = "",
-    @JsonProperty override val container: DockerContainer = null)
+    @JsonProperty override val container: DockerContainer = null,
+    @JsonProperty scheduleTimeZone : String = "")
   extends BaseJob
 
 

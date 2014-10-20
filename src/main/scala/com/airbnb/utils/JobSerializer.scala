@@ -112,6 +112,8 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       val schedJob = baseJob.asInstanceOf[ScheduleBasedJob]
       json.writeFieldName("schedule")
       json.writeString(schedJob.schedule)
+      json.writeFieldName("scheduleTimeZone")
+      json.writeString(schedJob.scheduleTimeZone)
     } else {
       throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }
