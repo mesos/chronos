@@ -372,6 +372,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
 | container           | This contains the subfields for the container, type (req), image (req), and volumes (optional).          | -                              |
+| environmentVariables| An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the -e flag. | -                              |
 
 ### Sample Job
 
@@ -395,7 +396,10 @@ you can also use a url in the command field, if your mesos was compiled with cUR
    "disabled":false,
    "uris":[
    ],
-   "schedule":"R/2014-03-08T20:00:00.000Z/PT2H"
+   "schedule":"R/2014-03-08T20:00:00.000Z/PT2H",
+   "environmentVariables": [
+     {"name": "FOO", "value": "BAR"}
+   ]
 }
 ```
 
@@ -562,4 +566,4 @@ Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try
 	git clone https://github.com/airbnb/chronos.git
 	cd chronos
 	mvn package
-	java -cp target/chronos*.jar com.airbnb.scheduler.Main --master zk://localhost:5050/mesos --zk_hosts localhost:2181
+	java -cp target/chronos*.jar com.airbnb.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts localhost:2181
