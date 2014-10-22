@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.common.base.{Joiner, Charsets}
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
-import org.joda.time.{Seconds, DateTime}
+import org.joda.time.{Seconds, DateTime, Period}
 import org.joda.time.format.DateTimeFormat
 import com.airbnb.utils.{JobDeserializer, JobSerializer}
 
@@ -116,7 +116,7 @@ object JobUtils {
   def skipForward(job: ScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
     Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((rec, start, per)) =>
-        val skip = Seconds.secondsBetween(start, dateTime).getSeconds / per.toStandardSeconds.getSeconds
+        val skip = calculateSkips(dateTime, start, per)
         if (rec == -1) {
           val nStart = start.plus(per.multipliedBy(skip))
           log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
@@ -136,6 +136,25 @@ object JobUtils {
         }
       case None =>
         None
+    }
+  }
+  
+  /**
+   * Calculates the number of skips needed to bring the job start into the future
+   */
+  protected def calculateSkips(dateTime: DateTime, jobStart: DateTime, period: Period): Int = {
+    // If the period is at least a month, we have to actually add the period to the date
+    // until it's in the future because a month-long period might have different seconds
+    if (period.getMonths() >= 1) {
+      var skips = 0
+      var newDate = new DateTime(jobStart)
+      while (newDate.isBefore(dateTime)) {
+        newDate = newDate.plus(period)
+        skips += 1
+      } 
+      skips
+    } else {
+      Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds  
     }
   }
 }
