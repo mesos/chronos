@@ -287,7 +287,7 @@ Here is a more elaborate example for a dependency job hash:
 A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
 To configure it, an additional container argument is required, which contains a type (req), an image (req), and volumes (optional). 
 
-* Endpoint: __/scheduler/iso8601__ or __/scheduler/depdency__
+* Endpoint: __/scheduler/iso8601__ or __/scheduler/dependency__
 * Method: __POST__
 * Example:
 
