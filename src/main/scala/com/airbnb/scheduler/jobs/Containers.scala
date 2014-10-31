@@ -9,7 +9,15 @@ object VolumeMode extends Enumeration {
   val RW, RO = Value
 }
 
+object NetworkMode extends Enumeration {
+  type NetworkMode = Value
+
+  // Bridged and Host
+  val BRIDGE, HOST = Value
+}
+
 import VolumeMode._
+import NetworkMode._
 case class Volume(
   @JsonProperty hostPath: Option[String],
   @JsonProperty containerPath: String,
@@ -17,4 +25,5 @@ case class Volume(
 
 case class DockerContainer(
   @JsonProperty image: String,
-  @JsonProperty volumes: Seq[Volume])
+  @JsonProperty volumes: Seq[Volume],
+  @JsonProperty network: NetworkMode = NetworkMode.HOST)

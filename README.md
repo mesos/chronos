@@ -285,7 +285,7 @@ Here is a more elaborate example for a dependency job hash:
 ###Adding a Docker Job
 
 A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
-To configure it, an additional container argument is required, which contains a type (req), an image (req), and volumes (optional). 
+To configure it, an additional container argument is required, which contains a type (req), an image (req), a network mode (optional) and volumes (optional). 
 
 * Endpoint: __/scheduler/iso8601__ or __/scheduler/dependency__
 * Method: __POST__
@@ -297,10 +297,11 @@ To configure it, an additional container argument is required, which contains a 
 {
  "schedule": "R\/2014-09-25T17:22:00Z\/PT2M",
  "name": "dockerjob",
-   "container": {
-   "type": "DOCKER",
-   "image": "libmesos/ubuntu"
-  },
+ "container": {
+  "type": "DOCKER",
+  "image": "libmesos/ubuntu",
+  "network": "BRIDGE"
+ },
  "cpus": "0.5",
  "mem": "512",
  "uris": [],
@@ -371,7 +372,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | scheduleTimeZone    | The time zone for the given schedule.									 | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
-| container           | This contains the subfields for the container, type (req), image (req), and volumes (optional).          | -                              |
+| container           | This contains the subfields for the container, type (req), image (req), network (optional) and volumes (optional).          | -                              |
 | environmentVariables| An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the -e flag. | -                              |
 
 ### Sample Job
