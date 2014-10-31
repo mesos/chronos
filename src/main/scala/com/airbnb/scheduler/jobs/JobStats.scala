@@ -4,8 +4,7 @@ import com.google.inject.Inject
 import com.datastax.driver.core._
 import com.airbnb.scheduler.config.CassandraConfiguration
 import org.apache.mesos.Protos.TaskStatus
-import scala.Some
-import com.datastax.driver.core.exceptions.{QueryValidationException, QueryExecutionException, NoHostAvailableException}
+import com.datastax.driver.core.exceptions.{DriverException, QueryValidationException, QueryExecutionException, NoHostAvailableException}
 import java.util.logging.{Level, Logger}
 import scala.collection.JavaConverters._
 import java.util.concurrent.ConcurrentHashMap
@@ -22,9 +21,10 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
       case None =>
         clusterBuilder match {
           case Some(c) =>
-            val session = c.build.connect(config.cassandraKeyspace())
-            session.execute(new SimpleStatement(
-              s"CREATE TABLE IF NOT EXISTS ${config.cassandraTable()}" +
+            try {
+              val session = c.build.connect(config.cassandraKeyspace())
+              session.execute(new SimpleStatement(
+                s"CREATE TABLE IF NOT EXISTS ${config.cassandraTable()}" +
                   """
                     |(
                     |   id             VARCHAR,
@@ -42,9 +42,14 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
                     | WITH bloom_filter_fp_chance=0.100000 AND
                     | compaction = {'class':'LeveledCompactionStrategy'}
                   """.stripMargin
-            ))
-            _session = Some(session)
-            _session
+              ))
+              _session = Some(session)
+              _session
+            } catch {
+              case e: DriverException =>
+                log.log(Level.WARNING, "Caught exception when creating Cassandra JobStats session", e)
+                None
+            }
           case None => None
         }
     }
