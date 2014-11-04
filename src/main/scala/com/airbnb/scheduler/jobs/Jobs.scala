@@ -44,6 +44,8 @@ trait BaseJob {
   def runAsUser: String = ""
   def container: DockerContainer = null
   def environmentVariables: Seq[EnvironmentVariable] = List()
+  def shell: Boolean = true
+  def arguments: Seq[String] = List()
 }
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -71,7 +73,9 @@ case class ScheduleBasedJob(
     @JsonProperty override val runAsUser: String = "",
     @JsonProperty override val container: DockerContainer = null,
     @JsonProperty scheduleTimeZone : String = "",
-    @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List())
+    @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List(),
+    @JsonProperty override val shell: Boolean = true,
+    @JsonProperty override val arguments: Seq[String] = List())
   extends BaseJob
 
 
@@ -99,5 +103,7 @@ case class DependencyBasedJob(
     @JsonProperty override val highPriority: Boolean = false,
     @JsonProperty override val runAsUser: String = "",
     @JsonProperty override val container: DockerContainer = null,
-    @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List())
+    @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List(),
+    @JsonProperty override val shell: Boolean = true,
+    @JsonProperty override val arguments: Seq[String] = List())
   extends BaseJob
