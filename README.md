@@ -353,6 +353,8 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | ------------------- |----------------------------------------------------------------------------------------------------------| -------------------------------|
 | name                | Name of job.                                                                                             | -                              |
 | command             | Command to execute.                                                                                      | -                              |
+| arguments           | Arguments to pass to the command.  Ignored if `shell` is true                                            | -                              |
+| shell               | If true, Mesos will execute `command` by running `/bin/sh -c <command>` and ignore `arguments`. If false, `command` will be treated as the filename of an executable and `arguments` will be the arguments passed.  If this is a Docker job and `shell` is true, the entrypoint of the container will be overridden with `/bin/sh -c`                                                                                      | true                              |
 | epsilon             | If, for any reason, a job can't be started at the scheduled time, this is the window in which Chronos will attempt to run the job again | `PT60S` or `--task_epsilon`. |
 | executor            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
 | executorFlags       | Flags to pass to Mesos executor.                                                                         | -                              |
@@ -369,7 +371,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | disabled            | If set to true, this job will not be run.                                                                | `false`                        |
 | uris                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
 | schedule            | ISO8601 repeating schedule for this job.  If specified, `parents` must not be specified.                 | -                              |
-| scheduleTimeZone    | The time zone for the given schedule.									 | -                              |
+| scheduleTimeZone    | The time zone for the given schedule.									 							     | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
 | container           | This contains the subfields for the container, type (req), image (req), network (optional) and volumes (optional).          | -                              |
@@ -381,6 +383,11 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 {
    "name":"camus_kafka2hdfs",
    "command":"/srv/data-infra/kafka/camus/kafka_hdfs_job.bash",
+   "arguments": [
+   	  "-verbose",
+   	  "-debug"
+   ]
+   "shell":"false",
    "epsilon":"PT30M",
    "executor":"",
    "executorFlags":"",

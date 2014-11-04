@@ -17,6 +17,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
 
     json.writeFieldName("command")
     json.writeString(baseJob.command)
+    
+    json.writeFieldName("shell")
+    json.writeBoolean(baseJob.shell)
 
     json.writeFieldName("epsilon")
     json.writeString(baseJob.epsilon.toString)
@@ -78,6 +81,11 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     	json.writeString(v.value)
     	json.writeEndObject()
     }
+    json.writeEndArray()
+    
+    json.writeFieldName("arguments")
+    json.writeStartArray()
+    baseJob.arguments.foreach(json.writeString(_))
     json.writeEndArray()
     
     json.writeFieldName("highPriority")

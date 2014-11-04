@@ -26,6 +26,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
 
     val name = node.get("name").asText
     val command = node.get("command").asText
+    val shell =
+      if (node.has("shell") && node.get("shell") != null) node.get("shell").asBoolean
+      else true
+      
     val epsilon = {
       if (node.has("epsilon")) Period.parse(node.get("epsilon").asText) else Period.seconds(JobDeserializer.config.taskEpsilon())
     }
@@ -97,6 +101,13 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
     }
     
+    var arguments = scala.collection.mutable.ListBuffer[String]()
+    if (node.has("arguments")) {
+      for (argument <- node.path("arguments")) {
+        arguments += argument.asText()
+      }
+    }
+    
     var environmentVariables = scala.collection.mutable.ListBuffer[EnvironmentVariable]()
     if (node.has("environmentVariables")) {
         node.get("environmentVariables").elements().map {
@@ -150,7 +161,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
-        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables)
+        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
+        arguments = arguments)
     } else if (node.has("schedule")) {
         val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
         new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
@@ -159,14 +171,15 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
-        environmentVariables = environmentVariables)
+        environmentVariables = environmentVariables, shell = shell, arguments = arguments)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
         lastError = lastError, lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem,
         disabled = disabled, errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
-        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables)
+        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
+        arguments = arguments)
     }
   }
 }

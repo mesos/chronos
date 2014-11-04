@@ -118,7 +118,9 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
             .build()
         })
         command.setValue(job.command)
+          .setShell(job.shell)
           .setEnvironment(environment)
+          .addAllArguments(job.arguments.asJava)
           .addAllUris(uriProtos.asJava)
       }
       if (job.runAsUser.nonEmpty) {
