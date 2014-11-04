@@ -1,6 +1,6 @@
 package com.airbnb.utils
 
-import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob, Volume, VolumeMode, DockerContainer}
+import com.airbnb.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob, Volume, VolumeMode, NetworkMode, DockerContainer}
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{JsonNode, DeserializationContext, JsonDeserializer}
@@ -117,6 +117,11 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     var container: DockerContainer = null
     if (node.has("container")) {
       val containerNode = node.get("container")
+      val networkMode =
+          if (containerNode.has("network") && containerNode.get("network") != null)
+            NetworkMode.withName(containerNode.get("network").asText)
+          else NetworkMode.HOST
+
       // TODO: Add support for more containers when they're added.
       val volumes = scala.collection.mutable.ListBuffer[Volume]()
       if (containerNode.has("volumes")) {
@@ -132,7 +137,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
           }
         }.foreach(volumes.add)
       }
-      container = DockerContainer(containerNode.get("image").asText, volumes)
+      container = DockerContainer(containerNode.get("image").asText, volumes, networkMode)
     }
 
     var parentList = scala.collection.mutable.ListBuffer[String]()

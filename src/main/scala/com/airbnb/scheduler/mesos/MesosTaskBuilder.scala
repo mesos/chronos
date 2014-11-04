@@ -156,7 +156,10 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       volumeBuilder.build()
     }.foreach(builder.addVolumes)
     builder.setType(ContainerInfo.Type.DOCKER)
-    builder.setDocker(DockerInfo.newBuilder().setImage(job.container.image).build()).build
+    builder.setDocker(DockerInfo.newBuilder()
+      .setImage(job.container.image)
+      .setNetwork(DockerInfo.Network.valueOf(job.container.network.toString.toUpperCase))
+      .build()).build
   }
 
   def getExecutorName(x: String) = "%s".format(x)

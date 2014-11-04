@@ -94,6 +94,8 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeString("docker")
       json.writeFieldName("image")
       json.writeString(baseJob.container.image)
+      json.writeFieldName("network")
+      json.writeString(baseJob.container.network.toString)
       json.writeFieldName("volumes")
       json.writeStartArray()
       baseJob.container.volumes.foreach { v =>
