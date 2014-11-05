@@ -31,7 +31,7 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
   def start() {
     val status = get().start()
     if (status != Status.DRIVER_RUNNING) {
-      log.severe("MesosSchedulerDriver start resulted in status:" + status + ". Committing suicide!")
+      log.severe(s"MesosSchedulerDriver start resulted in status:$status. Committing suicide!")
       System.exit(1)
     }
   }
