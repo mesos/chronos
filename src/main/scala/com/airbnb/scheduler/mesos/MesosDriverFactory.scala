@@ -4,6 +4,7 @@ import com.airbnb.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.{Scheduler, MesosSchedulerDriver}
 import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Protos.Status
+import java.util.logging.Logger
 
 /**
  * The mesos driver doesn't allow calling the start() method after stop() has been called, thus we need a factory to
@@ -11,6 +12,8 @@ import org.apache.mesos.Protos.Status
  * @author Florian Leibert (flo@leibert.de)
  */
 class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: FrameworkInfo, val config: SchedulerConfiguration) {
+
+  private[this] val log = Logger.getLogger(getClass.getName)
 
   var mesosDriver: Option[MesosSchedulerDriver] = None
 
@@ -26,7 +29,9 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
   }
 
   def start() {
-    if (get().start() != Status.DRIVER_RUNNING) {
+    val status = get().start()
+    if (status != Status.DRIVER_RUNNING) {
+      log.severe("MesosSchedulerDriver start resulted in status:" + status + ". Committing suicide!")
       System.exit(1)
     }
   }
