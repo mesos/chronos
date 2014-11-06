@@ -63,6 +63,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("disabled")
     json.writeBoolean(baseJob.disabled)
 
+    json.writeFieldName("softError")
+    json.writeBoolean(baseJob.softError)
+
     json.writeFieldName("errorsSinceLastSuccess")
     json.writeNumber(baseJob.errorsSinceLastSuccess)
 

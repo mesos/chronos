@@ -25,6 +25,7 @@ class RavenClient(val dsn: String) extends NotificationClient {
       .addTag("command", job.command)
       .addExtra("cpus", job.cpus)
       .addExtra("async", job.async)
+      .addExtra("softError", job.softError)
       .addExtra("epsilon", job.epsilon)
       .addExtra("errorCount", job.errorCount)
       .addExtra("errorsSinceLastSuccess", job.errorsSinceLastSuccess)

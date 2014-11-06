@@ -205,7 +205,7 @@
         </div>
       </div>
       <div class="row-fluid job-detail-row">
-        <div class="span6 job-detail">
+        <div class="span2 job-detail">
           <div class="detail">Epsilon</div>
           <div class="display highlight cmd epsilon">{{epsilon}}</div>
           <div class="field cmd epsilon control-group">
@@ -218,7 +218,7 @@
             <span class="help-inline hide"></span>
           </div>
         </div>
-        <div class="span3 job-detail">
+        <div class="span4 job-detail">
           <div class="detail">Asynchronous</div>
 
           <div class="display hightlight cmd async"
@@ -270,6 +270,33 @@
             </label>
           </div>
         </div>
+        <div class="span3 job-detail">
+          <div class="detail">Soft Error</div>
+
+          <div class="display hightlight cmd async"
+               data-rv-text="job.softError | boolEnabled">{{boolEnabled softError}}</div>
+          <div class="pseudo-field hightlight cmd async">
+            <label class="radio">
+              <input type="radio"
+                     class="job-input"
+                     name="softError"
+                     id="softError-off"
+                     value="0"
+                     {{^softError}}checked{{/softError}}>
+              Disable
+            </label>
+            <label class="radio">
+              <input type="radio"
+                     class="job-input"
+                     name="softError"
+                     id="softError-on"
+                     value="1"
+                     {{#softError}}checked{{/softError}}>
+              Enable
+            </label>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="job-detail-row job-detail">

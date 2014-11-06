@@ -369,6 +369,10 @@ function($,
           if (!$el.is(':checked')) { return; }
 
           val = (parseInt(val, 10) === 0);
+        } else if (name === 'softError') {
+            if (!$el.is(':checked')) { return; }
+
+            val = (parseInt(val, 10) !== 0);
         }
 
         console.log("setting model", model, "name", name, "to", val);

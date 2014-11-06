@@ -26,7 +26,7 @@ function($, Backbone, _, moment, BaseJobValidations) {
   }
 
   BaseWhiteList = [
-    'name', 'command', 'owner', 'async', 'epsilon', 'executor', 'disabled'
+    'name', 'command', 'owner', 'async', 'epsilon', 'executor', 'disabled', 'softError'
   ];
 
   BaseJobModel = Backbone.Model.extend({
@@ -50,7 +50,8 @@ function($, Backbone, _, moment, BaseJobValidations) {
         errorCount: 0,
         persisted: false,
         async: false,
-        disabled: false
+        disabled: false,
+        softError: false
       };
     },
 
