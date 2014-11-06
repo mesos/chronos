@@ -666,6 +666,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
     log.info("Defeated. Not the current leader.")
     running.set(false)
+    jobGraph.reset() // So we can rebuild it later.
     schedulerThreadFuture.get.cancel(true)
   }
 
