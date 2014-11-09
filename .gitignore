@@ -13,3 +13,6 @@ chronos.arx
 chronos.tbz
 .classpath.txt
 dependency-reduced-pom.xml
+.classpath
+.project
+.settings/*
