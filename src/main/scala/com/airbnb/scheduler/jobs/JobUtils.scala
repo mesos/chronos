@@ -109,7 +109,7 @@ object JobUtils {
           Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
         }
       case None =>
-        skipForward(job, dateTime)
+        None
     }
   }
 
