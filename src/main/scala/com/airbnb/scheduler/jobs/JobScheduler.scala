@@ -304,7 +304,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           throw new IllegalArgumentException("Cannot handle unknown task type")
       }
       replaceJob(job, newJob)
-      processDependencies(jobName, taskDate, jobOption)
+      processDependencies(jobName, taskDate)
 
       log.fine("Cleaning up finished task '%s'".format(taskId))
 
@@ -336,10 +336,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  private def processDependencies(jobName: String, taskDate: Option[DateTime], jobOption: Option[BaseJob]) {
-    // TODO: use jobName and get rid of jobOption in signature
-    val dependents = jobGraph.getExecutableChildren(jobOption.get.name)
-    if (!dependents.isEmpty) {
+  private def processDependencies(jobName: String, taskDate: Option[DateTime]) {
+    val dependents = jobGraph.getExecutableChildren(jobName)
+    if (dependents.nonEmpty) {
       log.fine("%s has dependents: %s .".format(jobName, dependents.mkString(",")))
       dependents.map({
         //TODO(FL): Ensure that the job for the given x exists. Lock.
@@ -400,21 +399,22 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             val disableJob =
               (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
 
+            val lastErrorTime = DateTime.now(DateTimeZone.UTC)
             val newJob = {
                 job match {
                   case job: ScheduleBasedJob =>
                     job.copy(errorCount = job.errorCount + 1,
                       errorsSinceLastSuccess = job.errorsSinceLastSuccess + 1,
-                      lastError = DateTime.now(DateTimeZone.UTC).toString, disabled = disableJob)
+                      lastError = lastErrorTime.toString, disabled = disableJob)
                   case job: DependencyBasedJob =>
                     job.copy(errorCount = job.errorCount + 1,
                       errorsSinceLastSuccess = job.errorsSinceLastSuccess + 1,
-                      lastError = DateTime.now(DateTimeZone.UTC).toString, disabled = disableJob)
+                      lastError = lastErrorTime.toString, disabled = disableJob)
                   case _ => throw new IllegalArgumentException("Cannot handle unknown task type")
                 }
             }
             updateJob(job, newJob)
-            if(job.softError) processDependencies(jobName, None, jobOption)
+            if(job.softError) processDependencies(jobName, Option(lastErrorTime))
 
             val clusterPrefix = getClusterPrefix(clusterName)
 
