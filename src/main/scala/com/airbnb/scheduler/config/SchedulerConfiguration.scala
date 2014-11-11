@@ -105,17 +105,17 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "Disables a job after this many failures have occurred",
     default = Some(0))
 
-  lazy val mesosTaskMem = opt[Int]("mesos_task_mem",
+  lazy val mesosTaskMem = opt[Double]("mesos_task_mem",
     descr = "Amount of memory to request from Mesos for each task (MB)",
-    default = Some(128))
+    default = Some(128.0))
 
   lazy val mesosTaskCpu = opt[Double]("mesos_task_cpu",
     descr = "Number of CPUs to request from Mesos for each task",
     default = Some(0.1))
 
-  lazy val mesosTaskDisk = opt[Int]("mesos_task_disk",
+  lazy val mesosTaskDisk = opt[Double]("mesos_task_disk",
     descr = "Amount of disk capacity to request from Mesos for each task (MB)",
-    default = Some(256))
+    default = Some(256.0))
 
   lazy val mesosCheckpoint = opt[Boolean]("mesos_checkpoint",
     descr = "Enable checkpointing in Mesos",
