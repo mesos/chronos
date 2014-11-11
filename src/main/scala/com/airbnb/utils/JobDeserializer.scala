@@ -80,12 +80,12 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else 0
 
     val disk =
-      if (node.has("disk") && node.get("disk") != null && node.get("disk").asInt != 0) node.get("disk").asInt
+      if (node.has("disk") && node.get("disk") != null && node.get("disk").asDouble != 0) node.get("disk").asDouble
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskDisk()
       else 0
 
     val mem =
-      if (node.has("mem") && node.get("mem") != null && node.get("mem").asInt != 0) node.get("mem").asInt
+      if (node.has("mem") && node.get("mem") != null && node.get("mem").asDouble != 0) node.get("mem").asDouble
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskMem()
       else 0
 
