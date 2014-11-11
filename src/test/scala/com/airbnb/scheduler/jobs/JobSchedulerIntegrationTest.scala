@@ -15,154 +15,154 @@ import org.joda.time.format.ISODateTimeFormat
 class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
   "JobScheduler" should {
-        "A job creates a failed task and then a successful task from a synchronous job" in {
-          val epsilon = Hours.hours(2).toPeriod
-          val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
+    "A job creates a failed task and then a successful task from a synchronous job" in {
+      val epsilon = Hours.hours(2).toPeriod
+      val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
 
-          val exec = MoreExecutors.listeningDecorator(new ScheduledThreadPoolExecutor(1))
+      val exec = MoreExecutors.listeningDecorator(new ScheduledThreadPoolExecutor(1))
 
-          val jobGraph = new JobGraph
-          val persistenceStore = mock[PersistenceStore]
-          val taskManager = new TaskManager(exec, persistenceStore, jobGraph, mesosDriver = mock[MesosDriverFactory], registry = mock[MetricRegistry])
+      val jobGraph = new JobGraph
+      val persistenceStore = mock[PersistenceStore]
+      val taskManager = new TaskManager(exec, persistenceStore, jobGraph, mesosDriver = mock[MesosDriverFactory], registry = mock[MetricRegistry])
 
-          val scheduler = new JobScheduler(epsilon, taskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
-          val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
-          scheduler.leader.set(true)
-          scheduler.registerJob(job1, true, startTime)
+      val scheduler = new JobScheduler(epsilon, taskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
+      scheduler.leader.set(true)
+      scheduler.registerJob(job1, true, startTime)
 
-          val newStreams = scheduler.iteration(startTime, scheduler.streams)
-          newStreams(0).schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
-          taskManager.queues(1).size must_== 1
+      val newStreams = scheduler.iteration(startTime, scheduler.streams)
+      newStreams(0).schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
+      taskManager.queues(1).size must_== 1
 
-          val taskId1 = taskManager.queues(1).poll
+      val taskId1 = taskManager.queues(1).poll
 
-          scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
+      scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
 
-          taskManager.queues(1).size must_== 1
+      taskManager.queues(1).size must_== 1
 
-          val taskId2 = taskManager.queues(1).poll
+      val taskId2 = taskManager.queues(1).poll
 
-          scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
-          there was one(persistenceStore)
-            .persistJob(new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
+      scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
+      there was one(persistenceStore)
+        .persistJob(new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
 
-          there was one(persistenceStore)
-            .persistJob(new ScheduleBasedJob("R4/2012-01-02T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
-        }
+      there was one(persistenceStore)
+        .persistJob(new ScheduleBasedJob("R4/2012-01-02T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
+    }
 
-        "Executing a job updates the job counts and errors" in {
-          val epsilon = Minutes.minutes(20).toPeriod
-          val jobName = "FOO"
-          val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-            name = jobName, command = "fooo", epsilon = epsilon, retries = 0)
+    "Executing a job updates the job counts and errors" in {
+      val epsilon = Minutes.minutes(20).toPeriod
+      val jobName = "FOO"
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+        name = jobName, command = "fooo", epsilon = epsilon, retries = 0)
 
-          val horizon = Minutes.minutes(5).toPeriod
-          val mockTaskManager = mock[TaskManager]
-          val graph = new JobGraph()
-          val mockPersistenceStore = mock[PersistenceStore]
-          val mockJobStats = mock[JobStats]
+      val horizon = Minutes.minutes(5).toPeriod
+      val mockTaskManager = mock[TaskManager]
+      val graph = new JobGraph()
+      val mockPersistenceStore = mock[PersistenceStore]
+      val mockJobStats = mock[JobStats]
 
-          val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mockJobStats)
-          scheduler.leader.set(true)
-          scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
-          scheduler.run(() => { DateTime.parse("2012-01-01T00:05:01.000Z")})
+      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mockJobStats)
+      scheduler.leader.set(true)
+      scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.run(() => { DateTime.parse("2012-01-01T00:05:01.000Z")})
 
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
-          val job2 = graph.lookupVertex(jobName).get
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
-          val job3 = graph.lookupVertex(jobName).get
-          scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+      val job2 = graph.lookupVertex(jobName).get
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+      val job3 = graph.lookupVertex(jobName).get
+      scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
 
-          graph.lookupVertex(jobName).get.successCount must_== 2
-          graph.lookupVertex(jobName).get.errorCount must_== 1
+      graph.lookupVertex(jobName).get.successCount must_== 2
+      graph.lookupVertex(jobName).get.errorCount must_== 1
 
-          there was one(mockJobStats).jobFinished(job1, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
-          there was one(mockJobStats).jobFinished(job2, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
-          there was one(mockJobStats).jobFailed(job3, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
-        }
+      there was one(mockJobStats).jobFinished(job1, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
+      there was one(mockJobStats).jobFinished(job2, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
+      there was one(mockJobStats).jobFailed(job3, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
+    }
 
-        "Tests that a disabled job does not run and does not execute dependant children." in {
-          val epsilon = Minutes.minutes(20).toPeriod
-          val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-            name = "job1", command = "fooo", epsilon = epsilon, disabled=true)
-          val job2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD", disabled=true)
+    "Tests that a disabled job does not run and does not execute dependant children." in {
+      val epsilon = Minutes.minutes(20).toPeriod
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+        name = "job1", command = "fooo", epsilon = epsilon, disabled=true)
+      val job2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD", disabled=true)
 
-          val horizon = Minutes.minutes(5).toPeriod
-          val mockTaskManager = mock[TaskManager]
-          val graph = new JobGraph()
-          val mockPersistenceStore = mock[PersistenceStore]
+      val horizon = Minutes.minutes(5).toPeriod
+      val mockTaskManager = mock[TaskManager]
+      val graph = new JobGraph()
+      val mockPersistenceStore = mock[PersistenceStore]
 
-          val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
-          scheduler.leader.set(true)
-          scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
-          scheduler.registerJob(job2, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
-          scheduler.run(() => { DateTime.parse("2012-01-01T00:05:01.000Z")})
-          /*
-                scheduler.handleFinishedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
-                scheduler.handleFinishedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
-                scheduler.handleFailedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
-          */
-          graph.lookupVertex("job1").get.successCount must_== 0
-          graph.lookupVertex("job1").get.errorCount must_== 0
-          graph.lookupVertex("job2").get.successCount must_== 0
-          graph.lookupVertex("job2").get.errorCount must_== 0
-        }
+      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      scheduler.leader.set(true)
+      scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.registerJob(job2, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.run(() => { DateTime.parse("2012-01-01T00:05:01.000Z")})
+      /*
+            scheduler.handleFinishedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+            scheduler.handleFinishedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+            scheduler.handleFailedTask(TaskUtils.getTaskId(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0))
+      */
+      graph.lookupVertex("job1").get.successCount must_== 0
+      graph.lookupVertex("job1").get.errorCount must_== 0
+      graph.lookupVertex("job2").get.successCount must_== 0
+      graph.lookupVertex("job2").get.errorCount must_== 0
+    }
 
-        "Tests that dependent jobs runs when they should" in {
-          val epsilon = Minutes.minutes(20).toPeriod
-          val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-            name = "job1", command = "fooo", epsilon = epsilon, disabled=false)
-          val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
-            name = "job2", command = "fooo", epsilon = epsilon, disabled=false)
+    "Tests that dependent jobs runs when they should" in {
+      val epsilon = Minutes.minutes(20).toPeriod
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+        name = "job1", command = "fooo", epsilon = epsilon, disabled=false)
+      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+        name = "job2", command = "fooo", epsilon = epsilon, disabled=false)
 
-          val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled=false)
-          val job4 = new DependencyBasedJob(Set("job1", "job2"), name = "job4", command = "CMD", disabled=false)
-          val job5 = new DependencyBasedJob(Set("job1", "job2", "job3"), name = "job5", command = "CMD", disabled=false)
+      val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled=false)
+      val job4 = new DependencyBasedJob(Set("job1", "job2"), name = "job4", command = "CMD", disabled=false)
+      val job5 = new DependencyBasedJob(Set("job1", "job2", "job3"), name = "job5", command = "CMD", disabled=false)
 
-          val horizon = Minutes.minutes(5).toPeriod
-          val mockTaskManager = mock[TaskManager]
-          val graph = new JobGraph()
-          val mockPersistenceStore = mock[PersistenceStore]
+      val horizon = Minutes.minutes(5).toPeriod
+      val mockTaskManager = mock[TaskManager]
+      val graph = new JobGraph()
+      val mockPersistenceStore = mock[PersistenceStore]
 
-          val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
-          scheduler.leader.set(true)
-          val date = DateTime.parse("2011-01-01T00:05:01.000Z")
-          scheduler.registerJob(job1, true, date)
-          scheduler.registerJob(job2, true, date)
-          scheduler.registerJob(job3, true, date)
-          scheduler.registerJob(job4, true, date)
-          scheduler.registerJob(job5, true, date)
-          scheduler.run(() => { date })
+      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      scheduler.leader.set(true)
+      val date = DateTime.parse("2011-01-01T00:05:01.000Z")
+      scheduler.registerJob(job1, true, date)
+      scheduler.registerJob(job2, true, date)
+      scheduler.registerJob(job3, true, date)
+      scheduler.registerJob(job4, true, date)
+      scheduler.registerJob(job5, true, date)
+      scheduler.run(() => { date })
 
-          val finishedDate = date.plus(1)
+      val finishedDate = date.plus(1)
 
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, date, 0), Some(finishedDate))
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job2, date, 0), Some(finishedDate))
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, date, 0), Some(finishedDate))
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job2, date, 0), Some(finishedDate))
 
-          graph.lookupVertex("job1").get.successCount must_== 1
-          graph.lookupVertex("job1").get.errorCount must_== 0
+      graph.lookupVertex("job1").get.successCount must_== 1
+      graph.lookupVertex("job1").get.errorCount must_== 0
 
-          graph.lookupVertex("job2").get.successCount must_== 1
-          graph.lookupVertex("job2").get.errorCount must_== 0
+      graph.lookupVertex("job2").get.successCount must_== 1
+      graph.lookupVertex("job2").get.errorCount must_== 0
 
-          there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
-          graph.lookupVertex("job3").get.successCount must_== 1
-          graph.lookupVertex("job3").get.errorCount must_== 0
+      graph.lookupVertex("job3").get.successCount must_== 1
+      graph.lookupVertex("job3").get.errorCount must_== 0
 
-          there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
-          graph.lookupVertex("job4").get.successCount must_== 1
-          graph.lookupVertex("job4").get.errorCount must_== 0
+      graph.lookupVertex("job4").get.successCount must_== 1
+      graph.lookupVertex("job4").get.errorCount must_== 0
 
-          there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5, finishedDate, 0), false)
-          scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5, finishedDate, 0), Some(finishedDate))
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5, finishedDate, 0), false)
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5, finishedDate, 0), Some(finishedDate))
 
-          graph.lookupVertex("job5").get.successCount must_== 1
-          graph.lookupVertex("job5").get.errorCount must_== 0
-        }
+      graph.lookupVertex("job5").get.successCount must_== 1
+      graph.lookupVertex("job5").get.errorCount must_== 0
+    }
 
     "Tests that dependent jobs run even if their parents fail but have softError enabled" in {
       val epsilon = Minutes.minutes(20).toPeriod
