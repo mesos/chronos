@@ -389,7 +389,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             /* Schedule the retry up to 60 seconds in the future */
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
               .plus(new Duration(failureRetryDelay)), attempt + 1)
-            taskManager.persistTask(taskId, job)
+            taskManager.persistTask(newTaskId, job)
             taskManager.enqueue(newTaskId, job.highPriority)
           } else {
             val disableJob =
