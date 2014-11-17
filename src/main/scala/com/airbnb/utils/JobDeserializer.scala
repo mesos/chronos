@@ -58,6 +58,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("disabled") && node.get("disabled") != null) node.get("disabled").asBoolean
       else false
 
+    val softError =
+      if (node.has("softError") && node.get("softError") != null) node.get("softError").asBoolean
+      else false
+
     val successCount =
       if (node.has("successCount") && node.get("successCount") != null) node.get("successCount").asLong
       else 0L
@@ -162,7 +166,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
-        arguments = arguments)
+        arguments = arguments, softError = softError)
     } else if (node.has("schedule")) {
         val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
         new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
@@ -171,7 +175,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
-        environmentVariables = environmentVariables, shell = shell, arguments = arguments)
+        environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
@@ -179,7 +183,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         lastError = lastError, lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem,
         disabled = disabled, errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
-        arguments = arguments)
+        arguments = arguments, softError = softError)
     }
   }
 }

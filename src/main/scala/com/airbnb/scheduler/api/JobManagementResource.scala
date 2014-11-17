@@ -76,6 +76,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       disk = childJob.disk,
                       mem = childJob.mem,
                       disabled = childJob.disabled,
+                      softError = childJob.softError,
                       uris = childJob.uris,
                       highPriority = childJob.highPriority
                     )
