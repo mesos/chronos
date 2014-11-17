@@ -21,13 +21,18 @@ object TaskUtils {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT
   val taskIdTemplate = "ct_%s_attempt%d_%s"
+  val taskIdTemplateOld = "ct:%d:%d:%s"
   val dateTimeFormat = DateTimeFormat.forPattern("YYYYMMddHHmmssSSS");
   val taskIdPattern = """ct_(\d+)_attempt(\d+)_%s""".format(JobUtils.jobNamePattern).r
+  val taskIdPatternOld = """ct:(\d+):(\d+):%s""".format(JobUtils.jobNamePattern).r
 
   def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
     taskIdTemplate.format(due.toString(dateTimeFormat), attempt, job.name)
+  }
+
+  def getTaskIdOld(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
+    taskIdTemplateOld.format(due.getMillis, attempt, job.name)
   }
 
   def getTaskStatus(job: BaseJob, due: DateTime, attempt: Int = 0): TaskStatus = {
@@ -35,12 +40,25 @@ object TaskUtils {
   }
 
   def parseTaskId(id: String): (String, Long, Int) = {
+    val  oldData = parseTaskIdOld(id)
+    if (oldData != null) return oldData
     val taskIdPattern(due, attempt, jobName) = id
     val datetime = dateTimeFormat.parseDateTime(due)
     (jobName,datetime.getMillis, attempt.toInt)
   }
 
+  def parseTaskIdOld(id: String): (String, Long, Int) = {
+    if (!isValidVersionOld(id)) return null
+    val taskIdPatternOld(due, attempt, jobName) = id
+    (jobName, due.toLong, attempt.toInt)
+  }
+
+  def isValidVersionOld(taskIdString: String): Boolean = {
+    taskIdPatternOld.findFirstIn(taskIdString).nonEmpty
+  }
+
   def isValidVersion(taskIdString: String): Boolean = {
+    isValidVersionOld(taskIdString) ||
     taskIdPattern.findFirstIn(taskIdString).nonEmpty
   }
 
