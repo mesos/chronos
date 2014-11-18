@@ -8,7 +8,7 @@ import com.airbnb.scheduler.mesos.{MesosTaskBuilder, MesosDriverFactory, MesosJo
 import com.airbnb.scheduler.jobs.{JobStats, JobMetrics, TaskManager, JobScheduler}
 import com.airbnb.scheduler.graph.JobGraph
 import com.airbnb.scheduler.state.PersistenceStore
-import com.airbnb.notification.{MailClient,RavenClient}
+import com.airbnb.notification.{MailClient,RavenClient,SlackClient}
 import com.google.inject.{Inject, Provides, Singleton, AbstractModule}
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, ThreadFactoryBuilder, MoreExecutors}
 import org.apache.mesos.Protos.FrameworkInfo
@@ -116,6 +116,13 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
         ravenDsn <- config.ravenDsn.get if !ravenDsn.isEmpty
       } yield {
         create(classOf[RavenClient], ravenDsn)
+      },
+      for {
+        webhookUrl <- config.slackWebhookUrl.get if !config.slackWebhookUrl.isEmpty
+        token <- config.slackToken.get if !config.slackToken.isEmpty
+        channel <- config.slackChannel.get if !config.slackChannel.isEmpty
+      } yield {
+        create(classOf[SlackClient], webhookUrl, token, channel)
       }
     ).flatten
   }
