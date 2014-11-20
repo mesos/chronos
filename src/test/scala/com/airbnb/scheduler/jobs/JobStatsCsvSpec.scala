@@ -1,10 +1,9 @@
 package com.airbnb.scheduler.jobs
 
-import java.util.logging.{LogRecord, Handler, Logger}
+import java.util.logging.{Handler, LogRecord, Logger}
 
 import org.apache.mesos.Protos
-import org.apache.mesos.Protos.TaskStatus
-import org.joda.time.{Minutes, Hours}
+import org.joda.time.Minutes
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
 

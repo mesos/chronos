@@ -29,7 +29,7 @@ object Main extends App {
       new MainModule(conf),
       new ZookeeperModule(conf),
       new JobMetricsModule(conf),
-      new JobStatsModule(conf, conf)
+      new JobStatsModule(conf)
     )
   }
 

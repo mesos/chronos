@@ -6,9 +6,9 @@ import com.datastax.driver.core.policies.{RoundRobinPolicy, LatencyAwarePolicy, 
 import com.datastax.driver.core.ProtocolOptions.Compression
 import com.datastax.driver.core.Cluster
 
-class JobStatsModule (schconf: SchedulerConfiguration ,config: CassandraConfiguration) extends AbstractModule {
+class JobStatsModule (config: SchedulerConfiguration with CassandraConfiguration) extends AbstractModule {
   def configure() {
-    if (schconf.useCassandraLogJobStats == true) {
+    if (config.useCassandraLogJobStats == true) {
       bind(classOf[JobStats]).to(classOf[JobStatsCassandra]).in(Scopes.SINGLETON)}
     else {
       bind(classOf[JobStats]).to(classOf[JobStatsCsv]).in(Scopes.SINGLETON)
