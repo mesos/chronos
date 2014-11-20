@@ -140,4 +140,8 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val reconciliationInterval = opt[Int]("reconciliation_interval",
     descr = "Reconciliation interval in seconds",
     default = Some(600))
+
+  lazy val useCassandraLogJobStats = opt[Boolean]("use_cassandra_log_job_stats",
+    descr = "use Cassandra for logging or use log4j logging for job stats",
+    default = Some(false))
 }

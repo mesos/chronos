@@ -10,13 +10,13 @@ import java.util.logging.{Level, Logger}
 import scala.collection.JavaConverters._
 import java.util.concurrent.ConcurrentHashMap
 
-class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) {
+class JobStatsCassandra @Inject() (clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) extends JobStats {
 
   val log = Logger.getLogger(getClass.getName)
   var _session: Option[Session] = None
   val statements  = new ConcurrentHashMap[String, PreparedStatement]().asScala
 
-  def getSession: Option[Session] = {
+  private def getSession: Option[Session] = {
     _session match {
       case Some(s) => Some(s)
       case None =>
@@ -25,23 +25,23 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
             val session = c.build.connect(config.cassandraKeyspace())
             session.execute(new SimpleStatement(
               s"CREATE TABLE IF NOT EXISTS ${config.cassandraTable()}" +
-                  """
-                    |(
-                    |   id             VARCHAR,
-                    |   ts             TIMESTAMP,
-                    |   job_name       VARCHAR,
-                    |   job_owner      VARCHAR,
-                    |   job_schedule   VARCHAR,
-                    |   job_parents    SET<VARCHAR>,
-                    |   task_state     VARCHAR,
-                    |   slave_id       VARCHAR,
-                    |   message        VARCHAR,
-                    |   attempt        INT,
-                    |   is_failure     BOOLEAN,
-                    | PRIMARY KEY (id, ts))
-                    | WITH bloom_filter_fp_chance=0.100000 AND
-                    | compaction = {'class':'LeveledCompactionStrategy'}
-                  """.stripMargin
+                """
+                  |(
+                  |   id             VARCHAR,
+                  |   ts             TIMESTAMP,
+                  |   job_name       VARCHAR,
+                  |   job_owner      VARCHAR,
+                  |   job_schedule   VARCHAR,
+                  |   job_parents    SET<VARCHAR>,
+                  |   task_state     VARCHAR,
+                  |   slave_id       VARCHAR,
+                  |   message        VARCHAR,
+                  |   attempt        INT,
+                  |   is_failure     BOOLEAN,
+                  | PRIMARY KEY (id, ts))
+                  | WITH bloom_filter_fp_chance=0.100000 AND
+                  | compaction = {'class':'LeveledCompactionStrategy'}
+                """.stripMargin
             ))
             _session = Some(session)
             _session
@@ -50,7 +50,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
     }
   }
 
-  def resetSession() {
+  private def resetSession() {
     statements.clear()
     _session match {
       case Some(session) =>
@@ -60,7 +60,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
     _session = None
   }
 
-  def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  override def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     try {
       getSession match {
         case Some(session: Session) =>
@@ -115,7 +115,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
         log.log(Level.WARNING,"Query validation failed:", e)
     }
   }
-  def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  override def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     try {
       getSession match {
         case Some(session: Session) =>
@@ -170,7 +170,7 @@ class JobStats @Inject() (clusterBuilder: Option[Cluster.Builder], config: Cassa
         log.log(Level.WARNING,"Query validation failed:", e)
     }
   }
-  def jobFailed(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  override def jobFailed(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     try {
       getSession match {
         case Some(session: Session) =>

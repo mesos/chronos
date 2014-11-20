@@ -1,14 +1,18 @@
 package com.airbnb.scheduler.config
 
 import com.google.inject.{Provides, Scopes, AbstractModule, Singleton}
-import com.airbnb.scheduler.jobs.JobStats
+import com.airbnb.scheduler.jobs.{JobStatsCsv, JobStatsCassandra, JobStats}
 import com.datastax.driver.core.policies.{RoundRobinPolicy, LatencyAwarePolicy, DowngradingConsistencyRetryPolicy}
 import com.datastax.driver.core.ProtocolOptions.Compression
 import com.datastax.driver.core.Cluster
 
-class JobStatsModule (config: CassandraConfiguration) extends AbstractModule {
+class JobStatsModule (schconf: SchedulerConfiguration ,config: CassandraConfiguration) extends AbstractModule {
   def configure() {
-    bind(classOf[JobStats]).in(Scopes.SINGLETON)
+    if (schconf.useCassandraLogJobStats == true) {
+      bind(classOf[JobStats]).to(classOf[JobStatsCassandra]).in(Scopes.SINGLETON)}
+    else {
+      bind(classOf[JobStats]).to(classOf[JobStatsCsv]).in(Scopes.SINGLETON)
+    }
   }
 
   @Provides
