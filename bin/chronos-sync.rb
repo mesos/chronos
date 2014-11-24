@@ -79,6 +79,32 @@ if !options.validate
   end
 end
 
+def set_defaults(job)
+  newjob = job.dup
+  newjob['highPriority'] = false unless job.include?('highPriority')
+  newjob
+end
+
+def raise_if_missing(job, field)
+  if !job.include?(field)
+    raise"Job #{job['name']} is missing required field `#{field}`"
+  end
+end
+
+def has_required_fields?(job, typeField)
+  if !job.include?('name')
+    raise("Job #{job.to_s} is missing required field `name`")
+  end
+  raise_if_missing(job, 'command')
+  raise_if_missing(job, 'owner')
+  raise_if_missing(job, 'cpus')
+  raise_if_missing(job, 'disk')
+  raise_if_missing(job, 'mem')
+  raise_if_missing(job, 'runAsUser')
+  raise_if_missing(job, typeField)
+  true
+end
+
 def normalize_job(job)
   newjob = job.dup
   newjob.delete 'successCount'
@@ -161,6 +187,42 @@ if !options.validate
   end
 end
 
+def load_job(fn, lines, prefix, typeName)
+  begin
+    parsed = YAML.load(lines)
+    parsed = set_defaults(parsed)
+    # Verify that job has all the required fields
+    has_required_fields?(parsed, typeName)
+    if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
+      puts "Name from '#{prefix}/#{fn}' doesn't match job name of '#{parsed['name']}'"
+      puts "  expected '#{prefix}/#{sanitize_name(parsed['name'])}.yaml'"
+      nil
+    elsif prefix == 'dependent'
+      if parsed.include? 'schedule'
+        puts "Dependent job from '#{dependent}/#{fn}' must not contain a schedule!"
+        nil
+      else
+        parsed
+      end
+    elsif prefix == 'scheduled'
+      if parsed.include? 'parents'
+        puts "Scheduled job from '#{prefix}/#{fn}' must not contain parents!"
+        nil
+      else
+        parsed
+      end
+    end
+  rescue Psych::SyntaxError => e
+    $stderr.puts "Parsing error when reading '#{prefix}/#{fn}'"
+    nil
+  rescue => e
+    $stderr.puts "Failed to load job from '#{prefix}/#{fn}':"
+    $stderr.puts "  #{e.to_s}"
+    $stderr.puts
+    nil
+  end
+end
+
 valid = true
 jobs = {}
 Dir.chdir(options.config_path) do
@@ -168,21 +230,11 @@ Dir.chdir(options.config_path) do
     paths = Dir.glob('*.yaml') + Dir.glob('*.yml')
     paths.each do |fn|
       lines = File.open(fn).readlines().join
-      begin
-        parsed = YAML.load(lines)
-        jobs[parsed['name']] = parsed
-        if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
-          puts "Name from 'dependent/#{fn}' doesn't match job name of '#{parsed['name']}'"
-          puts "  expected 'dependent/#{sanitize_name(parsed['name'])}.yaml'"
-          valid = false
-        end
-        if parsed.include? 'schedule'
-          puts "Dependent job from 'dependent/#{fn}' must not contain a schedule!"
-          valid = false
-        end
-      rescue Psych::SyntaxError => e
-        $stderr.puts "Parsing error when reading 'dependent/#{fn}'"
+      job = load_job(fn, lines, 'dependent', 'parents')
+      if job.nil?
         valid = false
+      else
+        jobs[job['name']] = job
       end
     end
   end
@@ -191,21 +243,11 @@ Dir.chdir(options.config_path) do
     paths = Dir.glob('*.yaml') + Dir.glob('*.yml')
     paths.each do |fn|
       lines = File.open(fn).readlines().join
-      begin
-        parsed = YAML.load(lines)
-        jobs[parsed['name']] = parsed
-        if fn.gsub(/\.ya?ml$/, '') != sanitize_name(parsed['name'].gsub(/\.ya?ml$/, ''))
-          puts "Name from 'scheduled/#{fn}' doesn't match job name of '#{parsed['name']}'"
-          puts "  expected 'scheduled/#{sanitize_name(parsed['name'])}.yaml'"
-          valid = false
-        end
-        if parsed.include? 'parents'
-          puts "Scheduled job from 'scheduled/#{fn}' must not contain parents!"
-          valid = false
-        end
-      rescue Psych::SyntaxError => e
-        $stderr.puts "Parsing error when reading 'scheduled/#{fn}'"
+      job = load_job(fn, lines, 'scheduled', 'schedule')
+      if job.nil?
         valid = false
+      else
+        jobs[job['name']] = job
       end
     end
   end
@@ -237,7 +279,7 @@ if options.validate
     exit 0
   else
     $stderr.puts
-    $stderr.puts "There were a validation errors."
+    $stderr.puts "There were validation errors."
     exit 1
   end
 end
