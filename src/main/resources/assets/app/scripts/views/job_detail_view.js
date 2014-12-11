@@ -392,6 +392,8 @@ function($,
             if (!$el.is(':checked')) { return; }
 
             val = (parseInt(val, 10) !== 0);
+        } else if (name === 'highPriority') {
+          if (!$el.is(':checked')) { return; }
         }
 
         console.log("setting model", model, "name", name, "to", val);
