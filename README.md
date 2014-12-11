@@ -209,7 +209,21 @@ The JSON hash you send to Chronos should contain the following fields:
 
      	TZD  = time zone designator (Z or +hh:mm or -hh:mm)
 
-    * The run interval
+    * The run interval; defined as follows:
+    
+        P10M=10 months
+        
+        PT10M=10 minutes
+            
+        P1Y12M12D=1 years plus 12 months plus 12 days
+            
+        P12DT12M=12 days plus 12 minutes
+        
+        P1Y2M3DT4H5M6S = P(eriod) 1Y(ear)2M(onth)3D(ay) T(ime) 4H(our)5M(inute)6S(econd)
+        
+        P is required. T is for distinguishing M(inute) and M(onth), it is required when Hour/Minute/Second exists.
+
+
 * ScheduleTimeZone: The time zone name to use when scheduling the job.
   * This field takes precedence over any time zone specified in Schedule.
   * All system time zones supported by [`java.util.Timezone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
