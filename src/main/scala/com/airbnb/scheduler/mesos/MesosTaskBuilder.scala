@@ -89,7 +89,13 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         .setName("CHRONOS_JOB_NAME").setValue(job.name))
       .addVariables(Variable.newBuilder()
         .setName("HOST").setValue(offer.getHostname))
-        
+      .addVariables(Variable.newBuilder()
+        .setName("CHRONOS_RSRC_MEM").setValue(job.mem.toString))
+      .addVariables(Variable.newBuilder()
+        .setName("CHRONOS_RSRC_CPU").setValue(job.cpus.toString))
+      .addVariables(Variable.newBuilder()
+        .setName("CHRONOS_RSRC_DISK").setValue(job.disk.toString))
+
     // If the job defines custom environment variables, add them to the builder
     // Don't add them if they already exist to prevent overwriting the defaults
     val builtinEnvNames = environment.getVariablesList().asScala.map(_.getName()).toSet
