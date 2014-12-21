@@ -408,6 +408,7 @@ if !options.skip_sync
     req = Net::HTTP::Put.new(uri.request_uri)
     req.body = JSON.generate(job)
     req.content_type = 'application/json'
+    req.basic_auth options.http_auth_user, options.http_auth_pass if (defined? options.http_auth_user)
 
     puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
 
