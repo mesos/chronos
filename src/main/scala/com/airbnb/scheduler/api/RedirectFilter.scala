@@ -48,6 +48,7 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
       if (jobScheduler.isLeader) {
         chain.doFilter(request, response)
       } else {
+        var proxyStatus: Int = 200
         try {
           log.info("Proxying request.")
 
@@ -82,7 +83,8 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
               proxyOutputStream.close
           }
 
-          response.setStatus(proxy.getResponseCode())
+          proxyStatus = proxy.getResponseCode()
+          response.setStatus(proxyStatus)
 
           val fields = proxy.getHeaderFields
           // getHeaderNames() and getHeaders() are known to return null, see:
@@ -103,7 +105,7 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter  {
           responseOutputStream.close
         } catch {
           case t: Exception => 
-            response.sendError(500)
+            if ((200 to 299) contains proxyStatus) response.sendError(500)
             log.log(Level.WARNING, "Exception while proxying!", t)
         }
       }
