@@ -400,7 +400,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
    "arguments": [
    	  "-verbose",
    	  "-debug"
-   ]
+   ],
    "shell":"false",
    "epsilon":"PT30M",
    "executor":"",
