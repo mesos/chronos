@@ -16,9 +16,7 @@ import com.google.common.util.concurrent.AbstractIdleService
 import akka.actor.ActorRef
 import org.apache.mesos.Protos.TaskStatus
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.leader.{LeaderLatchListener, Participant, LeaderLatch}
-import org.apache.curator.framework.api.CuratorWatcher
-import org.apache.zookeeper.WatchedEvent
+import org.apache.curator.framework.recipes.leader.{LeaderLatchListener, LeaderLatch}
 
 /**
  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.

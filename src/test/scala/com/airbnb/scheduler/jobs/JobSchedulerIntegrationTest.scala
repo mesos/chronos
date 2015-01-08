@@ -166,9 +166,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that dependent jobs run even if their parents fail but have softError enabled" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false, retries = 0, softError = true)
 
       val job3 = new DependencyBasedJob(Set("job1", "job2"), name = "job3", command = "CMD", disabled = false)
@@ -180,7 +180,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
-      val date = DateTime.parse("2011-01-01T00:05:01.000Z")
+      val date = DateTime.now(DateTimeZone.UTC)
       scheduler.registerJob(job1, true, date)
       scheduler.registerJob(job2, true, date)
       scheduler.registerJob(job3, true, date)
@@ -188,7 +188,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
         date
       })
 
-      val finishedDate = date.plus(1)
+      val finishedDate = date.plusMinutes(1)
 
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, date, 0), Some(finishedDate))
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job2, date, 0))
@@ -208,11 +208,11 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
     }
 
 
-    "Tests that dependent jobs don't run if their parents fail withou softError enabled" in {
+    "Tests that dependent jobs don't run if their parents fail without softError enabled" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false, retries = 0, softError = false)
 
       val job3 = new DependencyBasedJob(Set("job1", "job2"), name = "job3", command = "CMD", disabled = false)
@@ -224,7 +224,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
-      val date = DateTime.parse("2011-01-01T00:05:01.000Z")
+      val date = DateTime.now(DateTimeZone.UTC)
       scheduler.registerJob(job1, true, date)
       scheduler.registerJob(job2, true, date)
       scheduler.registerJob(job3, true, date)
@@ -232,7 +232,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
         date
       })
 
-      val finishedDate = date.plus(1)
+      val finishedDate = date.plusMinutes(1)
 
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, date, 0), Some(finishedDate))
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job2, date, 0))
@@ -249,9 +249,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that dependent jobs runs when they should after changing the jobgraph" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
         name = "job1", command = "fooo", epsilon = epsilon, disabled=false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
         name = "job2", command = "fooo", epsilon = epsilon, disabled=false)
 
       val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled=false)
@@ -266,7 +266,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
-      val date = DateTime.parse("2011-01-01T00:05:01.000Z")
+      val date = DateTime.parse("2012-01-01T00:00:00.000Z")
       scheduler.registerJob(job1, true, date)
       scheduler.registerJob(job2, true, date)
       scheduler.registerJob(job3, true, date)
@@ -275,7 +275,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       scheduler.run(() => { date })
 
-      val finishedDate = date.plus(1)
+      val finishedDate = date.plusMinutes(1)
 
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, date, 0), Some(finishedDate))
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job2, date, 0), Some(finishedDate))
