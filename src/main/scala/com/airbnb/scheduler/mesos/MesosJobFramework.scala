@@ -9,7 +9,8 @@ import org.apache.mesos.{Protos, SchedulerDriver, Scheduler}
 import org.apache.mesos.Protos._
 import org.joda.time.DateTime
 
-import scala.collection.mutable.HashMap
+import scala.collection.Iterator
+import scala.collection.mutable.{HashMap, HashSet, Buffer}
 import scala.collection.JavaConverters._
 import mesosphere.mesos.util.FrameworkIdUtil
 import com.airbnb.utils.JobDeserializer
@@ -35,6 +36,45 @@ class MesosJobFramework @Inject()(
                             var taskStatus: Option[TaskStatus] = None) {
     override def toString: String = {
       s"slaveId=$slaveId, taskStatus=${taskStatus.getOrElse("none").toString}"
+    }
+  }
+
+  class Resources(var cpus: Double,
+                  var mem: Double,
+                  var disk: Double) {
+    def this(job: BaseJob) {
+      this(
+        if (job.cpus > 0) job.cpus else config.mesosTaskCpu(),
+        if (job.mem > 0) job.mem else config.mesosTaskMem(),
+        if (job.disk > 0) job.disk else config.mesosTaskDisk()
+      )
+    }
+
+    def canSatisfy(needed: Resources): Boolean = {
+      return (this.cpus >= needed.cpus) &&
+             (this.mem >= needed.mem) &&
+             (this.disk >= needed.disk)
+    }
+
+    def -=(that: Resources) {
+      this.cpus -= that.cpus
+      this.mem -= that.mem
+      this.disk -= that.disk
+    }
+
+    override def toString: String = {
+      "cpus: " + this.cpus + " mem: " + this.mem + " disk: " + this.disk
+    }
+  }
+
+  object Resources {
+    def apply(offer: Offer): Resources = {
+      val resources = offer.getResourcesList.asScala.filter(r => !r.hasRole || r.getRole == config.mesosRole())
+      new Resources(
+        getScalarValueOrElse(resources.find(_.getName == "cpus"), 0),
+        getScalarValueOrElse(resources.find(_.getName == "mem"), 0),
+        getScalarValueOrElse(resources.find(_.getName == "disk"), 0)
+      )
     }
   }
 
@@ -80,41 +120,68 @@ class MesosJobFramework @Inject()(
     )
   }
 
-  //TODO(FL): Persist the UPDATED task or job into ZK such that on failover / reload, we don't have to step through the
-  //          entire task stream.
-  @Override
-  def resourceOffers(schedulerDriver: SchedulerDriver, offers: java.util.List[Offer]) {
-    log.info("Received resource offers\n")
-    import scala.collection.JavaConverters._
-    def getNextTask(offers: List[Offer]) {
-      taskManager.getTask match {
-        case Some((x, j)) => {
-          (offers.toIterator.map {
-            offer => buildTask(x, j, offer) }.find(_._1)) match {
-            case Some((isSufficient, taskBuilder, offer)) if isSufficient =>
-              processTask(x, j, offer, taskBuilder)
-              getNextTask(offers.filter(x => x.getId != offer.getId))
-            case _ =>
-              log.warning("No sufficient offers found for task '%s', will append to queue".format(x))
-              offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
+  def generateLaunchableTasks(offerResources: HashMap[Offer, Resources]): Buffer[(String, BaseJob, Offer)] = {
+    val tasks = Buffer[(String, BaseJob, Offer)]()
 
-              /* Put the task back into the queue */
-              taskManager.enqueue(x, j.highPriority)
+    def generate {
+      taskManager.getTask match {
+        case None => log.info("No tasks scheduled or next task has been disabled.\n")
+        case Some((taskId, job)) => {
+          if (runningTasks.contains(job.name)) {
+            val deleted = taskManager.removeTask(taskId)
+            log.warning("The head of the task queue appears to already be running: " + job.name + "\n")
+            generate
+          } else {
+            tasks.find(_._2.name == job.name) match {
+              case Some((taskId, job, offer)) => {
+                val deleted = taskManager.removeTask(taskId)
+                log.warning("Found job in queue that is already scheduled for launch with this offer set: " + job.name + "\n")
+                generate
+              }
+              case None => {
+                val neededResources = new Resources(job)
+                offerResources.toIterator.find(_._2.canSatisfy(neededResources)) match {
+                  case Some((offer, resources)) => {
+                    // Subtract this job's resource requirements from the remaining available resources in this offer.
+                    resources -= neededResources
+                    tasks.append((taskId, job, offer))
+                    generate
+                  }
+                  case None => {
+                    log.warning("Insufficient resources remaining for task '%s', will append to queue\n.".format(taskId))
+                    taskManager.enqueue(taskId, job.highPriority)
+                  }
+                }
+              }
+            }
           }
-        }
-        case _ => {
-          log.info("No tasks scheduled! Declining offers")
-          offers.foreach ( offer => mesosDriver.get().declineOffer(offer.getId) )
         }
       }
     }
+    generate
+    tasks
+  }
 
-    // Sorting like this ensures that offers with the most amount of
-    // reserved resources are preferred first over other offers.
-    getNextTask(
-      offers.asScala.toList
-        .sortWith(getReservedResources(_) > getReservedResources(_))
-    )
+  //TODO(FL): Persist the UPDATED task or job into ZK such that on failover / reload, we don't have to step through the
+  //          entire task stream.
+  @Override
+  def resourceOffers(schedulerDriver: SchedulerDriver, receivedOffers: java.util.List[Offer]) {
+    log.info("Received resource offers\n")
+    import scala.collection.JavaConverters._
+
+    val offers = receivedOffers.asScala.toList
+    val offerResources = HashMap(offers.map(o => (o, Resources(o))).toSeq: _*)
+    val tasksToLaunch = generateLaunchableTasks(offerResources)
+
+    log.info("Declining unused offers.\n")
+    val usedOffers = HashSet(tasksToLaunch.map(_._3.getId.getValue): _*)
+    val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
+    offers.foreach(o => {
+      if (!usedOffers.contains(o.getId.getValue))
+        mesosDriver.get().declineOffer(o.getId, filters)
+    })
+
+    launchTasks(tasksToLaunch)
 
     // Perform a reconciliation, if needed.
     reconcile(schedulerDriver)
@@ -217,79 +284,35 @@ class MesosJobFramework @Inject()(
     scheduler.shutDown()
   }
 
-  /**
-   * Builds a task
-   * @param taskId
-   * @param job
-   * @param offer
-   * @return and returns a tuple containing a boolean indicating if sufficient
-   *         resources where offered, the TaskBuilder and the offer.
-   */
-  def buildTask(taskId: String, job: BaseJob, offer: Offer) : (Boolean, TaskInfo.Builder, Offer) = {
-    val taskInfoTemplate = taskBuilder.getMesosTaskInfoBuilder(taskId, job, offer)
-    log.fine("Job %s ready for launch at time: %d".format(taskInfoTemplate.getTaskId.getValue,
-      System.currentTimeMillis))
-    import collection.JavaConversions._
-
-    val sufficient = scala.collection.mutable.Map[String, Boolean]().withDefaultValue(false)
-    logOffer(offer)
-    offer.getResourcesList.foreach({x =>
-        log.info(x.getScalar.getValue.getClass.getName)
-        x.getType match {
-          case Value.Type.SCALAR =>
-            val amount = x.getName match {
-              case "mem" =>
-                if (job.mem > 0) job.mem else config.mesosTaskMem()
-              case "cpus" =>
-                if (job.cpus > 0) job.cpus else config.mesosTaskCpu()
-              case "disk" =>
-                if (job.disk > 0) job.disk else config.mesosTaskDisk()
-              case _ =>
-                x.getScalar.getValue / math.max(x.getScalar.getValue, 1)
-            }
-
-            x.getScalar.getValue match {
-
-              case value: Double => {
-                if (value.doubleValue() >= amount && !sufficient(x.getName)) {
-                  sufficient(x.getName) = true
-                }
-              }
-            }
-          case _ =>
-            log.warning("Ignoring offered resource: %s".format(x.getType.toString))
-      }})
-    (sufficient("cpus") && sufficient("mem") && sufficient("disk"), taskInfoTemplate, offer)
-  }
-
-  def processTask(taskId: String, job: BaseJob, offer: Offer, taskInfoTemplate: TaskInfo.Builder) {
-    val mesosTask = taskInfoTemplate.setSlaveId(offer.getSlaveId).build()
+  def launchTasks(tasks: Buffer[(String, BaseJob, Offer)]) {
+    import scala.collection.JavaConverters._
 
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
 
-    log.info("Launching task from offer: " + offer + " with task: " + mesosTask)
-
-    import scala.collection.JavaConverters._
-    if (runningTasks.contains(job.name)) {
-      log.info("Task '%s' not launched because it appears to be runing".format(taskId))
-      mesosDriver.get().declineOffer(offer.getId)
-    } else {
-      val status: Protos.Status =
-        mesosDriver.get().launchTasks(
+    tasks.groupBy(_._3).toIterable.foreach({case (offer, tasks) => {
+      val mesosTasks = tasks.map(task => {
+        taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
+      })
+      log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
+      val status: Protos.Status = mesosDriver.get().launchTasks(
         List(offer.getId).asJava,
-        List(mesosTask).asJava,
+        mesosTasks.asJava,
         filters
       )
       if (status == Protos.Status.DRIVER_RUNNING) {
-        val deleted = taskManager.removeTask(taskId)
-        log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
-          .format(taskId, deleted))
-        runningTasks.put(job.name, new ChronosTask(offer.getSlaveId.getValue))
-      }
+        for (task <- tasks) {
+          val deleted = taskManager.removeTask(task._1)
+          log.fine("Successfully launched task '%s' via mesos, task records successfully deleted: '%b'"
+            .format(task._1, deleted))
+          runningTasks.put(task._2.name, new ChronosTask(task._3.getSlaveId.getValue))
 
-      //TODO(FL): Handle case if mesos can't launch the task.
-      log.info("Task '%s' launched, status: '%s'".format(taskId, status.toString))
-    }
+          //TODO(FL): Handle case if mesos can't launch the task.
+          log.info("Task '%s' launched, status: '%s'".format(task._1, status.toString))
+        }
+      } else {
+        log.warning("Other status returned.")
+      }
+    }})
   }
 
   private def logOffer(offer : Offer) {
