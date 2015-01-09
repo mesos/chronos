@@ -157,4 +157,69 @@ object JobUtils {
       Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds  
     }
   }
+
+  def getJobWithArguments(job: BaseJob, arguments: String): BaseJob = {
+    val jobWithArguments = job match {
+      case j: DependencyBasedJob =>
+        new DependencyBasedJob(
+          parents = Set(),
+          name = job.name,
+          command = if (job.shell) (job.command + " " + arguments) else job.command,
+          epsilon = job.epsilon,
+          successCount = job.successCount,
+          errorCount = job.errorCount,
+          executor = job.executor,
+          executorFlags = job.executorFlags,
+          retries = job.retries,
+          owner = job.owner,
+          lastError = job.lastError,
+          lastSuccess = job.lastSuccess,
+          async = job.async,
+          cpus = job.cpus,
+          disk = job.disk,
+          mem = job.mem,
+          disabled = job.disabled,
+          errorsSinceLastSuccess = job.errorsSinceLastSuccess,
+          softError = job.softError,
+          uris = job.uris,
+          highPriority = job.highPriority,
+          runAsUser = job.runAsUser,
+          container = job.container,
+          environmentVariables = job.environmentVariables,
+          shell = job.shell,
+          arguments = if (job.shell) job.arguments else (job.arguments ++ List(arguments))
+        )
+      case j: ScheduleBasedJob =>
+        new ScheduleBasedJob(
+          schedule = j.schedule,
+          scheduleTimeZone = j.scheduleTimeZone,
+          name = job.name,
+          command = if (job.shell) (job.command + " " + arguments) else job.command,
+          epsilon = job.epsilon,
+          successCount = job.successCount,
+          errorCount = job.errorCount,
+          executor = job.executor,
+          executorFlags = job.executorFlags,
+          retries = job.retries,
+          owner = job.owner,
+          lastError = job.lastError,
+          lastSuccess = job.lastSuccess,
+          async = job.async,
+          cpus = job.cpus,
+          disk = job.disk,
+          mem = job.mem,
+          disabled = job.disabled,
+          errorsSinceLastSuccess = job.errorsSinceLastSuccess,
+          softError = job.softError,
+          uris = job.uris,
+          highPriority = job.highPriority,
+          runAsUser = job.runAsUser,
+          container = job.container,
+          environmentVariables = job.environmentVariables,
+          shell = job.shell,
+          arguments = if (job.shell) job.arguments else (job.arguments ++ List(arguments))
+        )
+    }
+    jobWithArguments
+  }
 }

@@ -50,4 +50,29 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     scheduledTime.isAfter(now) must beTrue
     scheduledTime.dayOfMonth().get must_== 1
   }
+  
+  "Can get job with arguments" in {
+    val schedule = "R/2012-01-01T00:00:01.000Z/P1M"
+    val arguments = "--help"
+    val command = "sample-command"
+    val commandWithArguments = command + " " +arguments
+
+    // Using shell: true
+    val scheduledJob = new ScheduleBasedJob(schedule, "sample-name", command = command)
+    val dependencyJob = new DependencyBasedJob(parents=Set("sample-name"), "sample-name2", command = command)
+    val scheduledJobWithArguments = JobUtils.getJobWithArguments(scheduledJob, arguments)
+    val dependencyJobWithArguments = JobUtils.getJobWithArguments(dependencyJob, arguments)
+
+    scheduledJobWithArguments.command.toString() must_== commandWithArguments
+    dependencyJobWithArguments.command.toString() must_== commandWithArguments
+
+    // Using shell: false
+    val scheduledJobNoShell = new ScheduleBasedJob(schedule, "sample-name3", command = command, shell = false)
+    val dependencyJobNoShell = new DependencyBasedJob(parents=Set("sample-name3"), "sample-name4", command = command, shell = false)
+    val scheduledJobWithArgumentsNoShell = JobUtils.getJobWithArguments(scheduledJobNoShell, arguments)
+    val dependencyJobWithArgumentsNoShell = JobUtils.getJobWithArguments(dependencyJobNoShell, arguments)
+
+    scheduledJobWithArgumentsNoShell.arguments.mkString(" ") must_== arguments
+    dependencyJobWithArgumentsNoShell.arguments.mkString(" ") must_== arguments
+  }
 }

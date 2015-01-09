@@ -178,7 +178,9 @@ You can manually start a job by issuing an HTTP request.
 
 * Endpoint: __/scheduler/job__
 * Method: __PUT__
+* Query string parameters: `arguments` - optional string with a list of command line arguments that is appended to job's `command` (if `shell` is true) or `arguments` (if `shell` is false)
 * Example: `curl -L -X PUT chronos-node:8080/scheduler/job/request_event_counter_hourly`
+* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/job_name?arguments=-debug%20true`
 * Response: HTTP 204
 
 ### Adding a Scheduled Job

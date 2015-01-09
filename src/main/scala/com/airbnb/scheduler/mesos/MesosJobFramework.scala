@@ -218,7 +218,7 @@ class MesosJobFramework @Inject()(
   def statusUpdate(schedulerDriver: SchedulerDriver, taskStatus: TaskStatus) {
      taskManager.taskCache.put(taskStatus.getTaskId.getValue, taskStatus.getState)
 
-    val (jobName, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
+    val (jobName, _, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
         scheduler.handleStartedTask(taskStatus)
