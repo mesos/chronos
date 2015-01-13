@@ -1,4 +1,4 @@
-# Chronos [![Build Status](https://travis-ci.org/airbnb/chronos.svg?branch=master)](https://travis-ci.org/airbnb/chronos)
+# Chronos [![Build Status](https://travis-ci.org/mesos/chronos.svg?branch=master)](https://travis-ci.org/mesos/chronos)
 
 __New detailed documentation for Mesos available via the [Mesosphere Website](http://mesosphere.io/docs/)__
 
