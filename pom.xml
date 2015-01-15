@@ -380,7 +380,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugins.version}</version>
         <configuration>
-          <argLine>-Xmx1024m</argLine>
+          <argLine>-Xmx1024m -Duser.timezone=UTC</argLine>
           <redirectTestOutputToFile>false</redirectTestOutputToFile>
           <includes>
             <include>**/Test*.java</include>

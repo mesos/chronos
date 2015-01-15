@@ -19,21 +19,22 @@ object TaskUtils {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT
-  val taskIdTemplate = "ct:%d:%d:%s"
-  val taskIdPattern = """ct:(\d+):(\d+):%s""".format(JobUtils.jobNamePattern).r
+  //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT:ARGUMENTS
+  val taskIdTemplate = "ct:%d:%d:%s:%s"
+  var argumentsPattern = """(.*)?""".r
+  val taskIdPattern = """ct:(\d+):(\d+):%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
 
-  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
-   taskIdTemplate.format(due.getMillis, attempt, job.name)
+  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0, arguments: String = ""): String = {
+    taskIdTemplate.format(due.getMillis, attempt, job.name, arguments)
   }
 
   def getTaskStatus(job: BaseJob, due: DateTime, attempt: Int = 0): TaskStatus = {
     TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(getTaskId(job, due, attempt))).setState(TaskState.TASK_STAGING).build
   }
 
-  def parseTaskId(id: String): (String, Long, Int) = {
-    val taskIdPattern(due, attempt, jobName) = id
-    (jobName, due.toLong, attempt.toInt)
+  def parseTaskId(id: String): (String, Long, Int, String) = {
+    val taskIdPattern(due, attempt, jobName, jobArguments) = id
+    (jobName, due.toLong, attempt.toInt, jobArguments)
   }
 
   def isValidVersion(taskIdString: String): Boolean = {
@@ -48,7 +49,7 @@ object TaskUtils {
   def getJobNameForTaskId(taskId: String): String = {
     require(taskId != null, "taskId cannot be null")
     try {
-      val TaskUtils.taskIdPattern(_, _, jobName) = taskId
+      val TaskUtils.taskIdPattern(_, _, jobName, _) = taskId
       jobName
     } catch {
       case t: Exception =>
@@ -58,6 +59,23 @@ object TaskUtils {
     }
   }
 
+  /**
+   * Parses the task id into job arguments
+   * @param taskId
+   * @return
+   */
+  def getJobArgumentsForTaskId(taskId: String): String = {
+    require(taskId != null, "taskId cannot be null")
+    try {
+      val TaskUtils.taskIdPattern(_, _, _, jobArguments) = taskId
+      jobArguments
+    } catch {
+      case t: Exception =>
+        log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
+          "Warning, dependents will not be triggered!")
+        return ""
+    }
+  }
 
   def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (BaseJob, Long, Int)] = {
     val taskMap = new mutable.HashMap[String, (BaseJob, Long, Int)]()
