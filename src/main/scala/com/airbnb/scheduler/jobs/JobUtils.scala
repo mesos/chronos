@@ -159,12 +159,13 @@ object JobUtils {
   }
 
   def getJobWithArguments(job: BaseJob, arguments: String): BaseJob = {
+    val commandWithArgs = job.command + " " + arguments;
     val jobWithArguments = job match {
       case j: DependencyBasedJob =>
         new DependencyBasedJob(
           parents = Set(),
           name = job.name,
-          command = if (job.shell) (job.command + " " + arguments) else job.command,
+          command = commandWithArgs,
           epsilon = job.epsilon,
           successCount = job.successCount,
           errorCount = job.errorCount,
@@ -187,14 +188,14 @@ object JobUtils {
           container = job.container,
           environmentVariables = job.environmentVariables,
           shell = job.shell,
-          arguments = if (job.shell) job.arguments else (job.arguments ++ List(arguments))
+          arguments = job.arguments
         )
       case j: ScheduleBasedJob =>
         new ScheduleBasedJob(
           schedule = j.schedule,
           scheduleTimeZone = j.scheduleTimeZone,
           name = job.name,
-          command = if (job.shell) (job.command + " " + arguments) else job.command,
+          command = commandWithArgs,
           epsilon = job.epsilon,
           successCount = job.successCount,
           errorCount = job.errorCount,
@@ -217,7 +218,7 @@ object JobUtils {
           container = job.container,
           environmentVariables = job.environmentVariables,
           shell = job.shell,
-          arguments = if (job.shell) job.arguments else (job.arguments ++ List(arguments))
+          arguments = job.arguments
         )
     }
     jobWithArguments

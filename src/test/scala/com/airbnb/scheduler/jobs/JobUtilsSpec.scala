@@ -57,7 +57,6 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     val command = "sample-command"
     val commandWithArguments = command + " " +arguments
 
-    // Using shell: true
     val scheduledJob = new ScheduleBasedJob(schedule, "sample-name", command = command)
     val dependencyJob = new DependencyBasedJob(parents=Set("sample-name"), "sample-name2", command = command)
     val scheduledJobWithArguments = JobUtils.getJobWithArguments(scheduledJob, arguments)
@@ -65,14 +64,5 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     scheduledJobWithArguments.command.toString() must_== commandWithArguments
     dependencyJobWithArguments.command.toString() must_== commandWithArguments
-
-    // Using shell: false
-    val scheduledJobNoShell = new ScheduleBasedJob(schedule, "sample-name3", command = command, shell = false)
-    val dependencyJobNoShell = new DependencyBasedJob(parents=Set("sample-name3"), "sample-name4", command = command, shell = false)
-    val scheduledJobWithArgumentsNoShell = JobUtils.getJobWithArguments(scheduledJobNoShell, arguments)
-    val dependencyJobWithArgumentsNoShell = JobUtils.getJobWithArguments(dependencyJobNoShell, arguments)
-
-    scheduledJobWithArgumentsNoShell.arguments.mkString(" ") must_== arguments
-    dependencyJobWithArgumentsNoShell.arguments.mkString(" ") must_== arguments
   }
 }
