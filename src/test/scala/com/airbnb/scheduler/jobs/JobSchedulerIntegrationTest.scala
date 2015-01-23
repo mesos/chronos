@@ -19,33 +19,23 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val epsilon = Hours.hours(2).toPeriod
       val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
 
-      val exec = MoreExecutors.listeningDecorator(new ScheduledThreadPoolExecutor(1))
-
       val jobGraph = new JobGraph
       val persistenceStore = mock[PersistenceStore]
-      val taskManager = new TaskManager(exec, persistenceStore, jobGraph, mesosDriver = mock[MesosDriverFactory], registry = mock[MetricRegistry])
+      val mockTaskManager = mock[TaskManager]
 
-      val scheduler = new JobScheduler(epsilon, taskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = new JobScheduler(epsilon, mockTaskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
       scheduler.leader.set(true)
       scheduler.registerJob(job1, true, startTime)
 
       val newStreams = scheduler.iteration(startTime, scheduler.streams)
       newStreams(0).schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
-      taskManager.queues(1).size must_== 1
-
-      val taskId1 = taskManager.queues(1).poll
 
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
-
-      taskManager.queues(1).size must_== 1
-
-      val taskId2 = taskManager.queues(1).poll
-
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
+
       there was one(persistenceStore)
         .persistJob(new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
-
       there was one(persistenceStore)
         .persistJob(new ScheduleBasedJob("R4/2012-01-02T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
     }
