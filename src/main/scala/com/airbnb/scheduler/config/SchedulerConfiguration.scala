@@ -24,7 +24,7 @@ trait SchedulerConfiguration extends ScallopConf {
   //TODO(FL): Be consistent and do everything in millis
   lazy val failoverTimeoutSeconds = opt[Int]("failover_timeout",
     descr = "The failover timeout in seconds for Mesos",
-    default = Some(1200))
+    default = Some(604800))
 
   lazy val scheduleHorizonSeconds = opt[Int]("schedule_horizon",
     descr = "The look-ahead time for scheduling tasks in seconds",
