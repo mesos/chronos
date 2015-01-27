@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.airbnb</groupId>
+  <groupId>org.apache.mesos</groupId>
   <artifactId>chronos</artifactId>
   <version>2.3.1_mesos-0.20.1-SNAPSHOT</version>
   <inceptionYear>2012</inceptionYear>
@@ -336,7 +336,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.airbnb.scheduler.Main</mainClass>
+              <mainClass>org.apache.mesos.chronos.scheduler.Main</mainClass>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
