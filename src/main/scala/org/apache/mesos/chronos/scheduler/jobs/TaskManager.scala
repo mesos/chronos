@@ -141,7 +141,9 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     /* Don't want to change previous logging if we don't have to... */
     log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
     val _priority = if (highPriority) HIGH_PRIORITY else NORMAL_PRIORITY
-    queues(_priority).add(taskId)
+    this.synchronized {
+      queues(_priority).add(taskId)
+    }
   }
 
   /**

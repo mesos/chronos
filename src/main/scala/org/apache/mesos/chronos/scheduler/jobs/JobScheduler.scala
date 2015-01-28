@@ -1,10 +1,10 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
-import java.util.concurrent.{Executors, Future}
+import java.util.concurrent.{TimeUnit, Executors, Future}
 import java.util.logging.{Level, Logger}
 
-import akka.actor.ActorRef
+import akka.actor.{ActorSystem, ActorRef}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
@@ -48,6 +48,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   val leaderExecutor = Executors.newSingleThreadExecutor()
   //This acts as the lock
   val lock = new Object
+
+  val actorSystem = ActorSystem()
+  val akkaScheduler = actorSystem.scheduler
 
   //TODO(FL): Take some methods out of this class.
   val running = new AtomicBoolean(false)
@@ -391,10 +394,21 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
             /* Schedule the retry up to 60 seconds in the future */
+            val delayDuration = new Duration(failureRetryDelay)
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
-              .plus(new Duration(failureRetryDelay)), attempt + 1)
-            taskManager.persistTask(newTaskId, job)
-            taskManager.enqueue(newTaskId, job.highPriority)
+              .plus(delayDuration), attempt + 1)
+            val delayedTask = new Runnable {
+              def run() {
+                log.info(s"Enqueuing failed task $newTaskId")
+                taskManager.persistTask(newTaskId, job)
+                taskManager.enqueue(newTaskId, job.highPriority)
+              }
+            }
+            implicit val executor = actorSystem.dispatcher
+
+            akkaScheduler.scheduleOnce(
+              delay = scala.concurrent.duration.Duration(delayDuration.getMillis, TimeUnit.MILLISECONDS),
+              runnable = delayedTask)
           } else {
             val disableJob =
               (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
