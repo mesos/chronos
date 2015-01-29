@@ -438,6 +438,7 @@ end
 def delete_job(options, job_name)
   uri = URI("#{options.uri}/scheduler/job/#{job_name}")
   req = Net::HTTP::Delete.new(uri.request_uri)
+  req.basic_auth options.http_auth_user, options.http_auth_pass if (defined? options.http_auth_user)
 
   puts "Sending DELETE for `#{job_name}` to #{uri.request_uri}"
 
