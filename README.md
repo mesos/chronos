@@ -526,7 +526,7 @@ information:
 
 * The command used to launch Chronos, for example:
 
-        java -cp target/chronos.jar com.airbnb.scheduler.Main <args>
+        java -cp target/chronos.jar org.apache.mesos.chronos.scheduler.Main <args>
 
 * The version of Mesos you are running.
 
