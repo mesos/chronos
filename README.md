@@ -124,7 +124,7 @@ The screenshot should give you a good idea of what Chronos can do.
 
 ![Chronos UI screenshot](https://raw.github.com/mesos/chronos/master/docs/chronos_ui-1.png "Chronos UI overview")
 
-![Chronos UI screenshot new job](https://raw.github.com/airbnb/chronos/master/docs/chronos_ui-new-job.png "Chronos UI new job")
+![Chronos UI screenshot new job](https://raw.github.com/mesos/chronos/master/docs/chronos_ui-new-job.png "Chronos UI new job")
 
 ## API
 
@@ -587,7 +587,7 @@ Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`.
 Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try
 	
 	export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
-	git clone https://github.com/airbnb/chronos.git
+	git clone https://github.com/mesos/chronos.git
 	cd chronos
 	mvn package
 	java -cp target/chronos*.jar org.apache.mesos.chronos.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts localhost:2181
