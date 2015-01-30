@@ -115,7 +115,7 @@ You must not remove this notice, or any other, from this software.
 
 ## Sample Architecture
 
-![architecture](https://raw.github.com/airbnb/chronos/master/docs/emr_use_case.png "sample architecture")
+![architecture](https://raw.github.com/mesos/chronos/master/docs/emr_use_case.png "sample architecture")
 
 ## Chronos UI
 
