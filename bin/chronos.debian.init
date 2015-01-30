@@ -56,7 +56,7 @@ set_environment () {
   chronos_jar_file=$(find ${CHRONOS_HOME} -name "chronos-*.jar" | grep -v sources | head -n1)
   export MESOS_NATIVE_LIBRARY="${libmesos_file}"
   . $build_env
-  EXTRA_OPTS="-cp $chronos_jar_file com.airbnb.scheduler.Main server "$CHRONOS_HOME"/config/local_scheduler_nozk.yml"
+  EXTRA_OPTS="-cp $chronos_jar_file org.apache.mesos.chronos.scheduler.Main server "$CHRONOS_HOME"/config/local_scheduler_nozk.yml"
 }
 
 case "$1" in
@@ -64,7 +64,7 @@ case "$1" in
     set_environment
     log_daemon_msg "Starting periodic command scheduler" "cron"
     ### example starting chronos from command line
-    ### java -cp $chronos_jar_file com.airbnb.scheduler.Main server "$CHRONOS_HOME"/config/local_scheduler_nozk.yml 
+    ### java -cp $chronos_jar_file org.apache.mesos.chronos.scheduler.Main server "$CHRONOS_HOME"/config/local_scheduler_nozk.yml 
     ### example startin chronos with start_daemon
     ### start_daemon -p $PIDFILE $DAEMON $EXTRA_OPTS
 

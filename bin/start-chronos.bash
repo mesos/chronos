@@ -23,5 +23,5 @@ echo "Using jar file: $jar_files[0]"
 heap=384m
 
 java -Xmx"$heap" -Xms"$heap" -cp "${jar_files[0]}" \
-     com.airbnb.scheduler.Main \
+     org.apache.mesos.chronos.scheduler.Main \
      "${flags[@]}"

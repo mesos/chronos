@@ -107,7 +107,7 @@ cat <<USAGE
         chronos /path/to/config
 USAGE
 else
-  java -cp '$prefix'/chronos/target/chronos*.jar com.airbnb.scheduler.Main"
+  java -cp '$prefix'/chronos/target/chronos*.jar org.apache.mesos.chronos.scheduler.Main"
 fi
 EOF
 chmod a+rx "$prefix"/bin/chronos

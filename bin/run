@@ -3,7 +3,7 @@ set -o errexit -o nounset -o pipefail
 
 #TODO(FL): This won't work if there are multiple jar files.
 app_jar=/srv/chronos/chronos.jar
-main=com.airbnb.scheduler.Main
+main=org.apache.mesos.chronos.scheduler.Main
 
 heap=2048m
 environment_directory=/srv/chronos/environment
