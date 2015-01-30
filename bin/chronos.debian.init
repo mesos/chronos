@@ -21,7 +21,7 @@
 #                    transfering files and executing them on a remote machine
 #                    in the background and using asynchronous callbacks to
 #                    notify Chronos of job completion or failures.
-#                    See https://github.com/airbnb/chronos for more info.
+#                    See https://github.com/mesos/chronos for more info.
 ### END INIT INFO
 
 PATH=/bin:/usr/bin:/sbin:/usr/sbin

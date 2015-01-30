@@ -158,7 +158,7 @@ if !options.validate
     f.puts "# Chronos configuration for `#{job['name']}`"
     f.puts "#"
     f.puts "# For details on Chronos configuration, see:"
-    f.puts "#  https://github.com/airbnb/chronos/blob/master/README.md#job-configuration"
+    f.puts "#  https://github.com/mesos/chronos/blob/master/README.md#job-configuration"
     f.puts "#"
     f.puts YAML.dump(job)
   end

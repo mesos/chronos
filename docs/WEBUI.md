@@ -16,10 +16,10 @@ To modify assets and have changes reflected on the fly, you will need to start C
 
 There are also two included example YAML files that make use of this configuration:
 
-* [config/local_scheduler.yml](/airbnb/chronos/blob/master/config/local_scheduler.yml#L4)
-* [config/local_scheduler_nozk.yml](/airbnb/chronos/blob/master/config/local_scheduler_nozk.yml#L7)
+* [config/local_scheduler.yml](/mesos/chronos/blob/master/config/local_scheduler.yml#L4)
+* [config/local_scheduler_nozk.yml](/mesos/chronos/blob/master/config/local_scheduler_nozk.yml#L7)
 
 ## Build Requirements
 
 Building and optimizing assets seems to require more than 1GB of RAM on
-the machine, according to [Issue #42](/airbnb/chronos/issues/42).
+the machine, according to [Issue #42](/mesos/chronos/issues/42).
