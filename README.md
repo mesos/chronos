@@ -374,6 +374,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | Field               | Description                                                                                              | Default                        |
 | ------------------- |----------------------------------------------------------------------------------------------------------| -------------------------------|
 | name                | Name of job.                                                                                             | -                              |
+| description         | Description of job.                                                                                      | -                              |
 | command             | Command to execute.                                                                                      | -                              |
 | arguments           | Arguments to pass to the command.  Ignored if `shell` is true                                            | -                              |
 | shell               | If true, Mesos will execute `command` by running `/bin/sh -c <command>` and ignore `arguments`. If false, `command` will be treated as the filename of an executable and `arguments` will be the arguments passed.  If this is a Docker job and `shell` is true, the entrypoint of the container will be overridden with `/bin/sh -c`                                                                                      | true                              |
@@ -382,6 +383,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | executorFlags       | Flags to pass to Mesos executor.                                                                         | -                              |
 | retries             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | owner               | Email addresses to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
+| owner name          | Name of the individual responsible for the job.                                                          | -                              |
 | async               | Execute using Async executor.                                                                            | `false`                        |
 | successCount        | Number of successes since the job was last modified.                                                     | -                              |
 | errorCount          | Number of errors since the job was last modified.                                                        | -                              |
