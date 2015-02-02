@@ -1,6 +1,7 @@
 package org.apache.mesos.chronos.scheduler.graph
 
 import java.io.StringWriter
+import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 import javax.annotation.concurrent.ThreadSafe
 
@@ -9,7 +10,8 @@ import org.jgrapht.experimental.dag.DirectedAcyclicGraph
 import org.jgrapht.ext.{DOTExporter, IntegerNameProvider, StringNameProvider}
 import org.jgrapht.graph.DefaultEdge
 
-import scala.collection._
+import scala.collection.convert.decorateAsScala._
+import scala.collection.{mutable, _}
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -21,7 +23,7 @@ class JobGraph {
   val dag = new DirectedAcyclicGraph[String, DefaultEdge](classOf[DefaultEdge])
   val edgeInvocationCount = mutable.Map[DefaultEdge, Long]()
   private[this] val log = Logger.getLogger(getClass.getName)
-  private[this] val jobNameMapping = new mutable.HashMap[String, BaseJob] with mutable.SynchronizedMap[String, BaseJob]
+  private[this] val jobNameMapping: concurrent.Map[String, BaseJob] = new ConcurrentHashMap().asScala
   private[this] val lock = new Object
 
   def parentJobs(job: DependencyBasedJob) = parentJobsOption(job) match {
@@ -57,9 +59,7 @@ class JobGraph {
 
   def replaceVertex(oldVertex: BaseJob, newVertex: BaseJob) {
     require(oldVertex.name == newVertex.name, "Vertices need to have the same name!")
-    lock.synchronized {
-      jobNameMapping.put(oldVertex.name, newVertex)
-    }
+    jobNameMapping.put(oldVertex.name, newVertex)
   }
 
   //TODO(FL): Documentation here and elsewhere in this file.
