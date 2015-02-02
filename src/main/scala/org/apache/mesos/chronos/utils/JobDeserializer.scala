@@ -115,9 +115,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     var environmentVariables = scala.collection.mutable.ListBuffer[EnvironmentVariable]()
     if (node.has("environmentVariables")) {
       node.get("environmentVariables").elements().map {
-        case node: ObjectNode => {
+        case node: ObjectNode =>
           EnvironmentVariable(node.get("name").asText(), node.get("value").asText)
-        }
       }.foreach(environmentVariables.add)
     }
 
@@ -141,7 +140,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       val volumes = scala.collection.mutable.ListBuffer[Volume]()
       if (containerNode.has("volumes")) {
         containerNode.get("volumes").elements().map {
-          case node: ObjectNode => {
+          case node: ObjectNode =>
             val hostPath =
               if (node.has("hostPath")) Option(node.get("hostPath").asText)
               else None
@@ -149,7 +148,6 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
               if (node.has("mode")) Option(VolumeMode.withName(node.get("mode").asText.toUpperCase))
               else None
             Volume(hostPath, node.get("containerPath").asText, mode)
-          }
         }.foreach(volumes.add)
       }
       container = DockerContainer(containerNode.get("image").asText, volumes, networkMode)

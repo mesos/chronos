@@ -46,7 +46,7 @@ object TaskUtils {
       case t: Exception =>
         log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
           "Warning, dependents will not be triggered!")
-        return ""
+        ""
     }
   }
 
@@ -64,7 +64,7 @@ object TaskUtils {
       case t: Exception =>
         log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
           "Warning, dependents will not be triggered!")
-        return ""
+        ""
     }
   }
 
@@ -76,7 +76,7 @@ object TaskUtils {
       val (job, due, attempt) = valueTuple
       taskManager.removeTask(key)
       if (due == 0L) {
-        log.info("Enqeueuing at once")
+        log.info("Enqueuing at once")
         taskManager.scheduleTask(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt), job, persist = true)
       } else if (due > 0L) {
         log.info("Enqueuing later")
@@ -107,7 +107,7 @@ object TaskUtils {
       //if the task isn't due yet
       if (taskTuple._2 > now) {
         log.fine("Task '%s' is scheduled in the future".format(taskInstance.name))
-        taskMap += (p._1 ->(taskInstance, (taskTuple._2 - now), taskTuple._3))
+        taskMap += (p._1 ->(taskInstance, taskTuple._2 - now, taskTuple._3))
       } else if (lastExecutableTime > now) {
         taskMap += (p._1 ->(taskInstance, 0L, taskTuple._3))
       } else {

@@ -10,6 +10,7 @@ import org.apache.mesos.chronos.scheduler.jobs.JobScheduler
 import com.google.inject.Inject
 
 import scala.collection.JavaConverters._
+import scala.language.postfixOps
 
 /**
  * Simple filter that redirects to the leader if applicable.
@@ -23,75 +24,76 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
   def doFilter(rawRequest: ServletRequest,
                rawResponse: ServletResponse,
                chain: FilterChain) {
-    if (rawRequest.isInstanceOf[HttpServletRequest]) {
-      val request = rawRequest.asInstanceOf[HttpServletRequest]
-      val leaderData = jobScheduler.getLeader
-      val response = rawResponse.asInstanceOf[HttpServletResponse]
+    rawRequest match {
+      case request: HttpServletRequest =>
+        val leaderData = jobScheduler.getLeader
+        val response = rawResponse.asInstanceOf[HttpServletResponse]
 
-      if (jobScheduler.isLeader) {
-        chain.doFilter(request, response)
-      } else {
-        var proxyStatus: Int = 200
-        try {
-          log.info("Proxying request.")
+        if (jobScheduler.isLeader) {
+          chain.doFilter(request, response)
+        } else {
+          var proxyStatus: Int = 200
+          try {
+            log.info("Proxying request.")
 
-          val method = request.getMethod
+            val method = request.getMethod
 
-          val proxy =
-            buildUrl(leaderData, request)
-              .openConnection().asInstanceOf[HttpURLConnection]
+            val proxy =
+              buildUrl(leaderData, request)
+                .openConnection().asInstanceOf[HttpURLConnection]
 
 
-          val names = request.getHeaderNames
-          // getHeaderNames() and getHeaders() are known to return null, see:
-          // http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getHeaders(java.lang.String)
-          if (names != null) {
-            for (name <- names.asScala) {
-              val values = request.getHeaders(name)
-              if (values != null) {
-                proxy.setRequestProperty(name, values.asScala.mkString(","))
-              }
-            }
-          }
-
-          proxy.setRequestMethod(method)
-
-          method match {
-            case "GET" | "HEAD" | "DELETE" =>
-              proxy.setDoOutput(false)
-            case _ =>
-              proxy.setDoOutput(true)
-              val proxyOutputStream = proxy.getOutputStream
-              copy(request.getInputStream, proxyOutputStream)
-              proxyOutputStream.close
-          }
-
-          proxyStatus = proxy.getResponseCode()
-          response.setStatus(proxyStatus)
-
-          val fields = proxy.getHeaderFields
-          // getHeaderNames() and getHeaders() are known to return null, see:
-          // http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getHeaders(java.lang.String)
-          if (fields != null) {
-            for ((name, values) <- fields.asScala) {
-              if (name != null && values != null) {
-                for (value <- values.asScala) {
-                  response.setHeader(name, value)
+            val names = request.getHeaderNames
+            // getHeaderNames() and getHeaders() are known to return null, see:
+            // http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getHeaders(java.lang.String)
+            if (names != null) {
+              for (name <- names.asScala) {
+                val values = request.getHeaders(name)
+                if (values != null) {
+                  proxy.setRequestProperty(name, values.asScala.mkString(","))
                 }
               }
             }
-          }
 
-          val responseOutputStream = response.getOutputStream
-          copy(proxy.getInputStream, response.getOutputStream)
-          proxy.getInputStream.close
-          responseOutputStream.close
-        } catch {
-          case t: Exception =>
-            if ((200 to 299) contains proxyStatus) response.sendError(500)
-            log.log(Level.WARNING, "Exception while proxying!", t)
+            proxy.setRequestMethod(method)
+
+            method match {
+              case "GET" | "HEAD" | "DELETE" =>
+                proxy.setDoOutput(false)
+              case _ =>
+                proxy.setDoOutput(true)
+                val proxyOutputStream = proxy.getOutputStream
+                copy(request.getInputStream, proxyOutputStream)
+                proxyOutputStream.close()
+            }
+
+            proxyStatus = proxy.getResponseCode
+            response.setStatus(proxyStatus)
+
+            val fields = proxy.getHeaderFields
+            // getHeaderNames() and getHeaders() are known to return null, see:
+            // http://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getHeaders(java.lang.String)
+            if (fields != null) {
+              for ((name, values) <- fields.asScala) {
+                if (name != null && values != null) {
+                  for (value <- values.asScala) {
+                    response.setHeader(name, value)
+                  }
+                }
+              }
+            }
+
+            val responseOutputStream = response.getOutputStream
+            copy(proxy.getInputStream, response.getOutputStream)
+            proxy.getInputStream.close()
+            responseOutputStream.close()
+          } catch {
+            case t: Exception =>
+              if ((200 to 299) contains proxyStatus) response.sendError(500)
+              log.log(Level.WARNING, "Exception while proxying!", t)
+          }
         }
-      }
+      case _ =>
     }
   }
 

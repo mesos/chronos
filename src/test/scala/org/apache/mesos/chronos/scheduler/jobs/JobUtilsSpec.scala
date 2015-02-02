@@ -33,7 +33,7 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     val scheduledTime = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get._2
 
     // Ensure that this job runs today
-    scheduledTime.toLocalDate() must_== now.toLocalDate()
+    scheduledTime.toLocalDate must_== now.toLocalDate
   }
 
   "Can skip forward a job with a monthly period" in {
@@ -61,7 +61,7 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     val scheduledJobWithArguments = JobUtils.getJobWithArguments(scheduledJob, arguments)
     val dependencyJobWithArguments = JobUtils.getJobWithArguments(dependencyJob, arguments)
 
-    scheduledJobWithArguments.command.toString() must_== commandWithArguments
-    dependencyJobWithArguments.command.toString() must_== commandWithArguments
+    scheduledJobWithArguments.command.toString must_== commandWithArguments
+    dependencyJobWithArguments.command.toString must_== commandWithArguments
   }
 }

@@ -22,7 +22,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(epsilon, mockTaskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
       scheduler.leader.set(true)
-      scheduler.registerJob(job1, true, startTime)
+      scheduler.registerJob(job1, persist = true, startTime)
 
       val newStreams = scheduler.iteration(startTime, scheduler.streams)
       newStreams(0).schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
@@ -50,7 +50,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mockJobStats)
       scheduler.leader.set(true)
-      scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.registerJob(job1, persist = true, DateTime.parse("2011-01-01T00:05:01.000Z"))
       scheduler.run(() => {
         DateTime.parse("2012-01-01T00:05:01.000Z")
       })
@@ -82,8 +82,8 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
-      scheduler.registerJob(job1, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
-      scheduler.registerJob(job2, true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.registerJob(job1, persist = true, DateTime.parse("2011-01-01T00:05:01.000Z"))
+      scheduler.registerJob(job2, persist = true, DateTime.parse("2011-01-01T00:05:01.000Z"))
       scheduler.run(() => {
         DateTime.parse("2012-01-01T00:05:01.000Z")
       })
@@ -117,11 +117,11 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
       val date = DateTime.parse("2011-01-01T00:05:01.000Z")
-      scheduler.registerJob(job1, true, date)
-      scheduler.registerJob(job2, true, date)
-      scheduler.registerJob(job3, true, date)
-      scheduler.registerJob(job4, true, date)
-      scheduler.registerJob(job5, true, date)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
+      scheduler.registerJob(job4, persist = true, date)
+      scheduler.registerJob(job5, persist = true, date)
       scheduler.run(() => {
         date
       })
@@ -137,19 +137,19 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job2").get.successCount must_== 1
       graph.lookupVertex("job2").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job3").get.successCount must_== 1
       graph.lookupVertex("job3").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job4").get.successCount must_== 1
       graph.lookupVertex("job4").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job5").get.successCount must_== 1
@@ -173,9 +173,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
       val date = DateTime.now(DateTimeZone.UTC)
-      scheduler.registerJob(job1, true, date)
-      scheduler.registerJob(job2, true, date)
-      scheduler.registerJob(job3, true, date)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
       scheduler.run(() => {
         date
       })
@@ -192,7 +192,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       vJob2.successCount must_== 0
       vJob2.errorCount must_== 1
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, DateTime.parse(vJob2.lastError), 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, DateTime.parse(vJob2.lastError), 0), highPriority = false)
 
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, date, 0), Some(DateTime.parse(vJob2.lastError)))
       graph.lookupVertex("job3").get.successCount must_== 1
@@ -217,9 +217,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
       val date = DateTime.now(DateTimeZone.UTC)
-      scheduler.registerJob(job1, true, date)
-      scheduler.registerJob(job2, true, date)
-      scheduler.registerJob(job3, true, date)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
       scheduler.run(() => {
         date
       })
@@ -236,7 +236,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       vJob2.successCount must_== 0
       vJob2.errorCount must_== 1
 
-      there was no(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, DateTime.parse(vJob2.lastError), 0), false)
+      there was no(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, DateTime.parse(vJob2.lastError), 0), highPriority = false)
     }
 
     "Tests that dependent jobs runs when they should after changing the jobgraph" in {
@@ -259,11 +259,11 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
       val date = DateTime.parse("2012-01-01T00:00:00.000Z")
-      scheduler.registerJob(job1, true, date)
-      scheduler.registerJob(job2, true, date)
-      scheduler.registerJob(job3, true, date)
-      scheduler.registerJob(job4, true, date)
-      scheduler.registerJob(job5_1, true, date)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
+      scheduler.registerJob(job4, persist = true, date)
+      scheduler.registerJob(job5_1, persist = true, date)
 
       scheduler.run(() => {
         date
@@ -280,19 +280,19 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job2").get.successCount must_== 1
       graph.lookupVertex("job2").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job3").get.successCount must_== 1
       graph.lookupVertex("job3").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job4").get.successCount must_== 1
       graph.lookupVertex("job4").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_1, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_1, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5_1, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job5").get.successCount must_== 1
@@ -314,19 +314,19 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job2").get.successCount must_== 2
       graph.lookupVertex("job2").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job3").get.successCount must_== 2
       graph.lookupVertex("job3").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job4").get.successCount must_== 2
       graph.lookupVertex("job4").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_2, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_2, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5_2, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job5").get.successCount must_== 1
@@ -353,12 +353,12 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
       val date = DateTime.parse("2011-01-01T00:05:01.000Z")
-      scheduler.registerJob(job1, true, date)
-      scheduler.registerJob(job2, true, date)
-      scheduler.registerJob(job3, true, date)
-      scheduler.registerJob(job4, true, date)
-      scheduler.registerJob(job5, true, date)
-      scheduler.registerJob(job6, true, date)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
+      scheduler.registerJob(job4, persist = true, date)
+      scheduler.registerJob(job5, persist = true, date)
+      scheduler.registerJob(job6, persist = true, date)
       scheduler.run(() => {
         date
       })
@@ -374,7 +374,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job2").get.successCount must_== 1
       graph.lookupVertex("job2").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
       scheduler.run(() => {
@@ -393,19 +393,19 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job3").get.successCount must_== 1
       graph.lookupVertex("job3").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job4").get.successCount must_== 1
       graph.lookupVertex("job4").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job5").get.successCount must_== 1
       graph.lookupVertex("job5").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job6, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job6, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job6, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job6").get.successCount must_== 1
@@ -433,11 +433,11 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
       val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
       scheduler.leader.set(true)
-      scheduler.registerJob(job1, true, date)
-      scheduler.registerJob(job2, true, date)
-      scheduler.registerJob(job3, true, date)
-      scheduler.registerJob(job4, true, date)
-      scheduler.registerJob(job5_1, true, date)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
+      scheduler.registerJob(job4, persist = true, date)
+      scheduler.registerJob(job5_1, persist = true, date)
 
       scheduler.run(() => {
         date
@@ -454,19 +454,19 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job2").get.successCount must_== 1
       graph.lookupVertex("job2").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job3").get.successCount must_== 1
       graph.lookupVertex("job3").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job4").get.successCount must_== 1
       graph.lookupVertex("job4").get.errorCount must_== 0
 
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_1, finishedDate, 0), false)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_1, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5_1, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job5").get.successCount must_== 1
@@ -489,19 +489,19 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job2").get.successCount must_== 1
       graph.lookupVertex("job2").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job3").get.successCount must_== 2
       graph.lookupVertex("job3").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job4, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job4, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job4").get.successCount must_== 2
       graph.lookupVertex("job4").get.errorCount must_== 0
 
-      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_2, finishedDate, 0), false)
+      there was two(mockTaskManager).enqueue(TaskUtils.getTaskId(job5_2, finishedDate, 0), highPriority = false)
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job5_2, finishedDate, 0), Some(finishedDate))
 
       graph.lookupVertex("job5").get.successCount must_== 2

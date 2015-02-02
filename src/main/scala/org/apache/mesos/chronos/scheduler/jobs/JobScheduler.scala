@@ -64,11 +64,10 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     try {
       leaderLatch.getLeader.getId
     } catch {
-      case e: Exception => {
+      case e: Exception =>
         log.log(Level.SEVERE, "Error trying to talk to zookeeper. Exiting.", e)
         System.exit(1)
         null
-      }
     }
   }
 
@@ -183,10 +182,10 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
       jobGraph.getChildren(job.name)
         .map(x => jobGraph.lookupVertex(x).get)
-        .filter(x => x match {
+        .filter {
         case j: DependencyBasedJob => true
         case _ => false
-      })
+      }
         .map(x => x.asInstanceOf[DependencyBasedJob])
         .filter(x => x.parents.size > 1)
         .foreach({
@@ -198,15 +197,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
       jobGraph.removeVertex(job)
       job match {
-        case scheduledJob: ScheduleBasedJob => {
+        case scheduledJob: ScheduleBasedJob =>
           removeSchedule(scheduledJob)
           log.info("Removed schedule based job")
           log.info("Size of streams:" + streams.size)
-        }
-        case dependencyBasedJob: DependencyBasedJob => {
+        case dependencyBasedJob: DependencyBasedJob =>
           //TODO(FL): Check if there are empty edges.
           log.info("Job removed from dependency graph.")
-        }
         case _: Any =>
           throw new IllegalArgumentException("Cannot handle the job type")
       }
@@ -269,17 +266,16 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val job = jobOption.get
       jobStats.jobFinished(job, taskStatus, attempt)
 
-      val newJob = {
-        //TODO(FL): Refactor this section and handle the two job types separately.
-        if (job.isInstanceOf[ScheduleBasedJob]) {
-          job.asInstanceOf[ScheduleBasedJob].copy(successCount = job.successCount + 1,
+      val newJob = job match {
+        case job: ScheduleBasedJob =>
+          job.copy(successCount = job.successCount + 1,
             errorsSinceLastSuccess = 0,
             lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
-        } else if (job.isInstanceOf[DependencyBasedJob]) {
-          job.asInstanceOf[DependencyBasedJob].copy(successCount = job.successCount + 1,
+        case job: DependencyBasedJob =>
+          job.copy(successCount = job.successCount + 1,
             errorsSinceLastSuccess = 0,
             lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
-        } else
+        case _ =>
           throw new IllegalArgumentException("Cannot handle unknown task type")
       }
       replaceJob(job, newJob)
@@ -292,31 +288,33 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         of the job, the first returning Finished-task may trigger deletion of the job! This is a known limitation and
         needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
         in between */
-      if (job.isInstanceOf[ScheduleBasedJob]) {
-        val scheduleBasedJob: ScheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
-        Iso8601Expressions.parse(scheduleBasedJob.schedule, scheduleBasedJob.scheduleTimeZone) match {
-          case Some((recurrences, _, _)) =>
-            if (recurrences == 0) {
-              log.info("Disabling job that reached a zero-recurrence count!")
+      job match {
+        case job: ScheduleBasedJob =>
+          val scheduleBasedJob: ScheduleBasedJob = newJob.asInstanceOf[ScheduleBasedJob]
+          Iso8601Expressions.parse(scheduleBasedJob.schedule, scheduleBasedJob.scheduleTimeZone) match {
+            case Some((recurrences, _, _)) =>
+              if (recurrences == 0) {
+                log.info("Disabling job that reached a zero-recurrence count!")
 
-              val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
-              val clusterPrefix = getClusterPrefix(clusterName)
-              sendNotification(
-                job,
-                "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
-                Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
-                        |Please consider either removing your job, or updating its schedule and re-enabling it.
-                      """.stripMargin.format(job.name)))
-              replaceJob(scheduleBasedJob, disabledJob)
-            }
-          case None =>
-        }
+                val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
+                val clusterPrefix = getClusterPrefix(clusterName)
+                sendNotification(
+                  job,
+                  "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
+                  Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
+                          |Please consider either removing your job, or updating its schedule and re-enabling it.
+                        """.stripMargin.format(job.name)))
+                replaceJob(scheduleBasedJob, disabledJob)
+              }
+            case None =>
+          }
+        case _ =>
       }
     }
   }
 
   def getClusterPrefix(clusterName: Option[String]) = clusterName match {
-    case Some(clusterName) => s"[$clusterName] "
+    case Some(name) => s"[$name] "
     case None => ""
   }
 
@@ -377,13 +375,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       log.warning("Task of job: %s failed.".format(jobName))
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
-        case Some(job) => {
+        case Some(job) =>
           jobStats.jobFailed(job, taskStatus, attempt)
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
             job.lastError.length > 0 && job.lastSuccess.length > 0 &&
-              (DateTime.parse(job.lastSuccess).getMillis() - DateTime.parse(job.lastError).getMillis()) >= 0
+              (DateTime.parse(job.lastSuccess).getMillis - DateTime.parse(job.lastError).getMillis) >= 0
           } catch {
             case ex: IllegalArgumentException =>
               log.warning(s"Couldn't parse last run date from ${job.name}")
@@ -464,7 +462,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             }
             jobMetrics.updateJobStatus(jobName, success = false)
           }
-        }
         case None =>
           log.warning("Could not find job for task: %s Job may have been deleted while task was in flight!"
             .format(taskId))
@@ -525,9 +522,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         return (None, None)
       }
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.warning(s"Corrupt job in stream for $jobName")
-      }
     }
 
     Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
@@ -653,7 +649,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   private final def scheduleStream(now: DateTime, s: ScheduleStream): Option[ScheduleStream] = {
     val (taskOption, stream) = next(now, s)
     if (taskOption.isEmpty) {
-      return stream
+      stream
     } else {
       val encapsulatedJob = taskOption.get.job
       log.info("Scheduling:" + taskOption.get.job.name)
@@ -697,7 +693,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       if (stream.isEmpty) {
         return stream
       }
-      return scheduleStream(now, stream.get)
+      scheduleStream(now, stream.get)
     }
   }
 
@@ -705,7 +701,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   private def removeOldSchedules(scheduleStreams: List[Option[ScheduleStream]]): List[ScheduleStream] = {
     log.fine("Filtering out empty streams")
-    scheduleStreams.filter(s => !s.isEmpty && !s.get.tail().isEmpty).map(_.get)
+    scheduleStreams.filter(s => s.isDefined && s.get.tail().isDefined).map(_.get)
   }
 
   /**

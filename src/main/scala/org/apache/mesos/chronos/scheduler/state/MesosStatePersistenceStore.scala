@@ -61,13 +61,13 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
 
   def persistJob(job: BaseJob): Boolean = {
     log.info("Persisting job '%s' with data '%s'" format(job.name, job.toString))
-    return (persistData(jobName(job.name), JobUtils.toBytes(job)))
+    persistData(jobName(job.name), JobUtils.toBytes(job))
   }
 
   //TODO(FL): Think about caching tasks locally such that we don't have to query zookeeper.
   def persistTask(name: String, data: Array[Byte]): Boolean = {
     log.finest("Persisting task: " + name)
-    return (persistData(taskName(name), data))
+    persistData(taskName(name), data)
   }
 
   private def persistData(name: String, data: Array[Byte]): Boolean = {
@@ -87,7 +87,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
       return false
     }
 
-    val success = (newVar.get.value.deep == data.deep)
+    val success = newVar.get.value.deep == data.deep
 
     log.info("State update successful: " + success)
     success

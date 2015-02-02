@@ -7,6 +7,7 @@ import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import org.jgrapht.graph.DefaultEdge
 import org.joda.time.DateTime
 
+import scala.collection.mutable
 import scala.collection.mutable.HashMap
 
 /**
@@ -16,7 +17,7 @@ object Exporter {
 
   def export(w: Writer, jobGraph: JobGraph) {
     val dag = jobGraph.dag
-    val jobMap = new HashMap[String, BaseJob]
+    val jobMap = new mutable.HashMap[String, BaseJob]
     import scala.collection.JavaConversions._
     dag.vertexSet.flatMap(jobGraph.lookupVertex).foreach(x => jobMap.put(x.name, x))
     jobMap.foreach({ case (k, v) => w.write("node,%s,%s\n".format(k, getLastState(v).toString))})

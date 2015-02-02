@@ -33,12 +33,11 @@ class GraphManagementResource @Inject()(
   @Timed
   def dotGraph(): Response = {
     try {
-      return Response.ok(jobGraph.makeDotFile()).build
+      Response.ok(jobGraph.makeDotFile()).build
     } catch {
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
-      }
     }
   }
 
@@ -50,12 +49,11 @@ class GraphManagementResource @Inject()(
     try {
       val buffer = new StringWriter
       Exporter.export(buffer, jobGraph)
-      return Response.ok(buffer.toString).build
+      Response.ok(buffer.toString).build
     } catch {
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
-      }
     }
   }
 }

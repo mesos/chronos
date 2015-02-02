@@ -229,12 +229,12 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     val scheduler = new JobScheduler(horizon, mockTaskManager, jobGraph, store, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
 
     scheduler.leader.set(true)
-    scheduler.registerJob(job1, false, DateTime.parse("2012-01-01T00:00:05.000Z"))
-    scheduler.registerJob(job2, false, DateTime.parse("2012-01-01T00:00:10.000Z"))
+    scheduler.registerJob(job1, persist = false, DateTime.parse("2012-01-01T00:00:05.000Z"))
+    scheduler.registerJob(job2, persist = false, DateTime.parse("2012-01-01T00:00:10.000Z"))
 
     val res1: List[ScheduleStream] = scheduler.iteration(DateTime.parse("2012-01-01T00:00:00.000Z"), scheduler.streams)
 
-    scheduler.deregisterJob(job2, false)
+    scheduler.deregisterJob(job2, persist = false)
 
     val res2: List[ScheduleStream] = scheduler.iteration(DateTime.parse("2012-01-01T00:05:00.000Z"), scheduler.streams)
     res2.size must_== 1
@@ -277,7 +277,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
 
     val startTime = DateTime.parse("2012-01-03T00:00:00.000Z")
     scheduler.leader.set(true)
-    scheduler.registerJob(job1, true, startTime)
+    scheduler.registerJob(job1, persist = true, startTime)
 
     val newStreams = scheduler.iteration(startTime, scheduler.streams)
     newStreams(0).schedule must_== "R2/2012-01-04T00:00:00.000Z/P1D"

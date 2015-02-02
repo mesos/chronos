@@ -19,16 +19,16 @@ class MailClient(
                   val ssl: Boolean)
   extends NotificationClient {
 
-  val mailPort = mailPortStr.toInt
   private[this] val log = Logger.getLogger(getClass.getName)
   private[this] val split = """(.*):([0-9]*)""".r
   private[this] val split(mailHost, mailPortStr) = mailServerString
+  val mailPort = mailPortStr.toInt
 
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
     val email = new SimpleEmail
     email.setHostName(mailHost)
 
-    if (!mailUser.isEmpty && !password.isEmpty) {
+    if (mailUser.isDefined && password.nonEmpty) {
       email.setAuthenticator(new DefaultAuthenticator(mailUser.get, password.get))
     }
 

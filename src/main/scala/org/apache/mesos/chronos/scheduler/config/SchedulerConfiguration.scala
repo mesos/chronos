@@ -39,7 +39,7 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val hostname = opt[String]("hostname",
     descr = "The advertised hostname stored in ZooKeeper so another standby " +
       "host can redirect to this elected leader",
-    default = Some(java.net.InetAddress.getLocalHost().getHostName()))
+    default = Some(java.net.InetAddress.getLocalHost.getHostName))
   lazy val leaderMaxIdleTimeMs = opt[Int]("leader_max_idle_time",
     descr = "The look-ahead time for scheduling tasks in milliseconds",
     default = Some(5000))

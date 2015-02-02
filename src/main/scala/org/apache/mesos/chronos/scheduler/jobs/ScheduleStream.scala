@@ -21,13 +21,13 @@ class ScheduleStream(val schedule: String, val jobName: String, val scheduleTime
     Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
       case Some((rec, start, per)) =>
         if (rec == -1)
-          return Some(new ScheduleStream(Iso8601Expressions.create(rec, start.plus(per), per), jobName,
+          Some(new ScheduleStream(Iso8601Expressions.create(rec, start.plus(per), per), jobName,
             scheduleTimeZone))
         else if (rec > 0)
-          return Some(new ScheduleStream(Iso8601Expressions.create(rec - 1, start.plus(per), per), jobName,
+          Some(new ScheduleStream(Iso8601Expressions.create(rec - 1, start.plus(per), per), jobName,
             scheduleTimeZone))
         else
-          return None
+          None
       case None =>
         None
     }

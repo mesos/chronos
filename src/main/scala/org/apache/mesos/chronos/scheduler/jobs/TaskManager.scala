@@ -3,17 +3,17 @@ package org.apache.mesos.chronos.scheduler.jobs
 import java.util.concurrent.{Future, TimeUnit}
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.{ListenableFutureTask, ListeningScheduledExecutorService}
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskID, TaskState}
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.{DateTime, DateTimeZone}
 
-import scala.collection.mutable
+import scala.collection.{mutable, _}
 
 /**
  * Helps manage task state and the queue which is a buffer where tasks are held until offers come in via chronos.
@@ -108,11 +108,10 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   def removeTaskFutureMapping(task: ScheduledTask) {
     log.info("Removing task mapping")
     taskMapping.get(task.job.name) match {
-      case Some(i) => {
+      case Some(i) =>
         taskMapping += (task.job.name -> i.filter({
           x => x._1 != task.taskId
         }))
-      }
       case _ =>
     }
   }
@@ -182,12 +181,11 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    */
   def cancelTasks(baseJob: BaseJob) {
     taskMapping.get(baseJob.name) match {
-      case Some(i) => {
+      case Some(i) =>
         i.foreach({ x =>
           log.info("Cancelling task: " + x._1)
           x._2.cancel(true)
         })
-      }
       case None => log.info("No tasks found that need to be cancelled")
     }
     taskMapping -= baseJob.name
