@@ -90,8 +90,8 @@ object TaskUtils {
     })
   }
 
-  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0, arguments: String = ""): String = {
-    taskIdTemplate.format(due.getMillis, attempt, job.name, arguments)
+  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
+    taskIdTemplate.format(due.getMillis, attempt, job.name, job.arguments.mkString(" "))
   }
 
   def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (BaseJob, Long, Int)] = {
