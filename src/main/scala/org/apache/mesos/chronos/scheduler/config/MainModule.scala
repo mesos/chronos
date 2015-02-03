@@ -22,6 +22,7 @@ import org.apache.mesos.Scheduler
 import org.joda.time.Seconds
 
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
  * Guice glue code of application logic components.

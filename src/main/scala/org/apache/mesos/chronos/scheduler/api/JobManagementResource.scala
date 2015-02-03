@@ -34,7 +34,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def delete(@PathParam("jobName") jobName: String): Response = {
     try {
-      require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).nonEmpty, "Job '%s' not found".format(jobName))
       val job = jobGraph.lookupVertex(jobName).get
       val children = jobGraph.getChildren(jobName)
       if (children.nonEmpty) {
@@ -91,15 +91,13 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       jobScheduler.deregisterJob(job, persist = true)
       Response.noContent().build
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
-      }
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build
-      }
+        Response.serverError().build
     }
   }
 
@@ -107,19 +105,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Path(PathConstants.jobStatsPatternPath)
   def getStat(@PathParam("jobName") jobName: String): Response = {
     try {
-      require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       Response.ok(jobMetrics.getJsonStats(jobName)).build()
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
-      }
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response.serverError().build
-      }
     }
   }
 
@@ -130,21 +126,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               @QueryParam("arguments") arguments: String
                ): Response = {
     try {
-      require(!jobGraph.lookupVertex(jobName).isEmpty, "Job '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
       jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0), job.highPriority)
       Response.noContent().build
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
-      }
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build
-      }
+        Response.serverError().build
     }
   }
 
@@ -159,12 +153,11 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         job =>
           jobs += jobGraph.getJobForName(job).get
       })
-      return Response.ok(jobs.toList).build
+      Response.ok(jobs.toList).build
     } catch {
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
-      }
     }
   }
 
@@ -216,10 +209,9 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       }.toList.slice(_offset, _offset + _limit)
       Response.ok(filteredJobs).build
     } catch {
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
-      }
     }
   }
 

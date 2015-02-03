@@ -30,7 +30,7 @@ class SlackClient(val webhookUrl: String,
     generator.writeEndObject()
     generator.flush()
 
-    val payload = jsonBuffer.toString()
+    val payload = jsonBuffer.toString
 
     var connection: HttpURLConnection = null
     try {
@@ -41,10 +41,10 @@ class SlackClient(val webhookUrl: String,
       connection.setUseCaches(false)
       connection.setRequestMethod("POST")
 
-      val outputStream = new DataOutputStream(connection.getOutputStream())
-      outputStream.writeBytes(payload);
-      outputStream.flush();
-      outputStream.close();
+      val outputStream = new DataOutputStream(connection.getOutputStream)
+      outputStream.writeBytes(payload)
+      outputStream.flush()
+      outputStream.close()
 
       log.info("Sent message to Slack! Response code:" +
         connection.getResponseCode +

@@ -74,7 +74,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
 
     // If the job defines custom environment variables, add them to the builder
     // Don't add them if they already exist to prevent overwriting the defaults
-    val builtinEnvNames = environment.getVariablesList().asScala.map(_.getName()).toSet
+    val builtinEnvNames = environment.getVariablesList.asScala.map(_.getName).toSet
     if (job.environmentVariables != null && job.environmentVariables.nonEmpty) {
       job.environmentVariables.foreach(env =>
         if (!builtinEnvNames.contains(env.name)) {
@@ -124,7 +124,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .addResources(scalarResource(memResourceName, mem, offer))
       .addResources(scalarResource(diskResourceName, disk, offer))
 
-    return taskInfo
+    taskInfo
   }
 
   def scalarResource(name: String, value: Double, offer: Offer) = {

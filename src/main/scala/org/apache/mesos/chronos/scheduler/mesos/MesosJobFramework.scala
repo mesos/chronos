@@ -13,6 +13,7 @@ import org.apache.mesos.{Protos, Scheduler, SchedulerDriver}
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.collection.mutable.{Buffer, HashMap, HashSet}
 
 /**
@@ -31,7 +32,7 @@ class MesosJobFramework @Inject()(
   val frameworkName = "chronos"
   private[this] val log = Logger.getLogger(getClass.getName)
   private var lastReconciliation = DateTime.now.plusSeconds(config.reconciliationInterval())
-  private var runningTasks = new HashMap[String, ChronosTask]
+  private var runningTasks = new mutable.HashMap[String, ChronosTask]
 
   /* Overridden methods from MesosScheduler */
   @Override
@@ -78,11 +79,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
     import scala.collection.JavaConverters._
 
     val offers = receivedOffers.asScala.toList
-    val offerResources = HashMap(offers.map(o => (o, Resources(o))).toSeq: _*)
+    val offerResources = mutable.HashMap(offers.map(o => (o, Resources(o))).toSeq: _*)
     val tasksToLaunch = generateLaunchableTasks(offerResources)
 
     log.info("Declining unused offers.\n")
-    val usedOffers = HashSet(tasksToLaunch.map(_._3.getId.getValue): _*)
+    val usedOffers = mutable.HashSet(tasksToLaunch.map(_._3.getId.getValue): _*)
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
     offers.foreach(o => {
       if (!usedOffers.contains(o.getId.getValue))
@@ -95,45 +96,40 @@ import scala.concurrent.ExecutionContext.Implicits.global
     reconcile(schedulerDriver)
   }
 
-  def generateLaunchableTasks(offerResources: HashMap[Offer, Resources]): Buffer[(String, BaseJob, Offer)] = {
-    val tasks = Buffer[(String, BaseJob, Offer)]()
+  def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): mutable.Buffer[(String, BaseJob, Offer)] = {
+    val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
 
-    def generate {
+    def generate() {
       taskManager.getTask match {
         case None => log.info("No tasks scheduled or next task has been disabled.\n")
-        case Some((taskId, job)) => {
+        case Some((taskId, job)) =>
           if (runningTasks.contains(job.name)) {
             val deleted = taskManager.removeTask(taskId)
             log.warning("The head of the task queue appears to already be running: " + job.name + "\n")
-            generate
+            generate()
           } else {
             tasks.find(_._2.name == job.name) match {
-              case Some((taskId, job, offer)) => {
-                val deleted = taskManager.removeTask(taskId)
-                log.warning("Found job in queue that is already scheduled for launch with this offer set: " + job.name + "\n")
-                generate
-              }
-              case None => {
+              case Some((subtaskId, subJob, offer)) =>
+                val deleted = taskManager.removeTask(subtaskId)
+                log.warning("Found job in queue that is already scheduled for launch with this offer set: " + subJob.name + "\n")
+                generate()
+              case None =>
                 val neededResources = new Resources(job)
                 offerResources.toIterator.find(_._2.canSatisfy(neededResources)) match {
-                  case Some((offer, resources)) => {
+                  case Some((offer, resources)) =>
                     // Subtract this job's resource requirements from the remaining available resources in this offer.
                     resources -= neededResources
                     tasks.append((taskId, job, offer))
-                    generate
-                  }
-                  case None => {
+                    generate()
+                  case None =>
                     log.warning("Insufficient resources remaining for task '%s', will append to queue\n.".format(taskId))
                     taskManager.enqueue(taskId, job.highPriority)
-                  }
                 }
-              }
             }
           }
-        }
       }
     }
-    generate
+    generate()
     tasks
   }
 
@@ -148,13 +144,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
     }
   }
 
-  def launchTasks(tasks: Buffer[(String, BaseJob, Offer)]) {
+  def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
     import scala.collection.JavaConverters._
 
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
 
-    tasks.groupBy(_._3).toIterable.foreach({ case (offer, tasks) => {
-      val mesosTasks = tasks.map(task => {
+    tasks.groupBy(_._3).toIterable.foreach({ case (offer, subTasks) =>
+      val mesosTasks = subTasks.map(task => {
         taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
       })
       log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
@@ -176,7 +172,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
       } else {
         log.warning("Other status returned.")
       }
-    }
     })
   }
 
@@ -290,7 +285,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
     }
 
     def canSatisfy(needed: Resources): Boolean = {
-      return (this.cpus >= needed.cpus) &&
+      (this.cpus >= needed.cpus) &&
         (this.mem >= needed.mem) &&
         (this.disk >= needed.disk)
     }

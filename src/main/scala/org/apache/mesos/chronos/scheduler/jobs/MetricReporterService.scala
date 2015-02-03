@@ -26,7 +26,7 @@ class MetricReporterService(config: GraphiteConfiguration,
 
   def startUp() {
     this.reporter = config.graphiteHostPort.get match {
-      case Some(MetricReporterService.HostPort(host: String, port: Int)) => {
+      case Some(MetricReporterService.HostPort(host: String, port: Int)) =>
         val graphite = new Graphite(new InetSocketAddress(host, port))
         val reporter = GraphiteReporter.forRegistry(registry)
           .prefixedWith(config.graphiteGroupPrefix())
@@ -35,7 +35,6 @@ class MetricReporterService(config: GraphiteConfiguration,
           .build(graphite)
         reporter.start(config.graphiteReportIntervalSeconds(), TimeUnit.SECONDS)
         Some(reporter)
-      }
       case _ => None
     }
   }

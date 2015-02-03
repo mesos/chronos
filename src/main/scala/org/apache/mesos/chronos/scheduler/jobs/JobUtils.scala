@@ -42,17 +42,17 @@ object JobUtils {
     val map = objectMapper.readValue(strData, classOf[java.util.Map[String, _]])
 
     if (map.containsKey("parents"))
-      return objectMapper.readValue(strData, classOf[DependencyBasedJob])
+      objectMapper.readValue(strData, classOf[DependencyBasedJob])
     else if (map.containsKey("schedule"))
-      return objectMapper.readValue(strData, classOf[ScheduleBasedJob])
+      objectMapper.readValue(strData, classOf[ScheduleBasedJob])
     else
-      return objectMapper.readValue(strData, classOf[BaseJob])
+      objectMapper.readValue(strData, classOf[BaseJob])
   }
 
   def isValidJobName(jobName: String): Boolean = {
     jobName match {
-      case jobNamePattern(part) => return true
-      case _ => return false
+      case jobNamePattern(part) => true
+      case _ => false
     }
   }
 
@@ -145,7 +145,7 @@ object JobUtils {
   protected def calculateSkips(dateTime: DateTime, jobStart: DateTime, period: Period): Int = {
     // If the period is at least a month, we have to actually add the period to the date
     // until it's in the future because a month-long period might have different seconds
-    if (period.getMonths() >= 1) {
+    if (period.getMonths >= 1) {
       var skips = 0
       var newDate = new DateTime(jobStart)
       while (newDate.isBefore(dateTime)) {
@@ -159,7 +159,7 @@ object JobUtils {
   }
 
   def getJobWithArguments(job: BaseJob, arguments: String): BaseJob = {
-    val commandWithArgs = job.command + " " + arguments;
+    val commandWithArgs = job.command + " " + arguments
     val jobWithArguments = job match {
       case j: DependencyBasedJob =>
         new DependencyBasedJob(

@@ -76,15 +76,13 @@ class Iso8601JobResource @Inject()(
         Response.noContent().build()
       }
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build
-      }
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build
-      }
+        Response.serverError().build
     }
   }
 

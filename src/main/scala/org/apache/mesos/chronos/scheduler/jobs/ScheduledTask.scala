@@ -20,6 +20,6 @@ class ScheduledTask(
     taskManager.log.info("Triggering: '%s'".format(job.name))
     taskManager.removeTaskFutureMapping(this)
     taskManager.enqueue(taskId, job.highPriority)
-    return null
+    null
   }
 }

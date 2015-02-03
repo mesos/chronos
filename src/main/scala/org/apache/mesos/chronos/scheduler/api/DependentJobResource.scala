@@ -42,7 +42,7 @@ class DependentJobResource @Inject()(
         jobScheduler.registerJob(List(newJob), persist = true)
         Response.noContent().build()
       } else {
-        require(!oldJobOpt.isEmpty, "Job '%s' not found".format(newJob.name))
+        require(oldJobOpt.isDefined, "Job '%s' not found".format(newJob.name))
 
         val oldJob = oldJobOpt.get
 
@@ -52,7 +52,7 @@ class DependentJobResource @Inject()(
         require(newJob.parents.nonEmpty, "Error, parent does not exist")
 
         log.info("Received replace request for job:" + newJob.toString)
-        require(!jobGraph.lookupVertex(newJob.name).isEmpty, "Job '%s' not found".format(newJob.name))
+        require(jobGraph.lookupVertex(newJob.name).isDefined, "Job '%s' not found".format(newJob.name))
         //TODO(FL): Put all the logic for registering, deregistering and replacing dependency based jobs into one place.
         val parents = jobGraph.parentJobs(newJob)
         oldJob match {
@@ -75,15 +75,13 @@ class DependentJobResource @Inject()(
         Response.noContent().build()
       }
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
-      }
-      case ex: Exception => {
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        return Response.serverError().build()
-      }
+        Response.serverError().build()
     }
   }
 
