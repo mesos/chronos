@@ -1,6 +1,6 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import java.util.concurrent.{Future, TimeUnit}
+import java.util.concurrent.{ConcurrentHashMap, Future, TimeUnit}
 import java.util.logging.Logger
 
 import com.codahale.metrics.{Gauge, MetricRegistry}
@@ -13,6 +13,7 @@ import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.{DateTime, DateTimeZone}
 
+import scala.collection.convert.decorateAsScala._
 import scala.collection.{mutable, _}
 
 /**
@@ -41,8 +42,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   val taskCache = CacheBuilder.newBuilder().maximumSize(5000L).build[String, TaskState]()
 
-  val taskMapping = new mutable.HashMap[String, mutable.ListBuffer[(String, Future[_])]] with
-    collection.mutable.SynchronizedMap[String, mutable.ListBuffer[(String, Future[_])]]
+  val taskMapping: concurrent.Map[String, mutable.ListBuffer[(String, Future[_])]] = new ConcurrentHashMap().asScala
 
   val queueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "queueSize"),
