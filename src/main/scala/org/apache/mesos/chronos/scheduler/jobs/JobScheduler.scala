@@ -620,12 +620,18 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
     running.set(true)
     lock.synchronized {
-      //It's important to load the tasks first, otherwise a job that's due will trigger a task right away.
-      log.info("Loading tasks")
-      TaskUtils.loadTasks(taskManager, persistenceStore)
-
-      log.info("Loading jobs")
-      JobUtils.loadJobs(this, persistenceStore)
+      try {
+        //It's important to load the tasks first, otherwise a job that's due will trigger a task right away.
+        log.info("Loading tasks")
+        TaskUtils.loadTasks(taskManager, persistenceStore)
+        log.info("Loading jobs")
+        JobUtils.loadJobs(this, persistenceStore)
+      } catch {
+        case e: Exception => {
+          log.log(Level.SEVERE, "Loading tasks or jobs failed. Exiting.", e)
+          System.exit(1)
+        }
+      }
     }
 
     val jobScheduler = this
