@@ -154,7 +154,8 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
             results += (taskId -> data)
           } else {
             log.warning("Found old incompatible version of task, deleting:" + f)
-            removeTask(f)
+            // remove(f) is easier but it should not invoke func remove directly
+            removeTask(f.substring(taskPrefix.size))
           }
         }
       }
