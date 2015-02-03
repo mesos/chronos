@@ -84,6 +84,8 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
       //If the job was deleted after the taskId was added to the queue, the task could be empty.
       if (jobOption.isEmpty || jobOption.get.disabled) {
+        //remove invalid task
+        removeTask(taskId)
         None
       } else {
         Some(taskId, job)
