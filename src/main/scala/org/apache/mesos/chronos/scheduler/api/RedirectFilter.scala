@@ -34,7 +34,7 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
         } else {
           var proxyStatus: Int = 200
           try {
-            log.info("Proxying request.")
+            log.info("Proxying request to %s .".format(leaderData))
 
             val method = request.getMethod
 
