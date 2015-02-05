@@ -148,14 +148,14 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
       import scala.collection.JavaConversions._
       for (f: String <- state.names.get) {
         if (f.startsWith(taskPrefix)) {
+          val taskId = f.substring(taskPrefix.size)
           if (TaskUtils.isValidVersion(f)) {
             val data = state.fetch(f).get.value
-            val taskId = f.substring(taskPrefix.size)
             results += (taskId -> data)
           } else {
-            log.warning("Found old incompatible version of task, deleting:" + f)
+            log.warning("Found old incompatible version of task, deleting:" + taskId)
             // remove(f) is easier but it should not invoke func remove directly
-            removeTask(f.substring(taskPrefix.size))
+            removeTask(taskId)
           }
         }
       }
