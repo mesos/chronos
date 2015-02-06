@@ -228,7 +228,7 @@ The JSON hash you send to Chronos should contain the following fields:
 
 * ScheduleTimeZone: The time zone name to use when scheduling the job.
   * This field takes precedence over any time zone specified in Schedule.
-  * All system time zones supported by [`java.util.Timezone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
+  * All system time zones supported by [`java.util.TimeZone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
     * See [List of tz database time zones](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
   * For example, the effective time zone for the following is `Pacific Standard Time`
     * ```json
