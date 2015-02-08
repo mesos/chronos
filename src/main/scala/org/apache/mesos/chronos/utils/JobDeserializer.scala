@@ -1,7 +1,7 @@
 package org.apache.mesos.chronos.utils
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, DockerContainer, EnvironmentVariable, NetworkMode, ScheduleBasedJob, Volume, VolumeMode}
+import org.apache.mesos.chronos.scheduler.jobs._
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonNode}
@@ -159,6 +159,14 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         parentList += parent.asText
       }
       new DependencyBasedJob(parents = parentList.toSet,
+        name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
+        executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
+        lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
+        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
+        arguments = arguments, softError = softError)
+    } else if (node.has("triggeredJob")) {
+      TriggeredJob(
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner, lastError = lastError,
         lastSuccess = lastSuccess, async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,

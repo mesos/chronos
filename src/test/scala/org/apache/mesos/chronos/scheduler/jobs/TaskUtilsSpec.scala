@@ -18,8 +18,8 @@ class TaskUtilsSpec extends SpecificationWithJUnit with Mockito {
       val taskIdOne = TaskUtils.getTaskId(job1, due, 0)
       val taskIdTwo = TaskUtils.getTaskId(job2, due, 0)
 
-      taskIdOne must_== "ct:1420843781398:0:sample-name:" + arguments
-      taskIdTwo must_== "ct:1420843781398:0:sample-name:"
+      taskIdOne must_== s"ct:1420843781398:0:sample-name:$arguments:"
+      taskIdTwo must_== "ct:1420843781398:0:sample-name::"
     }
 
     "Get job arguments for taskId" in {
@@ -32,23 +32,28 @@ class TaskUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     "Parse taskId" in {
       val arguments = "-a 1 -b 2"
-      val arguments2 = "-a 1:2 --B test"
-
-      val taskIdOne = "ct:1420843781398:0:test:" + arguments
-      val (jobName, jobDue, attempt, jobArguments) = TaskUtils.parseTaskId(taskIdOne)
+      val taskFlowId = "taskflow1"
+      //job arguments cannot have ':' now...
+      val arguments2 = "-a 1 2 --B test"
+      val taskFlowId2 = "taskflow2"
+      
+      val taskIdOne = s"ct:1420843781398:0:test:$arguments:$taskFlowId"
+      val (jobName, jobDue, attempt, jobArguments, taskFlow) = TaskUtils.parseTaskId(taskIdOne)
 
       jobName must_== "test"
       jobDue must_== 1420843781398L
       attempt must_== 0
       jobArguments must_== arguments
+      taskFlow must_== taskFlowId
 
-      val taskIdTwo = "ct:1420843781398:0:test:" + arguments2
-      val (_, _, _, jobArguments2) = TaskUtils.parseTaskId(taskIdTwo)
+      val taskIdTwo = s"ct:1420843781398:0:test:$arguments2:$taskFlowId2"
+      val (_, _, _, jobArguments2, taskFlow2) = TaskUtils.parseTaskId(taskIdTwo)
 
       jobArguments2 must_== arguments2
+      taskFlow2 must_== taskFlowId2
 
       val taskIdThree = "ct:1420843781398:0:test"
-      val (jobName3, _, _, jobArguments3) = TaskUtils.parseTaskId(taskIdThree)
+      val (jobName3, _, _, jobArguments3, _) = TaskUtils.parseTaskId(taskIdThree)
 
       jobName3 must_== "test"
       jobArguments3 must_== ""

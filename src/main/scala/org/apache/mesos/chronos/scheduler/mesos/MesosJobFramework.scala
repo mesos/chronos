@@ -2,19 +2,17 @@ package org.apache.mesos.chronos.scheduler.mesos
 
 import java.util.logging.Logger
 
+import com.google.inject.Inject
+import mesosphere.mesos.util.FrameworkIdUtil
+import org.apache.mesos.Protos._
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs._
 import org.apache.mesos.chronos.utils.JobDeserializer
-import com.google.inject.Inject
-import mesosphere.mesos.util.FrameworkIdUtil
-import mesosphere.util.BackToTheFuture
-import org.apache.mesos.Protos._
 import org.apache.mesos.{Protos, Scheduler, SchedulerDriver}
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.mutable.{Buffer, HashMap, HashSet}
 
 /**
  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
@@ -96,20 +94,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
     reconcile(schedulerDriver)
   }
 
-  def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): mutable.Buffer[(String, BaseJob, Offer)] = {
-    val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
+  def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): 
+      mutable.Buffer[(String, BaseJob, Offer, Option[TaskFlowState])] = {
+    
+    val tasks = mutable.Buffer[(String, BaseJob, Offer, Option[TaskFlowState])]()
 
     def generate() {
       taskManager.getTask match {
         case None => log.info("No tasks scheduled or next task has been disabled.\n")
-        case Some((taskId, job)) =>
+        case Some((taskId, job, flowState)) =>
           if (runningTasks.contains(job.name)) {
             val deleted = taskManager.removeTask(taskId)
             log.warning("The head of the task queue appears to already be running: " + job.name + "\n")
             generate()
           } else {
             tasks.find(_._2.name == job.name) match {
-              case Some((subtaskId, subJob, offer)) =>
+              case Some((subtaskId, subJob, offer, flowState)) =>
                 val deleted = taskManager.removeTask(subtaskId)
                 log.warning("Found job in queue that is already scheduled for launch with this offer set: " + subJob.name + "\n")
                 generate()
@@ -119,7 +119,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
                   case Some((offer, resources)) =>
                     // Subtract this job's resource requirements from the remaining available resources in this offer.
                     resources -= neededResources
-                    tasks.append((taskId, job, offer))
+                    tasks.append((taskId, job, offer, flowState))
                     generate()
                   case None =>
                     log.warning("Insufficient resources remaining for task '%s', will append to queue\n.".format(taskId))
@@ -144,14 +144,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
     }
   }
 
-  def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
+  def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer, Option[TaskFlowState])]) {
     import scala.collection.JavaConverters._
 
     val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
 
     tasks.groupBy(_._3).toIterable.foreach({ case (offer, subTasks) =>
       val mesosTasks = subTasks.map(task => {
-        taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
+        taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3, task._4).setSlaveId(task._3.getSlaveId).build()
       })
       log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
       val status: Protos.Status = mesosDriver.get().launchTasks(
@@ -185,7 +185,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   def statusUpdate(schedulerDriver: SchedulerDriver, taskStatus: TaskStatus) {
     taskManager.taskCache.put(taskStatus.getTaskId.getValue, taskStatus.getState)
 
-    val (jobName, _, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
+    val (jobName, _, _, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
         scheduler.handleStartedTask(taskStatus)
