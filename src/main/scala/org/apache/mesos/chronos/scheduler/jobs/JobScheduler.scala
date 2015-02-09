@@ -377,7 +377,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           }
       })
     } else {
-      taskFlowId map persistenceStore.removeTaskFlowState
+      if (!jobGraph.hasChildren(jobName)) 
+        taskFlowId map persistenceStore.removeTaskFlowState
+      
       log.fine("%s does not have any ready dependents.".format(jobName))
     }
   }

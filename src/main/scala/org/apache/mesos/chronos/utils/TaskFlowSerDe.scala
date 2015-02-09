@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.apache.mesos.chronos.scheduler.jobs.TaskFlowState
+import scala.collection.convert.decorateAsScala._
 
 /**
  * Serializer for TaskFlowState. It may be better to use a proper scala jackson library.
@@ -46,13 +47,9 @@ object taskFlowSerde {
       val node = codec.readTree[JsonNode](jsonParser)
 
       val id = node.get("id").asText
-      val elements = node.get("env").elements()
-      val fields = node.get("env").fields()
-      var env : Map[String, String] = Map()
-      while (fields.hasNext) {
-        val next = fields.next()
-        env = env + (next.getKey -> next.getValue.asText())
-      }
+      val fields = node.get("env").fields().asScala
+      val env = (fields map (entry => entry.getKey -> entry.getValue.asText())).toMap
+
       new TaskFlowState(id, env)
     }
   }

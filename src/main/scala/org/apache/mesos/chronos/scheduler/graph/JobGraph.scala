@@ -121,6 +121,7 @@ class JobGraph {
     }
   }
 
+
   /**
    * Retrieves all the jobs that need to be triggered that depend on the finishedJob.
    * @param vertex
@@ -170,6 +171,14 @@ class JobGraph {
     results.toList
   }
 
+  /**
+   * Indicates if a node has dependencies. This is useful for task flow cleanup.
+   * @return 
+   */
+  def hasChildren(vertex: String): Boolean = {
+    getChildren(vertex).size > 0
+  }
+  
   def getChildren(job: String): Iterable[String] = {
     import scala.collection.JavaConversions._
     lock.synchronized {
