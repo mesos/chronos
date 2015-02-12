@@ -241,8 +241,6 @@ The JSON hash you send to Chronos should contain the following fields:
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
 
-A job without *schedule* field will has a "R1//PT24H" schedule by default.
-
 Here is an example job hash:
 ```json
 {
