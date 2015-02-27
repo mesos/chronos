@@ -93,7 +93,7 @@ trait SchedulerConfiguration extends ScallopConf {
     default = Some(256.0))
   lazy val mesosCheckpoint = opt[Boolean]("mesos_checkpoint",
     descr = "Enable checkpointing in Mesos",
-    default = Some(false))
+    default = Some(true))
   lazy val mesosRole = opt[String]("mesos_role",
     descr = "The Mesos role to run tasks under",
     default = Some("*"))
