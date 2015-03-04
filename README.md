@@ -451,7 +451,7 @@ passing the `-f` or `--force` parameter.  In the example above,
 `/path/to/jobs/config` is the path where you would like the configuration data
 to live.
 
-Note: `chronos-sync.rb` does not delete jobs.  If you want to remove a job, you must manually remove it using the API or web UI.
+Note: `chronos-sync.rb` does not delete jobs by default. You can pass the `--delete-missing` flag to `chronos-sync.rb` to remove jobs. Alternatively, you can manually remove it using the API or web UI.
 
 ## Debugging Chronos Jobs
 
