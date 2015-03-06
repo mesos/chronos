@@ -112,6 +112,7 @@ def normalize_job(job)
   newjob.delete 'lastSuccess'
   newjob.delete 'lastError'
   newjob.delete 'errorsSinceLastSuccess'
+  newjob.delete 'disabled'
 
   # Define optional fields, if not present
   newjob['uris'] = [] if !newjob.include?('uris')
