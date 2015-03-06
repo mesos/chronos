@@ -112,11 +112,6 @@ def normalize_job(job)
   newjob.delete 'lastSuccess'
   newjob.delete 'lastError'
   newjob.delete 'errorsSinceLastSuccess'
-  newjob.delete 'async'
-  newjob.delete 'epsilon'
-  newjob.delete 'retries'
-  newjob.delete 'executor'
-  newjob.delete 'executorFlags'
   newjob.delete 'disabled'
 
   # Define optional fields, if not present
