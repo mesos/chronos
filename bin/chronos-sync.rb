@@ -295,6 +295,12 @@ if !options.skip_sync
         existing_job['schedule'] = existing_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
         new_schedule = new_job['schedule']
         new_job['schedule'] = new_job['schedule'].gsub(/^R\d*\/[^\/]+\//, '')
+        # Fields not defined in new_job, but present in existing_job, should be dropped from existing_job
+        existing_job.each do |k,v|
+          if !new_job.include?(k)
+            existing_job.delete(k)
+          end
+        end
         if options.force || !scheduled_jobs.include?(name) || normalize_job(existing_job).to_a.sort_by{|x|x[0]} != normalize_job(new_job).to_a.sort_by{|x|x[0]}
           # Check if scheduled start time is in the past
           start_time = DateTime.iso8601(/^R\d*\/([^\/]+)\//.match(new_schedule)[1])
