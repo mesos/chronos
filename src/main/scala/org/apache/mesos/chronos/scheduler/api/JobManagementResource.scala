@@ -246,7 +246,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           status = "FAILURE"
         } else if (!lastSuccess.equals(lastError)) {
           // Compare timestamps
-          status = if (lastSuccess.toLower > lastError.toLower) "SUCCESS" else "FAILED"
+          status = if (lastSuccess.toLowerCase > lastError.toLowerCase) "SUCCESS" else "FAILED"
         }
       }
 
