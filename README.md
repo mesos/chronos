@@ -155,7 +155,7 @@ Interesting fields in the hashes are:
 
 If there is a `parents` field there will be no `schedule` field and vice-versa.
 
-### Retriving a Job status
+### Retrieving a Job status
 
 * Endpoint: __/scheduler/job/status/jobName__
 * Method: __GET__
