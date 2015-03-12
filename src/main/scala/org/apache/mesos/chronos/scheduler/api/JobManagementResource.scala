@@ -223,16 +223,22 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   def status(@PathParam("jobName") jobName : String): Response = {
     try {
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+
+      /* Fetch job and task states for that job */
       val job:BaseJob = jobGraph.getJobForName(jobName).get
       val taskStatusList:List[TaskState] =
         jobScheduler.taskManager.getMesosTaskStates(job)
 
+      /* Figure out status first by looking at task statuses and finally job fields */
       var status = "NOT RUN"
       if (taskStatusList != null & !taskStatusList.isEmpty ) {
         taskStatusList.head match {
           case TaskState.TASK_FAILED | TaskState.TASK_KILLED | TaskState.TASK_LOST => status = "FAILED"
           case TaskState.TASK_FINISHED => status = "SUCCESS"
           case TaskState.TASK_RUNNING | TaskState.TASK_STAGING | TaskState.TASK_STARTING => status = "RUNNING"
+          case _ =>
+            log.error("Could not figure out task state for value " + String.valueOf(_))
+            throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
         }
       } else {
         /* Just making sure that no null pointers can happen */
@@ -250,10 +256,11 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         }
       }
 
+      /* Return json object with job name and status */
       Response.ok(Map(("job_name" -> jobName), ("status" -> status))).build()
     } catch {
       case ex: Exception =>
-        log.log(Level.WARNING, "", ex)
+        log.log(Level.WARNING, "Could not figure out task status", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
     }
   }

@@ -220,16 +220,20 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   }
 
   /**
-   * Returns all TaskStates for given job.
+   * Returns all TaskStates in order for given job.
    * @param job
    * @return
    */
   def getMesosTaskStates(job: BaseJob) : List[TaskState] = {
     import scala.collection.JavaConversions._
+    // Filter out job that do not match job name,
+    // sort tuple by timestamp as it is most defining element in key
+    // and finally extract tuples to two separate lists
     val (_, values) = taskCache.asMap
       .filterKeys(TaskUtils.getJobNameForTaskId(_) == job.name)
       .toList
-      .sortWith((a,b) => a._1.toLowerCase > b._1.toLowerCase).unzip
+      .sortWith((a,b) => a._1.toLowerCase > b._1.toLowerCase)
+      .unzip
     values
   }
 }
