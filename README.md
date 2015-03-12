@@ -33,6 +33,7 @@ Also join us on IRC in #mesos on freenode.
 * [API](#api)
     - [Leader](#leaders)
     - [Listing Jobs](#listing-jobs)
+    - [Retrieving a Job status](#retrieving-a-job-status)
     - [Deleting a Job](#deleting-a-job)
     - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
     - [Manually Starting a Job](#manually-starting-a-job)
@@ -153,6 +154,16 @@ Interesting fields in the hashes are:
 * `parents`: for dependent jobs, a list of all other jobs that must run before this job will do so
 
 If there is a `parents` field there will be no `schedule` field and vice-versa.
+
+### Retrieving a Job status
+
+* Endpoint: __/scheduler/job/status/jobName__
+* Method: __GET__
+* Example: `curl -L -X GET chronos-node:8080/scheduler/job/status/request_event_counter_hourly`
+* Response: JSON data
+
+Retrieving a job status returns a JSON object containing fields `job_name` and `status`.
+Valid values for `status` are "NOT RUN", "RUNNING", "FAILURE" and "SUCCESS".
 
 ### Deleting a Job
 

@@ -5,6 +5,7 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
+import org.apache.mesos.Protos.TaskState
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
@@ -12,6 +13,7 @@ import com.codahale.metrics.annotation.Timed
 import com.google.inject.Inject
 import org.joda.time.{DateTime, DateTimeZone}
 
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -215,4 +217,51 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     }
   }
 
+  @GET
+  @Path(PathConstants.jobStatusPath)
+  @Produces(Array(MediaType.APPLICATION_JSON))
+  def status(@PathParam("jobName") jobName : String): Response = {
+    try {
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+
+      /* Fetch job and task states for that job */
+      val job:BaseJob = jobGraph.getJobForName(jobName).get
+      val taskStatusList:List[TaskState] =
+        jobScheduler.taskManager.getMesosTaskStates(job)
+
+      /* Figure out status first by looking at task statuses and finally job fields */
+      var status = "NOT RUN"
+      if (taskStatusList != null & !taskStatusList.isEmpty ) {
+        taskStatusList.head match {
+          case TaskState.TASK_FAILED | TaskState.TASK_KILLED | TaskState.TASK_LOST => status = "FAILED"
+          case TaskState.TASK_FINISHED => status = "SUCCESS"
+          case TaskState.TASK_RUNNING | TaskState.TASK_STAGING | TaskState.TASK_STARTING => status = "RUNNING"
+          case default =>
+            log.log(Level.WARNING, "Could not figure out task state for value " + default)
+            throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+        }
+      } else {
+        /* Just making sure that no null pointers can happen */
+        val lastSuccess = if (job.lastSuccess != null) job.lastSuccess else ""
+        val lastError = if (job.lastError != null) job.lastError else ""
+        if (!"".equals(lastSuccess) & "".equals(lastError)) {
+          // No failures have happened
+          status = "SUCCESS"
+        } else if ("".equals(lastSuccess) & !"".equals(lastError)) {
+          // No success have happened
+          status = "FAILURE"
+        } else if (!lastSuccess.equals(lastError)) {
+          // Compare timestamps
+          status = if (lastSuccess.toLowerCase > lastError.toLowerCase) "SUCCESS" else "FAILED"
+        }
+      }
+
+      /* Return json object with job name and status */
+      Response.ok(Map(("job_name" -> jobName), ("status" -> status))).build()
+    } catch {
+      case ex: Exception =>
+        log.log(Level.WARNING, "Could not figure out task status", ex)
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
