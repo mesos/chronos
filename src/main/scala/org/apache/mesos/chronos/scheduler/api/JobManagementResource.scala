@@ -223,8 +223,9 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   def status(@PathParam("jobName") jobName : String): Response = {
     try {
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+      val job:BaseJob = jobGraph.getJobForName(jobName).get
       val taskStatusList:List[TaskState] =
-        jobScheduler.taskManager.getMesosTaskStates(jobGraph.getJobForName(jobName).get)
+        jobScheduler.taskManager.getMesosTaskStates(job)
 
       var status = "NOT RUN"
       if (taskStatusList != null & !taskStatusList.isEmpty ) {
@@ -232,6 +233,20 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           case TaskState.TASK_FAILED | TaskState.TASK_KILLED | TaskState.TASK_LOST => status = "FAILED"
           case TaskState.TASK_FINISHED => status = "SUCCESS"
           case TaskState.TASK_RUNNING | TaskState.TASK_STAGING | TaskState.TASK_STARTING => status = "RUNNING"
+        }
+      } else {
+        /* Just making sure that no null pointers can happen */
+        val lastSuccess = if (job.lastSuccess != null) job.lastSuccess else ""
+        val lastError = if (job.lastError != null) job.lastError else ""
+        if (!"".equals(lastSuccess) & "".equals(lastError)) {
+          // No failures have happened
+          status = "SUCCESS"
+        } else if ("".equals(lastSuccess) & !"".equals(lastError)) {
+          // No success have happened
+          status = "FAILURE"
+        } else if (!lastSuccess.equals(lastError)) {
+          // Compare timestamps
+          status = if (lastSuccess.toLower > lastError.toLower) "SUCCESS" else "FAILED"
         }
       }
 
