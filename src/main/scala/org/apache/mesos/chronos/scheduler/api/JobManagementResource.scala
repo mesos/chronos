@@ -5,6 +5,7 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
+import org.apache.mesos.Protos.TaskState
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
@@ -12,6 +13,7 @@ import com.codahale.metrics.annotation.Timed
 import com.google.inject.Inject
 import org.joda.time.{DateTime, DateTimeZone}
 
+import scala.collection.mutable.HashMap
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -215,4 +217,29 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     }
   }
 
+  @GET
+  @Path(PathConstants.jobStatusPath)
+  @Produces(Array(MediaType.APPLICATION_JSON))
+  def status(@PathParam("jobName") jobName : String): Response = {
+    try {
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+      val taskStatusList:List[TaskState] =
+        jobScheduler.taskManager.getMesosTaskStates(jobGraph.getJobForName(jobName).get)
+
+      var status = "NOT RUN"
+      if (taskStatusList != null & !taskStatusList.isEmpty ) {
+        taskStatusList.head match {
+          case TaskState.TASK_FAILED | TaskState.TASK_KILLED | TaskState.TASK_LOST => status = "FAILED"
+          case TaskState.TASK_FINISHED => status = "SUCCESS"
+          case TaskState.TASK_RUNNING | TaskState.TASK_STAGING | TaskState.TASK_STARTING => status = "RUNNING"
+        }
+      }
+
+      Response.ok(Map(("job_name" -> jobName), ("status" -> status))).build()
+    } catch {
+      case ex: Exception =>
+        log.log(Level.WARNING, "", ex)
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
