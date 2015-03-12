@@ -236,8 +236,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           case TaskState.TASK_FAILED | TaskState.TASK_KILLED | TaskState.TASK_LOST => status = "FAILED"
           case TaskState.TASK_FINISHED => status = "SUCCESS"
           case TaskState.TASK_RUNNING | TaskState.TASK_STAGING | TaskState.TASK_STARTING => status = "RUNNING"
-          case _ =>
-            log.error("Could not figure out task state for value " + String.valueOf(_))
+          case default =>
+            log.log(Level.WARNING, "Could not figure out task state for value " + default)
             throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
         }
       } else {
