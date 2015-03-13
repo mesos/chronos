@@ -420,7 +420,8 @@ you can also use a url in the command field, if your mesos was compiled with cUR
    ],
    "schedule":"R/2014-03-08T20:00:00.000Z/PT2H",
    "environmentVariables": [
-     {"name": "FOO", "value": "BAR"}
+     {"name": "JVMOPTS", "value": "-Xmx1000m"},
+     {"name": "JAVA_LIBRARY_PATH", "value": "/usr/local/lib"}
    ]
 }
 ```
