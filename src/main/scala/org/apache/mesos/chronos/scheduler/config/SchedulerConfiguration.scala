@@ -106,6 +106,10 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
     descr = "The framework name",
     default = Some("chronos-" + version))
+  lazy val webuiUrl = opt[String]("webui_url",
+    descr = "The http(s) url of the web ui, defaulting to the advertised hostname",
+    noshort = true,
+    default = None)
   lazy val reconciliationInterval = opt[Int]("reconciliation_interval",
     descr = "Reconciliation interval in seconds",
     default = Some(600))
