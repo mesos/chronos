@@ -61,12 +61,10 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
 
     if (config.webuiUrl.isSupplied) {
       frameworkInfoBuilder.setWebuiUrl(config.webuiUrl())
-    }
-    else if (config.sslKeystorePath.isDefined) {
+    } else if (config.sslKeystorePath.isDefined) {
       // ssl enabled, use https
       frameworkInfoBuilder.setWebuiUrl(s"https://${config.hostname()}:${config.httpsPort()}")
-    }
-    else {
+    } else {
       // ssl disabled, use http
       frameworkInfoBuilder.setWebuiUrl(s"http://${config.hostname()}:${config.httpPort()}")
     }
