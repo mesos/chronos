@@ -13,8 +13,8 @@ import org.apache.mesos.chronos.scheduler.mesos.{MesosDriverFactory, MesosJobFra
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, MoreExecutors, ThreadFactoryBuilder}
 import com.google.inject.{AbstractModule, Inject, Provides, Singleton}
+import mesosphere.chaos.http.HttpConf
 import mesosphere.mesos.util.FrameworkIdUtil
-import mesosphere.util.BackToTheFuture
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.mesos.Protos.FrameworkInfo
@@ -28,7 +28,9 @@ import scala.language.postfixOps
  * Guice glue code of application logic components.
  * @author Florian Leibert (flo@leibert.de)
  */
-class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
+class MainModule(val config: SchedulerConfiguration with HttpConf)
+    extends AbstractModule {
+
   private[this] val log = Logger.getLogger(getClass.getName)
 
   override def configure() {
@@ -48,17 +50,27 @@ class MainModule(val config: SchedulerConfiguration) extends AbstractModule {
   @Provides
   def provideFrameworkInfo(frameworkIdUtil: FrameworkIdUtil): FrameworkInfo = {
     import mesosphere.util.BackToTheFuture.Implicits.defaultTimeout
+    import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-    val frameworkInfo = FrameworkInfo.newBuilder()
+    val frameworkInfoBuilder = FrameworkInfo.newBuilder()
       .setName(config.mesosFrameworkName())
       .setCheckpoint(config.mesosCheckpoint())
       .setRole(config.mesosRole())
       .setFailoverTimeout(config.failoverTimeoutSeconds())
       .setUser(config.user())
-    frameworkIdUtil.setIdIfExists(frameworkInfo)
-    frameworkInfo.build()
+
+    if (config.webuiUrl.isSupplied) {
+      frameworkInfoBuilder.setWebuiUrl(config.webuiUrl())
+    } else if (config.sslKeystorePath.isDefined) {
+      // ssl enabled, use https
+      frameworkInfoBuilder.setWebuiUrl(s"https://${config.hostname()}:${config.httpsPort()}")
+    } else {
+      // ssl disabled, use http
+      frameworkInfoBuilder.setWebuiUrl(s"http://${config.hostname()}:${config.httpPort()}")
+    }
+
+    frameworkIdUtil.setIdIfExists(frameworkInfoBuilder)
+    frameworkInfoBuilder.build()
   }
 
 
