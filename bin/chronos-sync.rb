@@ -16,6 +16,7 @@ options.update_from_chronos = false
 options.force = false
 options.validate = false
 options.delete_missing = false
+options.no_prompt_for_delete = false
 options.skip_sync = false
 
 opts = OptionParser.new do |o|
@@ -43,8 +44,11 @@ opts = OptionParser.new do |o|
     options.http_auth_user = cred_split[0].strip
     options.http_auth_pass = cred_split[1].strip
   end
-  o.on("--delete-missing", "Prompt to delete missing jobs") do
+  o.on("--delete-missing", "Delete missing jobs from chronos. Prompts for confirmation") do
     options.delete_missing = true
+  end
+  o.on("--no-prompt-for-delete", "Do not prompt for deletion of missing jobs") do
+    options.no_prompt_for_delete = true
   end
   o.on("--skip-sync", "Skip syncing local jobs") do
     options.skip_sync = true
@@ -459,8 +463,9 @@ end
 def check_if_defined(jobs, name, options)
   if !jobs.include?(name)
     if options.delete_missing
-      $stdout.print "The job #{name} exists in chronos, but is not defined! Delete [yN]? "
-      delete_job(options, name) if $stdin.gets.chomp.downcase == "y"
+      $stdout.print "The job #{name} exists in chronos, but is not defined! "
+      $stdout.print "Delete [yN]? " unless options.no_prompt_for_delete
+      delete_job(options, name) if (options.no_prompt_for_delete || $stdin.gets.chomp.downcase == "y")
     else
       $stderr.puts "The job #{name} exists in chronos, but is not defined!"
     end

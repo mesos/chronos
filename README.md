@@ -454,9 +454,14 @@ to live.
 
 Note: `chronos-sync.rb` does not delete jobs by default. You can pass the `--delete-missing` flag to `chronos-sync.rb` to remove jobs. Alternatively, you can manually remove it using the API or web UI.
 
-## Debugging Chronos Jobs
+## Debugging
 
-Chronos itself can be configured just like [dropwizard-logging][logging] via the configuration file. If there's something going wrong with the framework itself look here for information. Individual jobs log with their task id on the mesos slaves.
+### Debugging Chronos
+
+Chronos uses log4j to control log output.  To override the standard log4j configuration, create a [log4j configuration file](http://logging.apache.org/log4j/1.2/manual.html) and add `-Dlog4j.configuration=file:<path to config>` to the Chronos startup command. 
+
+### Debugging Jobs
+Individual jobs log with their task id on the mesos slaves.
 Look in the standard out log for your job name and the string "ready for launch", or else "job ct:" and your job name.
 The job is done when the line in the log says:
 
