@@ -24,6 +24,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
                             val persistenceStore: PersistenceStore,
                             val jobGraph: JobGraph,
                             val mesosDriver: MesosDriverFactory,
+                            val jobStats: JobStats,
                             val registry: MetricRegistry) {
 
   val log = Logger.getLogger(getClass.getName)
@@ -88,6 +89,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         removeTask(taskId)
         None
       } else if (jobOption.get.disabled) {
+        jobStats.updateJobState(jobOption.get.name, CurrentState.idle)
         None
       } else {
         Some(taskId, job)
@@ -146,6 +148,16 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     val _priority = if (highPriority) HIGH_PRIORITY else NORMAL_PRIORITY
     this.synchronized {
       queues(_priority).add(taskId)
+    }
+
+    val jobName = TaskUtils.getJobNameForTaskId(taskId)
+    val jobOption = jobGraph.lookupVertex(jobName)
+     if (jobOption.isEmpty) {
+      log.warning("Job '%s' no longer registered.".format(jobName))
+    } else {
+        val (_, start, attempt, _) = TaskUtils.parseTaskId(taskId)
+        val job = jobOption.get
+        jobStats.jobQueued(job, attempt)
     }
   }
 

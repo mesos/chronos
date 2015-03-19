@@ -210,6 +210,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
       taskManager.cancelTasks(job)
       taskManager.removeTasks(job)
+      jobStats.removeJobState(job)
 
       if (persist) {
         log.info("Removing job from underlying state abstraction:" + job.name)
@@ -466,6 +467,34 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           log.warning("Could not find job for task: %s Job may have been deleted while task was in flight!"
             .format(taskId))
       }
+    }
+  }
+
+  /**
+   * Task has been killed. Do appropriate cleanup
+   * Possible reasons for task being killed:
+   *   -invoked kill via task manager API
+   *   -job is deleted
+   */
+  def handleKilledTask(taskStatus: TaskStatus) {
+    val taskId = taskStatus.getTaskId.getValue
+    if (!TaskUtils.isValidVersion(taskId)) {
+      log.warning("Found old or invalid task, ignoring!")
+      return
+    }
+
+    val (jobName, start, attempt, _) = TaskUtils.parseTaskId(taskId)
+    val jobOption = jobGraph.lookupVertex(jobName)
+
+    var job :BaseJob = null
+    if (!jobOption.isEmpty) {
+      job = jobOption.get
+      jobStats.jobFailed(job=job, attempt=attempt,
+          taskStatus=taskStatus)
+    } else {
+      //for now just fake schedule based job
+      jobStats.jobFailed(jobName=jobName, taskStatus=taskStatus,
+          attempt=attempt)
     }
   }
 

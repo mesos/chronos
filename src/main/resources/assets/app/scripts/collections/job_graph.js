@@ -21,7 +21,7 @@ define([
       Sync;
 
   csvKeys = {
-    node: ['type', 'name', 'lastRunStatus'],
+    node: ['type', 'name', 'lastRunStatus', 'currentState'],
     link: ['type', 'source', 'target']
   };
 
@@ -273,15 +273,17 @@ define([
       var _this = this,
           updateInAccessoryCollection;
 
-      updateInAccessoryCollection = function(model, value) {
+      updateInAccessoryCollection = function(model, key, value) {
         var cModel = c.get(model.id);
 
         if (!!cModel) {
-          cModel.set('lastRunStatus', value);
-          model.set({
-            lastError: cModel.get('lastError'),
-            lastSuccess: cModel.get('lastSuccess')
-          });
+          cModel.set(key, value);
+          if (key == 'lastRunStatus') {
+            model.set({
+              lastError: cModel.get('lastError'),
+              lastSuccess: cModel.get('lastSuccess')
+            });
+          }
         }
       };
 
@@ -291,7 +293,10 @@ define([
         sync: function(coll) {
           _this.each(function(model) {
             if (!(JobGraph.isNode(model))) { return; }
-            updateInAccessoryCollection(model, model.get('lastRunStatus'));
+            updateInAccessoryCollection(model, 'lastRunStatus', model.get('lastRunStatus'));
+            //this value only comes from graph call and not part of job json,
+            //hence only listen here and not below
+            updateInAccessoryCollection(model, 'currentState', model.get('currentState'));
           });
         }
       });
@@ -300,7 +305,7 @@ define([
         'change:lastRunStatus': updateInAccessoryCollection,
         reset: function(collection, options) {
           collection.each(function(model) {
-            updateInAccessoryCollection(model, model.get('lastRunStatus'));
+            updateInAccessoryCollection(model, 'lastRunStatus', model.get('lastRunStatus'));
           });
         }
       });

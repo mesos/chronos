@@ -1,5 +1,5 @@
 <li class="item" data-cid="{{cid}}">
-  <div class="span9 job-name">{{name}}</div>
+  <div class="span6 job-name">{{name}}</div>
   <div class="span3 last-run">
     <span class="count"
           data-rv-class-count-success="job.lastRunSuccess"
@@ -11,5 +11,9 @@
           data-animation="true"
           data-delay="{show: 500, hide: 100}"
           data-toggle="tooltip"></span>
+  </div>
+  <div class="span3 last-run">
+    <span class="count"
+          data-rv-text="job.currentState"></span>
   </div>
 </li>

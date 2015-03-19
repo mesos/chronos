@@ -48,7 +48,7 @@ class GraphManagementResource @Inject()(
   def jsonGraph(): Response = {
     try {
       val buffer = new StringWriter
-      Exporter.export(buffer, jobGraph)
+      Exporter.export(buffer, jobGraph, jobScheduler)
       Response.ok(buffer.toString).build
     } catch {
       case ex: Exception =>
