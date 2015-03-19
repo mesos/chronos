@@ -84,10 +84,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
     log.info("Declining unused offers.\n")
     val usedOffers = mutable.HashSet(tasksToLaunch.map(_._3.getId.getValue): _*)
-    val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
+
     offers.foreach(o => {
       if (!usedOffers.contains(o.getId.getValue))
-        mesosDriver.get().declineOffer(o.getId, filters)
+        mesosDriver.get().declineOffer(o.getId)
     })
 
     launchTasks(tasksToLaunch)
@@ -147,8 +147,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
   def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
     import scala.collection.JavaConverters._
 
-    val filters: Filters = Filters.newBuilder().setRefuseSeconds(0.1).build()
-
     tasks.groupBy(_._3).toIterable.foreach({ case (offer, subTasks) =>
       val mesosTasks = subTasks.map(task => {
         taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
@@ -156,8 +154,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
       val status: Protos.Status = mesosDriver.get().launchTasks(
         List(offer.getId).asJava,
-        mesosTasks.asJava,
-        filters
+        mesosTasks.asJava
       )
       if (status == Protos.Status.DRIVER_RUNNING) {
         for (task <- tasks) {
