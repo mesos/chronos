@@ -257,8 +257,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
   @Override
   def error(schedulerDriver: SchedulerDriver, message: String) {
-    log.info("Error: " + message)
+    log.severe(message)
     scheduler.shutDown()
+    System.exit(1)
   }
 
   private def logOffer(offer: Offer) {
