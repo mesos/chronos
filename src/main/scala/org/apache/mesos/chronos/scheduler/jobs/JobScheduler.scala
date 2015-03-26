@@ -72,7 +72,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   def isTaskAsync(taskId: String): Boolean = {
-    val TaskUtils.taskIdPattern(_, _, jobName, _) = taskId
+    val TaskUtils.taskIdPattern(_, _, jobName, _, _) = taskId
     jobGraph.lookupVertex(jobName) match {
       case Some(baseJob: BaseJob) => baseJob.async
       case _ => false
@@ -133,12 +133,15 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       require(isLeader, "Cannot register a job with this scheduler, not the leader!")
       val scheduleBasedJobs = ListBuffer[ScheduleBasedJob]()
       val dependencyBasedJobs = ListBuffer[DependencyBasedJob]()
+      val triggeredJobs = ListBuffer[TriggeredJob]()
 
       jobs.foreach {
         case x: DependencyBasedJob =>
           dependencyBasedJobs += x
         case x: ScheduleBasedJob =>
           scheduleBasedJobs += x
+        case x: TriggeredJob =>
+          triggeredJobs += x
         case x: Any =>
           throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
 
@@ -172,6 +175,14 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             }
         })
       }
+      
+      triggeredJobs foreach { job =>
+        jobGraph.addVertex(job)
+        if (persist) {
+          log.info("Persisting job:" + job.name)
+          persistenceStore.persistJob(job)
+        }
+      }
     }
   }
 
@@ -201,6 +212,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           removeSchedule(scheduledJob)
           log.info("Removed schedule based job")
           log.info("Size of streams:" + streams.size)
+        case triggeredJob: TriggeredJob => 
+          //nothing to do here
+          log.info("Removed triggered job")
         case dependencyBasedJob: DependencyBasedJob =>
           //TODO(FL): Check if there are empty edges.
           log.info("Job removed from dependency graph.")
@@ -232,7 +246,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       log.warning("Job '%s' no longer registered.".format(jobName))
     } else {
       val job = jobOption.get
-      val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
+      val (_, _, attempt, _, _) = TaskUtils.parseTaskId(taskId)
       jobStats.jobStarted(job, taskStatus, attempt)
 
       job match {
@@ -242,11 +256,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       }
     }
   }
-
+  
   /**
    * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
    * launch tasks for dependent jobs
-   * @param taskId
+   * @param taskStatus
    */
   def handleFinishedTask(taskStatus: TaskStatus, taskDate: Option[DateTime] = None) {
     // `taskDate` is purely for unit testing
@@ -261,12 +275,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     if (jobOption.isEmpty) {
       log.warning("Job '%s' no longer registered.".format(jobName))
     } else {
-      val (_, start, attempt, _) = TaskUtils.parseTaskId(taskId)
+      val (_, start, attempt, _, _) = TaskUtils.parseTaskId(taskId)
       jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
       jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
       jobStats.jobFinished(job, taskStatus, attempt)
-
+      
       val newJob = job match {
         case job: ScheduleBasedJob =>
           job.copy(successCount = job.successCount + 1,
@@ -276,11 +290,17 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           job.copy(successCount = job.successCount + 1,
             errorsSinceLastSuccess = 0,
             lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+        case job: TriggeredJob =>
+          job.copy(successCount = job.successCount + 1,
+            errorsSinceLastSuccess = 0,
+            lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
         case _ =>
           throw new IllegalArgumentException("Cannot handle unknown task type")
       }
       replaceJob(job, newJob)
-      processDependencies(jobName, taskDate)
+
+      val taskFlowId = TaskUtils.getTaskFlowId(taskId)
+      processDependencies(jobName, taskDate, taskFlowId)
 
       log.fine("Cleaning up finished task '%s'".format(taskId))
 
@@ -338,7 +358,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  private def processDependencies(jobName: String, taskDate: Option[DateTime]) {
+  private def processDependencies(jobName: String, taskDate: Option[DateTime], taskFlowId: Option[String]) {
     val dependents = jobGraph.getExecutableChildren(jobName)
     if (dependents.nonEmpty) {
       log.fine("%s has dependents: %s .".format(jobName, dependents.mkString(",")))
@@ -352,12 +372,15 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               case None => DateTime.now(DateTimeZone.UTC)
             }
             taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
-              date), dependentJob.highPriority)
+              date, 0, taskFlowId), dependentJob.highPriority)
 
             log.fine("Enqueued depedent job." + x)
           }
       })
     } else {
+      if (!jobGraph.hasChildren(jobName)) 
+        taskFlowId map persistenceStore.removeTaskFlowState
+      
       log.fine("%s does not have any ready dependents.".format(jobName))
     }
   }
@@ -372,12 +395,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
     } else {
-      val (jobName, _, attempt, _) = TaskUtils.parseTaskId(taskId)
+      val (jobName, _, attempt, _, _) = TaskUtils.parseTaskId(taskId)
       log.warning("Task of job: %s failed.".format(jobName))
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) =>
           jobStats.jobFailed(job, taskStatus, attempt)
+          val taskFlowId = TaskUtils.getTaskFlowId(taskId)
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
@@ -389,17 +413,17 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               false
             case _: Exception => false
           }
-
           if (hasAttemptsLeft && (job.lastError.length == 0 || hadRecentSuccess)) {
             log.warning("Retrying job: %s, attempt: %d".format(jobName, attempt))
             /* Schedule the retry up to 60 seconds in the future */
             val delayDuration = new Duration(failureRetryDelay)
             val newTaskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)
-              .plus(delayDuration), attempt + 1)
+              .plus(delayDuration), attempt + 1, taskFlowId)
             val delayedTask = new Runnable {
               def run() {
                 log.info(s"Enqueuing failed task $newTaskId")
                 taskManager.persistTask(newTaskId, job)
+
                 taskManager.enqueue(newTaskId, job.highPriority)
               }
             }
@@ -411,7 +435,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           } else {
             val disableJob =
               (disableAfterFailures > 0) && (job.errorsSinceLastSuccess + 1 >= disableAfterFailures)
-
             val lastErrorTime = DateTime.now(DateTimeZone.UTC)
             val newJob = {
               job match {
@@ -427,7 +450,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               }
             }
             updateJob(job, newJob)
-            if (job.softError) processDependencies(jobName, Option(lastErrorTime))
+            if (job.softError) processDependencies(jobName, Option(lastErrorTime), taskFlowId)
+            else taskFlowId map persistenceStore.removeTaskFlowState
+
 
             val clusterPrefix = getClusterPrefix(clusterName)
 

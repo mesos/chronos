@@ -8,12 +8,33 @@ import org.apache.mesos.chronos.scheduler.jobs._
 trait PersistenceStore {
 
   /**
+   * Removes the task flow state
+   * @param id The task flow state id
+   * @return
+   */
+  def removeTaskFlowState(id: String): Boolean
+  
+  /**
+   * Retreives the task flow state
+   * @param id The task flow state id
+   * @return
+   */
+  def getTaskFlowState(id: String): TaskFlowState
+  
+  /**
+   * Persists the state for a task flow
+   * @param state The state to save
+   * @return true if state was saved, false otherwise
+   */
+  def persistTaskFlowState(state: TaskFlowState): Boolean
+  
+  /**
    * Persists a job with the underlying persistence store
    * @param job
    * @return
    */
   def persistJob(job: BaseJob): Boolean
-
+  
   /**
    * Saves a taskId in the state abstraction.
    * @param name the name of the taks to persist.

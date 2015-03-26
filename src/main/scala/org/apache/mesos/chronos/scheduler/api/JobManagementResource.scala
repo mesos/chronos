@@ -5,11 +5,11 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
+import com.codahale.metrics.annotation.Timed
+import com.google.inject.Inject
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
-import com.codahale.metrics.annotation.Timed
-import com.google.inject.Inject
 import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.mutable.ListBuffer
@@ -84,6 +84,36 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                   case _ =>
                 }
             }
+          case t: TriggeredJob =>
+            children.foreach {
+              child =>
+                jobGraph.lookupVertex(child).get match {
+                  case childJob: DependencyBasedJob =>
+                    val newChild = new TriggeredJob(
+                      name = childJob.name,
+                      command = childJob.command,
+                      epsilon = childJob.epsilon,
+                      successCount = childJob.successCount,
+                      errorCount = childJob.errorCount,
+                      executor = childJob.executor,
+                      executorFlags = childJob.executorFlags,
+                      retries = childJob.retries,
+                      owner = childJob.owner,
+                      lastError = childJob.lastError,
+                      lastSuccess = childJob.lastSuccess,
+                      async = childJob.async,
+                      cpus = childJob.cpus,
+                      disk = childJob.disk,
+                      mem = childJob.mem,
+                      disabled = childJob.disabled,
+                      softError = childJob.softError,
+                      uris = childJob.uris,
+                      highPriority = childJob.highPriority
+                    )
+                    jobScheduler.updateJob(childJob, newChild)
+                  case _ =>
+                }
+            }
         }
       }
       jobScheduler.sendNotification(job, "[Chronos] - Your job '%s' was deleted!".format(jobName))
@@ -119,6 +149,34 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     }
   }
 
+
+  
+  @Path(PathConstants.triggerJobPatternPath)
+  @POST
+  @Timed
+  def triggerPost(@PathParam("jobName") jobName: String, 
+                  flowState: TaskFlowState
+               ): Response = {
+    try {
+      log.info(s"triggered with ${flowState.env mkString " "}")
+      require(flowState.id != null, s"Job $jobName must be given a unique task flow state id")
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+      val job = jobGraph.getJobForName(jobName).get
+      log.info("Manually triggering job:" + jobName)
+
+      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0, Some(flowState.id)), job.highPriority, flowState)
+      Response.noContent().build
+    } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+          .build()
+      case ex: Exception =>
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        Response.serverError().build
+    }
+  }
+  
   @Path(PathConstants.jobPatternPath)
   @PUT
   @Timed
@@ -126,6 +184,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               @QueryParam("arguments") arguments: String
                ): Response = {
     try {
+      //log.info("post args" + request.arguments mkString(" "))
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
@@ -214,5 +273,5 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
     }
   }
-
 }
+

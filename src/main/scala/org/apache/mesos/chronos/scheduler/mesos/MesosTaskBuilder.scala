@@ -4,7 +4,7 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
+import org.apache.mesos.chronos.scheduler.jobs.{TaskFlowState, BaseJob}
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
@@ -50,7 +50,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     builder.build()
   }
 
-  def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob, offer: Offer): TaskInfo.Builder = {
+  def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob, offer: Offer, flowState: Option[TaskFlowState]): TaskInfo.Builder = {
     //TODO(FL): Allow adding more fine grained resource controls.
     val taskId = TaskID.newBuilder().setValue(taskIdStr).build()
     val taskInfo = TaskInfo.newBuilder()
@@ -82,6 +82,14 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         }
       )
     }
+
+    //Task flow parameters can override those set in the job configuration.
+    //They will not override pre-existing environment values.
+    flowState foreach (_.env foreach { case (name, value) =>
+      if (!builtinEnvNames.contains(name)) {
+        environment.addVariables(Variable.newBuilder().setName(name).setValue(value))
+      }
+    })
 
     if (job.executor.nonEmpty) {
       appendExecutorData(taskInfo, job)

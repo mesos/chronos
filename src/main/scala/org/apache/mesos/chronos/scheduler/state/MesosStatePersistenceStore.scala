@@ -2,10 +2,11 @@ package org.apache.mesos.chronos.scheduler.state
 
 import java.util.logging.{Level, Logger}
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.utils.taskFlowSerde
 import org.apache.mesos.state.{InMemoryState, State}
 
 import scala.collection.mutable
@@ -28,6 +29,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   //TODO(FL): Add proper retry logic into the persistence.
   val jobPrefix = "J_"
   val taskPrefix = "T_"
+  val flowPrefix = "F_"
 
   // There are many jobs in the system at any given point in time.
   val jobName = (name: String) => "%s%s".format(jobPrefix, name)
@@ -35,6 +37,9 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   // There are only few tasks (i.e. active tasks) in the system.
   val taskName = (name: String) => "%s%s".format(taskPrefix, name)
 
+  // There are optionally task flow states for each task running
+  val flowName = (name: String) => "%s%s".format(flowPrefix, name)
+  
   /**
    * Retries a function
    * @param max the maximum retries
@@ -59,11 +64,26 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     }
   }
 
+  def removeTaskFlowState(id: String): Boolean = {
+    remove(flowName(id))
+  }
+  
+  def getTaskFlowState(id: String): TaskFlowState = {
+    val bytes = state.fetch(flowName(id)).get.value()
+    taskFlowSerde.deserialize(bytes)
+  }
+
+  def persistTaskFlowState(state: TaskFlowState): Boolean = {
+    val serState = taskFlowSerde.serString(state)
+    log.info(s"Persisting task flow ${state.id} with data $serState")
+    persistData(flowName(state.id), taskFlowSerde.serBytes(state))
+  }
+  
   def persistJob(job: BaseJob): Boolean = {
     log.info("Persisting job '%s' with data '%s'" format(job.name, job.toString))
     persistData(jobName(job.name), JobUtils.toBytes(job))
   }
-
+  
   //TODO(FL): Think about caching tasks locally such that we don't have to query zookeeper.
   def persistTask(name: String, data: Array[Byte]): Boolean = {
     log.finest("Persisting task: " + name)

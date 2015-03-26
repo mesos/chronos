@@ -1,8 +1,8 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.apache.mesos.chronos.utils.JobDeserializer
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.{JsonCreator, JsonInclude, JsonProperty}
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import org.apache.mesos.chronos.utils.JobDeserializer
 import org.joda.time.{Minutes, Period}
 
 /**
@@ -104,6 +104,34 @@ case class ScheduleBasedJob(
                              @JsonProperty override val softError: Boolean = false)
   extends BaseJob
 
+@JsonDeserialize(using = classOf[JobDeserializer])
+case class TriggeredJob(
+                         @JsonProperty override val name: String,
+                         @JsonProperty override val command: String,
+                         @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,
+                         @JsonProperty override val successCount: Long = 0L,
+                         @JsonProperty override val errorCount: Long = 0L,
+                         @JsonProperty override val executor: String = "",
+                         @JsonProperty override val executorFlags: String = "",
+                         @JsonProperty override val retries: Int = 2,
+                         @JsonProperty override val owner: String = "",
+                         @JsonProperty override val lastSuccess: String = "",
+                         @JsonProperty override val lastError: String = "",
+                         @JsonProperty override val async: Boolean = false,
+                         @JsonProperty override val cpus: Double = 0,
+                         @JsonProperty override val disk: Double = 0,
+                         @JsonProperty override val mem: Double = 0,
+                         @JsonProperty override val disabled: Boolean = false,
+                         @JsonProperty override val errorsSinceLastSuccess: Long = 0L,
+                         @JsonProperty override val uris: Seq[String] = List(),
+                         @JsonProperty override val highPriority: Boolean = false,
+                         @JsonProperty override val runAsUser: String = "",
+                         @JsonProperty override val container: DockerContainer = null,
+                         @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List(),
+                         @JsonProperty override val shell: Boolean = true,
+                         @JsonProperty override val arguments: Seq[String] = List(),
+                         @JsonProperty override val softError: Boolean = false)
+  extends BaseJob
 
 @JsonDeserialize(using = classOf[JobDeserializer])
 case class DependencyBasedJob(
@@ -134,3 +162,8 @@ case class DependencyBasedJob(
                                @JsonProperty override val arguments: Seq[String] = List(),
                                @JsonProperty override val softError: Boolean = false)
   extends BaseJob
+
+@JsonDeserialize
+@JsonCreator
+@JsonInclude(JsonInclude.Include.ALWAYS)
+class TaskFlowState(@JsonProperty("id") val id: String, @JsonProperty("env") val env: Map[String, String])

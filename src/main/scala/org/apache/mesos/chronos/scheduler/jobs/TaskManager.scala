@@ -62,11 +62,11 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * Returns the first task in the job queue
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
    */
-  def getTask: Option[(String, BaseJob)] = {
+  def getTask: Option[(String, BaseJob, Option[TaskFlowState])] = {
     getTaskHelper(HIGH_PRIORITY).orElse(getTaskHelper(NORMAL_PRIORITY))
   }
 
-  private def getTaskHelper(num: Integer) = {
+  private def getTaskHelper(num: Integer) : Option[(String, BaseJob, Option[TaskFlowState])] = {
     val queue = queues(num)
     val name = names(num)
     val taskId = queue.poll()
@@ -77,6 +77,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       log.info(s"$name queue contains task: $taskId")
       val jobOption = jobGraph.getJobForName(TaskUtils.getJobNameForTaskId(taskId))
       val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
+      val taskFlowState = TaskUtils.getTaskFlowId(taskId) map persistenceStore.getTaskFlowState
       var job = jobOption.get
 
       if (jobArguments != null && !jobArguments.isEmpty) {
@@ -92,7 +93,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         jobStats.updateJobState(jobOption.get.name, CurrentState.idle)
         None
       } else {
-        Some(taskId, job)
+        Some(taskId, job, taskFlowState)
       }
     }
   }
@@ -142,10 +143,17 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     persistenceStore.removeTask(taskId)
   }
 
+  def enqueue(taskId: String, highPriority: Boolean, taskFlowState: TaskFlowState): Unit = {
+    val persisted = persistenceStore.persistTaskFlowState(taskFlowState)
+    require(persisted, s"Unable to persist task state ${taskFlowState.id}")
+    enqueue(taskId, highPriority)
+  }
+  
   def enqueue(taskId: String, highPriority: Boolean) {
     /* Don't want to change previous logging if we don't have to... */
     log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
     val _priority = if (highPriority) HIGH_PRIORITY else NORMAL_PRIORITY
+
     this.synchronized {
       queues(_priority).add(taskId)
     }

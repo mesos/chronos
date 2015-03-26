@@ -1,6 +1,6 @@
 package org.apache.mesos.chronos.utils
 
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
+import org.apache.mesos.chronos.scheduler.jobs.{TriggeredJob, BaseJob, DependencyBasedJob, ScheduleBasedJob}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 
@@ -138,6 +138,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeString(schedJob.schedule)
         json.writeFieldName("scheduleTimeZone")
         json.writeString(schedJob.scheduleTimeZone)
+      case triggeredJob: TriggeredJob =>
+        json.writeFieldName("triggeredJob")
+        json.writeString("true")
       case _ =>
         throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
     }

@@ -60,6 +60,7 @@ class ChronosRestModule extends ServletModule {
 
     bind(classOf[Iso8601JobResource]).in(Scopes.SINGLETON)
     bind(classOf[DependentJobResource]).in(Scopes.SINGLETON)
+    bind(classOf[TriggeredJobResource]).in(Scopes.SINGLETON)
     bind(classOf[JobManagementResource]).in(Scopes.SINGLETON)
     bind(classOf[TaskManagementResource]).in(Scopes.SINGLETON)
     bind(classOf[GraphManagementResource]).in(Scopes.SINGLETON)

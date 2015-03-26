@@ -61,12 +61,13 @@ object JobUtils {
     //TODO(FL): Create functions that map strings to jobs
     val scheduledJobs = new ListBuffer[ScheduleBasedJob]
     val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
-
+    val triggeredJobs = new ListBuffer[TriggeredJob]
     val jobs = store.getJobs
 
     jobs.foreach {
       case d: DependencyBasedJob => dependencyBasedJobs += d
       case s: ScheduleBasedJob => scheduledJobs += s
+      case t: TriggeredJob => triggeredJobs += t
       case x: Any =>
         throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
     }
@@ -97,6 +98,10 @@ object JobUtils {
                 scheduler.jobGraph.addDependency(y.name, x.name)
             }
         }
+    }
+    
+    triggeredJobs.foreach { job =>
+      scheduler.jobGraph.addVertex(job)
     }
   }
 

@@ -19,9 +19,10 @@ import scala.collection.mutable
 object TaskUtils {
 
   //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT:ARGUMENTS
-  val taskIdTemplate = "ct:%d:%d:%s:%s"
-  val argumentsPattern = """(.*)?""".r
-  val taskIdPattern = """ct:(\d+):(\d+):%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
+  val taskIdTemplate = "ct:%d:%d:%s:%s:%s"
+  val argumentsPattern = """([^:]*)?""".r
+  val taskFlowIdPattern = """(.*)?""".r
+  val taskIdPattern = """ct:(\d+):(\d+):%s:?%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern, taskFlowIdPattern).r
   private[this] val log = Logger.getLogger(getClass.getName)
 
   def getTaskStatus(job: BaseJob, due: DateTime, attempt: Int = 0): TaskStatus = {
@@ -40,7 +41,7 @@ object TaskUtils {
   def getJobNameForTaskId(taskId: String): String = {
     require(taskId != null, "taskId cannot be null")
     try {
-      val TaskUtils.taskIdPattern(_, _, jobName, _) = taskId
+      val TaskUtils.taskIdPattern(_, _, jobName, _, _) = taskId
       jobName
     } catch {
       case t: Exception =>
@@ -58,7 +59,7 @@ object TaskUtils {
   def getJobArgumentsForTaskId(taskId: String): String = {
     require(taskId != null, "taskId cannot be null")
     try {
-      val TaskUtils.taskIdPattern(_, _, _, jobArguments) = taskId
+      val TaskUtils.taskIdPattern(_, _, _, jobArguments, _) = taskId
       jobArguments
     } catch {
       case t: Exception =>
@@ -67,6 +68,25 @@ object TaskUtils {
         ""
     }
   }
+
+  /**
+   * Parses the task id into task flow id
+   * @param taskId
+   * @return
+   */
+  def getTaskFlowId(taskId: String): Option[String] = {
+    require(taskId != null, "taskId cannot be null")
+    try {
+      val TaskUtils.taskIdPattern(_, _, _, _, taskFlowId) = taskId
+      if (taskFlowId.isEmpty) None else Some(taskFlowId)
+    } catch {
+      case t: Exception =>
+        log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
+          "Warning, dependents will not be triggered!")
+        None
+    }
+  }
+
 
   def loadTasks(taskManager: TaskManager, persistenceStore: PersistenceStore) {
     val allTasks = persistenceStore.getTasks
@@ -90,8 +110,8 @@ object TaskUtils {
     })
   }
 
-  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0): String = {
-    taskIdTemplate.format(due.getMillis, attempt, job.name, job.arguments.mkString(" "))
+  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0, flowId: Option[String] = None): String = {
+    taskIdTemplate.format(due.getMillis, attempt, job.name, job.arguments.mkString(" "), flowId.getOrElse(""))
   }
 
   def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (BaseJob, Long, Int)] = {
@@ -119,8 +139,8 @@ object TaskUtils {
     taskMap.toMap
   }
 
-  def parseTaskId(id: String): (String, Long, Int, String) = {
-    val taskIdPattern(due, attempt, jobName, jobArguments) = id
-    (jobName, due.toLong, attempt.toInt, jobArguments)
+  def parseTaskId(id: String): (String, Long, Int, String, String) = {
+    val taskIdPattern(due, attempt, jobName, jobArguments, taskFlowId) = id
+    (jobName, due.toLong, attempt.toInt, jobArguments, taskFlowId)
   }
 }
