@@ -27,4 +27,8 @@ trait CassandraConfiguration extends ScallopConf {
   lazy val cassandraTtl = opt[Int]("cassandra_ttl",
     descr = "TTL for records written to Cassandra",
     default = Some(3600 * 24 * 365))
+
+  lazy val jobHistoryLimit = opt[Int]("job_history_limit",
+    descr = "Number of past job executions to show in history view",
+    default = Some(5))
 }
