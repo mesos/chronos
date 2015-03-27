@@ -133,10 +133,8 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
       },
       for {
         webhookUrl <- config.slackWebhookUrl.get if !config.slackWebhookUrl.isEmpty
-        token <- config.slackToken.get if !config.slackToken.isEmpty
-        channel <- config.slackChannel.get if !config.slackChannel.isEmpty
       } yield {
-        create(classOf[SlackClient], webhookUrl, token, channel)
+        create(classOf[SlackClient], webhookUrl)
       }
     ).flatten
   }

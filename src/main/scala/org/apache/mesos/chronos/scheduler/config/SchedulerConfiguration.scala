@@ -70,12 +70,6 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val slackWebhookUrl = opt[String]("slack_url",
     descr = "Webhook URL for posting to Slack",
     default = None)
-  lazy val slackToken = opt[String]("slack_token",
-    descr = "Token needed for posting to Slack",
-    default = None)
-  lazy val slackChannel = opt[String]("slack_channel",
-    descr = "The channel to post to in Slack",
-    default = None)
   lazy val failureRetryDelayMs = opt[Long]("failure_retry",
     descr = "Number of ms between retries",
     default = Some(60000))
