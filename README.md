@@ -608,4 +608,4 @@ Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try
 	git clone https://github.com/mesos/chronos.git
 	cd chronos
 	mvn package
-	java -cp target/chronos*.jar org.apache.mesos.chronos.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts localhost:2181
+	java -cp "target/*" org.apache.mesos.chronos.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts localhost:2181
