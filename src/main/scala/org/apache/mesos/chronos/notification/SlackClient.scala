@@ -19,9 +19,13 @@ class SlackClient(val webhookUrl: String) extends NotificationClient {
 
     // Create the payload
     generator.writeStartObject()
-
+    
     if (message.nonEmpty && message.get.nonEmpty) {
-      generator.writeStringField("text", message.get)
+      if (subject != null && subject.nonEmpty) {
+        generator.writeStringField("text", "%s: %s".format(subject, message.get))
+      } else {
+        generator.writeStringField("text", "%s".format(message.get))
+      }
     }
 
     generator.writeEndObject()
