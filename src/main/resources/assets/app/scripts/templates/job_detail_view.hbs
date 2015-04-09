@@ -301,6 +301,68 @@
         </div>
 
       </div>
+      <div class="job-detail-row job-detail">
+        <div class="span3 job-detail">
+          <div class="detail">CPU</div>
+          <div class="display highlight cmd cpu">{{cpus}}</div>
+          <div class="field cmd cpu control-group">
+            <input class="job-input"
+                   title="CPU resource setting to use for this job."
+                   data-rv-value="job.cpus"
+                   value="{{cpus}}"
+                   name="cpus"
+            />
+          </div>
+        </div>
+        <div class="span3 job-detail">
+          <div class="detail">Mem</div>
+          <div class="display highlight cmd mem">{{mem}}&nbsp;MB</div>
+          <div class="field cmd mem control-group">
+            <input class="job-input"
+                   title="Memory resource setting to use for this job."
+                   data-rv-value="job.mem"
+                   value="{{mem}}"
+                   name="mem"
+            />
+          </div>
+        </div>
+        <div class="span3 job-detail">
+          <div class="detail">Disk</div>
+          <div class="display highlight cmd disk">{{disk}}&nbsp;MB</div>
+          <div class="field cmd disk control-group">
+            <input class="job-input"
+                   title="Disk resource setting to use for this job."
+                   data-rv-value="job.disk"
+                   value="{{disk}}"
+                   name="disk"
+            />
+          </div>
+        </div>
+        <div class="span3 job-detail">
+          <div class="detail">High Priority</div>
+          <div class="display highlight cmd priority">{{boolHigh highPriority}}</div>
+          <div class="pseudo-field highlight cmd priority">
+            <label class="radio">
+              <input type="radio"
+                     class="job-input"
+                     name="highPriority"
+                     id="highPriority-off"
+                     value="false"
+                     {{^highPriority}}checked{{/highPriority}}>
+              Normal
+            </label>
+            <label class="radio">
+              <input type="radio"
+                     class="job-input"
+                     name="highPriority"
+                     id="highPriority-on"
+                     value="true"
+                     {{#highPriority}}checked{{/highPriority}}>
+              High
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="job-detail-row job-detail">
       <div>
