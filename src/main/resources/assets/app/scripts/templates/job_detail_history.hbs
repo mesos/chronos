@@ -6,6 +6,7 @@
     <th>Start Time</th>
     <th>End Time</th>
     <th class="text-center">Duration</th>
+    {{#if dataProcessingJobType}}<th class="text-center">Elements Processed</th>{{/if}}
     <th class="text-center">Status</th>
   </tr>
 {{#each tasks}}
@@ -14,6 +15,7 @@
     <td>{{startTime}}</td>
     <td>{{endTime}}</td>
     <td class="text-center">{{duration}}</td>
+    {{#if ../dataProcessingJobType}}<td class="text-center">{{#exists numElementsProcessed}}{{numElementsProcessed}}{{else}}N/A{{/exists}}</td>{{/if}}
     <td class="text-center {{#if statusClass}}count-{{statusClass}}{{/if}}">{{status}}</td>
   </tr>
 {{/each}}

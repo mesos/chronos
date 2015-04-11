@@ -2,6 +2,7 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.Date
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.joda.time.{DateTime, Duration}
 
 /*
@@ -15,9 +16,9 @@ object ChronosTaskStatus extends Enumeration {
   val Success, Fail, Running, Idle = Value
 }
 
-class TaskStat (val taskId: String,
-  val jobName: String,
-  val taskSlaveId: String) {
+class TaskStat (@JsonProperty val taskId: String,
+  @JsonProperty val jobName: String,
+  @JsonProperty val taskSlaveId: String) {
   /*
    * Cassandra column names
    */
@@ -28,11 +29,15 @@ class TaskStat (val taskId: String,
   val TASK_SLAVE_ID = "slave_id"
 
   //time stats
-  var taskStartTs: Option[DateTime] = None
-  var taskEndTs: Option[DateTime] = None
-  var taskDuration: Option[Duration] = None
+  @JsonProperty var taskStartTs: Option[DateTime] = None
+  @JsonProperty var taskEndTs: Option[DateTime] = None
+  @JsonProperty var taskDuration: Option[Duration] = None
 
-  var taskStatus: ChronosTaskStatus.Value = ChronosTaskStatus.Idle
+  @JsonProperty var taskStatus: ChronosTaskStatus.Value = ChronosTaskStatus.Idle
+
+  //move out of object later (this should be a data subclass)
+  @JsonProperty var numElementsProcessed: Option[Long] = None //used only for output (HTTP GET)
+  @JsonProperty var numAdditionalElementsProcessed: Option[Int] = None //used only for input (HTTP POST)
 
   def getTaskRuntime(): Option[Duration] = {
     taskDuration

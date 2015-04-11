@@ -42,6 +42,9 @@ function($,
         }
       })
 
+      //check if this is a data job
+      data.dataProcessingJobType = this.model.get('dataProcessingJobType')
+
       data.tasks = history;
       if (data.tasks && (data.tasks.length > 0)) {
         this.$el.removeClass('hide');

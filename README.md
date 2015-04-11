@@ -39,6 +39,7 @@ Also join us on IRC in #mesos on freenode.
     - [Adding a Scheduled Job](#adding-a-scheduled-job)
     - [Adding a Dependent Job](#adding-a-dependent-job)
     - [Adding a Docker Job] (#adding-a-docker-job)
+    - [Updating task progress] (#updating-task-progress)
     - [Describing the Dependency Graph](#describing-the-dependency-graph)
     - [Asynchronous Jobs](#asynchronous-jobs)
     - [Obtaining Remote Executables](#obtaining-remote-executables)
@@ -331,6 +332,25 @@ To configure it, an additional container argument is required, which contains a 
 }
 ```
 
+###Updating Task Progress
+
+Task progress can be updated by providing the number of additional elements processed. This will increment the existing count of elements processed.
+A job name, task id, and number of additional elements (numAdditionalElementsProcessed) is required to update.
+This API endpoint requires Cassandra to be present in the cluster.
+
+* Endpoint: __/scheduler/job/<jobName>/task/<taskId>/progress__
+* Method: __POST__
+* Example:
+
+        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/job/NewJob/task/ct%3A1428515194358%3A0%3ANewJob%3A/progress
+
+```json
+{
+    "numAdditionalElementsProcessed": 5
+}
+```
+
+
 ### Describing the Dependency Graph
 
 Chronos allows to describe the dependency graph and has an endpoint to return this graph in form of a dotfile.
@@ -397,6 +417,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
 | container           | This contains the subfields for the container, type (req), image (req), network (optional) and volumes (optional).          | -                              |
+| dataJob             | Toggles whether the job tracks data (number of elements processed)                                       | `false`                        |
 | environmentVariables| An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the -e flag. | -                              |
 
 ### Sample Job
