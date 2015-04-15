@@ -36,6 +36,12 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("owner")
     json.writeString(baseJob.owner)
 
+    json.writeFieldName("ownerName")
+    json.writeString(baseJob.ownerName)
+
+    json.writeFieldName("description")
+    json.writeString(baseJob.description)
+
     json.writeFieldName("async")
     json.writeBoolean(baseJob.async)
 
