@@ -59,6 +59,8 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
       .setFailoverTimeout(config.failoverTimeoutSeconds())
       .setUser(config.user())
 
+    config.mesosAuthenticationPrincipal.get.foreach(frameworkInfoBuilder.setPrincipal)
+
     if (config.webuiUrl.isSupplied) {
       frameworkInfoBuilder.setWebuiUrl(config.webuiUrl())
     } else if (config.sslKeystorePath.isDefined) {
