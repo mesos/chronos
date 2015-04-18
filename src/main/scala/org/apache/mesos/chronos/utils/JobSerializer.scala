@@ -1,6 +1,7 @@
 package org.apache.mesos.chronos.utils
 
 import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.EqualsConstraint
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 
@@ -135,6 +136,20 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeEndArray()
       json.writeEndObject()
     }
+
+    json.writeFieldName("constraints")
+    json.writeStartArray()
+    baseJob.constraints.foreach { v =>
+      json.writeStartArray()
+      v match {
+        case EqualsConstraint(attribute, value) =>
+          json.writeString(attribute)
+          json.writeString(EqualsConstraint.OPERATOR)
+          json.writeString(value)
+      }
+      json.writeEndArray()
+    }
+    json.writeEndArray()
 
     baseJob match {
       case depJob: DependencyBasedJob =>
