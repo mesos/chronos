@@ -324,7 +324,8 @@ To configure it, an additional container argument is required, which contains a 
  "container": {
   "type": "DOCKER",
   "image": "libmesos/ubuntu",
-  "network": "BRIDGE"
+  "network": "BRIDGE",
+  "volumes": [{"containerPath": "/var/log/", "hostPath":"/logs/", "mode":"RW"}]
  },
  "cpus": "0.5",
  "mem": "512",
