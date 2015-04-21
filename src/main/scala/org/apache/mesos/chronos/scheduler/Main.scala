@@ -39,10 +39,15 @@ object Main extends App {
     )
   }
 
-  run(
-    classOf[ZookeeperService],
-    classOf[HttpService],
-    classOf[JobScheduler],
-    classOf[MetricReporterService]
-  )
+  try {
+    run(
+      classOf[ZookeeperService],
+      classOf[HttpService],
+      classOf[JobScheduler],
+      classOf[MetricReporterService]
+    )
+  } catch {
+      case _ =>
+        System.exit(1)
+  }
 }
