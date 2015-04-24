@@ -122,7 +122,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
                     tasks.append((taskId, job, offer))
                     generate()
                   case None =>
-                    log.warning("Insufficient resources remaining for task '%s', will append to queue\n.".format(taskId))
+                    val foundResources = offerResources.toIterator.map(_._2.toString()).mkString(",")
+                    log.warning(
+                      "Insufficient resources remaining for task '%s', will append to queue. (Needed: [%s], Found: [%s])"
+                        .stripMargin.format(taskId, neededResources, foundResources)
+                    )
                     taskManager.enqueue(taskId, job.highPriority)
                 }
             }
