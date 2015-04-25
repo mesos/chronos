@@ -4,6 +4,7 @@ import java.util.logging.Logger
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
 import org.apache.mesos.chronos.utils.JobDeserializer
 import com.google.inject.Inject
 import mesosphere.mesos.util.FrameworkIdUtil
@@ -99,6 +100,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
   def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): mutable.Buffer[(String, BaseJob, Offer)] = {
     val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
 
+    def checkConstraints(attributes: Seq[Protos.Attribute], constraints: Seq[Constraint]): Boolean = {
+      constraints.foreach { c =>
+        if (!c.matches(attributes)) {
+          return false
+        }
+      }
+      true
+    }
+
     def generate() {
       taskManager.getTask match {
         case None => log.info("No tasks scheduled or next task has been disabled.\n")
@@ -115,7 +125,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
                 generate()
               case None =>
                 val neededResources = new Resources(job)
-                offerResources.toIterator.find(_._2.canSatisfy(neededResources)) match {
+                offerResources.toIterator.find { ors =>
+                  ors._2.canSatisfy(neededResources) && checkConstraints(ors._1.getAttributesList.asScala, job.constraints)
+                } match {
                   case Some((offer, resources)) =>
                     // Subtract this job's resource requirements from the remaining available resources in this offer.
                     resources -= neededResources

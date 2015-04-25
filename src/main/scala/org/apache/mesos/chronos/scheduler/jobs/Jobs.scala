@@ -1,5 +1,6 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
+import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
 import org.apache.mesos.chronos.utils.JobDeserializer
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -77,6 +78,8 @@ trait BaseJob {
   def softError: Boolean = false
 
   def dataProcessingJobType: Boolean = false
+
+  def constraints: Seq[Constraint] = List()
 }
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -110,7 +113,8 @@ case class ScheduleBasedJob(
                              @JsonProperty override val shell: Boolean = true,
                              @JsonProperty override val arguments: Seq[String] = List(),
                              @JsonProperty override val softError: Boolean = false,
-                             override val dataProcessingJobType: Boolean = false)
+                             @JsonProperty override val dataProcessingJobType: Boolean = false,
+                             @JsonProperty override val constraints: Seq[Constraint] = List())
   extends BaseJob
 
 
@@ -144,5 +148,6 @@ case class DependencyBasedJob(
                                @JsonProperty override val shell: Boolean = true,
                                @JsonProperty override val arguments: Seq[String] = List(),
                                @JsonProperty override val softError: Boolean = false,
-                               override val dataProcessingJobType: Boolean = false)
+                               @JsonProperty override val dataProcessingJobType: Boolean = false,
+                               @JsonProperty override val constraints: Seq[Constraint] = List())
   extends BaseJob

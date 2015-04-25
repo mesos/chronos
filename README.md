@@ -423,6 +423,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | container           | This contains the subfields for the container, type (req), image (req), network (optional) and volumes (optional).          | -                              |
 | dataJob             | Toggles whether the job tracks data (number of elements processed)                                       | `false`                        |
 | environmentVariables| An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the -e flag. | -                              |
+| constraints         | Control where jobs run. Each constraint is compared against the [attributes of a Mesos slave](http://mesos.apache.org/documentation/attributes-resources/). See [Constraints](#constraints). | - |
 
 ### Sample Job
 
@@ -457,6 +458,18 @@ you can also use a url in the command field, if your mesos was compiled with cUR
      {"name": "JAVA_LIBRARY_PATH", "value": "/usr/local/lib"}
    ]
 }
+```
+
+## Constraints
+
+### EQUALS constraint
+
+Schedule a job on nodes that share a common attribute.
+
+```json
+...
+"constraints": [["rack", "EQUALS", "rack-1"]],
+...
 ```
 
 ## Job Management
