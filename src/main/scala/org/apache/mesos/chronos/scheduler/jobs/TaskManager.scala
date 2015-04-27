@@ -76,12 +76,6 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     } else {
       log.info(s"$name queue contains task: $taskId")
       val jobOption = jobGraph.getJobForName(TaskUtils.getJobNameForTaskId(taskId))
-      val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
-      var job = jobOption.get
-
-      if (jobArguments != null && !jobArguments.isEmpty) {
-        job = JobUtils.getJobWithArguments(job, jobArguments)
-      }
 
       //If the job was deleted after the taskId was added to the queue, the task could be empty.
       if (jobOption.isEmpty) {
@@ -92,6 +86,13 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         jobStats.updateJobState(jobOption.get.name, CurrentState.idle)
         None
       } else {
+        val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
+        var job = jobOption.get
+
+        if (jobArguments != null && !jobArguments.isEmpty) {
+          job = JobUtils.getJobWithArguments(job, jobArguments)
+        }
+
         Some(taskId, job)
       }
     }
