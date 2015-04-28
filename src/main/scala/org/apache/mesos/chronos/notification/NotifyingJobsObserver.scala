@@ -13,6 +13,7 @@ class NotifyingJobsObserver @Inject()(val notificationClients: List[ActorRef] = 
   val clusterPrefix = clusterName.map(name => s"[$name]").getOrElse("")
 
   override def onEvent(event: JobEvent): Unit = event match {
+    case JobRemoved(job) => sendNotification(job, "%s [Chronos] Your job '%s' was deleted!".format(clusterPrefix, job.name), None)
     case JobDisabled(job, cause) => sendNotification(
       job,
       "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
