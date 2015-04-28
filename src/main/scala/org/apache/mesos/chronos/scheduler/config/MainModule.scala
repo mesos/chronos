@@ -110,9 +110,9 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
 
   @Singleton
   @Provides
-  def provideJobsObservers(stats: JobStats, notificationClients: List[ActorRef]): JobsObserver = {
+  def provideJobsObservers(jobStats: JobStats, notificationClients: List[ActorRef]): JobsObserver = {
     val notifier = new NotifyingJobsObserver(notificationClients, config.clusterName.get)
-    JobsObserver.composite(List(notifier, stats))
+    JobsObserver.composite(List(notifier, jobStats))
   }
 
   @Singleton
