@@ -1,15 +1,15 @@
-package org.apache.mesos.chronos.scheduler.jobs
+package org.apache.mesos.chronos.scheduler.jobs.stats
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
 
-import org.apache.mesos.chronos.scheduler.config.CassandraConfiguration
-import com.datastax.driver.core._
 import com.datastax.driver.core.exceptions.{DriverException, NoHostAvailableException, QueryExecutionException, QueryValidationException}
-import com.datastax.driver.core.Row
-import com.datastax.driver.core.querybuilder.{QueryBuilder, Insert}
+import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
+import com.datastax.driver.core.{Row, _}
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskState, TaskStatus}
+import org.apache.mesos.chronos.scheduler.config.CassandraConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
@@ -20,7 +20,7 @@ object CurrentState extends Enumeration {
   val idle, queued, running = Value
 }
 
-class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) {
+class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) extends JobsObserver {
 
   // Cassandra table column names
   private val ATTEMPT: String = "attempt"
@@ -49,13 +49,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
      * deserializers need to be written. Need a good solution, potentially
      * lots of writes and very few reads (only on failover)
      */
-    val status = jobStates.get(jobName) match {
-      case Some(s) =>
-        s
-      case _ =>
-        CurrentState.idle
-    }
-    status
+    jobStates.get(jobName).getOrElse(CurrentState.idle)
   }
 
   def updateJobState(jobName: String, state: CurrentState.Value) {
@@ -85,7 +79,6 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * Queries Cassandra table for past and current job statistics by jobName
    * and limits by numTasks. The result is not sorted by execution time
    * @param job
-   * @param numTasks
    * @return list of cassandra rows
    */
   private def getTaskDataByJob(job: BaseJob): Option[List[Row]] = {
@@ -144,7 +137,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   /**
    * Queries Cassandra stat table to get the element processed count
    * for a specific job and a specific task
-   * @param jobName
+   * @param job
    * @param taskId
    * @return element processed count
    */
@@ -312,7 +305,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * is not idempotent
    * @param job
    * @param taskId
-   * @param addtionalElementsProcessed
+   * @param additionalElementsProcessed
    */
   def updateTaskProgress(job: BaseJob,
       taskId: String,
@@ -360,7 +353,16 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     }
   }
 
-  def jobQueued(job: BaseJob, attempt: Int) {
+  override def onEvent(event: JobEvent): Unit = event match {
+    case JobRemoved(job) => removeJobState(job)
+    case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
+    case JobStarted(job, taskStatus, attempt) => jobStarted(job, taskStatus, attempt)
+    case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
+    case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
+    case _ => // do nothing
+  }
+
+  def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
     updateJobState(job.name, CurrentState.queued)
   }
 
@@ -489,54 +491,30 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             isFailure=None)
   }
 
-  def jobFailed(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
-    updateJobState(job.name, CurrentState.idle)
+  def jobFailed(j: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
+    val jobName = j.fold(name => name, _.name)
+    val jobSchedule = j.fold(_ => None,  {
+      case job: ScheduleBasedJob => Some(job.schedule)
+      case _ => None
+    })
+    val jobParents: Option[java.util.Set[String]] = j.fold(_ => None, {
+      case job: DependencyBasedJob => Some(job.parents.asJava)
+      case _ => None
+    })
 
-    var jobSchedule:Option[String] = None
-    var jobParents:Option[java.util.Set[String]] = None
-    job match {
-      case job: ScheduleBasedJob =>
-        jobSchedule = Some(job.schedule)
-      case job: DependencyBasedJob =>
-        jobParents = Some(job.parents.asJava)
-    }
-    insertToStatTable(
-            id=Some(taskStatus.getTaskId.getValue),
-            timestamp=Some(new java.util.Date()),
-            jobName=Some(job.name),
-            jobOwner=Some(job.owner),
-            jobSchedule=jobSchedule,
-            jobParents=jobParents,
-            taskState=Some(taskStatus.getState.toString),
-            slaveId=Some(taskStatus.getSlaveId.getValue),
-            message=Some(taskStatus.getMessage),
-            attempt=Some(attempt),
-            isFailure=Some(true))
-  }
-
-  /**
-   * Overloaded method of jobFailed. Reports that a job identified by only
-   * its job name failed during execution. This is only used to report
-   * a failure when there is no corresponding job object, which only happens
-   * when a job is destroyed. When a job is destroyed, all tasks are killed
-   * and this method is called when a task is killed.
-   * @param jobName
-   * @param taskStatus
-   * @param attempt
-   */
-  def jobFailed(jobName: String, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(jobName, CurrentState.idle)
-
     insertToStatTable(
-        id=Some(taskStatus.getTaskId.getValue),
-        timestamp=Some(new java.util.Date()),
-        jobName=Some(jobName),
-        jobOwner=None, jobSchedule=None, jobParents=None,
-        taskState=Some(taskStatus.getState().toString()),
-        slaveId=Some(taskStatus.getSlaveId().getValue()),
-        message=Some(taskStatus.getMessage()),
-        attempt=Some(attempt),
-        isFailure=Some(true))
+      id=Some(taskStatus.getTaskId.getValue),
+      timestamp=Some(new java.util.Date()),
+      jobName=Some(jobName),
+      jobOwner=j.fold(_ => None, job => Some(job.owner)),
+      jobSchedule=jobSchedule,
+      jobParents=jobParents,
+      taskState=Some(taskStatus.getState.toString),
+      slaveId=Some(taskStatus.getSlaveId.getValue),
+      message=Some(taskStatus.getMessage),
+      attempt=Some(attempt),
+      isFailure=Some(true))
   }
 
   /**

@@ -32,6 +32,15 @@ object TaskUtils {
     taskIdPattern.findFirstIn(taskIdString).nonEmpty
   }
 
+  implicit class RichBoolean(val b: Boolean) extends AnyVal {
+    final def option[A](a: => A): Option[A] = if (b) Some(a) else None
+  }
+
+  def appendSchedulerMessage(msg: String, taskStatus: TaskStatus): String = {
+    val schedulerMessage = (taskStatus.hasMessage && taskStatus.getMessage.nonEmpty).option(taskStatus.getMessage)
+    schedulerMessage.fold(msg)(m => "%sThe scheduler provided this message:\n\n%s".format(msg, m))
+  }
+
   /**
    * Parses the task id into the jobname and the tasks creation time.
    * @param taskId

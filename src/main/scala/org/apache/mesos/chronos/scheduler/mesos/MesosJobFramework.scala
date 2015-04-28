@@ -8,11 +8,11 @@ import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
 import org.apache.mesos.chronos.utils.JobDeserializer
 import com.google.inject.Inject
 import mesosphere.mesos.util.FrameworkIdUtil
-import mesosphere.util.BackToTheFuture
 import org.apache.mesos.Protos._
 import org.apache.mesos.{Protos, Scheduler, SchedulerDriver}
 import org.joda.time.DateTime
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{Buffer, HashMap, HashSet}
@@ -109,6 +109,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
       true
     }
 
+    @tailrec
     def generate() {
       taskManager.getTask match {
         case None => log.info("No tasks scheduled or next task has been disabled.\n")
