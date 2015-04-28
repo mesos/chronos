@@ -91,7 +91,7 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
                             mesosSchedulerDriver: MesosDriverFactory,
                             curator: CuratorFramework,
                             leaderLatch: LeaderLatch,
-                            jobsObserver: JobsObserver,
+                            jobsObserver: JobsObserver.Observer,
                             metrics: JobMetrics): JobScheduler = {
     new JobScheduler(
       scheduleHorizon = Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
@@ -110,9 +110,9 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
 
   @Singleton
   @Provides
-  def provideJobsObservers(jobStats: JobStats, notificationClients: List[ActorRef]): JobsObserver = {
+  def provideJobsObservers(jobStats: JobStats, notificationClients: List[ActorRef]): JobsObserver.Observer = {
     val notifier = new JobNotificationObserver(notificationClients, config.clusterName.get)
-    JobsObserver.composite(List(notifier, jobStats))
+    JobsObserver.composite(List(notifier.asObserver, jobStats.asObserver))
   }
 
   @Singleton

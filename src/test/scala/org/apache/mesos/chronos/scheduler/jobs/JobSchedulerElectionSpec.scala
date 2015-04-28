@@ -133,7 +133,7 @@ class JobSchedulerElectionSpec
       leaderLatch = leaderLatch,
       leaderPath = leaderPath,
       jobMetrics = mock[JobMetrics],
-      jobsObserver = mock[JobsObserver]
+      jobsObserver = mock[JobsObserver.Observer]
     )
 
     val ensurePath: EnsurePath = new EnsurePath(leaderPath)

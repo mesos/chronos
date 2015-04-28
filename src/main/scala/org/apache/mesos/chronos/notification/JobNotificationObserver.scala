@@ -8,11 +8,11 @@ import org.apache.mesos.chronos.scheduler.jobs._
 import org.joda.time.{DateTimeZone, DateTime}
 
 class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] = List(),
-                                      val clusterName: Option[String] = None) extends JobsObserver {
+                                      val clusterName: Option[String] = None) {
   private[this] val log = Logger.getLogger(getClass.getName)
   val clusterPrefix = clusterName.map(name => s"[$name]").getOrElse("")
 
-  override def onEvent(event: JobEvent): Unit = event match {
+  def asObserver: JobsObserver.Observer = {
     case JobRemoved(job) => sendNotification(job, "%s [Chronos] Your job '%s' was deleted!".format(clusterPrefix, job.name), None)
     case JobDisabled(job, cause) => sendNotification(
       job,
@@ -24,8 +24,6 @@ class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] 
         .format(DateTime.now(DateTimeZone.UTC), job.retries, taskStatus.getTaskId.getValue)
       sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
         Some(TaskUtils.appendSchedulerMessage(msg, taskStatus)))
-
-    case _ =>
   }
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {

@@ -10,7 +10,12 @@ object MockJobUtils extends Mockito {
                     taskManager: TaskManager,
                     jobGraph: JobGraph,
                     persistenceStore: PersistenceStore = mock[PersistenceStore],
-                    jobsObserver: JobsObserver = mock[JobsObserver]): JobScheduler =
+                    jobsObserver: JobsObserver.Observer = mock[JobsObserver.Observer]): JobScheduler =
     new JobScheduler(horizon, taskManager, jobGraph, persistenceStore,
       jobMetrics = mock[JobMetrics], jobsObserver = jobsObserver)
+
+  def mockFullObserver: JobsObserver.Observer = {
+    val observer = mock[JobsObserver.Observer]
+    observer.apply(any[JobEvent]) returns Unit
+  }
 }

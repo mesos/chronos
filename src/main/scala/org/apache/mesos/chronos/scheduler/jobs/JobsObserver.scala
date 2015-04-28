@@ -1,5 +1,7 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
+import java.util.logging.Logger
+
 import org.apache.mesos.Protos.TaskStatus
 import org.joda.time.DateTime
 
@@ -16,12 +18,14 @@ case class JobRemoved(job: BaseJob) extends JobEvent
 // For now, Chronos does not expire tasks once they are queued
 //case class JobExpired(job: BaseJob, taskId: String, attempt: Int) extends JobEvent
 
-trait JobsObserver {
-  def onEvent(event: JobEvent)
-}
-
 object JobsObserver {
-  def composite(observers: List[JobsObserver]): JobsObserver = new JobsObserver {
-    override def onEvent(event: JobEvent): Unit = observers.foreach(_.onEvent(event))
+  type Observer = PartialFunction[JobEvent, Unit]
+  private[this] val log = Logger.getLogger(getClass.getName)
+
+  def composite(observers: List[Observer]): Observer = {
+    case event => observers.foreach(observer => observer.lift.apply(event).orElse {
+      log.info(s"$observer does not handle $event")
+      Some(Unit)
+    })
   }
 }

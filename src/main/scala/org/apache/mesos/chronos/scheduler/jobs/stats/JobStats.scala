@@ -20,7 +20,7 @@ object CurrentState extends Enumeration {
   val idle, queued, running = Value
 }
 
-class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) extends JobsObserver {
+class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) {
 
   // Cassandra table column names
   private val ATTEMPT: String = "attempt"
@@ -353,13 +353,12 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     }
   }
 
-  override def onEvent(event: JobEvent): Unit = event match {
+  def asObserver: JobsObserver.Observer = {
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
     case JobStarted(job, taskStatus, attempt) => jobStarted(job, taskStatus, attempt)
     case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
     case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
-    case _ => // do nothing
   }
 
   def jobQueued(job: BaseJob, taskId: String, attempt: Int) {

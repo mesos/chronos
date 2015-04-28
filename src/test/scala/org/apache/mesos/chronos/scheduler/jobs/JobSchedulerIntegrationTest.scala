@@ -2,7 +2,6 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import org.apache.mesos.chronos.scheduler.api.{DependentJobResource, Iso8601JobResource}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.{DateTime, DateTimeZone, Hours, Minutes}
@@ -48,7 +47,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val mockTaskManager = mock[TaskManager]
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
-      val mockJobsObserver = mock[JobsObserver]
+      val mockJobsObserver = mockFullObserver
 
       val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, mockJobsObserver)
       scheduler.leader.set(true)
@@ -66,9 +65,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex(jobName).get.successCount must_== 2
       graph.lookupVertex(jobName).get.errorCount must_== 1
 
-      there was one(mockJobsObserver).onEvent(JobFinished(job1, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
-      there was one(mockJobsObserver).onEvent(JobFinished(job2, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
-      there was one(mockJobsObserver).onEvent(JobFailed(Right(job3), TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
+      there was one(mockJobsObserver).apply(JobFinished(job1, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
+      there was one(mockJobsObserver).apply(JobFinished(job2, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
+      there was one(mockJobsObserver).apply(JobFailed(Right(job3), TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
     }
 
     "Tests that a disabled job does not run and does not execute dependant children." in {
