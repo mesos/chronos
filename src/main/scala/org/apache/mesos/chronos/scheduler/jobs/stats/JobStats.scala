@@ -490,13 +490,13 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             isFailure=None)
   }
 
-  def jobFailed(j: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
-    val jobName = j.fold(name => name, _.name)
-    val jobSchedule = j.fold(_ => None,  {
+  def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
+    val jobName = jobNameOrJob.fold(name => name, _.name)
+    val jobSchedule = jobNameOrJob.fold(_ => None,  {
       case job: ScheduleBasedJob => Some(job.schedule)
       case _ => None
     })
-    val jobParents: Option[java.util.Set[String]] = j.fold(_ => None, {
+    val jobParents: Option[java.util.Set[String]] = jobNameOrJob.fold(_ => None, {
       case job: DependencyBasedJob => Some(job.parents.asJava)
       case _ => None
     })
@@ -506,7 +506,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       id=Some(taskStatus.getTaskId.getValue),
       timestamp=Some(new java.util.Date()),
       jobName=Some(jobName),
-      jobOwner=j.fold(_ => None, job => Some(job.owner)),
+      jobOwner=jobNameOrJob.fold(_ => None, job => Some(job.owner)),
       jobSchedule=jobSchedule,
       jobParents=jobParents,
       taskState=Some(taskStatus.getState.toString),
