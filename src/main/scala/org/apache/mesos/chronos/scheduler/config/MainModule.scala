@@ -6,7 +6,7 @@ import java.util.logging.{Level, Logger}
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
-import org.apache.mesos.chronos.notification.{NotifyingJobsObserver, MailClient, RavenClient, SlackClient}
+import org.apache.mesos.chronos.notification.{JobNotificationObserver, MailClient, RavenClient, SlackClient}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.jobs.{JobsObserver, JobMetrics, JobScheduler, TaskManager}
@@ -111,7 +111,7 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideJobsObservers(jobStats: JobStats, notificationClients: List[ActorRef]): JobsObserver = {
-    val notifier = new NotifyingJobsObserver(notificationClients, config.clusterName.get)
+    val notifier = new JobNotificationObserver(notificationClients, config.clusterName.get)
     JobsObserver.composite(List(notifier, jobStats))
   }
 

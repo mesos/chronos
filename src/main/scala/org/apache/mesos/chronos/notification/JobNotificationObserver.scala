@@ -7,7 +7,7 @@ import com.google.inject.Inject
 import org.apache.mesos.chronos.scheduler.jobs._
 import org.joda.time.{DateTimeZone, DateTime}
 
-class NotifyingJobsObserver @Inject()(val notificationClients: List[ActorRef] = List(),
+class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] = List(),
                                       val clusterName: Option[String] = None) extends JobsObserver {
   private[this] val log = Logger.getLogger(getClass.getName)
   val clusterPrefix = clusterName.map(name => s"[$name]").getOrElse("")
