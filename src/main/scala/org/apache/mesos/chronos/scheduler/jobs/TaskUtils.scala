@@ -32,12 +32,12 @@ object TaskUtils {
     taskIdPattern.findFirstIn(taskIdString).nonEmpty
   }
 
-  implicit class RichBoolean(val b: Boolean) extends AnyVal {
-    final def option[A](a: => A): Option[A] = if (b) Some(a) else None
-  }
-
   def appendSchedulerMessage(msg: String, taskStatus: TaskStatus): String = {
-    val schedulerMessage = (taskStatus.hasMessage && taskStatus.getMessage.nonEmpty).option(taskStatus.getMessage)
+    val schedulerMessage =
+      if (taskStatus.hasMessage && taskStatus.getMessage.nonEmpty)
+        Some(taskStatus.getMessage)
+      else
+        None
     schedulerMessage.fold(msg)(m => "%sThe scheduler provided this message:\n\n%s".format(msg, m))
   }
 
