@@ -7,7 +7,7 @@ import org.specs2.mock._
 import org.specs2.mutable._
 
 class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
-  import MockUtils._
+  import MockJobUtils._
 
   //TODO(FL): Write more specs for the REST framework.
   "JobScheduler" should {

@@ -10,7 +10,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
 class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
-  import MockUtils._
+  import MockJobUtils._
 
   "JobScheduler" should {
     "A job creates a failed task and then a successful task from a synchronous job" in {
