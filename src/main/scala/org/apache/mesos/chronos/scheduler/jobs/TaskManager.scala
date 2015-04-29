@@ -85,7 +85,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         removeTask(taskId)
         None
       } else if (jobOption.get.disabled) {
-        jobsObserver.apply(JobExpired(job, taskId))
+        jobsObserver.apply(JobExpired(jobOption.get, taskId))
         None
       } else {
         val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
