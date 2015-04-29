@@ -1,7 +1,6 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.ListeningScheduledExecutorService
