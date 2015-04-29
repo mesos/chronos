@@ -78,9 +78,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   /**
-   * Update
-   * @param oldJob
-   * @param newJob
+   * Update job definition
+   * @param oldJob job definition
+   * @param newJob new job definition
    */
   def updateJob(oldJob: BaseJob, newJob: BaseJob) {
     //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
@@ -94,12 +94,12 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               .filter(_.nonEmpty).map(_.get)
             if (newStreams.nonEmpty) {
               log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
-              val tmpStreams = streams.filter(_.head()._2 != scheduleBasedJob.name)
+              val tmpStreams = streams.filter(_.head._2 != scheduleBasedJob.name)
               streams = iteration(DateTime.now(DateTimeZone.UTC), newStreams ++ tmpStreams)
             }
           } else {
             log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
-            val tmpStreams = streams.filter(_.head()._2 != scheduleBasedJob.name)
+            val tmpStreams = streams.filter(_.head._2 != scheduleBasedJob.name)
             streams = iteration(DateTime.now(DateTimeZone.UTC), tmpStreams)
           }
         }
@@ -163,7 +163,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             val parents = jobGraph.parentJobs(job)
             log.info("Job parent: [ %s ], name: %s, command: %s".format(job.parents.mkString(","), job.name, job.command))
             jobGraph.addVertex(job)
-            parents.map(x => jobGraph.addDependency(x.name, job.name))
+            parents.foreach(x => jobGraph.addDependency(x.name, job.name))
             if (persist) {
               log.info("Persisting job:" + job.name)
               persistenceStore.persistJob(job)
@@ -318,7 +318,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     val dependents = jobGraph.getExecutableChildren(jobName)
     if (dependents.nonEmpty) {
       log.fine("%s has dependents: %s .".format(jobName, dependents.mkString(",")))
-      dependents.map({
+      dependents.foreach {
         //TODO(FL): Ensure that the job for the given x exists. Lock.
         x =>
           val dependentJob = jobGraph.getJobForName(x).get
@@ -332,7 +332,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
             log.fine("Enqueued depedent job." + x)
           }
-      })
+      }
     } else {
       log.fine("%s does not have any ready dependents.".format(jobName))
     }
@@ -443,9 +443,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   /**
    * Iterates through the stream for the given DateTime and a list of schedules, removing old schedules and acting on
    * the available schedules.
-   * @param dateTime
-   * @param schedules
-   * @return
+   * @param dateTime for which to process schedules
+   * @param schedules schedules to be processed
+   * @return list of updated schedules
    */
   def iteration(dateTime: DateTime, schedules: List[ScheduleStream]): List[ScheduleStream] = {
     log.info("Checking schedules with time horizon:%s".format(scheduleHorizon.toString))
@@ -469,13 +469,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
    * Given a stream and a DateTime(@see org.joda.DateTime), this method returns a 2-tuple with a ScheduleTask and
    * a clipped schedule stream in case that the ScheduleTask was not none. Returns no task and the input stream,
    * if nothing needs scheduling within the time horizon.
-   * @param now
-   * @param stream
+   * @param now time to start iteration with
+   * @param stream schedule stream
    * @return
    */
   @tailrec
   final def next(now: DateTime, stream: ScheduleStream): (Option[ScheduledTask], Option[ScheduleStream]) = {
-    val (schedule, jobName, scheduleTimeZone) = stream.head()
+    val (schedule, jobName, scheduleTimeZone) = stream.head
 
     log.info("Calling next for stream: %s, jobname: %s".format(stream.schedule, jobName))
     assert(schedule != null && !schedule.equals(""), "No valid schedule found: " + schedule)
@@ -511,7 +511,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             log.info("Task ready for scheduling: %s".format(nextDate))
             //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
             val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
-            return (Some(task), stream.tail())
+            return (Some(task), stream.tail)
           }
           //The nextDate has passed already beyond epsilon.
           //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
@@ -521,7 +521,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           }
           //Needs to be scheduled at a later time, after schedule horizon.
           log.fine("No need to work on schedule: '%s' yet".format(nextDate))
-          val tail = stream.tail()
+          val tail = stream.tail
           if (tail.isEmpty) {
             //TODO(FL): Verify that this can go.
             persistenceStore.removeJob(job)
@@ -595,10 +595,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         log.info("Loading jobs")
         JobUtils.loadJobs(this, persistenceStore)
       } catch {
-        case e: Exception => {
+        case e: Exception =>
           log.log(Level.SEVERE, "Loading tasks or jobs failed. Exiting.", e)
           System.exit(1)
-        }
       }
     }
 
@@ -679,13 +678,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   private def removeOldSchedules(scheduleStreams: List[Option[ScheduleStream]]): List[ScheduleStream] = {
     log.fine("Filtering out empty streams")
-    scheduleStreams.filter(s => s.isDefined && s.get.tail().isDefined).map(_.get)
+    scheduleStreams.filter(s => s.isDefined && s.get.tail.isDefined).map(_.get)
   }
 
   /**
    * Adds a List of ScheduleStream and runs a iteration at the current time.
-   * @param now
-   * @param newStreams
+   * @param now time from which to evaluate schedule
+   * @param newStreams new schedules to be evaluated
    */
   private def addSchedule(now: DateTime, newStreams: List[ScheduleStream]) {
     log.info("Adding schedule for time:" + now.toString(DateTimeFormat.fullTime()))

@@ -108,7 +108,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       // First one passed, next invocation is 01:01 (b/c of 20 second epsilon)
       // Horizon is 5 minutes, so lookforward until 00:06:01.000Z
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _, _) = newScheduleStreams(0).head()
+      val (isoExpr, _, _) = newScheduleStreams.head.head
 
       var date: DateTime = new DateTime()
       Iso8601Expressions.parse(isoExpr) match {
@@ -134,7 +134,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       val horizon = Minutes.minutes(60).toPeriod
       val scheduler = mockScheduler(horizon, null, mockGraph)
       val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _, _) = newScheduleStreams(0).head()
+      val (isoExpr, _, _) = newScheduleStreams.head.head
 
       var date: DateTime = new DateTime()
       Iso8601Expressions.parse(isoExpr) match {
@@ -238,7 +238,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
 
     val res2: List[ScheduleStream] = scheduler.iteration(DateTime.parse("2012-01-01T00:05:00.000Z"), scheduler.streams)
     res2.size must_== 1
-    res2(0).jobName must_== job1.name
+    res2.head.jobName must_== job1.name
   }
 
   "Job scheduler persists job state after runs" in {
@@ -280,6 +280,6 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     scheduler.registerJob(job1, persist = true, startTime)
 
     val newStreams = scheduler.iteration(startTime, scheduler.streams)
-    newStreams(0).schedule must_== "R2/2012-01-04T00:00:00.000Z/P1D"
+    newStreams.head.schedule must_== "R2/2012-01-04T00:00:00.000Z/P1D"
   }
 }

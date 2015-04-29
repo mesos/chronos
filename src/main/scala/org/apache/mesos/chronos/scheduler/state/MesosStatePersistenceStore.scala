@@ -134,7 +134,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     for (f: String <- state.names.get) {
       if (f.startsWith(taskPrefix)) {
         if (filter.isEmpty || f.contains(filter.get)) {
-          results += f.substring(taskPrefix.size)
+          results += f.substring(taskPrefix.length)
         }
       }
     }
@@ -148,7 +148,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
       import scala.collection.JavaConversions._
       for (f: String <- state.names.get) {
         if (f.startsWith(taskPrefix)) {
-          val taskId = f.substring(taskPrefix.size)
+          val taskId = f.substring(taskPrefix.length)
           if (TaskUtils.isValidVersion(f)) {
             val data = state.fetch(f).get.value
             results += (taskId -> data)

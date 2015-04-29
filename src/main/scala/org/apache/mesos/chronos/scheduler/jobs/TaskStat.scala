@@ -39,9 +39,7 @@ class TaskStat (@JsonProperty val taskId: String,
   @JsonProperty var numElementsProcessed: Option[Long] = None //used only for output (HTTP GET)
   @JsonProperty var numAdditionalElementsProcessed: Option[Int] = None //used only for input (HTTP POST)
 
-  def getTaskRuntime(): Option[Duration] = {
-    taskDuration
-  }
+  def getTaskRuntime: Option[Duration] = taskDuration
 
   def setTaskStatus(status: ChronosTaskStatus.Value) = {
     //if already a terminal state, ignore
@@ -82,12 +80,12 @@ class TaskStat (@JsonProperty val taskId: String,
     }
   }
 
-  override def toString(): String = {
+  override def toString: String = {
     "taskId=%s job_name=%s slaveId=%s startTs=%s endTs=%s duration=%s status=%s".format(
       taskId, jobName, taskSlaveId,
-      taskStartTs.toString(),
-      taskEndTs.toString(),
-      taskDuration.toString(),
-      taskStatus.toString())
+      taskStartTs.toString,
+      taskEndTs.toString,
+      taskDuration.toString,
+      taskStatus.toString)
   }
 }
