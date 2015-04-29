@@ -121,13 +121,13 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeStartArray()
       baseJob.container.volumes.foreach { v =>
         json.writeStartObject()
-        v.hostPath.map { hostPath =>
+        v.hostPath.foreach { hostPath =>
           json.writeFieldName("hostPath")
           json.writeString(hostPath)
         }
         json.writeFieldName("containerPath")
         json.writeString(v.containerPath)
-        v.mode.map { mode =>
+        v.mode.foreach { mode =>
           json.writeFieldName("mode")
           json.writeString(mode.toString)
         }
