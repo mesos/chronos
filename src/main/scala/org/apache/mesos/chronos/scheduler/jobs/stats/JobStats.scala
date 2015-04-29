@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 
 import com.datastax.driver.core.exceptions.{DriverException, NoHostAvailableException, QueryExecutionException, QueryValidationException}
 import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
-import com.datastax.driver.core.{Row, _}
+import com.datastax.driver.core._
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskState, TaskStatus}
 import org.apache.mesos.chronos.scheduler.config.CassandraConfiguration
@@ -13,7 +13,6 @@ import org.apache.mesos.chronos.scheduler.jobs._
 import org.joda.time.DateTime
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{HashMap, Map}
 
 object CurrentState extends Enumeration {
   type CurrentState = Value
@@ -36,7 +35,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   private val TASK_STATE: String = "task_state"
   private val TIMESTAMP: String = "ts"
 
-  protected val jobStates = new HashMap[String, CurrentState.Value]()
+  protected val jobStates = new scala.collection.mutable.HashMap[String, CurrentState.Value]()
 
   val log = Logger.getLogger(getClass.getName)
   val statements = new ConcurrentHashMap[String, PreparedStatement]().asScala
@@ -49,36 +48,27 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
      * deserializers need to be written. Need a good solution, potentially
      * lots of writes and very few reads (only on failover)
      */
-    jobStates.get(jobName).getOrElse(CurrentState.idle)
+    jobStates.getOrElse(jobName, CurrentState.idle)
   }
 
-  def updateJobState(jobName: String, state: CurrentState.Value) {
-    var shouldUpdate = true
-    jobStates.get(jobName) match {
-      case Some(s: CurrentState.Value) => {
-        if ((s == CurrentState.running) &&
-            (state == CurrentState.queued)) {
-          //don't update status if already running
-          shouldUpdate = false
-        }
-      }
-      case None =>
-    }
+  def updateJobState(jobName: String, nextState: CurrentState.Value) {
+    val shouldUpdate = jobStates.get(jobName).map {
+      currentState =>
+        !(currentState == CurrentState.running && nextState == CurrentState.queued)
+    }.getOrElse(true)
 
     if (shouldUpdate) {
-      log.info("Updating state for job (%s) to %s".format(jobName, state))
-      jobStates.put(jobName, state)
+      log.info("Updating state for job (%s) to %s".format(jobName, nextState))
+      jobStates.put(jobName, nextState)
     }
   }
 
-  def removeJobState(job: BaseJob) {
-    jobStates.remove(job.name)
-  }
+  def removeJobState(job: BaseJob) = jobStates.remove(job.name)
 
   /**
    * Queries Cassandra table for past and current job statistics by jobName
    * and limits by numTasks. The result is not sorted by execution time
-   * @param job
+   * @param job job to find task data for
    * @return list of cassandra rows
    */
   private def getTaskDataByJob(job: BaseJob): Option[List[Row]] = {
@@ -86,14 +76,14 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     try {
       getSession match {
         case Some(session: Session) =>
-          val query = s"SELECT * FROM ${config.cassandraTable()} WHERE ${JOB_NAME}='${job.name}';"
-          val prepared = statements.getOrElseUpdate(query, {
+          val query = s"SELECT * FROM ${config.cassandraTable()} WHERE $JOB_NAME='${job.name}';"
+          val prepared = statements.getOrElseUpdate(query,
             session.prepare(
               new SimpleStatement(query)
                 .setConsistencyLevel(readConsistencyLevel())
                 .asInstanceOf[RegularStatement]
             )
-          })
+          )
 
           val resultSet = session.execute(prepared.bind())
           val rowsList = resultSet.all().asScala.toList
@@ -116,20 +106,13 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * Compare function for TaskStat by most recent date.
    */
   private def recentDateCompareFnc(a: TaskStat, b: TaskStat): Boolean = {
-    var compareAscDate = a.taskStartTs match {
-      case Some(aTs: DateTime) => {
-        b.taskStartTs  match {
-          case Some(bTs: DateTime) => {
-            aTs.compareTo(bTs) <= 0
-          }
-          case None => {
-            false
-          }
+    val compareAscDate = a.taskStartTs match {
+      case Some(aTs: DateTime) =>
+        b.taskStartTs match {
+          case Some(bTs: DateTime) => aTs.compareTo(bTs) <= 0
+          case None => false
         }
-      }
-      case None => {
-        true
-      }
+      case None => true
     }
     !compareAscDate
   }
@@ -137,37 +120,35 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   /**
    * Queries Cassandra stat table to get the element processed count
    * for a specific job and a specific task
-   * @param job
-   * @param taskId
+   * @param job job to find stats for
+   * @param taskId task id for which to find stats for
    * @return element processed count
    */
   private def getTaskStatCount(job: BaseJob, taskId: String): Option[Long] = {
     var taskStatCount: Option[Long] = None
     try {
-      getSession match {
-        case Some(session: Session) => {
-          val query = s"SELECT * FROM ${config.cassandraStatCountTable()} WHERE job_name='${job.name}' AND task_id='${taskId}';"
-          val prepared = statements.getOrElseUpdate(query, {
+      getSession.foreach {
+        session =>
+          val query = s"SELECT * FROM ${config.cassandraStatCountTable()} WHERE job_name='${job.name}' AND task_id='$taskId';"
+          val prepared = statements.getOrElseUpdate(query,
             session.prepare(
               new SimpleStatement(query)
                 .setConsistencyLevel(readConsistencyLevel())
                 .asInstanceOf[RegularStatement]
             )
-          })
+          )
           val resultSet = session.execute(prepared.bind())
 
           //should just be one row
           val resultRow = resultSet.one()
           if (resultRow != null) {
-            var cDef = resultRow.getColumnDefinitions()
+            val cDef = resultRow.getColumnDefinitions
             if (cDef.contains(ELEMENTS_PROCESSED)) {
               taskStatCount = Some(resultRow.getLong(ELEMENTS_PROCESSED))
             }
           } else {
             log.info("No elements processed count found for job_name %s taskId %s".format(job.name, taskId))
           }
-        }
-        case None =>
       }
     } catch {
       case e: NoHostAvailableException =>
@@ -183,14 +164,14 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
 
   /**
    * Determines if row from Cassandra represents a valid Mesos task
-   * @param row
+   * @param row cassandra row
    * @return true if valid, false otherwise
    */
   private def isValidTaskData(row: Row): Boolean = {
     if (row == null) {
       false
     } else {
-      val cDefs = row.getColumnDefinitions();
+      val cDefs = row.getColumnDefinitions
       cDefs.contains(JOB_NAME) &&
         cDefs.contains(TASK_ID) &&
         cDefs.contains(TIMESTAMP) &&
@@ -200,55 +181,49 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     }
   }
 
+  private val terminalStates = Set(TaskState.TASK_FINISHED, TaskState.TASK_FAILED, TaskState.TASK_KILLED, TaskState.TASK_LOST).map(_.toString)
   /**
    * Parses the contents of the data row and updates the TaskStat object
-   * @param taskStat
-   * @param row
+   * @param taskStat task stat to be updated
+   * @param row data row from which to update the task stat object
    * @return updated TaskStat object
    */
   private def updateTaskStat(taskStat: TaskStat, row: Row): TaskStat = {
-    var taskTimestamp = row.getDate(TIMESTAMP)
-    var taskState = row.getString(TASK_STATE)
-    var slaveId = row.getString(SLAVE_ID)
-    var isFailure = row.getBool(IS_FAILURE)
+    val taskTimestamp = row.getDate(TIMESTAMP)
+    val taskState = row.getString(TASK_STATE)
 
-    if (TaskState.TASK_RUNNING.toString == taskState) {
+    if (taskState == TaskState.TASK_RUNNING.toString) {
       taskStat.setTaskStartTs(taskTimestamp)
       taskStat.setTaskStatus(ChronosTaskStatus.Running)
-    } else if ((TaskState.TASK_FINISHED.toString() == taskState) ||
-        (TaskState.TASK_FAILED.toString() == taskState) ||
-        (TaskState.TASK_KILLED.toString() == taskState) ||
-        (TaskState.TASK_LOST.toString() == taskState)) {
-
-      //terminal state
-      taskStat.setTaskEndTs(taskTimestamp)
-      if (TaskState.TASK_FINISHED.toString() == taskState) {
-        taskStat.setTaskStatus(ChronosTaskStatus.Success)
-      } else {
-        taskStat.setTaskStatus(ChronosTaskStatus.Fail)
-      }
+    } else if (terminalStates.contains(taskState)) {
+        taskStat.setTaskEndTs(taskTimestamp)
+        val status = if (TaskState.TASK_FINISHED.toString == taskState) ChronosTaskStatus.Success else ChronosTaskStatus.Fail
+        taskStat.setTaskStatus(status)
     }
+
     taskStat
   }
 
   /**
    * Returns a list of tasks (TaskStat) found for the specified job name
-   * @param job
+   * @param job job to search for task stats
    * @return list of past and current running tasks for the job
    */
   private def getParsedTaskStatsByJob(job: BaseJob): List[TaskStat] = {
-    val taskMap = Map[String, TaskStat]()
+    val taskMap = scala.collection.mutable.Map[String, TaskStat]()
 
-    val rowsListOpt = getTaskDataByJob(job) match {
-      case Some(rowsList) => {
+    getTaskDataByJob(job).fold {
+      log.info("No row list found for jobName=%s".format(job.name))
+    } {
+      rowsList =>
         for (row <- rowsList) {
           /*
            * Go through all the rows and construct a job history.
            * Group elements by task id
            */
           if (isValidTaskData(row)) {
-            var taskId = row.getString(TASK_ID)
-            var taskStat = taskMap.getOrElseUpdate(taskId,
+            val taskId = row.getString(TASK_ID)
+            val taskStat = taskMap.getOrElseUpdate(taskId,
                 new TaskStat(taskId,
                     row.getString(JOB_NAME),
                     row.getString(SLAVE_ID)))
@@ -257,10 +232,6 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             log.info("Invalid row found in cassandra table for jobName=%s".format(job.name))
           }
         }
-      }
-      case None => {
-        log.info("No row list found for jobName=%s".format(job.name))
-      }
     }
 
     taskMap.values.toList
@@ -268,32 +239,22 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
 
   /**
    * Returns most recent tasks by job and returns only numTasks
-   * @param job
-   * @param numTasks
+   * @param job job to search the tasks for
+   * @param numTasks maximum number of tasks to return
    * @return returns a list of past and currently running tasks,
    *         the first element is the most recent.
    */
   def getMostRecentTaskStatsByJob(job: BaseJob, numTasks: Int): List[TaskStat] = {
-    val taskStatList = getParsedTaskStatsByJob(job)
 
-    /*
-     * Data is not sorted yet, so sort jobs by most recent date
-     */
-    var sortedDescTaskStatList = taskStatList.sortWith(recentDateCompareFnc)
-
-    /*
-     * limit output here
-     */
-    sortedDescTaskStatList = sortedDescTaskStatList.slice(0, numTasks)
+    val sortedDescTaskStatList = getParsedTaskStatsByJob(job).sortWith(recentDateCompareFnc).slice(0, numTasks)
 
     if (job.dataProcessingJobType) {
       /*
        * Retrieve stat count for these tasks. This should be done
        * after slicing as an optimization.
        */
-      for (taskStat <- sortedDescTaskStatList) {
-        var elementCount = getTaskStatCount(job, taskStat.taskId)
-        taskStat.numElementsProcessed = elementCount
+      sortedDescTaskStatList.foreach {
+        taskStat => taskStat.numElementsProcessed = getTaskStatCount(job, taskStat.taskId)
       }
     }
 
@@ -303,17 +264,17 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   /**
    * Updates the number of elements processed by a task. This method
    * is not idempotent
-   * @param job
-   * @param taskId
-   * @param additionalElementsProcessed
+   * @param job job for which to perform the update
+   * @param taskId task id for which to perform the update
+   * @param additionalElementsProcessed number of elements to increment bt
    */
   def updateTaskProgress(job: BaseJob,
       taskId: String,
       additionalElementsProcessed: Long) {
     try {
-      getSession match {
-        case Some(session: Session) =>
-          val validateQuery = s"SELECT * FROM ${config.cassandraTable()} WHERE job_name='${job.name}' AND id='${taskId}';"
+      getSession.foreach {
+        session =>
+          val validateQuery = s"SELECT * FROM ${config.cassandraTable()} WHERE job_name='${job.name}' AND id='$taskId';"
           var prepared = statements.getOrElseUpdate(validateQuery, {
             session.prepare(
               new SimpleStatement(validateQuery)
@@ -328,19 +289,18 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
              * Only update stat count if entry exists in main table.
              */
             val query = s"UPDATE ${config.cassandraStatCountTable()}"+
-              s" SET elements_processed = elements_processed + ${additionalElementsProcessed}"+
-              s" WHERE job_name='${job.name}' AND task_id='${taskId}';"
-            prepared = statements.getOrElseUpdate(query, {
+              s" SET elements_processed = elements_processed + $additionalElementsProcessed"+
+              s" WHERE job_name='${job.name}' AND task_id='$taskId';"
+            prepared = statements.getOrElseUpdate(query,
               session.prepare(
                 new SimpleStatement(query)
                   .asInstanceOf[RegularStatement]
               )
-            })
+            )
           } else {
             throw new IllegalArgumentException("Task id  %s not found".format(taskId))
           }
-          val resultSet = session.executeAsync(prepared.bind())
-        case None =>
+          session.executeAsync(prepared.bind())
       }
     } catch {
       case e: NoHostAvailableException =>
@@ -423,7 +383,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
                   """.stripMargin
               ))
               session.execute(new SimpleStatement(
-                s"CREATE INDEX IF NOT EXISTS ON ${config.cassandraTable()} (${JOB_NAME});"
+                s"CREATE INDEX IF NOT EXISTS ON ${config.cassandraTable()} ($JOB_NAME);"
               ))
 
               /*
@@ -533,9 +493,9 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       attempt: Option[Integer],
       isFailure: Option[Boolean]) = {
     try {
-      getSession match {
-        case Some(session: Session) =>
-          var query:Insert = QueryBuilder.insertInto(config.cassandraTable())
+      getSession.foreach {
+        session =>
+          val query:Insert = QueryBuilder.insertInto(config.cassandraTable())
 
           //set required values (let these throw an exception)
           query.value(TASK_ID , id.get)
@@ -579,7 +539,6 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             .asInstanceOf[RegularStatement]
 
           session.executeAsync(query)
-        case None =>
       }
     } catch {
       case e: NoHostAvailableException =>
