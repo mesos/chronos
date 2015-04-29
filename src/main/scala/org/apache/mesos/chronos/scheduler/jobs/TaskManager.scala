@@ -25,7 +25,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
                             val persistenceStore: PersistenceStore,
                             val jobGraph: JobGraph,
                             val mesosDriver: MesosDriverFactory,
-                            val jobStats: JobStats,
+                            val jobsObserver: JobsObserver.Observer,
                             val registry: MetricRegistry) {
 
   val log = Logger.getLogger(getClass.getName)
@@ -44,7 +44,8 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   val taskCache = CacheBuilder.newBuilder().maximumSize(5000L).build[String, TaskState]()
 
-  val taskMapping: concurrent.Map[String, mutable.ListBuffer[(String, Future[_])]] = new ConcurrentHashMap().asScala
+  val taskMapping: concurrent.Map[String, mutable.ListBuffer[(String, Future[_])]] =
+    new ConcurrentHashMap[String, mutable.ListBuffer[(String, Future[_])]]().asScala
 
   val queueGauge = registry.register(
     MetricRegistry.name(classOf[TaskManager], "queueSize"),
@@ -84,7 +85,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         removeTask(taskId)
         None
       } else if (jobOption.get.disabled) {
-        jobStats.updateJobState(jobOption.get.name, CurrentState.idle)
+        jobsObserver.apply(JobExpired(job, taskId))
         None
       } else {
         val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
@@ -128,14 +129,13 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * Cancels all tasks that are delay scheduled with the underlying executor.
    */
   def flush() {
-    taskMapping.clone().values.map({
-      f =>
-        f.foreach({
-          (f) =>
-            log.info("Cancelling task '%s'".format(f._1))
-            f._2.cancel(true)
-        })
-    })
+    taskMapping.clone().values.foreach (
+      _.foreach {
+        case (taskId, futureTask) =>
+            log.info("Cancelling task '%s'".format(taskId))
+            futureTask.cancel(true)
+      }
+    )
     taskMapping.clear()
     queues.foreach(_.clear())
   }
@@ -157,9 +157,9 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
      if (jobOption.isEmpty) {
       log.warning("Job '%s' no longer registered.".format(jobName))
     } else {
-        val (_, start, attempt, _) = TaskUtils.parseTaskId(taskId)
+        val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
         val job = jobOption.get
-        jobStats.jobQueued(job, taskId, attempt)
+        jobsObserver.apply(JobQueued(job, taskId, attempt))
     }
   }
 

@@ -63,7 +63,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     }
   }
 
-  def removeJobState(job: BaseJob) = jobStates.remove(job.name)
+  private def removeJobState(job: BaseJob) = jobStates.remove(job.name)
 
   /**
    * Queries Cassandra table for past and current job statistics by jobName
@@ -314,6 +314,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   }
 
   def asObserver: JobsObserver.Observer = {
+    case JobExpired(job, _) => updateJobState(job.name, CurrentState.idle)
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
     case JobStarted(job, taskStatus, attempt) => jobStarted(job, taskStatus, attempt)
@@ -321,11 +322,11 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
   }
 
-  def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
+  private def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
     updateJobState(job.name, CurrentState.queued)
   }
 
-  def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  private def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(job.name, CurrentState.running)
 
     var jobSchedule:Option[String] = None
@@ -425,7 +426,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     _session = None
   }
 
-  def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(job.name, CurrentState.idle)
 
     var jobSchedule:Option[String] = None
@@ -450,7 +451,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             isFailure=None)
   }
 
-  def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
+  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
     val jobName = jobNameOrJob.fold(name => name, _.name)
     val jobSchedule = jobNameOrJob.fold(_ => None,  {
       case job: ScheduleBasedJob => Some(job.schedule)
