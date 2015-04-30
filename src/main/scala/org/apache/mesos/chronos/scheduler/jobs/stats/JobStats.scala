@@ -313,14 +313,14 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     }
   }
 
-  def asObserver: JobsObserver.Observer = {
+  def asObserver: JobsObserver.Observer = JobsObserver.withName({
     case JobExpired(job, _) => updateJobState(job.name, CurrentState.idle)
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
     case JobStarted(job, taskStatus, attempt) => jobStarted(job, taskStatus, attempt)
     case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
     case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
-  }
+  }, getClass.getSimpleName)
 
   private def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
     updateJobState(job.name, CurrentState.queued)

@@ -12,7 +12,7 @@ class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] 
   private[this] val log = Logger.getLogger(getClass.getName)
   val clusterPrefix = clusterName.map(name => s"[$name]").getOrElse("")
 
-  def asObserver: JobsObserver.Observer = {
+  def asObserver: JobsObserver.Observer = JobsObserver.withName({
     case JobRemoved(job) => sendNotification(job, "%s [Chronos] Your job '%s' was deleted!".format(clusterPrefix, job.name), None)
     case JobDisabled(job, cause) => sendNotification(
       job,
@@ -24,7 +24,7 @@ class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] 
         .format(DateTime.now(DateTimeZone.UTC), job.retries, taskStatus.getTaskId.getValue)
       sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
         Some(TaskUtils.appendSchedulerMessage(msg, taskStatus)))
-  }
+  }, getClass.getSimpleName)
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
     for (client <- notificationClients) {

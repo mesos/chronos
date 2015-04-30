@@ -28,4 +28,10 @@ object JobsObserver {
       Some(Unit)
     })
   }
+
+  def withName(observer: Observer, name: String): Observer = new Observer {
+    override def isDefinedAt(event: JobEvent) = observer.isDefinedAt(event)
+    override def apply(event: JobEvent): Unit = observer.apply(event)
+    override def toString(): String = name
+  }
 }
