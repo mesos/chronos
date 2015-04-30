@@ -507,20 +507,23 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           (None, None)
         } else {
           val job = jobOption.get
-          if (nextDate.isAfter(now.minus(job.epsilon)) && nextDate.isBefore(now.plus(scheduleHorizon))) {
+          val scheduleWindowBegin = now.minus(job.epsilon)
+          val scheduleWindowEnd = now.plus(scheduleHorizon)
+          if (nextDate.isAfter(scheduleWindowBegin) && nextDate.isBefore(scheduleWindowEnd)) {
             log.info("Task ready for scheduling: %s".format(nextDate))
             //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
             val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
             return (Some(task), stream.tail)
           }
-          //The nextDate has passed already beyond epsilon.
-          //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
+          // Next instance is too far in the future
+          // Needs to be scheduled at a later time, after schedule horizon.
           if (!nextDate.isBefore(now)) {
-            jobsObserver.apply(JobSkipped(job, nextDate))
             return (None, Some(stream))
           }
-          //Needs to be scheduled at a later time, after schedule horizon.
+          // Next instance is too far in the past (beyond epsilon)
+          //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
           log.fine("No need to work on schedule: '%s' yet".format(nextDate))
+          jobsObserver.apply(JobSkipped(job, nextDate))
           val tail = stream.tail
           if (tail.isEmpty) {
             //TODO(FL): Verify that this can go.
