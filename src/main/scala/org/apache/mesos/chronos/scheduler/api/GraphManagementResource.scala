@@ -8,10 +8,10 @@ import javax.ws.rs.{Consumes, GET, Path, Produces, WebApplicationException}
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs._
 import org.apache.mesos.chronos.scheduler.jobs.graph.Exporter
 import com.codahale.metrics.annotation.Timed
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 
 /**
  * The REST API for managing jobs.
@@ -21,7 +21,7 @@ import com.google.inject.Inject
 @Path(PathConstants.graphBasePath)
 @Consumes(Array(MediaType.APPLICATION_JSON))
 class GraphManagementResource @Inject()(
-                                         val jobScheduler: JobScheduler,
+                                         val jobStats: JobStats,
                                          val jobGraph: JobGraph,
                                          val configuration: SchedulerConfiguration) {
 
@@ -48,7 +48,7 @@ class GraphManagementResource @Inject()(
   def jsonGraph(): Response = {
     try {
       val buffer = new StringWriter
-      Exporter.export(buffer, jobGraph, jobScheduler)
+      Exporter.export(buffer, jobGraph, jobStats)
       Response.ok(buffer.toString).build
     } catch {
       case ex: Exception =>

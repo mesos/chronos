@@ -32,6 +32,15 @@ object TaskUtils {
     taskIdPattern.findFirstIn(taskIdString).nonEmpty
   }
 
+  def appendSchedulerMessage(msg: String, taskStatus: TaskStatus): String = {
+    val schedulerMessage =
+      if (taskStatus.hasMessage && taskStatus.getMessage.nonEmpty)
+        Some(taskStatus.getMessage)
+      else
+        None
+    schedulerMessage.fold(msg)(m => "%sThe scheduler provided this message:\n\n%s".format(msg, m))
+  }
+
   /**
    * Parses the task id into the jobname and the tasks creation time.
    * @param taskId

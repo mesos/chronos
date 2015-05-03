@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import java.util.concurrent.{TimeUnit, Executors, Future}
 import java.util.logging.{Level, Logger}
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.ActorSystem
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
@@ -34,12 +34,10 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                              val curator: CuratorFramework = null,
                              val leaderLatch: LeaderLatch = null,
                              val leaderPath: String = null,
-                             val notificationClients: List[ActorRef] = List(),
+                             val jobsObserver: JobsObserver.Observer,
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
-                             val jobMetrics: JobMetrics,
-                             val jobStats: JobStats,
-                             val clusterName: Option[String] = None)
+                             val jobMetrics: JobMetrics)
 //Allows us to let Chaos manage the lifecycle of this class.
   extends AbstractIdleService {
 
@@ -210,7 +208,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
       taskManager.cancelTasks(job)
       taskManager.removeTasks(job)
-      jobStats.removeJobState(job)
+      jobsObserver.apply(JobRemoved(job))
 
       if (persist) {
         log.info("Removing job from underlying state abstraction:" + job.name)
@@ -233,7 +231,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     } else {
       val job = jobOption.get
       val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
-      jobStats.jobStarted(job, taskStatus, attempt)
+      jobsObserver.apply(JobStarted(job, taskStatus, attempt))
 
       job match {
         case j: DependencyBasedJob =>
@@ -246,7 +244,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   /**
    * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
    * launch tasks for dependent jobs
-   * @param taskId
    */
   def handleFinishedTask(taskStatus: TaskStatus, taskDate: Option[DateTime] = None) {
     // `taskDate` is purely for unit testing
@@ -265,7 +262,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
       jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
-      jobStats.jobFinished(job, taskStatus, attempt)
+      jobsObserver.apply(JobFinished(job, taskStatus, attempt))
 
       val newJob = job match {
         case job: ScheduleBasedJob =>
@@ -298,13 +295,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
                 log.info("Disabling job that reached a zero-recurrence count!")
 
                 val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
-                val clusterPrefix = getClusterPrefix(clusterName)
-                sendNotification(
-                  job,
-                  "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
-                  Some( """Job '%s' has exhausted all of its recurrences and has been disabled.
-                          |Please consider either removing your job, or updating its schedule and re-enabling it.
-                        """.stripMargin.format(job.name)))
+                jobsObserver.apply(JobDisabled(job, """Job '%s' has exhausted all of its recurrences and has been disabled.
+                                                        |Please consider either removing your job, or updating its schedule and re-enabling it.
+                                                      """.stripMargin.format(job.name)))
                 replaceJob(scheduleBasedJob, disabledJob)
               }
             case None =>
@@ -312,23 +305,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         case _ =>
       }
     }
-  }
-
-  def getClusterPrefix(clusterName: Option[String]) = clusterName match {
-    case Some(name) => s"[$name] "
-    case None => ""
-  }
-
-  def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
-    for (client <- notificationClients) {
-      val subowners = job.owner.split("\\s*,\\s*")
-      for (subowner <- subowners) {
-        log.info("Sending mail notification to:%s for job %s using client: %s".format(subowner, job.name, client))
-        client !(job, subowner, subject, message)
-      }
-    }
-
-    log.info(subject)
   }
 
   def replaceJob(oldJob: BaseJob, newJob: BaseJob) {
@@ -364,11 +340,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
   def handleFailedTask(taskStatus: TaskStatus) {
     val taskId = taskStatus.getTaskId.getValue
-    val message = if (taskStatus.hasMessage && taskStatus.getMessage.nonEmpty) {
-      Some(taskStatus.getMessage)
-    } else {
-      None
-    }
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
     } else {
@@ -377,7 +348,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) =>
-          jobStats.jobFailed(job, taskStatus, attempt)
+          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt))
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
@@ -429,37 +400,17 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
             updateJob(job, newJob)
             if (job.softError) processDependencies(jobName, Option(lastErrorTime))
 
-            val clusterPrefix = getClusterPrefix(clusterName)
-
             // Handle failure by either disabling the job and notifying the owner,
             // or just notifying the owner.
             if (disableJob) {
               log.warning("Job failed beyond retries! Job will now be disabled after "
                 + newJob.errorsSinceLastSuccess + " failures (disableAfterFailures=" + disableAfterFailures + ").")
-              message match {
-                case Some(msg) =>
-                  sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
-                    Some("\nFailed at '%s', %d failures since last success\nTask id: %s\nThe scheduler provided this message:\n\n%s"
-                      .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess,
-                        taskId, msg)))
-                case None =>
-                  sendNotification(job, "%s [Chronos] JOB DISABLED: '%s'".format(clusterPrefix, job.name),
-                    Some("\nFailed at '%s', %d failures since last success\nTask id: %s\n"
-                      .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, taskId)))
-              }
+              val msg = "\nFailed at '%s', %d failures since last success\nTask id: %s\n"
+                .format(DateTime.now(DateTimeZone.UTC), newJob.errorsSinceLastSuccess, taskId)
+              jobsObserver.apply(JobDisabled(job, TaskUtils.appendSchedulerMessage(msg, taskStatus)))
             } else {
               log.warning("Job failed beyond retries!")
-              message match {
-                case Some(msg) =>
-                  sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
-                    Some("\n'%s'. Retries attempted: %d.\nTask id: %s\nThe scheduler provided this message:\n\n%s"
-                      .format(DateTime.now(DateTimeZone.UTC), job.retries,
-                        taskId, msg)))
-                case None =>
-                  sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
-                    Some("\n'%s'. Retries attempted: %d.\nTask id: %s\n"
-                      .format(DateTime.now(DateTimeZone.UTC), job.retries, taskId)))
-              }
+              jobsObserver.apply(JobRetriesExhausted(job, taskStatus, attempt))
             }
             jobMetrics.updateJobStatus(jobName, success = false)
           }
@@ -486,16 +437,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     val (jobName, start, attempt, _) = TaskUtils.parseTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
 
-    var job :BaseJob = null
-    if (!jobOption.isEmpty) {
-      job = jobOption.get
-      jobStats.jobFailed(job=job, attempt=attempt,
-          taskStatus=taskStatus)
-    } else {
-      //for now just fake schedule based job
-      jobStats.jobFailed(jobName=jobName, taskStatus=taskStatus,
-          attempt=attempt)
-    }
+    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt))
   }
 
   /**
@@ -574,6 +516,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           //The nextDate has passed already beyond epsilon.
           //TODO(FL): Think about the semantics here and see if it always makes sense to skip ahead of missed schedules.
           if (!nextDate.isBefore(now)) {
+            jobsObserver.apply(JobSkipped(job, nextDate))
             return (None, Some(stream))
           }
           //Needs to be scheduled at a later time, after schedule horizon.

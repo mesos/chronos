@@ -6,9 +6,10 @@ import java.util.logging.{Level, Logger}
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
-import org.apache.mesos.chronos.notification.{MailClient, RavenClient, SlackClient}
+import org.apache.mesos.chronos.notification.{JobNotificationObserver, MailClient, RavenClient, SlackClient}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.{JobMetrics, JobScheduler, JobStats, TaskManager}
+import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
+import org.apache.mesos.chronos.scheduler.jobs.{JobsObserver, JobMetrics, JobScheduler, TaskManager}
 import org.apache.mesos.chronos.scheduler.mesos.{MesosDriverFactory, MesosJobFramework, MesosTaskBuilder}
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, MoreExecutors, ThreadFactoryBuilder}
@@ -90,9 +91,8 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
                             mesosSchedulerDriver: MesosDriverFactory,
                             curator: CuratorFramework,
                             leaderLatch: LeaderLatch,
-                            notificationClients: List[ActorRef],
-                            metrics: JobMetrics,
-                            stats: JobStats): JobScheduler = {
+                            jobsObserver: JobsObserver.Observer,
+                            metrics: JobMetrics): JobScheduler = {
     new JobScheduler(
       scheduleHorizon = Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
       taskManager = taskManager,
@@ -102,12 +102,17 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
       curator = curator,
       leaderLatch = leaderLatch,
       leaderPath = config.zooKeeperCandidatePath,
-      notificationClients = notificationClients,
+      jobsObserver = jobsObserver,
       failureRetryDelay = config.failureRetryDelayMs(),
       disableAfterFailures = config.disableAfterFailures(),
-      jobMetrics = metrics,
-      jobStats = stats,
-      clusterName = config.clusterName.get)
+      jobMetrics = metrics)
+  }
+
+  @Singleton
+  @Provides
+  def provideJobsObservers(jobStats: JobStats, notificationClients: List[ActorRef]): JobsObserver.Observer = {
+    val notifier = new JobNotificationObserver(notificationClients, config.clusterName.get)
+    JobsObserver.composite(List(notifier.asObserver, jobStats.asObserver))
   }
 
   @Singleton
@@ -136,8 +141,7 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
       for {
         webhookUrl <- config.slackWebhookUrl.get if !config.slackWebhookUrl.isEmpty
       } yield {
-        create(classOf[SlackClient], webhookUrl)
-      }
+        create(classOf[SlackClient], webhookUrl)}
     ).flatten
   }
 

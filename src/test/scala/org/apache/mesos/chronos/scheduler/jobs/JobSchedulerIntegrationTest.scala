@@ -9,6 +9,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
 class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
+  import MockJobUtils._
 
   "JobScheduler" should {
     "A job creates a failed task and then a successful task from a synchronous job" in {
@@ -19,7 +20,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val persistenceStore = mock[PersistenceStore]
       val mockTaskManager = mock[TaskManager]
 
-      val scheduler = new JobScheduler(epsilon, mockTaskManager, jobGraph, persistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(epsilon, mockTaskManager, jobGraph, persistenceStore)
       val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
       scheduler.leader.set(true)
       scheduler.registerJob(job1, persist = true, startTime)
@@ -46,9 +47,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val mockTaskManager = mock[TaskManager]
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
-      val mockJobStats = mock[JobStats]
+      val mockJobsObserver = mockFullObserver
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mockJobStats)
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, mockJobsObserver)
       scheduler.leader.set(true)
       scheduler.registerJob(job1, persist = true, DateTime.parse("2011-01-01T00:05:01.000Z"))
       scheduler.run(() => {
@@ -64,9 +65,9 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex(jobName).get.successCount must_== 2
       graph.lookupVertex(jobName).get.errorCount must_== 1
 
-      there was one(mockJobStats).jobFinished(job1, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
-      there was one(mockJobStats).jobFinished(job2, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
-      there was one(mockJobStats).jobFailed(job3, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0)
+      there was one(mockJobsObserver).apply(JobFinished(job1, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
+      there was one(mockJobsObserver).apply(JobFinished(job2, TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
+      there was one(mockJobsObserver).apply(JobFailed(Right(job3), TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
     }
 
     "Tests that a disabled job does not run and does not execute dependant children." in {
@@ -80,7 +81,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       scheduler.registerJob(job1, persist = true, DateTime.parse("2011-01-01T00:05:01.000Z"))
       scheduler.registerJob(job2, persist = true, DateTime.parse("2011-01-01T00:05:01.000Z"))
@@ -114,7 +115,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       val date = DateTime.parse("2011-01-01T00:05:01.000Z")
       scheduler.registerJob(job1, persist = true, date)
@@ -170,7 +171,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       val date = DateTime.now(DateTimeZone.UTC)
       scheduler.registerJob(job1, persist = true, date)
@@ -214,7 +215,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       val date = DateTime.now(DateTimeZone.UTC)
       scheduler.registerJob(job1, persist = true, date)
@@ -256,7 +257,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       val date = DateTime.parse("2012-01-01T00:00:00.000Z")
       scheduler.registerJob(job1, persist = true, date)
@@ -350,7 +351,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       val date = DateTime.parse("2011-01-01T00:05:01.000Z")
       scheduler.registerJob(job1, persist = true, date)
@@ -431,7 +432,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val graph = new JobGraph()
       val mockPersistenceStore = mock[PersistenceStore]
 
-      val scheduler = new JobScheduler(horizon, mockTaskManager, graph, mockPersistenceStore, jobMetrics = mock[JobMetrics], jobStats = mock[JobStats])
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
       scheduler.leader.set(true)
       scheduler.registerJob(job1, persist = true, date)
       scheduler.registerJob(job2, persist = true, date)

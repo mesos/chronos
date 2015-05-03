@@ -9,6 +9,7 @@ import com.google.common.util.concurrent.{ListenableFutureTask, ListeningSchedul
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskID, TaskState}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs.stats.{CurrentState, JobStats}
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.{DateTime, DateTimeZone}
@@ -158,7 +159,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     } else {
         val (_, start, attempt, _) = TaskUtils.parseTaskId(taskId)
         val job = jobOption.get
-        jobStats.jobQueued(job, attempt)
+        jobStats.jobQueued(job, taskId, attempt)
     }
   }
 

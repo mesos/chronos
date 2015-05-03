@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 
 import com.codahale.metrics.annotation.Timed
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.mutable.ListBuffer
@@ -33,6 +34,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                                       val jobGraph: JobGraph,
                                       val configuration: SchedulerConfiguration,
                                       val cassandraConfig: CassandraConfiguration,
+                                      val jobStats: JobStats,
                                       val jobMetrics: JobMetrics) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -100,8 +102,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
             }
         }
       }
-      jobScheduler.sendNotification(job, "[Chronos] - Your job '%s' was deleted!".format(jobName))
-
+      // No need to send notifications here, the jobScheduler.deregisterJob will do it
       jobScheduler.deregisterJob(job, persist = true)
       Response.noContent().build
     } catch {
@@ -123,7 +124,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       require(!jobOpt.isEmpty, "Job '%s' not found".format(jobName))
 
       val histoStats = jobMetrics.getJobHistogramStats(jobName)
-      val jobStatsList: List[TaskStat] = jobScheduler.jobStats.getMostRecentTaskStatsByJob(jobOpt.get, cassandraConfig.jobHistoryLimit())
+      val jobStatsList: List[TaskStat] = jobStats.getMostRecentTaskStatsByJob(jobOpt.get, cassandraConfig.jobHistoryLimit())
       val jobStatsWrapper = new JobStatWrapper(jobStatsList, histoStats)
 
       val wrapperStr = objectMapper.writeValueAsString(jobStatsWrapper)
@@ -183,7 +184,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           require(num >= 0,
             "numAdditionalElementsProcessed (%d) is not positive".format(num))
 
-          jobScheduler.jobStats.updateTaskProgress(jobOpt.get, taskId, num)
+          jobStats.updateTaskProgress(jobOpt.get, taskId, num)
         }
         case None =>
       }

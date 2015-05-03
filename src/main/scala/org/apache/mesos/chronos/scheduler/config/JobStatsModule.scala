@@ -1,10 +1,10 @@
 package org.apache.mesos.chronos.scheduler.config
 
-import org.apache.mesos.chronos.scheduler.jobs.JobStats
 import com.datastax.driver.core.Cluster
 import com.datastax.driver.core.ProtocolOptions.Compression
 import com.datastax.driver.core.policies.{DowngradingConsistencyRetryPolicy, LatencyAwarePolicy, RoundRobinPolicy}
 import com.google.inject.{AbstractModule, Provides, Scopes, Singleton}
+import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 
 class JobStatsModule(config: CassandraConfiguration) extends AbstractModule {
   def configure() {
