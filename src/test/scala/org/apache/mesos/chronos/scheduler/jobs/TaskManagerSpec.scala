@@ -26,7 +26,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
 
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
-        mockJobGraph, null, mock[JobStats], mock[MetricRegistry])
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry])
 
       val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
 
