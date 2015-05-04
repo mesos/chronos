@@ -57,10 +57,16 @@ class DependentJobResource @Inject()(
         val parents = jobGraph.parentJobs(newJob)
         oldJob match {
           case j: DependencyBasedJob =>
-            val oldParents = jobGraph.parentJobs(j)
-            oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
+            val newParentNames = parents.map(_.name)
+            val oldParentNames = jobGraph.parentJobs(j).map(_.name)
+
+            if (newParentNames != oldParentNames) {
+              oldParentNames.foreach(jobGraph.removeDependency(_, oldJob.name))
+              newParentNames.foreach(jobGraph.addDependency(_, newJob.name))
+            }
             jobScheduler.removeSchedule(j)
           case j: ScheduleBasedJob =>
+            parents.foreach(p => jobGraph.addDependency(p.name, newJob.name))
         }
 
         jobScheduler.updateJob(oldJob, newJob)
@@ -71,7 +77,6 @@ class DependentJobResource @Inject()(
           new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
           new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
 
-        parents.map(x => jobGraph.addDependency(x.name, newJob.name))
         Response.noContent().build()
       }
     } catch {
