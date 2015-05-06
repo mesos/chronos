@@ -1,5 +1,6 @@
 package org.apache.mesos.chronos.scheduler.jobs.stats
 
+import scala.collection._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
 
@@ -35,7 +36,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   private val TASK_STATE: String = "task_state"
   private val TIMESTAMP: String = "ts"
 
-  protected val jobStates = new scala.collection.mutable.HashMap[String, CurrentState.Value]()
+  protected val jobStates = new mutable.HashMap[String, CurrentState.Value]()
 
   val log = Logger.getLogger(getClass.getName)
   val statements = new ConcurrentHashMap[String, PreparedStatement]().asScala
@@ -210,7 +211,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @return list of past and current running tasks for the job
    */
   private def getParsedTaskStatsByJob(job: BaseJob): List[TaskStat] = {
-    val taskMap = scala.collection.mutable.Map[String, TaskStat]()
+    val taskMap = mutable.Map[String, TaskStat]()
 
     getTaskDataByJob(job).fold {
       log.info("No row list found for jobName=%s".format(job.name))

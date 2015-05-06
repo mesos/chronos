@@ -103,13 +103,15 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       jobScheduler.deregisterJob(job, persist = true)
       Response.noContent().build
     } catch {
-      case ex: IllegalArgumentException =>
+      case ex: IllegalArgumentException => {
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
           .build()
-      case ex: Exception =>
+      }
+      case ex: Exception => {
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response.serverError().build
+      }
     }
   }
 
