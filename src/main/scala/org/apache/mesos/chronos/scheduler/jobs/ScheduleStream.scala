@@ -8,15 +8,13 @@ package org.apache.mesos.chronos.scheduler.jobs
  */
 class ScheduleStream(val schedule: String, val jobName: String, val scheduleTimeZone: String = "") {
 
-  def head(): (String, String, String) = {
-    (schedule, jobName, scheduleTimeZone)
-  }
+  def head: (String, String, String) = (schedule, jobName, scheduleTimeZone)
 
   /**
    * Returns a clipped schedule.
    * @return
    */
-  def tail(): Option[ScheduleStream] = {
+  def tail: Option[ScheduleStream] =
     //TODO(FL) Represent the schedule as a data structure instead of a string.
     Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
       case Some((rec, start, per)) =>
@@ -31,5 +29,4 @@ class ScheduleStream(val schedule: String, val jobName: String, val scheduleTime
       case None =>
         None
     }
-  }
 }

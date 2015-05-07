@@ -5,8 +5,8 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 
-import org.joda.time.{DateTime, Duration}
-import org.joda.time.format.{DateTimeFormat, DateTimeFormatter, PeriodFormat, PeriodFormatter, PeriodFormatterBuilder}
+import org.joda.time.DateTime
+import org.joda.time.format.{DateTimeFormat, PeriodFormatterBuilder}
 
 class JobStatWrapperSerializer extends JsonSerializer[JobStatWrapper] {
   def serialize(jobStat: JobStatWrapper, json: JsonGenerator, provider: SerializerProvider) {
@@ -30,54 +30,40 @@ class JobStatWrapperSerializer extends JsonSerializer[JobStatWrapper] {
       json.writeFieldName("slaveId")
       json.writeString(taskStat.taskSlaveId)
 
-      var fmt = DateTimeFormat.forPattern("MM/dd/yy HH:mm:ss")
+      val fmt = DateTimeFormat.forPattern("MM/dd/yy HH:mm:ss")
+      def writeTime(timeOpt: Option[DateTime]): Unit =
+        timeOpt.fold(json.writeString("N/A"))(dT => json.writeString(fmt.print(dT)))
+
       //always show start time
       json.writeFieldName("startTime")
-      taskStat.taskStartTs match {
-        case Some(dT: DateTime) => {
-          json.writeString(fmt.print(dT))
-        }
-        case None => {
-          json.writeString("N/A")
-        }
-      }
+      writeTime(taskStat.taskStartTs)
       //show either end time or currently running
       json.writeFieldName("endTime")
-      taskStat.taskEndTs match {
-        case Some(dT: DateTime) => {
-          json.writeString(fmt.print(dT))
-        }
-        case None => {
-          json.writeString("N/A")
-        }
-      }
+      writeTime(taskStat.taskEndTs)
 
-      taskStat.taskDuration match {
-        case Some(dur: Duration) => {
+      taskStat.taskDuration.foreach {
+        dur =>
           val pFmt = new PeriodFormatterBuilder()
             .appendDays().appendSuffix("d")
             .appendHours().appendSuffix("h")
             .appendMinutes().appendSuffix("m")
             .printZeroIfSupported()
             .appendSeconds().appendSuffix("s")
-            .toFormatter()
+            .toFormatter
 
             json.writeFieldName("duration")
-            json.writeString(pFmt.print(dur.toPeriod()))
-        }
-        case None =>
+            json.writeString(pFmt.print(dur.toPeriod))
+
       }
 
       json.writeFieldName("status")
-      json.writeString(taskStat.taskStatus.toString())
+      json.writeString(taskStat.taskStatus.toString)
 
       //only write elements processed, ignore numAdditionalElementsProcessed
-      taskStat.numElementsProcessed match {
-        case Some(num: Long) => {
+      taskStat.numElementsProcessed.foreach {
+        num =>
           json.writeFieldName("numElementsProcessed")
           json.writeNumber(num)
-        }
-        case None =>
       }
 
       json.writeEndObject()

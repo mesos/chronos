@@ -15,8 +15,8 @@ case class JobFailed(job: Either[String, BaseJob], taskStatus: TaskStatus, attem
 case class JobDisabled(job: BaseJob, cause: String) extends JobEvent
 case class JobRetriesExhausted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
 case class JobRemoved(job: BaseJob) extends JobEvent
-// For now, Chronos does not expire tasks once they are queued
-//case class JobExpired(job: BaseJob, taskId: String, attempt: Int) extends JobEvent
+// This event is fired when job is disabled (e.g. due to recurrence going to 0) and its queued tasks are purged
+case class JobExpired(job: BaseJob, taskId: String) extends JobEvent
 
 object JobsObserver {
   type Observer = PartialFunction[JobEvent, Unit]
@@ -27,5 +27,11 @@ object JobsObserver {
       log.info(s"$observer does not handle $event")
       Some(Unit)
     })
+  }
+
+  def withName(observer: Observer, name: String): Observer = new Observer {
+    override def isDefinedAt(event: JobEvent) = observer.isDefinedAt(event)
+    override def apply(event: JobEvent): Unit = observer.apply(event)
+    override def toString(): String = name
   }
 }

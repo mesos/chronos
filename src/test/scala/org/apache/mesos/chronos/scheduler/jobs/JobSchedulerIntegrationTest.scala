@@ -26,7 +26,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       scheduler.registerJob(job1, persist = true, startTime)
 
       val newStreams = scheduler.iteration(startTime, scheduler.streams)
-      newStreams(0).schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
+      newStreams.head.schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
 
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
