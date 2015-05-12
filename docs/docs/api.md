@@ -6,7 +6,7 @@ title: REST API
 
 You can communicate with Chronos using a RESTful [JSON][] API over HTTP.
 Chronos nodes usually listen on `port 8080` for API requests.
-All examples in this section assume that you've found a running leader at `chronos-node.airbnb.com:8080`.
+All examples in this section assume that you've found a running leader at `chronos-node:8080`.
 
 - [Leader](#leaders)
 - [Listing Jobs](#listing-jobs)
