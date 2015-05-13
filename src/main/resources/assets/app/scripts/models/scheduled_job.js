@@ -71,7 +71,7 @@ function(Backbone,
 
     url: function(action) {
       return BaseJobModel.prototype.url.call(this, action) ||
-        '/scheduler/iso8601';
+        'scheduler/iso8601';
     },
 
     parse: function(attrs, options) {

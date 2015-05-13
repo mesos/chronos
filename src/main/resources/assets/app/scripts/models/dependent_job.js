@@ -28,7 +28,7 @@ function(Backbone,
   DependentJobModel = BaseJobModel.extend({
     url: function(action) {
       return BaseJobModel.prototype.url.call(this, action) ||
-        '/scheduler/dependency';
+        'scheduler/dependency';
     },
 
     getWhitelist: function() {

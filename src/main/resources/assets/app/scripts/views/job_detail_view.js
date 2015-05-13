@@ -36,11 +36,9 @@ function($,
 
   'use strict';
 
-  var JobDetailView, asyncExecutorPath, Remove;
+  var JobDetailView, Remove;
 
   var LIST_SEPARATOR = ', ';
-
-  asyncExecutorPath = '/srv/mesos/utils/async-executor.arx';
 
   Remove = BoundView.prototype.remove;
 

@@ -32,7 +32,7 @@ function($,
          DotParser) {
   'use strict';
 
-  var DOT_PATH = "/scheduler/graph/dot",
+  var DOT_PATH = "scheduler/graph/dot",
       GraphVizView,
       StandardGraphDecorator,
       StatsGraphDecorator;

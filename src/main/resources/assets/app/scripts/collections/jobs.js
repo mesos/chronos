@@ -13,7 +13,7 @@ define([
   var JobsCollection;
 
   JobsCollection = BaseJobsCollection.extend(_.extend({}, Pollable, {
-    url: '/scheduler/jobs'
+    url: 'scheduler/jobs'
     //url: '/stubs/jobs.json'
   }));
 
