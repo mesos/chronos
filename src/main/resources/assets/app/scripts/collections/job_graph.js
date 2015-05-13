@@ -89,7 +89,7 @@ define([
   JobPathModel = CSVModel.extend({});
 
   JobGraph = Backbone.Collection.extend(_.extend({}, Pollable, {
-    url: '/scheduler/graph/csv',
+    url: 'scheduler/graph/csv',
     //url: '/stubs/graph.csv',
 
     parse: function(response, options) {

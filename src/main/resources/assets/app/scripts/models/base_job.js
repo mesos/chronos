@@ -21,7 +21,6 @@ function($, Backbone, _, moment, BaseJobValidations) {
         encoded;
 
     encoded = _.map(args, function(arg) { return encodeURIComponent(arg); });
-    encoded.unshift('');
     return encoded.join('/');
   }
 

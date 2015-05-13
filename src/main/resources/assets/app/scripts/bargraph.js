@@ -144,27 +144,27 @@ var readableDuration = (function() {
 
 $(function() {
   $("#chart_mean").click( function() {
-    $.getJSON("/scheduler/stats/mean", function(result) {
+    $.getJSON("scheduler/stats/mean", function(result) {
         drawBarChart("mean", result, "#barchart .chart", 10);
     });
   });
   $("#chart_median").click( function() {
-    $.getJSON("/scheduler/stats/median", function(result) {
+    $.getJSON("scheduler/stats/median", function(result) {
         drawBarChart("median", result, "#barchart .chart", 10);
     });
   });
   $("#chart_75").click( function() {
-    $.getJSON("/scheduler/stats/75thPercentile", function(result) {
+    $.getJSON("scheduler/stats/75thPercentile", function(result) {
         drawBarChart("75", result, "#barchart .chart", 10);
     });
   });
   $("#chart_95").click( function() {
-    $.getJSON("/scheduler/stats/95thPercentile", function(result) {
+    $.getJSON("scheduler/stats/95thPercentile", function(result) {
         drawBarChart("95", result, "#barchart .chart", 10);
     });
   });
   $("#chart_99").click( function() {
-    $.getJSON("/scheduler/stats/99thPercentile", function(result) {
+    $.getJSON("scheduler/stats/99thPercentile", function(result) {
         drawBarChart("99", result, "#barchart .chart", 10);
     });
   });
