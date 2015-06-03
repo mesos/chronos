@@ -9,7 +9,8 @@ RUN echo "deb http://repos.mesosphere.io/ubuntu/ trusty main" > /etc/apt/sources
     default-jdk \
     mesos \
     scala \
-    curl
+    curl && \
+    apt-get clean all
 
 ADD . /chronos
 
@@ -17,6 +18,6 @@ WORKDIR /chronos
 
 RUN mvn clean package
 
-EXPOSE 8081
+EXPOSE 8080
 
 ENTRYPOINT ["bin/start-chronos.bash"]
