@@ -1,10 +1,9 @@
 #!/bin/bash
-set -o errexit -o pipefail
+set -o errexit -o nounset -o pipefail
 
 # allow overriding ENTRYPOINT
 # see https://github.com/docker-library/official-images/issues/692
-if [ -z "$1" ] || [ "${1:0:1}" == '-' ]; then
-  set -o errexit -o nounset -o pipefail
+if [ "${1:-absent}" == "absent" ] || [ "${1:0:1}" == '-' ]; then
   flags=( "$@" )
 
   heap=384m
