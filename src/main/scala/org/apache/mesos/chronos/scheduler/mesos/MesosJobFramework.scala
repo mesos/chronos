@@ -328,7 +328,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
   object Resources {
     def apply(offer: Offer): Resources = {
-      val resources = offer.getResourcesList.asScala.filter(r => !r.hasRole || r.getRole == config.mesosRole())
+      val resources = offer.getResourcesList.asScala.filter(r => !r.hasRole || r.getRole == "*" || r.getRole == config.mesosRole())
       new Resources(
         getScalarValueOrElse(resources.find(_.getName == "cpus"), 0),
         getScalarValueOrElse(resources.find(_.getName == "mem"), 0),
