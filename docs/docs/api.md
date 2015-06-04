@@ -352,6 +352,18 @@ Schedule a job on nodes that share a common attribute.
 ...
 "constraints": [["rack", "EQUALS", "rack-1"]],
 ...
+```
 
+### LIKE constraint
+
+Schedule jobs on nodes which attributes match a regular expression.
+
+```json
+...
+"constraints": [["rack", "LIKE", "rack-[1-3]"]],
+...
+```
+
+**Note:** This constraint applies to attributes of type `text` and `scalar` and elements in a `set`, but not `range`.
 
 [json]: http://www.json.org/
