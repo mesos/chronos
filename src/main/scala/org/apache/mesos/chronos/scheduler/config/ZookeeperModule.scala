@@ -31,7 +31,7 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   def provideZookeeperClient(): CuratorFramework = {
     val curator = CuratorFrameworkFactory.builder()
       .connectionTimeoutMs(config.zooKeeperTimeout().toInt)
-      .canBeReadOnly(true)
+      .canBeReadOnly(false)
       .connectString(validateZkServers())
       .retryPolicy(new ExponentialBackoffRetry(1000, 10))
       .build()
