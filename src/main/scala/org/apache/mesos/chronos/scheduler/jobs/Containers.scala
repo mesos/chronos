@@ -27,4 +27,5 @@ case class Volume(
 case class DockerContainer(
                             @JsonProperty image: String,
                             @JsonProperty volumes: Seq[Volume],
-                            @JsonProperty network: NetworkMode = NetworkMode.HOST)
+                            @JsonProperty network: NetworkMode = NetworkMode.HOST,
+                            @JsonProperty forcePullImage: Boolean = false)
