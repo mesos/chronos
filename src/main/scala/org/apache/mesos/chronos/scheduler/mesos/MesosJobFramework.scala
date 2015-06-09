@@ -175,9 +175,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
       )
       if (status == Protos.Status.DRIVER_RUNNING) {
         for (task <- tasks) {
-          val deleted = taskManager.removeTask(task._1)
-          log.fine("Successfully launched task '%s' via chronos, task records successfully deleted: '%b'"
-            .format(task._1, deleted))
           runningTasks.put(task._2.name, new ChronosTask(task._3.getSlaveId.getValue))
 
           //TODO(FL): Handle case if chronos can't launch the task.
@@ -228,7 +225,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
         log.info("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
         scheduler.handleFailedTask(taskStatus)
       case TaskState.TASK_RUNNING =>
-        log.info("Task with id '%s' RUNNING.".format(taskStatus.getTaskId.getValue))
+        log.info("Task with id '%s' RUNNING. Removing persistence task.".format(taskStatus.getTaskId.getValue))
+        taskManager.removeTask(taskStatus.getTaskId.getValue)
       case TaskState.TASK_KILLED =>
         log.info("Task with id '%s' KILLED.".format(taskStatus.getTaskId.getValue))
         scheduler.handleKilledTask(taskStatus)
