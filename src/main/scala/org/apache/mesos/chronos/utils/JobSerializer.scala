@@ -134,6 +134,8 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeEndObject()
       }
       json.writeEndArray()
+      json.writeFieldName("forcePullImage")
+      json.writeBoolean(baseJob.container.forcePullImage)
       json.writeEndObject()
     }
 

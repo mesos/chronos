@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer,
 import org.joda.time.Period
 
 import scala.collection.JavaConversions._
+import scala.util.Try
 
 object JobDeserializer {
   var config: SchedulerConfiguration = _
@@ -163,7 +164,12 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
             Volume(hostPath, node.get("containerPath").asText, mode)
         }.foreach(volumes.add)
       }
-      container = DockerContainer(containerNode.get("image").asText, volumes, networkMode)
+
+      val forcePullImage =
+        if (containerNode.has("forcePullImage") && containerNode.get("forcePullImage") != null)
+          Try(containerNode.get("forcePullImage").asText.toBoolean).getOrElse(false)
+        else false
+      container = DockerContainer(containerNode.get("image").asText, volumes, networkMode, forcePullImage)
     }
 
     val constraints = scala.collection.mutable.ListBuffer[Constraint]()

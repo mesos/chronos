@@ -191,7 +191,7 @@ Here is a more elaborate example for a dependency job hash:
 ###Adding a Docker Job
 
 A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
-To configure it, an additional container argument is required, which contains a type (req), an image (req), a network mode (optional) and volumes (optional). 
+To configure it, an additional container argument is required, which contains a type (req), an image (req), a network mode (optional), mounted volumes (optional) and if mesos should always pull latest image before executing (optional).
 
 * Endpoint: __/scheduler/iso8601__ or __/scheduler/dependency__
 * Method: __POST__
@@ -215,6 +215,24 @@ To configure it, an additional container argument is required, which contains a 
  "command": "while sleep 10; do date =u %T; done"
 }
 ```
+
+Mesos 0.22.0 added support to forcably pulling the latest version of your
+Docker image before launching the task, and this behavious can be enabled in
+Chronos by adding the `forcePullImage` boolean to your container configuration.
+
+```json
+{
+  "container": {
+    "type": "DOCKER",
+    "image": "libmesos/ubuntu",
+    "forcePullImage": true
+  }
+}
+```
+
+Chronos will default to not doing a `docker pull` if the image is already found
+on the executing node. The alternative approach is to use versions/tags for
+your images.
 
 ###Updating Task Progress
 
@@ -302,7 +320,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | scheduleTimeZone    | The time zone for the given schedule.                                    | -                              |
 | parents             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
 | runAsUser           | Mesos will run the job as this user, if specified.                                                       | `--user`                       |
-| container           | This contains the subfields for the container, type (req), image (req), network (optional) and volumes (optional).          | -                              |
+| container           | This contains the subfields for the container, type (req), image (req), forcePullImage (optional), network (optional) and volumes (optional).          | -                              |
 | dataJob             | Toggles whether the job tracks data (number of elements processed)                                       | `false`                        |
 | environmentVariables| An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the -e flag. | -                              |
 | constraints         | Control where jobs run. Each constraint is compared against the [attributes of a Mesos slave](http://mesos.apache.org/documentation/attributes-resources/). See [Constraints](#constraints). | - |
