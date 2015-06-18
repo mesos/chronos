@@ -91,7 +91,7 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
     val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperCandidatePath)
     ensurePath.ensure(curator.getZookeeperClient)
 
-    val id = "%s:%d".format(config.hostname(), config.httpPort())
+    val id = "%s:%d".format(config.hostname(), if (config.portOnHost.isEmpty) config.httpPort() else config.portOnHost())
     new LeaderLatch(curator, config.zooKeeperCandidatePath, id)
   }
 }

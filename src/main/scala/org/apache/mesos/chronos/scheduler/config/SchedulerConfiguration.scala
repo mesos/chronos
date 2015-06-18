@@ -113,7 +113,11 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val mesosAuthenticationSecretFile = opt[String]("mesos_authentication_secret_file",
     descr = "Mesos Authentication Secret",
     noshort = true)
-
+  // If Chronos run in Docker with --net=bridge, it should register visitable host:port on zookeeper for proxy.
+  lazy val portOnHost = opt[Int]("port_on_host",
+    descr = "Chronos port on host if using Docker BRIDGE network",
+    noshort = true,
+    default = None)
 
   def zooKeeperHostAddresses: Seq[InetSocketAddress] =
     for (s <- zookeeperServers().split(",")) yield {
