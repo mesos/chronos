@@ -51,6 +51,7 @@ You must not remove this notice, or any other, from this software.
 * Florian Leibert ([@flo](http://twitter.com/flo))
 * Andy Kramolisch ([@andykram](https://github.com/andykram))
 * Harry Shoff ([@hshoff](https://twitter.com/hshoff))
+* Elizabeth Lingg
 
 ## Reporting Bugs
 
