@@ -79,6 +79,7 @@ You can manually start a job by issuing an HTTP request.
 
 The heart of job scheduling is a JSON POST request.
 The JSON hash you send to Chronos should contain the following fields:
+
 * Name: the job name
 * Command: the actual command that will be executed by Chronos
 * Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
