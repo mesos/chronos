@@ -1,5 +1,7 @@
 package org.apache.mesos.chronos.utils
 
+import java.util.regex.Pattern
+
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs._
 import org.apache.mesos.chronos.scheduler.jobs.constraints._
@@ -178,6 +180,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         c.get(1).asText match {
           case EqualsConstraint.OPERATOR =>
             constraints.add(EqualsConstraint(c.get(0).asText, c.get(2).asText))
+          case LikeConstraint.OPERATOR =>
+            constraints.add(LikeConstraint(c.get(0).asText, c.get(2).asText))
           case _ =>
         }
       }
