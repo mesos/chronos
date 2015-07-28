@@ -24,9 +24,9 @@ It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval 
 
 ## Documentation and Support
 
-Chronos documentation is available on the [Chronos GitHub pages site](http://mesos.github.io/chronos/).
+Chronos documentation is available on the [Chronos GitHub pages site](https://mesos.github.io/chronos/).
 
-Documentation for installing and configuring the full Mesosphere stack including Mesos and Chronos is available on the [Mesosphere website](http://docs.mesosphere.com).
+Documentation for installing and configuring the full Mesosphere stack including Mesos and Chronos is available on the [Mesosphere website](https://docs.mesosphere.com).
 
 For questions and discussions around Chronos, please use the Google Group "chronos-scheduler":
 [Chronos Scheduler Group](https://groups.google.com/forum/#!forum/chronos-scheduler).
