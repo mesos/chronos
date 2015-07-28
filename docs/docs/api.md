@@ -306,7 +306,7 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 | executorFlags       | Flags to pass to Mesos executor.                                                                         | -                              |
 | retries             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | owner               | Email addresses to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
-| owner name          | Name of the individual responsible for the job.                                                          | -                              |
+| ownerName           | Name of the individual responsible for the job.                                                          | -                              |
 | async               | Execute using Async executor.                                                                            | `false`                        |
 | successCount        | Number of successes since the job was last modified.                                                     | -                              |
 | errorCount          | Number of errors since the job was last modified.                                                        | -                              |
