@@ -66,14 +66,21 @@ Deleting tasks for a job is useful if a job gets stuck. Get a job name from the 
 
 ### Manually Starting a Job
 
-You can manually start a job by issuing an HTTP request.
+You can manually start a job by issuing an HTTP request. You can optionally pass job parameters as JSON hash in request body. Job parameters hash supports the following properties:
+* `"arguments"`: list of command line arguments which is appended to `arguments` defined in job config. If job's `shell` is true `arguments` will be ignored
+
+Here is an example job parameters hash:
+```
+{
+  "arguments":["--debug","true"]
+}
+```
 
 * Endpoint: __/scheduler/job__
 * Method: __PUT__
-* Query string parameters: `arguments` - optional string with a list of command line arguments that is appended to job's `command`
-  * If job's `shell` is true `arguments` will be ignored.
+* Request body: `{"arguments":["-verbose"]}` - optional JSON payload with `JobParams`
 * Example: `curl -L -X PUT chronos-node:8080/scheduler/job/request_event_counter_hourly`
-* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/job_name?arguments=-debug`
+* Example: `curl -L -H 'Content-Type: application/json' -X -d '{job parameters hash}' PUT chronos-node:8080/scheduler/job/job_name`
 * Response: HTTP 204
 
 ### Adding a Scheduled Job
