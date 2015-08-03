@@ -81,61 +81,49 @@ You can manually start a job by issuing an HTTP request.
 The heart of job scheduling is a JSON POST request.
 The JSON hash you send to Chronos should contain the following fields:
 
-* Name: the job name
-* Command: the actual command that will be executed by Chronos
-* Schedule: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by '/':
-    * Number of times to repeat the job; put just 'R' to repeat forever
-    * The start time of the job, an empty start time means start immediately. Our format is ISO8601:
-      
-        YYYY-MM-DDThh:mm:ss.sTZD (eg 1997-07-16T19:20:30.45+01:00) where:
+* `Name`: the job name
+* `Command`: the actual command that will be executed by Chronos
+* `Schedule`: The scheduling for the job, in ISO8601 format. Consists of 3 parts separated by `/`:
+    * Number of times to repeat the job; put just `R` to repeat forever
+    * The start time of the job, an empty start time means start immediately. Our format is [ISO8601](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDThh:mm:ss.sTZD` (e.g., `1997-07-16T19:20:30.45+01:00`) where:
 
-      YYYY = four-digit year
+      * `YYYY` = four-digit year
+      * `MM`   = two-digit month (01=January, etc.)
+      * `DD`   = two-digit day of month (01 through 31)
+      * `hh`   = two digits of hour (00 through 23) (am/pm NOT allowed)
+      * `mm`   = two digits of minute (00 through 59)
+      * `ss`   = two digits of second (00 through 59)
+      * `s`    = one or more digits representing a decimal fraction of a second
+      * `TZD`  = time zone designator (`Z` or `+hh:mm` or `-hh:mm`)
 
-        MM   = two-digit month (01=January, etc.)
+  * The run interval; defined as follows:
 
-      DD   = two-digit day of month (01 through 31)
-
-      hh   = two digits of hour (00 through 23) (am/pm NOT allowed)
-
-      mm   = two digits of minute (00 through 59)
-
-      ss   = two digits of second (00 through 59)
-
-      s    = one or more digits representing a decimal fraction of a second
-
-      TZD  = time zone designator (Z or +hh:mm or -hh:mm)
-
-    * The run interval; defined as follows:
-    
-        P10M=10 months
-        
-        PT10M=10 minutes
-            
-        P1Y12M12D=1 years plus 12 months plus 12 days
-            
-        P12DT12M=12 days plus 12 minutes
-        
-        P1Y2M3DT4H5M6S = P(eriod) 1Y(ear)2M(onth)3D(ay) T(ime) 4H(our)5M(inute)6S(econd)
-        
-        P is required. T is for distinguishing M(inute) and M(onth), it is required when Hour/Minute/Second exists.
+        * P10M=10 months
+        * PT10M=10 minutes
+        * P1Y12M12D=1 years plus 12 months plus 12 days
+        * P12DT12M=12 days plus 12 minutes
+        * P1Y2M3DT4H5M6S = P(eriod) 1Y(ear)2M(onth)3D(ay) T(ime) 4H(our)5M(inute)6S(econd)
+        * `P` is required. `T` is for distinguishing M(inute) and M(onth), it is required when Hour/Minute/Second exists.
 
 
 * ScheduleTimeZone: The time zone name to use when scheduling the job.
   * This field takes precedence over any time zone specified in Schedule.
   * All system time zones supported by [`java.util.TimeZone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
     * See [List of tz database time zones](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
-  * For example, the effective time zone for the following is `Pacific Standard Time`
-    * ```json
-      {
-        "schedule": "R/2014-10-10T18:32:00Z/PT60M",
-        "scheduleTimeZone": "PST"
-      }
-      ```
+  * For example, the effective time zone for the following is `Pacific Standard Time`:
+
+        ```json
+        {
+          "schedule": "R/2014-10-10T18:32:00Z/PT60M",
+          "scheduleTimeZone": "PST"
+        }
+        ```
 * Epsilon: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an [ISO 8601 Duration](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 * Owner: the email address of the person responsible for the job
 * Async: whether the job runs in the background
 
 Here is an example job hash:
+
 ```json
 {
   "schedule": "R10/2012-10-01T05:52:00Z/PT2S",
@@ -151,9 +139,7 @@ Once you've generated the hash, send it to Chronos like so:
 
 * Endpoint: __/scheduler/iso8601__
 * Method: __POST__
-* Example:
-
-        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+* Example: `curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601`
 
 * Response: HTTP 204
 
@@ -165,9 +151,7 @@ This should be a JSON list of all jobs which must run at least once before this 
 
 * Endpoint: __/scheduler/dependency__
 * Method: __POST__
-* Example:
-
-        curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/scheduler/dependency
+* Example: `curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/scheduler/dependency`
 
 Here is a more elaborate example for a dependency job hash:
 
@@ -190,16 +174,14 @@ Here is a more elaborate example for a dependency job hash:
 }
 ```
 
-###Adding a Docker Job
+### Adding a Docker Job
 
 A docker job takes the same format as a scheduled job or a dependency job and runs on a docker container.
 To configure it, an additional container argument is required, which contains a type (req), an image (req), a network mode (optional), mounted volumes (optional) and if mesos should always pull latest image before executing (optional).
 
 * Endpoint: __/scheduler/iso8601__ or __/scheduler/dependency__
 * Method: __POST__
-* Example:
-
-        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+* Example: `curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601`
 
 ```json
 {
@@ -236,17 +218,15 @@ Chronos will default to not doing a `docker pull` if the image is already found
 on the executing node. The alternative approach is to use versions/tags for
 your images.
 
-###Updating Task Progress
+### Updating Task Progress
 
 Task progress can be updated by providing the number of additional elements processed. This will increment the existing count of elements processed.
 A job name, task id, and number of additional elements (numAdditionalElementsProcessed) is required to update.
 This API endpoint requires Cassandra to be present in the cluster.
 
-* Endpoint: __/scheduler/job/<jobName>/task/<taskId>/progress__
+* Endpoint: __/scheduler/job/\<jobName\>/task/\<taskId\>/progress__
 * Method: __POST__
-* Example:
-
-        curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/job/NewJob/task/ct%3A1428515194358%3A0%3ANewJob%3A/progress
+* Example: `curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/job/NewJob/task/ct%3A1428515194358%3A0%3ANewJob%3A/progress`
 
 ```json
 {
@@ -261,10 +241,7 @@ Chronos allows to describe the dependency graph and has an endpoint to return th
 
 * Endpoint: __/scheduler/graph/dot__
 * Method: __GET__
-* Example:
-```bash
-    curl -L -X GET chronos-node:8080/scheduler/graph/dot
-```
+* Example: `curl -L -X GET chronos-node:8080/scheduler/graph/dot`
 
 ### Asynchronous Jobs
 
@@ -272,17 +249,14 @@ If your job is long-running, you may want to run it asynchronously.
 In this case, you need to do two things:
 
 1. When adding your job, ensure it is set as asynchronous.
-2. Your, job, when complete, should reports its completion status to Chronos.
+2. Your job, when complete, should reports its completion status to Chronos.
 
 If you forget to do (2), your job will never run again because Chronos will think that it is still running.
 Reporting job completion to Chronos is done via another API call:
 
-* Endpoint: __/scheduler/task/*task id*__
+* Endpoint: __/scheduler/task/\<task id\>__
 * Method: __PUT__
-* Example:
-```bash
-    curl -L -X PUT -H "Content-Type: application/json" -d '{"statusCode":0}' chronos-node:8080/scheduler/task/my_job_run_555_882083xkj302
-```
+* Example: `curl -L -X PUT -H "Content-Type: application/json" -d '{"statusCode":0}' chronos-node:8080/scheduler/task/my_job_run_555_882083xkj302`
 
 The task id is auto-generated by Chronos. It will be available in your job's environment as `$mesos_task_id`.
 
@@ -369,9 +343,11 @@ you can also use a url in the command field, if your mesos was compiled with cUR
 Schedule a job on nodes that share a common attribute.
 
 ```json
+{
 ...
 "constraints": [["rack", "EQUALS", "rack-1"]],
 ...
+}
 ```
 
 ### LIKE constraint
@@ -379,9 +355,11 @@ Schedule a job on nodes that share a common attribute.
 Schedule jobs on nodes which attributes match a regular expression.
 
 ```json
+{
 ...
 "constraints": [["rack", "LIKE", "rack-[1-3]"]],
 ...
+}
 ```
 
 **Note:** This constraint applies to attributes of type `text` and `scalar` and elements in a `set`, but not `range`.
