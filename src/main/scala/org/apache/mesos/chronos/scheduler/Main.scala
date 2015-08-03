@@ -1,7 +1,7 @@
 package org.apache.mesos.chronos.scheduler
 
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.Logger
+import java.util.logging.{ Level, Logger }
 
 import org.apache.mesos.chronos.scheduler.api._
 import org.apache.mesos.chronos.scheduler.config._
@@ -47,7 +47,8 @@ object Main extends App {
       classOf[MetricReporterService]
     )
   } catch {
-      case _ =>
+      case t: Throwable =>
+        log.log(Level.SEVERE, s"Chronos has exited because of an unexpected error: ${t.getMessage}", t)
         System.exit(1)
   }
 }

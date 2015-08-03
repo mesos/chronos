@@ -23,7 +23,7 @@ trait NotificationClient extends Actor {
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String])
 
   def receive = {
-    case (job: BaseJob, to: String, subject: String, message: Option[String]) =>
+    case (job: BaseJob, to: String, subject: String, message: Option[String] @unchecked) =>
       try {
         sendNotification(job, to, subject, message)
       } catch {
