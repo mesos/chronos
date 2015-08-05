@@ -82,13 +82,9 @@ For more information on configuration options, please see [Configuration]({{ sit
 
 ### Example Run Scripts
 
-* Example [runit](http://smarden.org/runit/) run script
+* Example [runit](http://smarden.org/runit/) run script: [bin/run](https://github.com/mesos/chronos/blob/master/bin/run)
 
-    [bin/run](https://github.com/mesos/chronos/blob/master/bin/run)
-
-* Example local run script
-
-    [bin/start-chronos.bash](https://github.com/mesos/chronos/blob/master/bin/start-chronos.bash)
+* Example local run script: [bin/start-chronos.bash](https://github.com/mesos/chronos/blob/master/bin/start-chronos.bash)
 
 
 [Mesos]: https://mesos.apache.org/ "Apache Mesos"
