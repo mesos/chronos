@@ -113,6 +113,16 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val mesosAuthenticationSecretFile = opt[String]("mesos_authentication_secret_file",
     descr = "Mesos Authentication Secret",
     noshort = true)
+  lazy val reviveOffersForNewJobs = opt[Boolean]("revive_offers_for_new_jobs",
+    descr = "Whether to call reviveOffers for new or changed jobs. (Default: do not use reviveOffers) ",
+    default = Some(false))
+  lazy val declineOfferDuration = opt[Long]("decline_offer_duration",
+    descr = "(Default: Use mesos default of 5 seconds) " +
+      "The duration (milliseconds) for which to decline offers by default",
+    default = None)
+  lazy val minReviveOffersInterval = opt[Long]("min_revive_offers_interval",
+    descr = "Do not ask for all offers (also already seen ones) more often than this interval (ms). (Default: 5000)",
+    default = Some(5000))
 
 
   def zooKeeperHostAddresses: Seq[InetSocketAddress] =

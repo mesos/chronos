@@ -8,9 +8,10 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.{ListenableFutureTask, ListeningScheduledExecutorService}
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskID, TaskState}
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.stats.{CurrentState, JobStats}
-import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
+import org.apache.mesos.chronos.scheduler.mesos.{ MesosDriverFactory, MesosOfferReviver }
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.{DateTime, DateTimeZone}
 
@@ -26,7 +27,9 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
                             val jobGraph: JobGraph,
                             val mesosDriver: MesosDriverFactory,
                             val jobsObserver: JobsObserver.Observer,
-                            val registry: MetricRegistry) {
+                            val registry: MetricRegistry,
+                            val config: SchedulerConfiguration,
+                            val mesosOfferReviver: MesosOfferReviver) {
 
   val log = Logger.getLogger(getClass.getName)
 
@@ -160,6 +163,10 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
         val job = jobOption.get
         jobsObserver.apply(JobQueued(job, taskId, attempt))
+    }
+
+    if (config.reviveOffersForNewJobs()) {
+      mesosOfferReviver.reviveOffers()
     }
   }
 

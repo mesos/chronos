@@ -1,14 +1,15 @@
 package org.apache.mesos.chronos.scheduler.mesos
 
+import java.io.{ FileInputStream, IOException }
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{ Files, Paths }
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.Protos.{Credential, FrameworkInfo, Status}
-import org.apache.mesos.{MesosSchedulerDriver, Scheduler}
 import com.google.protobuf.ByteString
-import java.io.{File, FileInputStream, IOException}
-import java.nio.file.{Files, Paths}
-import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
+import org.apache.mesos.Protos.{ Credential, FrameworkInfo, Status }
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.{ MesosSchedulerDriver, Scheduler, SchedulerDriver }
+
 import scala.collection.JavaConverters.asScalaSetConverter
 
 /**
@@ -20,7 +21,7 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  var mesosDriver: Option[MesosSchedulerDriver] = None
+  var mesosDriver: Option[SchedulerDriver] = None
 
   def start() {
     val status = get().start()
@@ -30,7 +31,7 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
     }
   }
 
-  def get(): MesosSchedulerDriver = {
+  def get(): SchedulerDriver = {
     if (mesosDriver.isEmpty) {
       makeDriver()
     }
