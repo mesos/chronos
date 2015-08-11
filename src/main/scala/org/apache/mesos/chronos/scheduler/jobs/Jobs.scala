@@ -1,7 +1,7 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
 import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
-import org.apache.mesos.chronos.utils.JobDeserializer
+import org.apache.mesos.chronos.utils.{JobParamsDeserializer, JobDeserializer}
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.joda.time.{Minutes, Period}
@@ -151,3 +151,8 @@ case class DependencyBasedJob(
                                @JsonProperty override val dataProcessingJobType: Boolean = false,
                                @JsonProperty override val constraints: Seq[Constraint] = List())
   extends BaseJob
+
+@JsonDeserialize(using = classOf[JobParamsDeserializer])
+class JobParams (
+  @JsonProperty val arguments: Seq[String] = List()
+)

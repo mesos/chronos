@@ -142,14 +142,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Path(PathConstants.jobPatternPath)
   @PUT
   @Timed
-  def trigger(@PathParam("jobName") jobName: String,
-              @QueryParam("arguments") arguments: String
-               ): Response = {
+  def trigger(@PathParam("jobName") jobName: String, jobParams: JobParams): Response = {
     try {
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
-      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0), job.highPriority)
+
+      var extraJobArguments = Option(jobParams).map(_.arguments).getOrElse(List.empty);
+      log.info("JobParams.arguments: " + extraJobArguments.toString())
+
+      val taskId = TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0, extraJobArguments)
+      jobScheduler.taskManager.enqueue(taskId, job.highPriority)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException =>
