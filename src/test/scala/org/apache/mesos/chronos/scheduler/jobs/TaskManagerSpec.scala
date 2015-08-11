@@ -1,19 +1,32 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.mesos.MesosOfferReviver
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.ListeningScheduledExecutorService
 import org.joda.time._
+import org.rogach.scallop.ScallopConf
 import org.specs2.mock._
 import org.specs2.mutable._
 
 class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
 
+  private[this] def makeConfig(args: String*): SchedulerConfiguration = {
+    val opts = new ScallopConf(args) with SchedulerConfiguration {
+      // scallop will trigger sys exit
+      override protected def onError(e: Throwable): Unit = throw e
+    }
+    opts.afterInit()
+    opts
+  }
+
   "TaskManager" should {
     "Calculate the correct time delay between scheduling and dispatching the job" in {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mock[PersistenceStore],
-        mock[JobGraph], null, MockJobUtils.mockFullObserver, mock[MetricRegistry])
+        mock[JobGraph], null, MockJobUtils.mockFullObserver, mock[MetricRegistry], makeConfig(),
+        mock[MesosOfferReviver])
       val millis = taskManager.getMillisUntilExecution(new DateTime(DateTimeZone.UTC).plus(Hours.ONE))
       val expectedSeconds = scala.math.round(Period.hours(1).toStandardDuration.getMillis / 1000d)
       //Due to startup time / JVM overhead, millis wouldn't be totally accurate.
@@ -26,7 +39,8 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
 
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
-        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry])
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], makeConfig(),
+        mock[MesosOfferReviver])
 
       val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
 
@@ -38,6 +52,40 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       taskManager.getTask must_== None
 
       there was one(mockPersistencStore).removeTask("ct:1420843781398:0:test:")
+    }
+
+    "Revive offers when adding a new task and --revive_offers_for_new_jobs is set" in {
+      val mockJobGraph = mock[JobGraph]
+      val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val config = makeConfig("--revive_offers_for_new_jobs")
+
+      val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
+
+      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
+
+      taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
+
+      there was one(mockMesosOfferReviver).reviveOffers
+    }
+
+    "Don't revive offers when adding a new task and --revive_offers_for_new_jobs is not set" in {
+      val mockJobGraph = mock[JobGraph]
+      val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val config = makeConfig()
+
+      val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
+
+      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
+
+      taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
+
+      there were noCallsTo(mockMesosOfferReviver)
     }
   }
 }

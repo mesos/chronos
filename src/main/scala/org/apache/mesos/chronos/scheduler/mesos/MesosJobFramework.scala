@@ -27,7 +27,8 @@ class MesosJobFramework @Inject()(
                                    val taskManager: TaskManager,
                                    val config: SchedulerConfiguration,
                                    val frameworkIdUtil: FrameworkIdUtil,
-                                   val taskBuilder: MesosTaskBuilder)
+                                   val taskBuilder: MesosTaskBuilder,
+                                   val mesosOfferReviver: MesosOfferReviver)
   extends Scheduler {
 
   val frameworkName = "chronos"
@@ -40,17 +41,19 @@ class MesosJobFramework @Inject()(
   def registered(schedulerDriver: SchedulerDriver, frameworkID: FrameworkID, masterInfo: MasterInfo) {
     import mesosphere.util.BackToTheFuture.Implicits.defaultTimeout
 
-import scala.concurrent.ExecutionContext.Implicits.global
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     log.info("Registered")
     log.info("Master info:" + masterInfo.toString)
     frameworkIdUtil.store(frameworkID)
+    mesosOfferReviver.reviveOffers()
   }
 
   /* Overridden methods from MesosScheduler */
   @Override
   def reregistered(schedulerDriver: SchedulerDriver, masterInfo: MasterInfo) {
     log.warning("Reregistered")
+    mesosOfferReviver.reviveOffers()
   }
   JobDeserializer.config = config
 
@@ -76,25 +79,38 @@ import scala.concurrent.ExecutionContext.Implicits.global
   //          entire task stream.
   @Override
   def resourceOffers(schedulerDriver: SchedulerDriver, receivedOffers: java.util.List[Offer]) {
-    log.info("Received resource offers\n")
+    log.info("Received resource offers")
     import scala.collection.JavaConverters._
 
     val offers = receivedOffers.asScala.toList
     val offerResources = mutable.HashMap(offers.map(o => (o, Resources(o))).toSeq: _*)
     val tasksToLaunch = generateLaunchableTasks(offerResources)
 
-    log.info("Declining unused offers.\n")
+    log.info("Declining unused offers.")
     val usedOffers = mutable.HashSet(tasksToLaunch.map(_._3.getId.getValue): _*)
 
     offers.foreach(o => {
       if (!usedOffers.contains(o.getId.getValue))
-        mesosDriver.get().declineOffer(o.getId)
+        mesosDriver.get().declineOffer(o.getId, declineOfferFilters)
     })
+
+    log.info(s"Declined unused offers with filter refuseSeconds=${declineOfferFilters.getRefuseSeconds} " +
+      s"(use --${config.declineOfferDuration.name} to reconfigure)")
 
     launchTasks(tasksToLaunch)
 
     // Perform a reconciliation, if needed.
     reconcile(schedulerDriver)
+  }
+
+  private[this] lazy val declineOfferFilters: Filters = {
+    config.declineOfferDuration.get match {
+      case Some(durationInMs) =>
+        val declineSeconds = durationInMs / 1000.0
+        Filters.newBuilder().setRefuseSeconds(declineSeconds).build()
+      case None =>
+        Filters.getDefaultInstance
+    }
   }
 
   def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): mutable.Buffer[(String, BaseJob, Offer)] = {
