@@ -62,6 +62,11 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
                                                 specified with the
                                                 `MESOSPHERE_HTTP_CREDENTIALS`
                                                 environment variable.
+    --http_notification_url  <arg>              The http URL for failure
+                                                notifications
+    --http_notification_credentials  <arg>      Credentials for calling the
+                                                http notification URL. A 
+                                                username:password pair is expected.
     --http_port  <arg>                          The port to listen on for HTTP
                                                 requests (default = 8080)
     --http_realm  <arg>                         The security realm (aka 'area')

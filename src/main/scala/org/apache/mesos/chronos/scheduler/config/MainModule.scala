@@ -8,7 +8,7 @@ import javax.inject.Named
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import com.codahale.metrics.MetricRegistry
-import org.apache.mesos.chronos.notification.{JobNotificationObserver, MailClient, RavenClient, SlackClient}
+import org.apache.mesos.chronos.notification.{JobNotificationObserver, MailClient, RavenClient, SlackClient, HttpClient}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.jobs.{JobsObserver, JobMetrics, JobScheduler, TaskManager}
@@ -146,7 +146,13 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
       for {
         webhookUrl <- config.slackWebhookUrl.get if !config.slackWebhookUrl.isEmpty
       } yield {
-        create(classOf[SlackClient], webhookUrl)}
+        create(classOf[SlackClient], webhookUrl)
+      },
+      for {
+        endpointUrl <- config.httpNotificationUrl.get if !config.httpNotificationUrl.isEmpty
+      } yield {
+        create(classOf[HttpClient], endpointUrl, config.httpNotificationCredentials.get)
+      }
     ).flatten
   }
 

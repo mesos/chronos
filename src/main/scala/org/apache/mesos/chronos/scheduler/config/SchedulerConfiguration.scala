@@ -70,6 +70,12 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val slackWebhookUrl = opt[String]("slack_url",
     descr = "Webhook URL for posting to Slack",
     default = None)
+  lazy val httpNotificationUrl = opt[String]("http_notification_url",
+    descr = "Http URL for notifying failures",
+    default = None)
+  lazy val httpNotificationCredentials = opt[String]("http_notification_credentials",
+    descr = "Http notification URL credentials in format username:password",
+    default = None)
   lazy val failureRetryDelayMs = opt[Long]("failure_retry",
     descr = "Number of ms between retries",
     default = Some(60000))
