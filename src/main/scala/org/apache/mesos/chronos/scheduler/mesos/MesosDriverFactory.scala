@@ -1,59 +1,47 @@
 package org.apache.mesos.chronos.scheduler.mesos
 
-import java.io.{ FileInputStream, IOException }
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{ Files, Paths }
 import java.util.logging.Logger
 
-import com.google.protobuf.ByteString
-import org.apache.mesos.Protos.{ Credential, FrameworkInfo, Status }
+import mesosphere.chaos.http.HttpConf
+import mesosphere.mesos.util.FrameworkIdUtil
+import org.apache.mesos.Protos.{ FrameworkID, Status }
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.{ MesosSchedulerDriver, Scheduler, SchedulerDriver }
-
-import scala.collection.JavaConverters.asScalaSetConverter
+import org.apache.mesos.{ Scheduler, SchedulerDriver }
 
 /**
  * The chronos driver doesn't allow calling the start() method after stop() has been called, thus we need a factory to
  * create a new driver once we call stop() - which will be called if the leader abdicates or is no longer a leader.
  * @author Florian Leibert (flo@leibert.de)
  */
-class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: FrameworkInfo, val config: SchedulerConfiguration) {
+class MesosDriverFactory(
+                          scheduler: Scheduler,
+                          frameworkIdUtil: FrameworkIdUtil,
+                          config: SchedulerConfiguration with HttpConf,
+                          schedulerDriverBuilder: SchedulerDriverBuilder = new SchedulerDriverBuilder) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
   var mesosDriver: Option[SchedulerDriver] = None
 
-  def start() {
+  def start(): Unit = {
     val status = get().start()
     if (status != Status.DRIVER_RUNNING) {
-      log.severe(s"MesosSchedulerDriver start resulted in status:$status. Committing suicide!")
+      log.severe(s"MesosSchedulerDriver start resulted in status: $status. Committing suicide!")
       System.exit(1)
     }
   }
 
   def get(): SchedulerDriver = {
     if (mesosDriver.isEmpty) {
-      makeDriver()
+      mesosDriver = Some(makeDriver())
     }
     mesosDriver.get
   }
 
-  def makeDriver() {
-
-    val driver = config.mesosAuthenticationPrincipal.get match {
-      case Some(principal) =>
-        val credential = buildMesosCredentials(principal, config.mesosAuthenticationSecretFile.get)
-        new MesosSchedulerDriver(mesosScheduler, frameworkInfo, config.master(), credential)
-      case None =>
-        new MesosSchedulerDriver(mesosScheduler, frameworkInfo, config.master())
-    }
-
-    mesosDriver = Option(driver)
-  }
-
-  def close() {
+  def close(): Unit = {
     assert(mesosDriver.nonEmpty, "Attempted to close a non initialized driver")
     if (mesosDriver.isEmpty) {
+      log.severe("Attempted to close a non initialized driver")
       System.exit(1)
     }
 
@@ -61,33 +49,11 @@ class MesosDriverFactory(val mesosScheduler: Scheduler, val frameworkInfo: Frame
     mesosDriver = None
   }
 
+  private[this] def makeDriver(): SchedulerDriver = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import mesosphere.util.BackToTheFuture.Implicits.defaultTimeout
 
-  /**
-   * Create the optional credentials instance, used to authenticate calls from Chronos to Mesos.
-   */
-  def buildMesosCredentials(principal: String, secretFile: Option[String]): Credential = {
-
-    val credentialBuilder = Credential.newBuilder()
-      .setPrincipal(principal)
-
-    secretFile foreach { file =>
-      try {
-        val secretBytes = ByteString.readFrom(new FileInputStream(file))
-
-        val filePermissions = Files.getPosixFilePermissions(Paths.get(file)).asScala
-        if (!(filePermissions & Set(PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_WRITE)).isEmpty)
-          log.warning(s"Secret file $file should not be globally accessible.")
-
-        credentialBuilder.setSecret(secretBytes)
-      }
-      catch {
-        case cause: Throwable =>
-          throw new IOException(s"Error reading authentication secret from file [$file]", cause)
-      }
-    }
-
-    credentialBuilder.build()
+    val maybeFrameworkID: Option[FrameworkID] =  frameworkIdUtil.fetch
+    schedulerDriverBuilder.newDriver(config, maybeFrameworkID, scheduler)
   }
-
-
 }

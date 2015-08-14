@@ -8,20 +8,19 @@ import javax.inject.Named
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.util.Timeout
 import com.codahale.metrics.MetricRegistry
-import org.apache.mesos.chronos.notification.{JobNotificationObserver, MailClient, RavenClient, SlackClient, HttpClient}
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
-import org.apache.mesos.chronos.scheduler.jobs.{JobsObserver, JobMetrics, JobScheduler, TaskManager}
-import org.apache.mesos.chronos.scheduler.mesos._
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.google.common.util.concurrent.{ListeningScheduledExecutorService, MoreExecutors, ThreadFactoryBuilder}
 import com.google.inject.{AbstractModule, Inject, Provides, Singleton}
 import mesosphere.chaos.http.HttpConf
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
-import org.apache.mesos.Protos.FrameworkInfo
 import org.apache.mesos.Scheduler
+import org.apache.mesos.chronos.notification.{HttpClient, JobNotificationObserver, MailClient, RavenClient, SlackClient}
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
+import org.apache.mesos.chronos.scheduler.jobs.{JobMetrics, JobScheduler, JobsObserver, TaskManager}
+import org.apache.mesos.chronos.scheduler.mesos._
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.Seconds
 
 import scala.concurrent.duration._
@@ -48,41 +47,10 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
     bind(classOf[JobGraph]).asEagerSingleton()
   }
 
-  @Inject
   @Singleton
   @Provides
-  def provideFrameworkInfo(frameworkIdUtil: FrameworkIdUtil): FrameworkInfo = {
-    import mesosphere.util.BackToTheFuture.Implicits.defaultTimeout
-    import scala.concurrent.ExecutionContext.Implicits.global
-
-    val frameworkInfoBuilder = FrameworkInfo.newBuilder()
-      .setName(config.mesosFrameworkName())
-      .setCheckpoint(config.mesosCheckpoint())
-      .setRole(config.mesosRole())
-      .setFailoverTimeout(config.failoverTimeoutSeconds())
-      .setUser(config.user())
-
-    config.mesosAuthenticationPrincipal.get.foreach(frameworkInfoBuilder.setPrincipal)
-
-    if (config.webuiUrl.isSupplied) {
-      frameworkInfoBuilder.setWebuiUrl(config.webuiUrl())
-    } else if (config.sslKeystorePath.isDefined) {
-      // ssl enabled, use https
-      frameworkInfoBuilder.setWebuiUrl(s"https://${config.hostname()}:${config.httpsPort()}")
-    } else {
-      // ssl disabled, use http
-      frameworkInfoBuilder.setWebuiUrl(s"http://${config.hostname()}:${config.httpPort()}")
-    }
-
-    frameworkIdUtil.setIdIfExists(frameworkInfoBuilder)
-    frameworkInfoBuilder.build()
-  }
-
-
-  @Singleton
-  @Provides
-  def provideMesosSchedulerDriverFactory(mesosScheduler: Scheduler, frameworkInfo: FrameworkInfo): MesosDriverFactory =
-    new MesosDriverFactory(mesosScheduler, frameworkInfo, config)
+  def provideMesosSchedulerDriverFactory(mesosScheduler: Scheduler, frameworkIdUtil: FrameworkIdUtil): MesosDriverFactory =
+    new MesosDriverFactory(mesosScheduler, frameworkIdUtil, config)
 
   @Singleton
   @Provides

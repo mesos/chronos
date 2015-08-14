@@ -1,27 +1,16 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import com.codahale.metrics.MetricRegistry
+import com.google.common.util.concurrent.ListeningScheduledExecutorService
+import org.apache.mesos.chronos.ChronosTestHelper._
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosOfferReviver
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import com.codahale.metrics.MetricRegistry
-import com.google.common.util.concurrent.ListeningScheduledExecutorService
 import org.joda.time._
-import org.rogach.scallop.ScallopConf
-import org.specs2.mock._
-import org.specs2.mutable._
+import org.specs2.mock.Mockito
+import org.specs2.mutable.SpecificationWithJUnit
 
 class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
-
-  private[this] def makeConfig(args: String*): SchedulerConfiguration = {
-    val opts = new ScallopConf(args) with SchedulerConfiguration {
-      // scallop will trigger sys exit
-      override protected def onError(e: Throwable): Unit = throw e
-    }
-    opts.afterInit()
-    opts
-  }
-
   "TaskManager" should {
     "Calculate the correct time delay between scheduling and dispatching the job" in {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mock[PersistenceStore],

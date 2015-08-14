@@ -3,7 +3,8 @@ package org.apache.mesos.chronos.scheduler.mesos
 import akka.actor._
 import akka.testkit.TestProbe
 import com.codahale.metrics.{ Counter, MetricRegistry }
-import org.apache.mesos.Protos.FrameworkInfo
+import mesosphere.chaos.http.HttpConf
+import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.specs2.mock.Mockito
@@ -77,16 +78,16 @@ class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
 trait context extends BeforeAfter with Mockito {
   implicit var actorSystem: ActorSystem = _
   var driverFactory: MesosDriverFactory = _
-  var conf: SchedulerConfiguration = _
+  var conf: SchedulerConfiguration with HttpConf = _
   var delegate: MesosOfferReviverDelegate = _
   var metrics: MetricRegistry = _
   var reviveOffersCounter: Counter = _
 
   def before = {
     actorSystem = ActorSystem()
-    conf = new SchedulerConfiguration {}
+    conf = new SchedulerConfiguration with HttpConf {}
     conf.afterInit()
-    driverFactory = new MesosDriverFactory(mock[org.apache.mesos.Scheduler], FrameworkInfo.getDefaultInstance, conf)
+    driverFactory = new MesosDriverFactory(mock[org.apache.mesos.Scheduler], mock[FrameworkIdUtil], conf)
     driverFactory.mesosDriver = Some(mock[SchedulerDriver])
 
     metrics = spy(new MetricRegistry())
