@@ -3,27 +3,16 @@ package org.apache.mesos.chronos.scheduler.mesos
 import mesosphere.mesos.protos._
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.Protos.Offer
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.ChronosTestHelper._
 import org.apache.mesos.chronos.scheduler.jobs.{ BaseJob, JobScheduler, TaskManager }
 import org.apache.mesos.{ Protos, SchedulerDriver }
 import org.mockito.Mockito.{ doNothing, doReturn }
-import org.rogach.scallop.ScallopConf
-import org.specs2.mock._
-import org.specs2.mutable._
+import org.specs2.mock.Mockito
+import org.specs2.mutable.SpecificationWithJUnit
 
 import scala.collection.mutable
 
 class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
-
-  private[this] def makeConfig(args: String*): SchedulerConfiguration = {
-    val opts = new ScallopConf(args) with SchedulerConfiguration {
-      // scallop will trigger sys exit
-      override protected def onError(e: Throwable): Unit = throw e
-    }
-    opts.afterInit()
-    opts
-  }
-
   "MesosJobFramework" should {
     "Revive offers when registering" in {
       val mockMesosOfferReviver = mock[MesosOfferReviver]
