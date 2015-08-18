@@ -62,8 +62,6 @@ Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try
 ### Environment Variables Mesos Looks For
 
 * `MESOS_NATIVE_LIBRARY`: Absolute path to the native mesos library. This is usually `/usr/local/lib/libmesos.so` on Linux and `/usr/local/lib/libmesos.dylib` on OSX.
-* `MESOS_LAUNCHER_DIR`: Absolute path to the src subdirectory of your mesos build, such that the shell executor can be found (e.g. If mesos was built in `/Users/florian/airbnb_code/mesos/build` then the value for this variable would be `/Users/florian/airbnb_code/mesos/build/src`).
-* `MESOS_KILLTREE`: Absolute path to the location of the `killtree.sh` script. (e.g. `/Users/florian/airbnb_code/mesos/src/scripts/killtree.sh`)
 
 If you're using the installer script this should be setup for you.
 
