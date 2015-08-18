@@ -47,6 +47,7 @@ class SchedulerDriverBuilder {
         .setRole(config.mesosRole())
         .setFailoverTimeout(config.failoverTimeoutSeconds())
         .setUser(config.user())
+        .setHostname(config.hostname())
 
       // Set the ID, if provided
       frameworkId.foreach(frameworkInfoBuilder.setId)

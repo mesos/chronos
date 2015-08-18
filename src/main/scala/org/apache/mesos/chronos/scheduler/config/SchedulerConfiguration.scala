@@ -37,8 +37,8 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "The list of ZooKeeper servers for storing state",
     default = Some("localhost:2181"))
   lazy val hostname = opt[String]("hostname",
-    descr = "The advertised hostname stored in ZooKeeper so another standby " +
-      "host can redirect to this elected leader",
+    descr = "The advertised hostname of this Chronos instance for network communication. This is used by other" +
+      "Chronos instances and the Mesos master to communicate with this instance",
     default = Some(java.net.InetAddress.getLocalHost.getHostName))
   lazy val leaderMaxIdleTimeMs = opt[Int]("leader_max_idle_time",
     descr = "The look-ahead time for scheduling tasks in milliseconds",
