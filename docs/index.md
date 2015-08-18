@@ -8,9 +8,9 @@ title: Fault tolerant job scheduler for Mesos
     A fault tolerant job scheduler for Mesos which handles dependencies and ISO8601 based schedules
   </p>
   <p>
-    <a href="https://github.com/mesos/chronos/archive/2.3.4.tar.gz"
+    <a href="https://github.com/mesos/chronos/archive/2.4.0.tar.gz"
         class="btn btn-lg btn-primary">
-      Download Chronos v2.3.4
+      Download Chronos v2.4.0
     </a>
   </p>
 </div>
@@ -48,7 +48,7 @@ on how to do this.
 
 ## Installation
 
-You can either download an archive of the latest Chronos release using the Download button above or follow the instructions on the [getting started page]({{site.baseurl}}/docs/) to install packages for popular Linux distributions. 
+You can either download an archive of the latest Chronos release using the Download button above or follow the instructions on the [getting started page]({{site.baseurl}}/docs/) to install packages for popular Linux distributions.
 
 
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
