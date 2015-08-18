@@ -278,7 +278,7 @@ _Note_: You will probably need to url-encode the Mesos task id in order to submi
 
 ## Obtaining Remote Executables
 
-When specifying the `command` field in your job hash, use `url-runner.bash` (make sure it's deployed on all slaves). Alternatively, you can also use a url in the command field, if your Mesos was compiled with cURL libraries.
+When specifying the `command` field in your job hash, use `url-runner.bash` (make sure it's deployed on all slaves). Alternatively, you can also use a url in the `command` field, if your Mesos was compiled with cURL libraries.
 
 ## Job Configuration
 
