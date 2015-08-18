@@ -27,8 +27,8 @@ Mesosphere provides builds for Mesos and Chronos for major Linux distributions a
 Use the latest tagged Chronos release with Mesos 0.20+ as follows:
 
 ```sh
-curl -0 https://github.com/mesos/chronos/archive/2.3.4.tar.gz
-tar xvf 2.3.4.tar.gz
+curl -0 https://github.com/mesos/chronos/archive/2.4.0.tar.gz
+tar xvf 2.4.0.tar.gz
 ```
 
 <hr />
