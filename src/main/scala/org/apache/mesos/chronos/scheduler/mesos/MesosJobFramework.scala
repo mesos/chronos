@@ -43,7 +43,7 @@ class MesosJobFramework @Inject()(
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    log.info("Registered")
+    log.info("Registered with ID: " + frameworkID.getValue)
     log.info("Master info:" + masterInfo.toString)
     frameworkIdUtil.store(frameworkID)
     mesosOfferReviver.reviveOffers()
