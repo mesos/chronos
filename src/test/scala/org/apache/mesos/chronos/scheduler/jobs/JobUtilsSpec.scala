@@ -64,4 +64,10 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     scheduledJobWithArguments.command.toString must_== commandWithArguments
     dependencyJobWithArguments.command.toString must_== commandWithArguments
   }
+
+  "Accepts a job name with periods" in {
+    val jobName = "sample.name"
+
+    JobUtils.isValidJobName(jobName)
+  }
 }
