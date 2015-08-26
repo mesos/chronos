@@ -136,6 +136,19 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeEndArray()
       json.writeFieldName("forcePullImage")
       json.writeBoolean(baseJob.container.forcePullImage)
+
+      json.writeFieldName("parameters")
+      json.writeStartArray()
+      baseJob.container.parameters.foreach { v =>
+        json.writeStartObject()
+        json.writeFieldName("key")
+        json.writeString(v.key)
+        json.writeFieldName("value")
+        json.writeString(v.value)
+        json.writeEndObject()
+      }
+      json.writeEndArray()
+
       json.writeEndObject()
     }
 
