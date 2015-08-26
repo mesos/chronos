@@ -173,11 +173,11 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         else false
 
 
-      var parameters = scala.collection.mutable.ListBuffer[DockerParameter]()
+      var parameters = scala.collection.mutable.ListBuffer[Parameter]()
       if (containerNode.has("parameters")) {
         containerNode.get("parameters").elements().map {
           case node: ObjectNode =>
-          DockerParameter(node.get("key").asText(), node.get("value").asText)
+          Parameter(node.get("key").asText(), node.get("value").asText)
         }.foreach(parameters.add)
       }
 

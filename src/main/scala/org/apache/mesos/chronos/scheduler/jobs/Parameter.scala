@@ -7,7 +7,7 @@ import org.apache.mesos.{ Protos => mesos }
 /**
  * Represents an environment variable definition for the job
  */
-case class DockerParameter(
+case class Parameter(
     key: String,
     value: String) {
 
@@ -17,7 +17,7 @@ case class DockerParameter(
       .setValue(value)
       .build
 }
-object DockerParameter {
+object Parameter {
   def apply(proto: mesos.Parameter): Parameter =
     Parameter(
       proto.getKey,
