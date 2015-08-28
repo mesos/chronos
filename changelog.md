@@ -1,4 +1,4 @@
-## Changes from 2.3.4 to 2.3.5
+## Changes from 2.3.4 to 2.4.0
 
 ### Overview
 
