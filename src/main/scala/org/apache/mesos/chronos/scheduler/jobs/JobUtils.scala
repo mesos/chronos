@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
  */
 object JobUtils {
 
-  val jobNamePattern = """([\w\s#_-]+)""".r
+  val jobNamePattern = """([\w\s\.#_-]+)""".r
   val stats = new mutable.HashMap[String, DescriptiveStatistics]()
   val maxValues = 100
   //The object mapper, which is, according to the docs, Threadsafe once configured.
