@@ -180,7 +180,7 @@ Here is a more elaborate example of a dependent job hash:
 ## Adding a Docker Job
 
 A docker job takes the same format as a scheduled job or a dependency job and runs on a Docker container.
-To configure it, an additional `container` argument is required, which contains a type (required), an image (required), a network mode (optional), mounted volumes (optional) and whether Mesos should always pull the latest image before executing or not (optional).
+To configure it, an additional `container` argument is required, which contains a type (required), an image (required), a network mode (optional), mounted volumes (optional), parameters (optional) and whether Mesos should always pull the latest image before executing or not (optional).
 
 * Endpoint: __/scheduler/iso8601__ or __/scheduler/dependency__
 * Method: __POST__
@@ -228,6 +228,20 @@ Chronos by adding the `forcePullImage` boolean to your `container` configuration
 
 Chronos will default to not doing a `docker pull` if the image is already found on the executing node. The alternative approach is to use versions/tags for
 your images.
+
+There is also support for passing in arbitrary docker config options.
+
+```json
+{
+  "container": {
+    "type": "DOCKER",
+    "image": "libmesos/ubuntu",
+    "parameters": [
+      { "key": "a-docker-option", "value": "xxx" },
+      { "key": "b-docker-option", "value": "yyy" }
+    ]
+}
+```
 
 ## Updating Task Progress
 
