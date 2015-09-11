@@ -172,7 +172,6 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
           Try(containerNode.get("forcePullImage").asText.toBoolean).getOrElse(false)
         else false
 
-
       var parameters = scala.collection.mutable.ListBuffer[Parameter]()
       if (containerNode.has("parameters")) {
         containerNode.get("parameters").elements().map {
@@ -180,7 +179,6 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
           Parameter(node.get("key").asText(), node.get("value").asText)
         }.foreach(parameters.add)
       }
-
 
       container = DockerContainer(containerNode.get("image").asText, volumes, parameters, networkMode, forcePullImage)
     }
