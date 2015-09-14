@@ -33,6 +33,11 @@ For questions and discussions around Chronos, please use the Google Group "chron
 
 Also join us on IRC in #mesos on freenode.
 
+
+## Known Issues
+
+The GUI will often drop defined fields (e.g., uri, mem, cpu) when saving a job. We strongly recommend to update jobs *only* through the REST API until issue #426 is fixed.
+
 ## Contributing
 
 Instructions on how to contribute to Chronos are available on the [Contributing](http://mesos.github.io/chronos/docs/contributing.html) docs page.
