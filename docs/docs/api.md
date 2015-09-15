@@ -52,13 +52,18 @@ If there is a `parents` field there will be no `schedule` field, and vice-versa.
 
 ## Searching for a Job
 
-Searching for a job with known attributes can be helpful when a large amount of jobs are being deployed. The list of possible attributes is described in the [Job Configuration](#job-configuration) section.
+Get the job definition by searching for the following attributes by using the search endpoint:
 
+* `name`: Name of a job.
+* `command`: Command to execute.
+* `any`: Search term contained in `name` or `command`.
+* 
 * Endpoint: __/scheduler/jobs/search__
 * Method: __GET__
 * Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?name=request_event_counter_hourly`
-* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?owner=foo@bar.io`
 * Response: HTTP 204
+
+Search term and the desired job attribute will be converted to lower case. The it will be checked if the job attribute contains the term.
 
 ## Deleting a Job
 
