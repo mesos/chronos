@@ -10,6 +10,7 @@ All examples in this section assume that you've found a running leader at `chron
 
 - [Leaders](#leaders)
 - [Listing Jobs](#listing-jobs)
+- [Searching for a Job](#searching-for-a-job)
 - [Deleting a Job](#deleting-a-job)
 - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
 - [Manually Starting a Job](#manually-starting-a-job)
@@ -48,6 +49,16 @@ Interesting fields in the hashes are:
 * `parents`: for dependent jobs, a list of all other jobs that must run before this job will run
 
 If there is a `parents` field there will be no `schedule` field, and vice-versa.
+
+## Searching for a Job
+
+Searching for a job with known attributes can be helpful when a large amount of jobs are being deployed. The list of possible attributes is described in the [Job Configuration](#job-configuration) section.
+
+* Endpoint: __/scheduler/jobs/search__
+* Method: __GET__
+* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?name=request_event_counter_hourly`
+* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?owner=foo@bar.io`
+* Response: HTTP 204
 
 ## Deleting a Job
 
