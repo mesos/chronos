@@ -63,7 +63,7 @@ Get the job definition by searching for the following attributes by using the se
 * Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?name=request_event_counter_hourly`
 * Response: HTTP 204
 
-Search term and the desired job attribute will be converted to lower case. The it will be checked if the job attribute contains the term.
+Search term and the desired job attribute will be converted to lower case. It will then be checked if the job attribute contains the term.
 
 ## Deleting a Job
 
