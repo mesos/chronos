@@ -10,6 +10,7 @@ All examples in this section assume that you've found a running leader at `chron
 
 - [Leaders](#leaders)
 - [Listing Jobs](#listing-jobs)
+- [Searching for a Job](#searching-for-a-job)
 - [Deleting a Job](#deleting-a-job)
 - [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
 - [Manually Starting a Job](#manually-starting-a-job)
@@ -48,6 +49,21 @@ Interesting fields in the hashes are:
 * `parents`: for dependent jobs, a list of all other jobs that must run before this job will run
 
 If there is a `parents` field there will be no `schedule` field, and vice-versa.
+
+## Searching for a Job
+
+Get the job definition by searching for the following attributes by using the search endpoint:
+
+* `name`: Name of a job.
+* `command`: Command to execute.
+* `any`: Search term contained in `name` or `command`.
+* 
+* Endpoint: __/scheduler/jobs/search__
+* Method: __GET__
+* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?name=request_event_counter_hourly`
+* Response: HTTP 204
+
+Search term and the desired job attribute will be converted to lower case. It will then be checked if the job attribute contains the term.
 
 ## Deleting a Job
 
