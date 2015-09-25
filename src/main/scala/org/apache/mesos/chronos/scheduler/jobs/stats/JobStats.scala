@@ -64,7 +64,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     }
   }
 
-  private def removeJobState(job: BaseJob) = jobStates.remove(job.name)
+  private def removeJobState(job: StoredJob) = jobStates.remove(job.name)
 
   /**
    * Queries Cassandra table for past and current job statistics by jobName
@@ -72,7 +72,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @param job job to find task data for
    * @return list of cassandra rows
    */
-  private def getTaskDataByJob(job: BaseJob): Option[List[Row]] = {
+  private def getTaskDataByJob(job: StoredJob): Option[List[Row]] = {
     var rowsListFinal: Option[List[Row]] = None
     try {
       getSession match {
@@ -125,7 +125,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @param taskId task id for which to find stats for
    * @return element processed count
    */
-  private def getTaskStatCount(job: BaseJob, taskId: String): Option[Long] = {
+  private def getTaskStatCount(job: StoredJob, taskId: String): Option[Long] = {
     var taskStatCount: Option[Long] = None
     try {
       getSession.foreach {
@@ -210,7 +210,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @param job job to search for task stats
    * @return list of past and current running tasks for the job
    */
-  private def getParsedTaskStatsByJob(job: BaseJob): List[TaskStat] = {
+  private def getParsedTaskStatsByJob(job: StoredJob): List[TaskStat] = {
     val taskMap = mutable.Map[String, TaskStat]()
 
     getTaskDataByJob(job).fold {
@@ -245,7 +245,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @return returns a list of past and currently running tasks,
    *         the first element is the most recent.
    */
-  def getMostRecentTaskStatsByJob(job: BaseJob, numTasks: Int): List[TaskStat] = {
+  def getMostRecentTaskStatsByJob(job: StoredJob, numTasks: Int): List[TaskStat] = {
 
     val sortedDescTaskStatList = getParsedTaskStatsByJob(job).sortWith(recentDateCompareFnc).slice(0, numTasks)
 
@@ -269,7 +269,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @param taskId task id for which to perform the update
    * @param additionalElementsProcessed number of elements to increment bt
    */
-  def updateTaskProgress(job: BaseJob,
+  def updateTaskProgress(job: StoredJob,
       taskId: String,
       additionalElementsProcessed: Long) {
     try {
@@ -323,18 +323,18 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
   }, getClass.getSimpleName)
 
-  private def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
+  private def jobQueued(job: StoredJob, taskId: String, attempt: Int) {
     updateJobState(job.name, CurrentState.queued)
   }
 
-  private def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  private def jobStarted(job: StoredJob, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(job.name, CurrentState.running)
 
     var jobSchedule:Option[String] = None
     var jobParents:Option[java.util.Set[String]] = None
     job match {
-      case job: ScheduleBasedJob =>
-        jobSchedule = Some(job.schedule)
+      case job: InternalScheduleBasedJob =>
+        jobSchedule = Some(job.scheduleData.toZeroOffsetISO8601Representation)
       case job: DependencyBasedJob =>
         jobParents = Some(job.parents.asJava)
     }
@@ -427,14 +427,14 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     _session = None
   }
 
-  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  private def jobFinished(job: StoredJob, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(job.name, CurrentState.idle)
 
     var jobSchedule:Option[String] = None
     var jobParents:Option[java.util.Set[String]] = None
     job match {
-      case job: ScheduleBasedJob =>
-        jobSchedule = Some(job.schedule)
+      case job: InternalScheduleBasedJob =>
+        jobSchedule = Some(job.scheduleData.toZeroOffsetISO8601Representation)
       case job: DependencyBasedJob =>
         jobParents = Some(job.parents.asJava)
     }
@@ -452,7 +452,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             isFailure=None)
   }
 
-  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
+  private def jobFailed(jobNameOrJob: Either[String, StoredJob], taskStatus: TaskStatus, attempt: Int): Unit = {
     val jobName = jobNameOrJob.fold(name => name, _.name)
     val jobSchedule = jobNameOrJob.fold(_ => None,  {
       case job: ScheduleBasedJob => Some(job.schedule)

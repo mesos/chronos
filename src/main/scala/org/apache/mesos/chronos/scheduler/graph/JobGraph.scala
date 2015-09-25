@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
 import javax.annotation.concurrent.ThreadSafe
 
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob}
+import org.apache.mesos.chronos.scheduler.jobs.{StoredJob, DependencyBasedJob}
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph
 import org.jgrapht.ext.{DOTExporter, IntegerNameProvider, StringNameProvider}
 import org.jgrapht.graph.DefaultEdge
@@ -23,7 +23,7 @@ class JobGraph {
   val dag = new DirectedAcyclicGraph[String, DefaultEdge](classOf[DefaultEdge])
   val edgeInvocationCount = mutable.Map[DefaultEdge, Long]()
   private[this] val log = Logger.getLogger(getClass.getName)
-  private[this] val jobNameMapping: concurrent.Map[String, BaseJob] = new ConcurrentHashMap().asScala
+  private[this] val jobNameMapping: concurrent.Map[String, StoredJob] = new ConcurrentHashMap[String, StoredJob]().asScala
   private[this] val lock = new Object
 
   def parentJobs(job: DependencyBasedJob) = parentJobsOption(job) match {
@@ -33,18 +33,18 @@ class JobGraph {
       jobs
   }
 
-  def parentJobsOption(job: DependencyBasedJob): Option[List[BaseJob]] = {
+  def parentJobsOption(job: DependencyBasedJob): Option[List[StoredJob]] = {
     val vertexNamePairs = job.parents.map(x => (x, lookupVertex(x))).toList
     var failure = false
     val parents = vertexNamePairs.flatMap {
-      case (x: String, y: Option[BaseJob]) =>
+      case (x: String, y: Option[StoredJob]) =>
         y match {
           case None =>
             log.warning(s"Parent $x of job ${job.name} not found in job graph!")
             failure = true
             None
-          case Some(baseJob: BaseJob) =>
-            Some(baseJob)
+          case Some(storedJob: StoredJob) =>
+            Some(storedJob)
         }
     }
     if (failure)
@@ -53,17 +53,17 @@ class JobGraph {
       Some(parents)
   }
 
-  def getJobForName(name: String): Option[BaseJob] = {
+  def getJobForName(name: String): Option[StoredJob] = {
     jobNameMapping.get(name)
   }
 
-  def replaceVertex(oldVertex: BaseJob, newVertex: BaseJob) {
+  def replaceVertex(oldVertex: StoredJob, newVertex: StoredJob) {
     require(oldVertex.name == newVertex.name, "Vertices need to have the same name!")
     jobNameMapping.put(oldVertex.name, newVertex)
   }
 
   //TODO(FL): Documentation here and elsewhere in this file.
-  def addVertex(vertex: BaseJob) {
+  def addVertex(vertex: StoredJob) {
     log.warning("Adding vertex:" + vertex.name)
     require(lookupVertex(vertex.name).isEmpty, "Vertex already exists in graph %s".format(vertex.name))
     require(!vertex.name.isEmpty, "In order to be added to the graph, the vertex must have a name")
@@ -75,11 +75,11 @@ class JobGraph {
   }
 
   /* TODO(FL): Replace usage of this method with the hashmap */
-  def lookupVertex(vertexName: String): Option[BaseJob] = {
+  def lookupVertex(vertexName: String): Option[StoredJob] = {
     jobNameMapping.get(vertexName)
   }
 
-  def removeVertex(vertex: BaseJob) {
+  def removeVertex(vertex: StoredJob) {
     log.info("Removing vertex:" + vertex.name)
     require(lookupVertex(vertex.name).isDefined, "Vertex doesn't exist")
     jobNameMapping.remove(vertex.name)

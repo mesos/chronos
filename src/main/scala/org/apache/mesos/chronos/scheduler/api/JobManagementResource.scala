@@ -65,13 +65,13 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                   jobGraph.addDependency(p.name, newChild.name)
                 }
             }
-          case j: ScheduleBasedJob =>
+          case j: InternalScheduleBasedJob =>
             children.foreach {
               child =>
                 jobGraph.lookupVertex(child).get match {
                   case childJob: DependencyBasedJob =>
-                    val newChild = new ScheduleBasedJob(
-                      schedule = j.schedule,
+                    val newChild = new InternalScheduleBasedJob(
+                      scheduleData = j.scheduleData,
                       scheduleTimeZone = j.scheduleTimeZone,
                       name = childJob.name,
                       command = childJob.command,
@@ -225,12 +225,9 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
              @QueryParam("offset") offset: Integer
               ) = {
     try {
-      val jobs = ListBuffer[BaseJob]()
       import scala.collection.JavaConversions._
-      jobGraph.dag.vertexSet().map({
-        job =>
-          jobs += jobGraph.getJobForName(job).get
-      })
+
+      val jobs = jobGraph.dag.vertexSet() flatMap jobGraph.getJobForName
 
       val _limit: Integer = limit match {
         case x: Integer =>

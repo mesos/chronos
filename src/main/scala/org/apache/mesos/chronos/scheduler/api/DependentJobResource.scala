@@ -65,7 +65,7 @@ class DependentJobResource @Inject()(
               newParentNames.foreach(jobGraph.addDependency(_, newJob.name))
             }
             jobScheduler.removeSchedule(j)
-          case j: ScheduleBasedJob =>
+          case j: InternalScheduleBasedJob =>
             parents.foreach(p => jobGraph.addDependency(p.name, newJob.name))
         }
 

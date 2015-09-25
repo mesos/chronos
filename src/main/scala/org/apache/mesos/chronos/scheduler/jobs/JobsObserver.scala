@@ -6,17 +6,17 @@ import org.apache.mesos.Protos.TaskStatus
 import org.joda.time.DateTime
 
 trait JobEvent
-case class JobQueued(job: BaseJob, taskId: String, attempt: Int) extends JobEvent
-case class JobSkipped(job: BaseJob, dateTime: DateTime) extends JobEvent
-case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
-case class JobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobQueued(job: StoredJob, taskId: String, attempt: Int) extends JobEvent
+case class JobSkipped(job: StoredJob, dateTime: DateTime) extends JobEvent
+case class JobStarted(job: StoredJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobFinished(job: StoredJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
 // Either a job name or job object, depending on whether the Job still exists
-case class JobFailed(job: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int) extends JobEvent
-case class JobDisabled(job: BaseJob, cause: String) extends JobEvent
-case class JobRetriesExhausted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
-case class JobRemoved(job: BaseJob) extends JobEvent
+case class JobFailed(job: Either[String, StoredJob], taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobDisabled(job: StoredJob, cause: String) extends JobEvent
+case class JobRetriesExhausted(job: StoredJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobRemoved(job: StoredJob) extends JobEvent
 // This event is fired when job is disabled (e.g. due to recurrence going to 0) and its queued tasks are purged
-case class JobExpired(job: BaseJob, taskId: String) extends JobEvent
+case class JobExpired(job: StoredJob, taskId: String) extends JobEvent
 
 object JobsObserver {
   type Observer = PartialFunction[JobEvent, Unit]

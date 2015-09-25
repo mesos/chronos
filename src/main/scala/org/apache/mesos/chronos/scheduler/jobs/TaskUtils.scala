@@ -103,12 +103,14 @@ object TaskUtils {
     taskIdTemplate.format(due.getMillis, attempt, job.name, job.arguments.mkString(" "))
   }
 
-  def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (BaseJob, Long, Int)] = {
-    val taskMap = new mutable.HashMap[String, (BaseJob, Long, Int)]()
+  def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (StoredJob, Long, Int)] = {
+    val taskMap = new mutable.HashMap[String, (StoredJob, Long, Int)]()
 
     tasks.foreach { p: (String, Array[Byte]) => println(p._1)
       //Any non-recurring job R1/X/Y is equivalent to a task!
-      val taskInstance = JobUtils.fromBytes(p._2)
+      val taskInstance = JobUtils.convertJobToStored(JobUtils.fromBytes(p._2)) getOrElse {
+        throw new RuntimeException(s"Failed to migrate task ${p._1}")
+      }
       val taskTuple = parseTaskId(p._1)
       val now = DateTime.now(DateTimeZone.UTC).getMillis
       val lastExecutableTime = new DateTime(taskTuple._2, DateTimeZone.UTC).plus(taskInstance.epsilon).getMillis

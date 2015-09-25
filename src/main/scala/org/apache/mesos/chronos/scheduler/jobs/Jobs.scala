@@ -22,7 +22,7 @@ import org.joda.time.{Minutes, Period}
 // Note, that if a SBJ is the root for a DPJ, the SBJ can take an arbitrary amount of time,
 // the scheduled time t of the child DPJ, will be determined once the parent completes.
 
-trait BaseJob {
+sealed trait BaseJob {
   def name: String
 
   def command: String
@@ -82,6 +82,12 @@ trait BaseJob {
   def constraints: Seq[Constraint] = List()
 }
 
+// flags job classes that we store and work with internally/in memory
+sealed trait StoredJob extends BaseJob
+
+// flags job classes that are only used in rest api
+sealed trait ExternalJob extends BaseJob
+
 @JsonDeserialize(using = classOf[JobDeserializer])
 case class ScheduleBasedJob(
                              @JsonProperty schedule: String,
@@ -115,7 +121,42 @@ case class ScheduleBasedJob(
                              @JsonProperty override val softError: Boolean = false,
                              @JsonProperty override val dataProcessingJobType: Boolean = false,
                              @JsonProperty override val constraints: Seq[Constraint] = List())
-  extends BaseJob
+  extends ExternalJob
+
+@JsonDeserialize(using = classOf[JobDeserializer])
+case class InternalScheduleBasedJob(
+                             @JsonProperty scheduleData: Schedule,
+                             @JsonProperty override val name: String,
+                             @JsonProperty override val command: String,
+                             @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,
+                             @JsonProperty override val successCount: Long = 0L,
+                             @JsonProperty override val errorCount: Long = 0L,
+                             @JsonProperty override val executor: String = "",
+                             @JsonProperty override val executorFlags: String = "",
+                             @JsonProperty override val retries: Int = 2,
+                             @JsonProperty override val owner: String = "",
+                             @JsonProperty override val ownerName: String = "",
+                             @JsonProperty override val description: String = "",
+                             @JsonProperty override val lastSuccess: String = "",
+                             @JsonProperty override val lastError: String = "",
+                             @JsonProperty override val async: Boolean = false,
+                             @JsonProperty override val cpus: Double = 0,
+                             @JsonProperty override val disk: Double = 0,
+                             @JsonProperty override val mem: Double = 0,
+                             @JsonProperty override val disabled: Boolean = false,
+                             @JsonProperty override val errorsSinceLastSuccess: Long = 0L,
+                             @JsonProperty override val uris: Seq[String] = List(),
+                             @JsonProperty override val highPriority: Boolean = false,
+                             @JsonProperty override val runAsUser: String = "",
+                             @JsonProperty override val container: DockerContainer = null,
+                             @JsonProperty scheduleTimeZone: String = "",
+                             @JsonProperty override val environmentVariables: Seq[EnvironmentVariable] = List(),
+                             @JsonProperty override val shell: Boolean = true,
+                             @JsonProperty override val arguments: Seq[String] = List(),
+                             @JsonProperty override val softError: Boolean = false,
+                             @JsonProperty override val dataProcessingJobType: Boolean = false,
+                             @JsonProperty override val constraints: Seq[Constraint] = List())
+  extends StoredJob
 
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -150,4 +191,4 @@ case class DependencyBasedJob(
                                @JsonProperty override val softError: Boolean = false,
                                @JsonProperty override val dataProcessingJobType: Boolean = false,
                                @JsonProperty override val constraints: Seq[Constraint] = List())
-  extends BaseJob
+  extends StoredJob with ExternalJob

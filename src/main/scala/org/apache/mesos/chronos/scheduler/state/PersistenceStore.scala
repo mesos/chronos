@@ -12,7 +12,7 @@ trait PersistenceStore {
    * @param job
    * @return
    */
-  def persistJob(job: BaseJob): Boolean
+  def persistJob(job: StoredJob): Boolean
 
   /**
    * Saves a taskId in the state abstraction.
@@ -34,14 +34,14 @@ trait PersistenceStore {
    * @param job the job to remove.
    * @return true if the job was saved, false if the job couldn't be saved.
    */
-  def removeJob(job: BaseJob)
+  def removeJob(job: StoredJob)
 
   /**
    * Loads a job from the underlying store
    * @param name
    * @return
    */
-  def getJob(name: String): BaseJob
+  def getJob(name: String): StoredJob
 
   /**
    * Purges all tasks from the underlying store
@@ -65,5 +65,5 @@ trait PersistenceStore {
    * Returns all jobs from the underlying store
    * @return
    */
-  def getJobs: Iterator[BaseJob]
+  def getJobs: Iterator[StoredJob]
 }

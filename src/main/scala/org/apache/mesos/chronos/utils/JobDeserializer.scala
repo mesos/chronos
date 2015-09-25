@@ -1,14 +1,12 @@
 package org.apache.mesos.chronos.utils
 
-import java.util.regex.Pattern
-
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
-import org.apache.mesos.chronos.scheduler.jobs.constraints._
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonNode}
-import org.joda.time.Period
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.scheduler.jobs.constraints._
+import org.joda.time.{DateTime, Period}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -202,34 +200,139 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         parentList += parent.asText
       }
       new DependencyBasedJob(parents = parentList.toSet,
-        name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
-        executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
-        ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
-        async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
-        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
-        arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
+        name = name,
+        command = command,
+        epsilon = epsilon,
+        successCount = successCount,
+        errorCount = errorCount,
+        executor = executor,
+        executorFlags = executorFlags,
+        retries = retries,
+        owner = owner,
+        ownerName = ownerName,
+        description = description,
+        lastError = lastError,
+        lastSuccess = lastSuccess,
+        async = async,
+        cpus = cpus,
+        disk = disk,
+        mem = mem,
+        disabled = disabled,
+        errorsSinceLastSuccess = errorsSinceLastSuccess,
+        uris = uris,
+        highPriority = highPriority,
+        runAsUser = runAsUser,
+        container = container,
+        environmentVariables = environmentVariables,
+        shell = shell,
+        arguments = arguments,
+        softError = softError,
+        dataProcessingJobType = dataProcessingJobType,
         constraints = constraints)
     } else if (node.has("schedule")) {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
-      new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
-        epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
-        executorFlags = executorFlags, retries = retries, owner = owner, ownerName = ownerName,
-        description = description, lastError = lastError, lastSuccess = lastSuccess, async = async,
-        cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+      new ScheduleBasedJob(node.get("schedule").asText,
+        name = name,
+        command = command,
+        epsilon = epsilon,
+        successCount = successCount,
+        errorCount = errorCount,
+        executor = executor,
+        executorFlags = executorFlags,
+        retries = retries,
+        owner = owner,
+        ownerName = ownerName,
+        description = description,
+        lastError = lastError,
+        lastSuccess = lastSuccess,
+        async = async,
+        cpus = cpus,
+        disk = disk,
+        mem = mem,
+        disabled = disabled,
+        errorsSinceLastSuccess = errorsSinceLastSuccess,
+        uris = uris,
+        highPriority = highPriority,
+        runAsUser = runAsUser,
+        container = container,
+        scheduleTimeZone = scheduleTimeZone,
+        environmentVariables = environmentVariables,
+        shell = shell,
+        arguments = arguments,
+        softError = softError,
+        dataProcessingJobType = dataProcessingJobType,
+        constraints = constraints)
+    } else if (node.has("scheduleData")) {
+      val scheduleDataNode: JsonNode = node.get("scheduleData")
+
+      val schedule = scheduleDataNode.get("schedule").asText()
+      val scheduleTimeZone = scheduleDataNode.get("scheduleTimeZone").asText()
+
+
+      val originTime = DateTime.parse(scheduleDataNode.get("originTime").asText())
+      val invocationTime = DateTime.parse(scheduleDataNode.get("invocationTime").asText())
+      val offset = scheduleDataNode.get("offset").asLong()
+      val recurrences = if(scheduleDataNode.has("recurrences")) Some(scheduleDataNode.get("recurrences").asLong()) else None
+      val period = Period.parse(scheduleDataNode.get("period").asText())
+
+      new InternalScheduleBasedJob(
+        Schedule(schedule, scheduleTimeZone, originTime, invocationTime, offset, recurrences, period),
+        name = name,
+        command = command,
+        epsilon = epsilon,
+        successCount = successCount,
+        errorCount = errorCount,
+        executor = executor,
+        executorFlags = executorFlags,
+        retries = retries,
+        owner = owner,
+        ownerName = ownerName,
+        description = description,
+        lastError = lastError,
+        lastSuccess = lastSuccess,
+        async = async,
+        cpus = cpus,
+        disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
-        runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
-        environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
-        dataProcessingJobType = dataProcessingJobType, constraints = constraints)
+        runAsUser = runAsUser,
+        container = container,
+        environmentVariables = environmentVariables,
+        shell = shell,
+        arguments = arguments,
+        softError = softError,
+        dataProcessingJobType = dataProcessingJobType,
+        constraints = constraints)
     } else {
       /* schedule now */
-      new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
-        errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
-        ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
-        async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
-        runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
-        arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
+      new ScheduleBasedJob("R1//PT24H",
+        name = name,
+        command = command,
+        epsilon = epsilon,
+        successCount = successCount,
+        errorCount = errorCount,
+        executor = executor,
+        executorFlags = executorFlags,
+        retries = retries,
+        owner = owner,
+        ownerName = ownerName,
+        description = description,
+        lastError = lastError,
+        lastSuccess = lastSuccess,
+        async = async,
+        cpus = cpus,
+        disk = disk,
+        mem = mem,
+        disabled = disabled,
+        errorsSinceLastSuccess = errorsSinceLastSuccess,
+        uris = uris,
+        highPriority = highPriority,
+        runAsUser = runAsUser,
+        container = container,
+        environmentVariables = environmentVariables,
+        shell = shell,
+        arguments = arguments,
+        softError = softError,
+        dataProcessingJobType = dataProcessingJobType,
         constraints = constraints)
     }
   }

@@ -318,6 +318,10 @@
         </executions>
         <configuration>
           <scalaVersion>${scala.version}</scalaVersion>
+          <args>
+            <arg>-feature</arg>
+            <arg>-Xfatal-warnings</arg>
+          </args>
           <jvmArgs>
             <jvmArg>-Xmx2G</jvmArg>
           </jvmArgs>

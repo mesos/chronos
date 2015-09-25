@@ -10,8 +10,7 @@ import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskID, TaskState}
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.stats.{CurrentState, JobStats}
-import org.apache.mesos.chronos.scheduler.mesos.{ MesosDriverFactory, MesosOfferReviver }
+import org.apache.mesos.chronos.scheduler.mesos.{MesosDriverFactory, MesosOfferReviver}
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.{DateTime, DateTimeZone}
 
@@ -83,22 +82,27 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       val jobOption = jobGraph.getJobForName(TaskUtils.getJobNameForTaskId(taskId))
 
       //If the job was deleted after the taskId was added to the queue, the task could be empty.
-      if (jobOption.isEmpty) {
-        //remove invalid task
-        removeTask(taskId)
-        None
-      } else if (jobOption.get.disabled) {
-        jobsObserver.apply(JobExpired(jobOption.get, taskId))
-        None
-      } else {
-        val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
-        var job = jobOption.get
+      jobOption match {
+        case None =>
+          //remove invalid task
+          removeTask(taskId)
+          None
 
-        if (jobArguments != null && !jobArguments.isEmpty) {
-          job = JobUtils.getJobWithArguments(job, jobArguments)
-        }
+        case Some(job) =>
+          if (job.disabled) {
+            jobsObserver.apply(JobExpired(jobOption.get, taskId))
+            None
+          } else {
+            val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
 
-        Some(taskId, job)
+            val returnedJob =
+              if (jobArguments != null && !jobArguments.isEmpty)
+                JobUtils.getJobWithArguments(job, jobArguments)
+              else
+                job
+
+            Some(taskId, returnedJob)
+          }
       }
     }
   }
@@ -175,7 +179,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * dispatched to chronos as soon as both the task is in the front of the queue and a chronos offer comes in.
    * @param taskId task to run
    */
-  def scheduleTask(taskId: String, job: BaseJob, persist: Boolean) {
+  def scheduleTask(taskId: String, job: StoredJob, persist: Boolean) {
     scheduleDelayedTask(new ScheduledTask(taskId, DateTime.now(DateTimeZone.UTC), job, this), 0, persist)
   }
 
