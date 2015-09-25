@@ -21,12 +21,6 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val persistenceStore = mock[PersistenceStore]
       val mockTaskManager = mock[TaskManager]
 
-      persistenceStore.persistJob(any[StoredJob]) answers { t =>
-        println("Storing: " + t)
-        Thread.currentThread().getStackTrace.foreach(elem => println(elem.toString))
-        true
-      }
-
       val scheduler = mockScheduler(epsilon, mockTaskManager, jobGraph, persistenceStore)
       val startTime = DateTime.parse("2012-01-01T01:00:00.000Z")
       scheduler.leader.set(true)
