@@ -196,7 +196,6 @@ object JobUtils {
           }
       }
     }
-    println("Checking stream ....")
     skip(Some(originalStream), now, 0)
   }
 

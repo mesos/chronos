@@ -106,7 +106,7 @@ object TaskUtils {
   def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (StoredJob, Long, Int)] = {
     val taskMap = new mutable.HashMap[String, (StoredJob, Long, Int)]()
 
-    tasks.foreach { p: (String, Array[Byte]) => println(p._1)
+    tasks.foreach { p: (String, Array[Byte]) =>
       //Any non-recurring job R1/X/Y is equivalent to a task!
       val taskInstance = JobUtils.convertJobToStored(JobUtils.fromBytes(p._2)) getOrElse {
         throw new RuntimeException(s"Failed to migrate task ${p._1}")

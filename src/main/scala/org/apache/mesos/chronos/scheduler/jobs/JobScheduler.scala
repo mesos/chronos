@@ -516,13 +516,11 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           log.info("Task ready for scheduling: %s in range [%s => %s]".format(nextDate, scheduleWindowBegin, scheduleWindowEnd))
           //TODO(FL): Rethink passing the dispatch queue all the way down to the ScheduledTask.
           val task = new ScheduledTask(TaskUtils.getTaskId(job, nextDate), nextDate, job, taskManager)
-          println(s"returning task for date in range: $nextDate")
           return (Some(task), stream.tail)
         }
         // Next instance is too far in the future
         // Needs to be scheduled at a later time, after schedule horizon.
         if (!nextDate.isBefore(now)) {
-          println(s"Skipping, date in future: $nextDate")
           return (None, Some(stream))
         }
         // Next instance is too far in the past (beyond epsilon)
@@ -630,7 +628,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   private final def scheduleStream(now: DateTime, s: ScheduleStream): Option[ScheduleStream] = {
     val (taskOption, stream) = next(now, s)
     if (taskOption.isEmpty) {
-      println("Empty task")
       stream
     } else {
       val encapsulatedJob = taskOption.get.job
