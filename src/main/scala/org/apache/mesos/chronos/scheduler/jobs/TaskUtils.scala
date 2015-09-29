@@ -108,7 +108,7 @@ object TaskUtils {
 
     tasks.foreach { p: (String, Array[Byte]) =>
       //Any non-recurring job R1/X/Y is equivalent to a task!
-      val taskInstance = JobUtils.convertJobToStored(JobUtils.fromBytes(p._2)) getOrElse {
+      val taskInstance = JobUtils.convertJobToStored(JobUtils.fromBytes(p._2)).getOrElse {
         throw new RuntimeException(s"Failed to migrate task ${p._1}")
       }
       val taskTuple = parseTaskId(p._1)

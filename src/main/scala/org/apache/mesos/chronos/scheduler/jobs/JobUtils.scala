@@ -135,9 +135,9 @@ object JobUtils {
     //TODO(FL): Create functions that map strings to jobs
 
     val jobs = store.getJobs
-    val dependencyBasedJobs = jobs.collect({case d: DependencyBasedJob => d }).toList
-    val scheduledJobs= jobs.collect({ case s: InternalScheduleBasedJob => s }).toList
 
+    val dependencyBasedJobs = jobs.collect {case d: DependencyBasedJob => d }.toList
+    val scheduledJobs= jobs.collect { case s: InternalScheduleBasedJob => s }.toList
 
     log.info("Registering jobs:" + scheduledJobs.size)
     scheduler.registerJob(scheduledJobs.toList)
@@ -176,13 +176,13 @@ object JobUtils {
 
     @tailrec
     def skip(scheduleStream: Option[ScheduleStream], now: DateTime, skippedAlready: Int): Option[ScheduleStream] = {
-     scheduleStream match {
+      scheduleStream match {
         case None =>
           log.warning("Filtered job %s as it is no longer valid.".format(originalStream.jobName))
           None
         case Some(stream) =>
           if (!stream.schedule.invocationTime.plus(epsilon).isBefore(now)) {
-            if(skippedAlready != 0) {
+            if (skippedAlready != 0) {
               log.warning("Skipped job %s forward %d iterations, modified start from '%s' to '%s"
                 .format(
                   originalStream.jobName,

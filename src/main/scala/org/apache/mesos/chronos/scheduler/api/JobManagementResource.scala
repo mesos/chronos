@@ -227,7 +227,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       import scala.collection.JavaConversions._
 
-      val jobs = jobGraph.dag.vertexSet() flatMap jobGraph.getJobForName
+      val jobs = jobGraph.dag.vertexSet().flatMap(jobGraph.getJobForName)
 
       val _limit: Integer = limit match {
         case x: Integer =>

@@ -105,7 +105,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
 
   def getJob(name: String): StoredJob = {
     val bytes = state.fetch(jobName(name)).get
-    JobUtils.convertJobToStored(JobUtils.fromBytes(bytes.value)) getOrElse {
+    JobUtils.convertJobToStored(JobUtils.fromBytes(bytes.value)).getOrElse {
       throw new RuntimeException(s"Failed to migrate job; error parsing stored data for job $name")
     }
   }
@@ -117,7 +117,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     state.names.get.filter(_.startsWith(jobPrefix))
       .map({
       x: String =>
-        JobUtils.convertJobToStored(JobUtils.fromBytes(state.fetch(x).get.value)) getOrElse {
+        JobUtils.convertJobToStored(JobUtils.fromBytes(state.fetch(x).get.value)).getOrElse {
           throw new RuntimeException(s"Failed to migrate job; error parsing stored data for job $x")
         }
     })

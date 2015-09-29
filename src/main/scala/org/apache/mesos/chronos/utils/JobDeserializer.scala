@@ -272,7 +272,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       val originTime = DateTime.parse(scheduleDataNode.get("originTime").asText())
       val invocationTime = DateTime.parse(scheduleDataNode.get("invocationTime").asText())
       val offset = scheduleDataNode.get("offset").asLong()
-      val recurrences = if(scheduleDataNode.has("recurrences")) Some(scheduleDataNode.get("recurrences").asLong()) else None
+      val recurrences = if (scheduleDataNode.has("recurrences")) Some(scheduleDataNode.get("recurrences").asLong()) else None
       val period = Period.parse(scheduleDataNode.get("period").asText())
 
       new InternalScheduleBasedJob(

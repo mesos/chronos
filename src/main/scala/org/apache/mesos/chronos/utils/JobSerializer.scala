@@ -199,7 +199,7 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeFieldName("offset")
         json.writeNumber(iSchedJob.scheduleData.offset)
 
-        iSchedJob.scheduleData.recurrences.foreach{ r =>
+        iSchedJob.scheduleData.recurrences.foreach { r =>
           json.writeFieldName("recurrences")
           json.writeNumber(r)
         }

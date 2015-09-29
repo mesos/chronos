@@ -91,9 +91,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         lock.synchronized {
           if (!scheduleBasedJob.disabled) {
             JobUtils.makeScheduleStream(scheduleBasedJob, DateTime.now(DateTimeZone.UTC)) foreach { newSchedule =>
-                log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
-                val tmpStreams = streams.filter(_.jobName != scheduleBasedJob.name)
-                streams = iteration(DateTime.now(DateTimeZone.UTC), List(newSchedule) ++ tmpStreams)
+              log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
+              val tmpStreams = streams.filter(_.jobName != scheduleBasedJob.name)
+              streams = iteration(DateTime.now(DateTimeZone.UTC), List(newSchedule) ++ tmpStreams)
             }
           } else {
             log.info("updating ScheduleBasedJob:" + scheduleBasedJob.toString)
@@ -288,9 +288,9 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         case scheduleBasedJob: InternalScheduleBasedJob =>
           val streamForJob = streams.find(_.jobName == job.name)
 
-          streamForJob foreach { stream =>
+          streamForJob.foreach { stream =>
             stream.schedule.recurrences.foreach { recurRemaining =>
-              if(recurRemaining == 0) {
+              if (recurRemaining == 0) {
                 log.info("Disabling job that reached a zero-recurrence count!")
 
                 val disabledJob = scheduleBasedJob.copy(disabled = true)
@@ -478,7 +478,6 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     val nextDate = schedule.invocationTime
 
     log.info("Calling next for stream: %s, jobname: %s".format(stream.schedule, jobName))
-    assert(schedule != null, "No valid schedule found: " + schedule)
     assert(jobName != null, "BaseJob cannot be null")
 
     var jobOption: Option[StoredJob] = None

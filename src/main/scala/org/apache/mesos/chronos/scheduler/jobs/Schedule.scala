@@ -14,7 +14,7 @@ case class Schedule(@JsonProperty schedule: String,
 
 
   def next: Option[Schedule] = {
-    if(recurrences.exists(_ == 0)) None
+    if (recurrences.exists(_ == 0)) None
     else {
       val nextOffset = offset + 1
       val nextInvocationTime = Schedule.addPeriods(originTime, period, nextOffset.asInstanceOf[Int] /* jodatime doesn't support longs in their plus methods. What to do about overflow? */)
@@ -30,9 +30,9 @@ case class Schedule(@JsonProperty schedule: String,
 
 object Schedule {
   def parse(scheduleStr: String, timeZoneStr: String = ""): Option[Schedule] = {
-    Iso8601Expressions.parse(scheduleStr, timeZoneStr) map {
+    Iso8601Expressions.parse(scheduleStr, timeZoneStr).map {
       case (recurrences, start, period) =>
-        Schedule(scheduleStr, timeZoneStr, start, start, offset = 0, if(recurrences == -1) None else Some(recurrences), period)
+        Schedule(scheduleStr, timeZoneStr, start, start, offset = 0, if (recurrences == -1) None else Some(recurrences), period)
     }
   }
 

@@ -263,22 +263,21 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     there was one(mockGraph).replaceVertex(job1, job2)
   }
 
-  //todo: re-enable after hearing back from chronos guys
-//  "Missed executions have to be skipped" in {
-//    val epsilon = Seconds.seconds(60).toPeriod
-//    val job1 = new InternalScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
-//
-//    val mockTaskManager = mock[TaskManager]
-//    val jobGraph = new JobGraph
-//    val mockPersistenceStore = mock[PersistenceStore]
-//
-//    val scheduler = mockScheduler(epsilon, mockTaskManager, jobGraph, mockPersistenceStore)
-//
-//    val startTime = DateTime.parse("2012-01-03T00:00:00.000Z")
-//    scheduler.leader.set(true)
-//    scheduler.registerJob(job1, persist = true, startTime)
-//
-//    val newStreams = scheduler.iteration(startTime, scheduler.streams)
-//    newStreams.head.schedule must_== "R2/2012-01-04T00:00:00.000Z/P1D"
-//  }
+  "Missed executions have to be skipped" in {
+    val epsilon = Seconds.seconds(60).toPeriod
+    val job1 = new InternalScheduleBasedJob(Schedule.parse("R5/2012-01-01T00:00:00.000Z/P1D").get, "job1", "CMD", epsilon)
+
+    val mockTaskManager = mock[TaskManager]
+    val jobGraph = new JobGraph
+    val mockPersistenceStore = mock[PersistenceStore]
+
+    val scheduler = mockScheduler(epsilon, mockTaskManager, jobGraph, mockPersistenceStore)
+
+    val startTime = DateTime.parse("2012-01-03T00:00:00.000Z")
+    scheduler.leader.set(true)
+    scheduler.registerJob(job1, persist = true, startTime)
+
+    val newStreams = scheduler.iteration(startTime, scheduler.streams)
+    newStreams.head.schedule.invocationTime must_== Schedule.parse("R2/2012-01-04T00:00:00.000Z/P1D").get.invocationTime
+  }
 }
