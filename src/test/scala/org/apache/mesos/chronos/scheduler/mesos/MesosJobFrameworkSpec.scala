@@ -70,7 +70,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
 
       val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
       doReturn(tasks).when(mesosJobFramework).generateLaunchableTasks(any)
-      doNothing().when(mesosJobFramework).reconcile(any)
+      doNothing.when(mesosJobFramework).reconcile(any)
 
       val offer: Offer = makeBasicOffer
       mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
@@ -99,7 +99,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
 
       val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
       doReturn(tasks).when(mesosJobFramework).generateLaunchableTasks(any)
-      doNothing().when(mesosJobFramework).reconcile(any)
+      doNothing.when(mesosJobFramework).reconcile(any)
 
       val offer: Offer = makeBasicOffer
       mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
@@ -129,7 +129,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
 
     val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
     doReturn(tasks).when(mesosJobFramework).generateLaunchableTasks(any)
-    doNothing().when(mesosJobFramework).reconcile(any)
+    doNothing.when(mesosJobFramework).reconcile(any)
 
     val offer: Offer = makeBasicOffer
     mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
