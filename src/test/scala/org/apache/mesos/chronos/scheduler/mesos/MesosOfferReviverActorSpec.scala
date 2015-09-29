@@ -9,8 +9,8 @@ import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-
 import scala.concurrent.duration.FiniteDuration
+import org.specs2.matcher.ThrownExpectations
 
 class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
   "MesosOfferReviverActor" should {
@@ -75,7 +75,7 @@ class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
   }
 }
 
-trait context extends BeforeAfter with Mockito {
+trait context extends BeforeAfter with Mockito with ThrownExpectations {
   implicit var actorSystem: ActorSystem = _
   var driverFactory: MesosDriverFactory = _
   var conf: SchedulerConfiguration with HttpConf = _
