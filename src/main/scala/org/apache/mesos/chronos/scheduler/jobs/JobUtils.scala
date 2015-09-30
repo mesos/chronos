@@ -136,8 +136,8 @@ object JobUtils {
 
     val jobs = store.getJobs
 
-    val dependencyBasedJobs = jobs.collect {case d: DependencyBasedJob => d }.toList
-    val scheduledJobs= jobs.collect { case s: InternalScheduleBasedJob => s }.toList
+    val dependencyBasedJobs = jobs.collect { case d: DependencyBasedJob => d }.toList
+    val scheduledJobs = jobs.collect { case s: InternalScheduleBasedJob => s }.toList
 
     log.info("Registering jobs:" + scheduledJobs.size)
     scheduler.registerJob(scheduledJobs.toList)
