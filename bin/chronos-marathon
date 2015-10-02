@@ -9,7 +9,7 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-/lib}"
 export LD_LIBRARY_PATH="$JAVA_LIBRARY_PATH:$LD_LIBRARY_PATH"
 export PORT0="${PORT0:-8080}"
 
-flags=()
+flags=( $@ )
 
 #If we're on Amazon, let's use the public hostname so redirect works as expected.
 if public_hostname="$( curl -sSf --connect-timeout 1 http://169.254.169.254/latest/meta-data/public-hostname )"
@@ -22,15 +22,16 @@ fi
 jar_files=( "$chronos_home"/target/chronos*.jar )
 echo "Using jar file: $jar_files[0]"
 
-# This assumes there is a file, /etc/mesos/zk that contains the ZK string.
-mesos_master="$( < /etc/mesos/zk)"
+# MESOS_MASTER variable or assuming there is a file, /etc/mesos/zk, that contains the ZK string
+mesos_master="${MESOS_MASTER:-$( < /etc/mesos/zk)}"
+
 tmp="${mesos_master//zk:\/\/}"
 zk_hosts="${tmp/\/*}"
 
 flags+=( --master $mesos_master
          --zk_hosts $zk_hosts )
 
-heap=384m
+heap=${JVM_HEAP:-384m}
 
 java -Xmx"$heap" -Xms"$heap" -cp "${jar_files[0]}" \
      org.apache.mesos.chronos.scheduler.Main \
