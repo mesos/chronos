@@ -104,23 +104,21 @@ The JSON hash you send to Chronos should contain the following fields:
 * `command`: The actual command that will be executed by Chronos
 * `schedule`: The scheduling for the job, in [ISO 8601][] format. Consists of 3 parts separated by `/`:
   * The number of times to repeat the job: `Rn` to repeat `n` times, or `R` to repeat forever
-  * The start time of the job. An empty start time means start immediately. Our format is [ISO 8601][]:
-
-    `YYYY-MM-DDThh:mm:ss.sTZD` (e.g., `1997-07-16T19:20:30.45+01:00`) where:
-    * `YYYY` = four-digit year
-    * `MM`   = two-digit month (01 = January, etc.)
-    * `DD`   = two-digit day of month (01 through 31)
-    * `hh`   = two-digit hour in 24-hour time (00 through 23)
-    * `mm`   = two-digit minute (00 through 59)
-    * `ss`   = two-digit second (00 through 59)
-    * `s`    = one or more digits representing a decimal fraction of a second
-    * `TZD`  = time zone designator (`Z` for UTC or `+hh:mm` or `-hh:mm` for UTC offset)
+  * The start time of the job. An empty start time means start immediately. Our format is [ISO 8601][]: `YYYY-MM-DDThh:mm:ss.sTZD` (e.g., `1997-07-16T19:20:30.45+01:00`) where:
+      * `YYYY` = four-digit year
+      * `MM`   = two-digit month (01 = January, etc.)
+      * `DD`   = two-digit day of month (01 through 31)
+      * `hh`   = two-digit hour in 24-hour time (00 through 23)
+      * `mm`   = two-digit minute (00 through 59)
+      * `ss`   = two-digit second (00 through 59)
+      * `s`    = one or more digits representing a decimal fraction of a second
+      * `TZD`  = time zone designator (`Z` for UTC or `+hh:mm` or `-hh:mm` for UTC offset)
   * The run interval, defined following the ["Duration"](https://en.wikipedia.org/wiki/ISO_8601#Durations) component of the ISO 8601 standard. `P` is required. `T` is for distinguishing M(inute) and M(onth)––it is required when specifying Hour/Minute/Second. For example:
-    * `P10M`           = 10 months
-    * `PT10M`          = 10 minutes
-    * `P1Y12M12D`      = 1 year, 12 months, and 12 days
-    * `P12DT12M`       = 12 days and 12 minutes
-    * `P1Y2M3DT4H5M6S` = 1 year, 2 months, 3 days, 4 hours, and 5 minutes
+      * `P10M`           = 10 months
+      * `PT10M`          = 10 minutes
+      * `P1Y12M12D`      = 1 year, 12 months, and 12 days
+      * `P12DT12M`       = 12 days and 12 minutes
+      * `P1Y2M3DT4H5M6S` = 1 year, 2 months, 3 days, 4 hours, and 5 minutes
 * `scheduleTimeZone`: The time zone name to use when scheduling the job. Unlike `schedule`, this is specified in the [tz database](https://en.wikipedia.org/wiki/Tz_database) format, not the [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Time_zone_designators) format.
   * This field takes precedence over any time zone specified in `schedule`.
   * All system time zones supported by [`java.util.TimeZone#getAvailableIDs()`](http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()) can be used.
