@@ -44,8 +44,8 @@ Interesting fields in the hashes are:
 
 * `successCount`: the number of times the job completed successfully
 * `errorCount`: the number of times the job failed to complete
-* `lastSuccess`: timestamp of the last successful run of the job
-* `lastError`: timestamp of the last failed run of the job
+* `lastSuccess`: date of the last successful run of the job
+* `lastError`: date of the last failed run of the job
 * `executor`: auto-determined by Chronos, but will usually be "" for non-async jobs
 * `parents`: for dependent jobs, a list of all other jobs that must run before this job will run
 
