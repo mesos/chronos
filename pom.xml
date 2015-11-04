@@ -262,6 +262,11 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>org.scoverage</groupId>
+          <artifactId>scoverage-maven-plugin</artifactId>
+          <version>1.0.4</version>
+        </plugin>
+        <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
           <version>${scala-maven-plugin.version}</version>
