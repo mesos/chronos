@@ -15,3 +15,7 @@ title: Chronos Resources
 * [Containerize Your Batch Jobs with Mesosphere and Docker](https://mesosphere.com/blog/2014/12/03/docker-on-mesos-with-chronos/)
 
 * Replacing Cron & Building Scalable Data Pipelines: [YouTube](http://www.youtube.com/watch?v=FLqURrtS8IA)
+
+## Libraries
+
+* [Go Chronos Client](https://github.com/yieldbot/chronos-client)
