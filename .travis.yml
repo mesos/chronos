@@ -10,3 +10,6 @@ scala:
 jdk:
   - openjdk7
 script: mvn clean test package
+cache:
+  directories:
+    - $HOME/.m2/repository
