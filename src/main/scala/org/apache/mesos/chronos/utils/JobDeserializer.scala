@@ -207,6 +207,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
             constraints.add(EqualsConstraint(c.get(0).asText, c.get(2).asText))
           case LikeConstraint.OPERATOR =>
             constraints.add(LikeConstraint(c.get(0).asText, c.get(2).asText))
+          case UnlikeConstraint.OPERATOR =>
+            constraints.add(UnlikeConstraint(c.get(0).asText, c.get(2).asText))
           case _ =>
         }
       }
