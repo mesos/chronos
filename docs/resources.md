@@ -19,3 +19,7 @@ title: Chronos Resources
 ## Libraries
 
 * [Go Chronos Client](https://github.com/yieldbot/chronos-client)
+
+## Tools
+
+* [Chronos Shuttle](https://github.com/yieldbot/chronos-shuttle) An opinionated CLI for Chronos
