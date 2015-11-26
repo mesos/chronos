@@ -19,7 +19,7 @@ import org.rogach.scallop.ScallopConf
 object Main extends App {
   lazy val conf = new ScallopConf(args)
     with HttpConf with AppConfiguration with SchedulerConfiguration
-    with GraphiteConfiguration with CassandraConfiguration
+    with GraphiteConfiguration with CassandraConfiguration with StatsPublisherConfiguration
   val isLeader = new AtomicBoolean(false)
   private[this] val log = Logger.getLogger(getClass.getName)
 
