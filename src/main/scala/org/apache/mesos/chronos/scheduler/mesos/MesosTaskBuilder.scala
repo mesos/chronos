@@ -83,8 +83,14 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       )
     }
 
+    val uriProtos = job.uris.map { uri =>
+      CommandInfo.URI.newBuilder()
+        .setValue(uri)
+        .build()
+    }
+
     if (job.executor.nonEmpty) {
-      appendExecutorData(taskInfo, job)
+      appendExecutorData(taskInfo, job, environment, uriProtos)
     } else {
       val command = CommandInfo.newBuilder()
       if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
@@ -96,11 +102,6 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
           .setValue("\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
           .setEnvironment(environment)
       } else {
-        val uriProtos = job.uris.map(uri => {
-          CommandInfo.URI.newBuilder()
-            .setValue(uri)
-            .build()
-        })
         command.setValue(job.command)
           .setShell(job.shell)
           .setEnvironment(environment)
@@ -174,10 +175,12 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .build()).build
   }
 
-  def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob) {
+  def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob, environment: Environment.Builder, uriProtos: Seq[CommandInfo.URI]) {
     log.info("Appending executor:" + job.executor + ", flags:" + job.executorFlags + ", command:" + job.command)
     val command = CommandInfo.newBuilder()
       .setValue(job.executor)
+      .setEnvironment(environment)
+      .addAllUris(uriProtos.asJava)
     if (job.runAsUser.nonEmpty) {
       command.setUser(job.runAsUser)
     }
