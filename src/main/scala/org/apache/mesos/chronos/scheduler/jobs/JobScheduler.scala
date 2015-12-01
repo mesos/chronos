@@ -288,8 +288,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
                 val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
                 jobsObserver.apply(JobDisabled(job, """Job '%s' has exhausted all of its recurrences and has been disabled.
-                                                      |Please consider either removing your job, or updating its schedule and re-enabling it.
-                                                    """.stripMargin.format(job.name)))
+                                                        |Please consider either removing your job, or updating its schedule and re-enabling it.
+                                                      """.stripMargin.format(job.name)))
                 replaceJob(scheduleBasedJob, disabledJob)
               }
             case None =>
@@ -300,7 +300,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
   }
 
   /**
-   * Mark job by job name as successful. Trigger run any dependent children jobs that should be run as a result
+   * Mark job by job name as successful. Trigger any dependent children jobs that should be run as a result
    */
   def markJobSuccessAndFireOffDependencies(jobName : String): Boolean = {
     val optionalJob = jobGraph.getJobForName(jobName)
