@@ -183,6 +183,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     }
   }
 
+
   /**
    * Allows an user to update the elements processed count for a job that
    * supports data tracking. The processed count has to be non-negative.
@@ -190,8 +191,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @POST
   @Path(PathConstants.jobTaskProgressPath)
   def updateTaskProgress(@PathParam("jobName") jobName: String,
-                         @PathParam("taskId") taskId: String,
-                         taskStat: TaskStat) : Response = {
+          @PathParam("taskId") taskId: String,
+          taskStat: TaskStat) : Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
       require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
