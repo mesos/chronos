@@ -267,18 +267,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val job = jobOption.get
       jobsObserver.apply(JobFinished(job, taskStatus, attempt))
 
-      val newJob = job match {
-        case job: ScheduleBasedJob =>
-          job.copy(successCount = job.successCount + 1,
-            errorsSinceLastSuccess = 0,
-            lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
-        case job: DependencyBasedJob =>
-          job.copy(successCount = job.successCount + 1,
-            errorsSinceLastSuccess = 0,
-            lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
-        case _ =>
-          throw new IllegalArgumentException("Cannot handle unknown task type")
-      }
+      val newJob = getNewSuccessfulJob(job)
       replaceJob(job, newJob)
       processDependencies(jobName, taskDate)
 
@@ -299,8 +288,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
 
                 val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
                 jobsObserver.apply(JobDisabled(job, """Job '%s' has exhausted all of its recurrences and has been disabled.
-                                                        |Please consider either removing your job, or updating its schedule and re-enabling it.
-                                                      """.stripMargin.format(job.name)))
+                                                      |Please consider either removing your job, or updating its schedule and re-enabling it.
+                                                    """.stripMargin.format(job.name)))
                 replaceJob(scheduleBasedJob, disabledJob)
               }
             case None =>
@@ -308,6 +297,41 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
         case _ =>
       }
     }
+  }
+
+  /**
+   * Mark job by job name as successful. Trigger run any dependent children jobs that should be run as a result
+   */
+  def markJobSuccessAndFireOffDependencies(jobName : String): Boolean = {
+    val optionalJob = jobGraph.getJobForName(jobName)
+    if (optionalJob.isEmpty) {
+      log.warning("%s not found in job graph, not marking success".format(jobName))
+      return false
+    } else {
+      val job = optionalJob.get
+      jobMetrics.updateJobStatus(jobName, success = true)
+      val newJob = getNewSuccessfulJob(job)
+      replaceJob(job, newJob)
+      log.info("Processing dependencies for %s".format(jobName))
+      processDependencies(jobName, Option(DateTime.parse(newJob.lastSuccess)))
+    }
+    true
+  }
+
+  private def getNewSuccessfulJob(job: BaseJob): BaseJob = {
+    val newJob = job match {
+      case job: ScheduleBasedJob =>
+        job.copy(successCount = job.successCount + 1,
+          errorsSinceLastSuccess = 0,
+          lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+      case job: DependencyBasedJob =>
+        job.copy(successCount = job.successCount + 1,
+          errorsSinceLastSuccess = 0,
+          lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+      case _ =>
+        throw new scala.IllegalArgumentException("Cannot handle unknown task type")
+    }
+    newJob
   }
 
   def replaceJob(oldJob: BaseJob, newJob: BaseJob) {

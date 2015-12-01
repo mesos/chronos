@@ -163,14 +163,35 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   }
 
   /**
+   * Mark Job successful
+   */
+  @Path(PathConstants.jobSuccessPath)
+  @PUT
+  @Timed
+  def markJobSuccessful(@PathParam("jobName") jobName: String): Response = {
+    try {
+      val success = jobScheduler.markJobSuccessAndFireOffDependencies(jobName)
+      Response.ok("marked job %s as successful: %b".format(jobName, success)).build()
+    } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+          .build()
+      case ex: Exception =>
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        Response.serverError().build
+    }
+  }
+
+  /**
    * Allows an user to update the elements processed count for a job that
    * supports data tracking. The processed count has to be non-negative.
    */
   @POST
   @Path(PathConstants.jobTaskProgressPath)
   def updateTaskProgress(@PathParam("jobName") jobName: String,
-          @PathParam("taskId") taskId: String,
-          taskStat: TaskStat) : Response = {
+                         @PathParam("taskId") taskId: String,
+                         taskStat: TaskStat) : Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
       require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
