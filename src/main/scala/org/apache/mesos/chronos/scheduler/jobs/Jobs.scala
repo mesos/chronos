@@ -37,6 +37,8 @@ trait BaseJob {
 
   def executorFlags: String = ""
 
+  def taskInfoData: String = ""
+
   def retries: Int = 2
 
   def owner: String = ""
@@ -95,6 +97,7 @@ case class ScheduleBasedJob(
                              @JsonProperty override val errorCount: Long = 0L,
                              @JsonProperty override val executor: String = "",
                              @JsonProperty override val executorFlags: String = "",
+                             @JsonProperty override val taskInfoData: String = "",
                              @JsonProperty override val retries: Int = 2,
                              @JsonProperty override val owner: String = "",
                              @JsonProperty override val ownerName: String = "",
@@ -132,6 +135,7 @@ case class DependencyBasedJob(
                                @JsonProperty override val errorCount: Long = 0L,
                                @JsonProperty override val executor: String = "",
                                @JsonProperty override val executorFlags: String = "",
+                               @JsonProperty override val taskInfoData: String = "",
                                @JsonProperty override val retries: Int = 2,
                                @JsonProperty override val owner: String = "",
                                @JsonProperty override val ownerName: String = "",
