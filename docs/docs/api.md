@@ -438,5 +438,19 @@ Schedule jobs on nodes which attributes match a regular expression.
 
 **Note:** This constraint applies to attributes of type `text` and `scalar` and elements in a `set`, but not `range`.
 
+### UNLIKE constraint
+
+Schedule jobs on nodes which attributes *do not* match a regular expression.
+
+```json
+{
+  ...
+  "constraints": [["rack", "UNLIKE", "rack-[1-3]"]],
+  ...
+}
+```
+
+**Note:** This constraint applies to attributes of type `text` and `scalar` and elements in a `set`, but not `range`.
+
 [json]: http://www.json.org/
 [ISO 8601]: https://en.wikipedia.org/wiki/ISO_8601
