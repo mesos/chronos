@@ -101,8 +101,18 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
             .setValue(uri)
             .build()
         })
-        command.setValue(job.command)
-          .setShell(job.shell)
+
+        Option(job.command) match {
+          case Some(cmd) if ! cmd.isEmpty =>
+            command.setValue(cmd)
+                   .setShell(job.shell)
+          case _ =>
+            // This typically hapens when the user want to execute the command in a container,
+            // in this situation we don't need a shell.
+            command.setShell(false)
+        }
+
+        command
           .setEnvironment(environment)
           .addAllArguments(job.arguments.asJava)
           .addAllUris(uriProtos.asJava)
