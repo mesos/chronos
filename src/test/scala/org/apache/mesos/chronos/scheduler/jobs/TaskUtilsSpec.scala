@@ -9,7 +9,7 @@ class TaskUtilsSpec extends SpecificationWithJUnit with Mockito {
   "TaskUtils" should {
     "Get taskId" in {
       val schedule = "R/2012-01-01T00:00:01.000Z/P1M"
-      val arguments = "-a 1 -b 2"
+      val arguments = "-a 1 -b 2 -c /etc/passwd -d \\foo\\bar"
       val job1 = new ScheduleBasedJob(schedule, "sample-name", "sample-command", arguments = List(arguments))
       val job2 = new ScheduleBasedJob(schedule, "sample-name", "sample-command")
       val ts = 1420843781398L
@@ -18,7 +18,7 @@ class TaskUtilsSpec extends SpecificationWithJUnit with Mockito {
       val taskIdOne = TaskUtils.getTaskId(job1, due, 0)
       val taskIdTwo = TaskUtils.getTaskId(job2, due, 0)
 
-      taskIdOne must_== "ct:1420843781398:0:sample-name:" + arguments
+      taskIdOne must_== "ct:1420843781398:0:sample-name:-a 1 -b 2 -c _etc_passwd -d _foo_bar"
       taskIdTwo must_== "ct:1420843781398:0:sample-name:"
     }
 
