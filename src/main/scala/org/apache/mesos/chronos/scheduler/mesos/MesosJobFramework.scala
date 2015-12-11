@@ -1,36 +1,61 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.mesos
 
 import java.util.logging.Logger
 
+import com.google.inject.Inject
+import mesosphere.mesos.util.FrameworkIdUtil
+import org.apache.mesos.Protos._
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs._
 import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
 import org.apache.mesos.chronos.utils.JobDeserializer
-import com.google.inject.Inject
-import mesosphere.mesos.util.FrameworkIdUtil
-import org.apache.mesos.Protos._
-import org.apache.mesos.{Protos, Scheduler, SchedulerDriver}
+import org.apache.mesos.{ Protos, Scheduler, SchedulerDriver }
 import org.joda.time.DateTime
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.mutable.{Buffer, HashMap, HashSet}
 
 /**
  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
  * @author Florian Leibert (flo@leibert.de)
  */
-class MesosJobFramework @Inject()(
-                                   val mesosDriver: MesosDriverFactory,
-                                   val scheduler: JobScheduler,
-                                   val taskManager: TaskManager,
-                                   val config: SchedulerConfiguration,
-                                   val frameworkIdUtil: FrameworkIdUtil,
-                                   val taskBuilder: MesosTaskBuilder,
-                                   val mesosOfferReviver: MesosOfferReviver)
-  extends Scheduler {
+class MesosJobFramework @Inject() (
+  val mesosDriver: MesosDriverFactory,
+  val scheduler: JobScheduler,
+  val taskManager: TaskManager,
+  val config: SchedulerConfiguration,
+  val frameworkIdUtil: FrameworkIdUtil,
+  val taskBuilder: MesosTaskBuilder,
+  val mesosOfferReviver: MesosOfferReviver)
+    extends Scheduler {
 
+  private[this] lazy val declineOfferFilters: Filters = {
+    config.declineOfferDuration.get match {
+      case Some(durationInMs) =>
+        val declineSeconds = durationInMs / 1000.0
+        Filters.newBuilder().setRefuseSeconds(declineSeconds).build()
+      case None =>
+        Filters.getDefaultInstance
+    }
+  }
   val frameworkName = "chronos"
   private[this] val log = Logger.getLogger(getClass.getName)
   private var lastReconciliation = DateTime.now.plusSeconds(config.reconciliationInterval())
@@ -49,13 +74,14 @@ class MesosJobFramework @Inject()(
     mesosOfferReviver.reviveOffers()
   }
 
+  JobDeserializer.config = config
+
   /* Overridden methods from MesosScheduler */
   @Override
   def reregistered(schedulerDriver: SchedulerDriver, masterInfo: MasterInfo) {
     log.warning("Reregistered")
     mesosOfferReviver.reviveOffers()
   }
-  JobDeserializer.config = config
 
   @Override
   def disconnected(schedulerDriver: SchedulerDriver) {
@@ -64,11 +90,10 @@ class MesosJobFramework @Inject()(
 
   def getReservedResources(offer: Offer): (Double, Double) = {
     val resources = offer.getResourcesList.asScala
-    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*"})
+    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*" })
     (
       getScalarValueOrElse(reservedResources.find(x => x.getName == "cpus"), 0),
-      getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0)
-      )
+      getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0))
   }
 
   def getScalarValueOrElse(opt: Option[Resource], value: Double): Double = {
@@ -103,16 +128,6 @@ class MesosJobFramework @Inject()(
     reconcile(schedulerDriver)
   }
 
-  private[this] lazy val declineOfferFilters: Filters = {
-    config.declineOfferDuration.get match {
-      case Some(durationInMs) =>
-        val declineSeconds = durationInMs / 1000.0
-        Filters.newBuilder().setRefuseSeconds(declineSeconds).build()
-      case None =>
-        Filters.getDefaultInstance
-    }
-  }
-
   def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): mutable.Buffer[(String, BaseJob, Offer)] = {
     val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
 
@@ -134,7 +149,8 @@ class MesosJobFramework @Inject()(
             val deleted = taskManager.removeTask(taskId)
             log.warning("The head of the task queue appears to already be running: " + job.name + "\n")
             generate()
-          } else {
+          }
+          else {
             tasks.find(_._2.name == job.name) match {
               case Some((subtaskId, subJob, offer)) =>
                 val deleted = taskManager.removeTask(subtaskId)
@@ -154,8 +170,7 @@ class MesosJobFramework @Inject()(
                     val foundResources = offerResources.toIterator.map(_._2.toString()).mkString(",")
                     log.warning(
                       "Insufficient resources remaining for task '%s', will append to queue. (Needed: [%s], Found: [%s])"
-                        .stripMargin.format(taskId, neededResources, foundResources)
-                    )
+                        .stripMargin.format(taskId, neededResources, foundResources))
                     taskManager.enqueue(taskId, job.highPriority)
                 }
             }
@@ -164,6 +179,32 @@ class MesosJobFramework @Inject()(
     }
     generate()
     tasks
+  }
+
+  def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
+    import scala.collection.JavaConverters._
+
+    tasks.groupBy(_._3).toIterable.foreach({
+      case (offer, subTasks) =>
+        val mesosTasks = subTasks.map(task => {
+          taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
+        })
+        log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
+        val status: Protos.Status = mesosDriver.get().launchTasks(
+          List(offer.getId).asJava,
+          mesosTasks.asJava)
+        if (status == Protos.Status.DRIVER_RUNNING) {
+          for (task <- tasks) {
+            runningTasks.put(task._2.name, new ChronosTask(task._3.getSlaveId.getValue))
+
+            //TODO(FL): Handle case if chronos can't launch the task.
+            log.info("Task '%s' launched, status: '%s'".format(task._1, status.toString))
+          }
+        }
+        else {
+          log.warning("Other status returned.")
+        }
+    })
   }
 
   def reconcile(schedulerDriver: SchedulerDriver): Unit = {
@@ -175,31 +216,6 @@ class MesosJobFramework @Inject()(
       log.info("Performing task reconciliation with the Mesos master")
       schedulerDriver.reconcileTasks(taskStatuses.flatMap(task => task.taskStatus).asJavaCollection)
     }
-  }
-
-  def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
-    import scala.collection.JavaConverters._
-
-    tasks.groupBy(_._3).toIterable.foreach({ case (offer, subTasks) =>
-      val mesosTasks = subTasks.map(task => {
-        taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
-      })
-      log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
-      val status: Protos.Status = mesosDriver.get().launchTasks(
-        List(offer.getId).asJava,
-        mesosTasks.asJava
-      )
-      if (status == Protos.Status.DRIVER_RUNNING) {
-        for (task <- tasks) {
-          runningTasks.put(task._2.name, new ChronosTask(task._3.getSlaveId.getValue))
-
-          //TODO(FL): Handle case if chronos can't launch the task.
-          log.info("Task '%s' launched, status: '%s'".format(task._1, status.toString))
-        }
-      } else {
-        log.warning("Other status returned.")
-      }
-    })
   }
 
   @Override
@@ -231,7 +247,8 @@ class MesosJobFramework @Inject()(
         //This is a workaround to support async jobs without having to keep yet more state.
         if (scheduler.isTaskAsync(taskStatus.getTaskId.getValue)) {
           log.info("Asynchronous task: '%s', not updating job-graph.".format(taskStatus.getTaskId.getValue))
-        } else {
+        }
+        else {
           scheduler.handleFinishedTask(taskStatus)
         }
       case TaskState.TASK_FAILED =>
@@ -297,7 +314,8 @@ class MesosJobFramework @Inject()(
     import scala.collection.JavaConversions._
     val s = new StringBuilder
     offer.getResourcesList.foreach({
-      x => s.append(f"Name: ${x.getName}")
+      x =>
+        s.append(f"Name: ${x.getName}")
         if (x.hasScalar && x.getScalar.hasValue) {
           s.append(f"Scalar: ${x.getScalar.getValue}")
         }
@@ -312,8 +330,7 @@ class MesosJobFramework @Inject()(
       this(
         if (job.cpus > 0) job.cpus else config.mesosTaskCpu(),
         if (job.mem > 0) job.mem else config.mesosTaskMem(),
-        if (job.disk > 0) job.disk else config.mesosTaskDisk()
-      )
+        if (job.disk > 0) job.disk else config.mesosTaskDisk())
     }
 
     def canSatisfy(needed: Resources): Boolean = {
@@ -346,8 +363,8 @@ class MesosJobFramework @Inject()(
       new Resources(
         getScalarValueOrElse(resources.find(_.getName == "cpus"), 0),
         getScalarValueOrElse(resources.find(_.getName == "mem"), 0),
-        getScalarValueOrElse(resources.find(_.getName == "disk"), 0)
-      )
+        getScalarValueOrElse(resources.find(_.getName == "disk"), 0))
     }
   }
+
 }

@@ -1,6 +1,23 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.joda.time.{DateTime, Days, Period}
+import org.joda.time.{ DateTime, Days, Period }
 import org.specs2.mutable._
 
 class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
@@ -79,7 +96,6 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
       fail must beEqualTo(false)
     }
 
-
     "Test precedence using two time zone options at once (EDT and PST)" in {
       val fail = Iso8601Expressions.parse("R/2008-03-01T13:00:00-04:00/P1D", "PST") match {
         case Some((repetitions, startTime, period)) =>
@@ -117,7 +133,6 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
       }
       fail must beEqualTo(false)
     }
-
 
   }
 }

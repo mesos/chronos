@@ -1,35 +1,51 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.jobs
 
-import java.util.concurrent.{ConcurrentHashMap, Future, TimeUnit}
+import java.util.concurrent.{ ConcurrentHashMap, Future, TimeUnit }
 import java.util.logging.Logger
 
-import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.codahale.metrics.{ Gauge, MetricRegistry }
 import com.google.common.cache.CacheBuilder
-import com.google.common.util.concurrent.{ListenableFutureTask, ListeningScheduledExecutorService}
+import com.google.common.util.concurrent.{ ListenableFutureTask, ListeningScheduledExecutorService }
 import com.google.inject.Inject
-import org.apache.mesos.Protos.{TaskID, TaskState}
+import org.apache.mesos.Protos.{ TaskID, TaskState }
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.stats.{CurrentState, JobStats}
 import org.apache.mesos.chronos.scheduler.mesos.{ MesosDriverFactory, MesosOfferReviver }
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 
 import scala.collection.convert.decorateAsScala._
-import scala.collection.{mutable, _}
+import scala.collection.{ mutable, _ }
 
 /**
  * Helps manage task state and the queue which is a buffer where tasks are held until offers come in via chronos.
  * @author Florian Leibert (flo@leibert.de)
  */
-class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorService,
-                            val persistenceStore: PersistenceStore,
-                            val jobGraph: JobGraph,
-                            val mesosDriver: MesosDriverFactory,
-                            val jobsObserver: JobsObserver.Observer,
-                            val registry: MetricRegistry,
-                            val config: SchedulerConfiguration,
-                            val mesosOfferReviver: MesosOfferReviver) {
+class TaskManager @Inject() (val listeningExecutor: ListeningScheduledExecutorService,
+                             val persistenceStore: PersistenceStore,
+                             val jobGraph: JobGraph,
+                             val mesosDriver: MesosDriverFactory,
+                             val jobsObserver: JobsObserver.Observer,
+                             val registry: MetricRegistry,
+                             val config: SchedulerConfiguration,
+                             val mesosOfferReviver: MesosOfferReviver) {
 
   val log = Logger.getLogger(getClass.getName)
 
@@ -62,7 +78,6 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       def getValue = queues(HIGH_PRIORITY).size
     })
 
-
   /**
    * Returns the first task in the job queue
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
@@ -78,7 +93,8 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     if (taskId == null) {
       log.fine(s"$name queue empty")
       None
-    } else {
+    }
+    else {
       log.info(s"$name queue contains task: $taskId")
       val jobOption = jobGraph.getJobForName(TaskUtils.getJobNameForTaskId(taskId))
 
@@ -87,10 +103,12 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         //remove invalid task
         removeTask(taskId)
         None
-      } else if (jobOption.get.disabled) {
+      }
+      else if (jobOption.get.disabled) {
         jobsObserver.apply(JobExpired(jobOption.get, taskId))
         None
-      } else {
+      }
+      else {
         val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
         var job = jobOption.get
 
@@ -101,6 +119,10 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
         Some(taskId, job)
       }
     }
+  }
+
+  def removeTask(taskId: String) {
+    persistenceStore.removeTask(taskId)
   }
 
   /**
@@ -132,19 +154,14 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * Cancels all tasks that are delay scheduled with the underlying executor.
    */
   def flush() {
-    taskMapping.clone().values.foreach (
+    taskMapping.clone().values.foreach(
       _.foreach {
         case (taskId, futureTask) =>
-            log.info("Cancelling task '%s'".format(taskId))
-            futureTask.cancel(true)
-      }
-    )
+          log.info("Cancelling task '%s'".format(taskId))
+          futureTask.cancel(true)
+      })
     taskMapping.clear()
     queues.foreach(_.clear())
-  }
-
-  def removeTask(taskId: String) {
-    persistenceStore.removeTask(taskId)
   }
 
   def enqueue(taskId: String, highPriority: Boolean) {
@@ -157,12 +174,13 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
     val jobName = TaskUtils.getJobNameForTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
-     if (jobOption.isEmpty) {
+    if (jobOption.isEmpty) {
       log.warning("Job '%s' no longer registered.".format(jobName))
-    } else {
-        val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
-        val job = jobOption.get
-        jobsObserver.apply(JobQueued(job, taskId, attempt))
+    }
+    else {
+      val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
+      val job = jobOption.get
+      jobsObserver.apply(JobQueued(job, taskId, attempt))
     }
 
     if (config.reviveOffersForNewJobs()) {
@@ -223,9 +241,9 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       .filterKeys(TaskUtils.getJobNameForTaskId(_) == job.name)
       .filter(_._2 == TaskState.TASK_RUNNING)
       .foreach({ x =>
-      log.warning("Killing task '%s'".format(x._1))
-      mesosDriver.get().killTask(TaskID.newBuilder().setValue(x._1).build())
-    })
+        log.warning("Killing task '%s'".format(x._1))
+        mesosDriver.get().killTask(TaskID.newBuilder().setValue(x._1).build())
+      })
   }
 
   /**

@@ -1,12 +1,29 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.state
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.{ Level, Logger }
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
-import org.apache.mesos.state.{InMemoryState, State}
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.state.{ InMemoryState, State }
 
 import scala.collection.mutable
 
@@ -15,10 +32,10 @@ import scala.collection.mutable
  * @author Florian Leibert (flo@leibert.de)
  */
 
-class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
-                                           val config: SchedulerConfiguration,
-                                           val state: State = new InMemoryState)
-  extends PersistenceStore {
+class MesosStatePersistenceStore @Inject() (val zk: CuratorFramework,
+                                            val config: SchedulerConfiguration,
+                                            val state: State = new InMemoryState)
+    extends PersistenceStore {
 
   val log = Logger.getLogger(getClass.getName)
   val lock = new Object
@@ -48,11 +65,13 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   def retry[I, O](max: Int, attempt: Int, i: I, fnc: (I) => O): Option[O] = {
     try {
       Some(fnc(i))
-    } catch {
+    }
+    catch {
       case t: Exception => if (attempt < max) {
         log.log(Level.WARNING, "Retrying attempt:" + attempt, t)
         retry(max, attempt + 1, i, fnc)
-      } else {
+      }
+      else {
         log.severe("Giving up after attempts:" + attempt)
         None
       }
@@ -60,7 +79,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   }
 
   def persistJob(job: BaseJob): Boolean = {
-    log.info("Persisting job '%s' with data '%s'" format(job.name, job.toString))
+    log.info("Persisting job '%s' with data '%s'" format (job.name, job.toString))
     persistData(jobName(job.name), JobUtils.toBytes(job))
   }
 
@@ -75,7 +94,8 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
 
     if (existingVar.value.size == 0) {
       log.info("State %s does not exist yet. Adding to state".format(name))
-    } else {
+    }
+    else {
       log.info("Key for state exists already: %s".format(name))
     }
 
@@ -114,8 +134,8 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
 
     state.names.get.filter(_.startsWith(jobPrefix))
       .map({
-      x: String => JobUtils.fromBytes(state.fetch(x).get.value)
-    })
+        x: String => JobUtils.fromBytes(state.fetch(x).get.value)
+      })
   }
 
   def purgeTasks() {
@@ -152,7 +172,8 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
           if (TaskUtils.isValidVersion(f)) {
             val data = state.fetch(f).get.value
             results += (taskId -> data)
-          } else {
+          }
+          else {
             log.warning("Found old incompatible version of task, deleting:" + taskId)
             // remove(f) is easier but it should not invoke func remove directly
             removeTask(taskId)
@@ -175,10 +196,12 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
       }
       retry[String, Unit](2, 0, path, fnc)
       zk.checkExists().forPath(path) == null
-    } catch {
-      case t: Exception => {
-        log.log(Level.WARNING, "Error while deleting zookeeper node: %s".format(name), t)
-      }
+    }
+    catch {
+      case t: Exception =>
+        {
+          log.log(Level.WARNING, "Error while deleting zookeeper node: %s".format(name), t)
+        }
         false
     }
   }

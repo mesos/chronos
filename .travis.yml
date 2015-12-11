@@ -9,7 +9,7 @@ scala:
   - "2.10.4"
 jdk:
   - openjdk7
-script: mvn clean test package
+script: mvn clean verify package
 cache:
   directories:
     - $HOME/.m2/repository

@@ -1,10 +1,27 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.logging.Logger
 
+import org.apache.mesos.Protos.{ TaskID, TaskState, TaskStatus }
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.apache.mesos.Protos.{TaskID, TaskState, TaskStatus}
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 
 import scala.collection.mutable
 
@@ -51,7 +68,8 @@ object TaskUtils {
     try {
       val TaskUtils.taskIdPattern(_, _, jobName, _) = taskId
       jobName
-    } catch {
+    }
+    catch {
       case t: Exception =>
         log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
           "Warning, dependents will not be triggered!")
@@ -69,7 +87,8 @@ object TaskUtils {
     try {
       val TaskUtils.taskIdPattern(_, _, _, jobArguments) = taskId
       jobArguments
-    } catch {
+    }
+    catch {
       case t: Exception =>
         log.warning("Unable to parse idStr: '%s' due to a corrupted string or version error. " +
           "Warning, dependents will not be triggered!")
@@ -81,21 +100,24 @@ object TaskUtils {
     val allTasks = persistenceStore.getTasks
     val validTasks = TaskUtils.getDueTimes(allTasks)
 
-    validTasks.foreach({ case (key, valueTuple) =>
-      val (job, due, attempt) = valueTuple
-      taskManager.removeTask(key)
-      if (due == 0L) {
-        log.info("Enqueuing at once")
-        taskManager.scheduleTask(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt), job, persist = true)
-      } else if (due > 0L) {
-        log.info("Enqueuing later")
-        val newDueTime = DateTime.now(DateTimeZone.UTC).plus(due)
-        taskManager.scheduleDelayedTask(
-          new ScheduledTask(TaskUtils.getTaskId(job, newDueTime, attempt), newDueTime, job, taskManager), due, persist = true)
-      } else {
-        log.info(("Filtering out old task '" +
-          "%s' overdue by '%d' ms and removing from store.").format(key, due))
-      }
+    validTasks.foreach({
+      case (key, valueTuple) =>
+        val (job, due, attempt) = valueTuple
+        taskManager.removeTask(key)
+        if (due == 0L) {
+          log.info("Enqueuing at once")
+          taskManager.scheduleTask(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), attempt), job, persist = true)
+        }
+        else if (due > 0L) {
+          log.info("Enqueuing later")
+          val newDueTime = DateTime.now(DateTimeZone.UTC).plus(due)
+          taskManager.scheduleDelayedTask(
+            new ScheduledTask(TaskUtils.getTaskId(job, newDueTime, attempt), newDueTime, job, taskManager), due, persist = true)
+        }
+        else {
+          log.info(("Filtering out old task '" +
+            "%s' overdue by '%d' ms and removing from store.").format(key, due))
+        }
     })
   }
 
@@ -106,7 +128,8 @@ object TaskUtils {
   def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (BaseJob, Long, Int)] = {
     val taskMap = new mutable.HashMap[String, (BaseJob, Long, Int)]()
 
-    tasks.foreach { p: (String, Array[Byte]) => println(p._1)
+    tasks.foreach { p: (String, Array[Byte]) =>
+      println(p._1)
       //Any non-recurring job R1/X/Y is equivalent to a task!
       val taskInstance = JobUtils.fromBytes(p._2)
       val taskTuple = parseTaskId(p._1)
@@ -116,12 +139,14 @@ object TaskUtils {
       //if the task isn't due yet
       if (taskTuple._2 > now) {
         log.fine("Task '%s' is scheduled in the future".format(taskInstance.name))
-        taskMap += (p._1 ->(taskInstance, taskTuple._2 - now, taskTuple._3))
-      } else if (lastExecutableTime > now) {
-        taskMap += (p._1 ->(taskInstance, 0L, taskTuple._3))
-      } else {
+        taskMap += (p._1 -> (taskInstance, taskTuple._2 - now, taskTuple._3))
+      }
+      else if (lastExecutableTime > now) {
+        taskMap += (p._1 -> (taskInstance, 0L, taskTuple._3))
+      }
+      else {
         log.fine("Task '%s' is overdue by '%d' ms!".format(p._1, now - taskTuple._2))
-        taskMap += (p._1 ->(taskInstance, taskTuple._2 - now, taskTuple._3))
+        taskMap += (p._1 -> (taskInstance, taskTuple._2 - now, taskTuple._3))
       }
     }
 

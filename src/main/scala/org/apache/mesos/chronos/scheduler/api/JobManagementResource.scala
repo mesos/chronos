@@ -1,21 +1,36 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.api
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.{ Level, Logger }
 import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.{MediaType, Response}
-
-import org.apache.mesos.chronos.scheduler.config.{CassandraConfiguration, SchedulerConfiguration}
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs._
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
+import javax.ws.rs.core.{ MediaType, Response }
 
 import com.codahale.metrics.annotation.Timed
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.config.{ CassandraConfiguration, SchedulerConfiguration }
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs._
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.{ DateTime, DateTimeZone }
 
 import scala.collection.mutable.ListBuffer
 
@@ -27,17 +42,17 @@ import scala.collection.mutable.ListBuffer
 @Path(PathConstants.jobBasePath)
 @Produces(Array(MediaType.APPLICATION_JSON))
 @Consumes(Array(MediaType.APPLICATION_JSON))
-class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
-                                      val jobGraph: JobGraph,
-                                      val configuration: SchedulerConfiguration,
-                                      val cassandraConfig: CassandraConfiguration,
-                                      val jobStats: JobStats,
-                                      val jobMetrics: JobMetrics) {
+class JobManagementResource @Inject() (val jobScheduler: JobScheduler,
+                                       val jobGraph: JobGraph,
+                                       val configuration: SchedulerConfiguration,
+                                       val cassandraConfig: CassandraConfiguration,
+                                       val jobStats: JobStats,
+                                       val jobMetrics: JobMetrics) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
   private val objectMapper = new ObjectMapper
-  private val mod =  new SimpleModule("JobManagementResourceModule")
+  private val mod = new SimpleModule("JobManagementResourceModule")
 
   mod.addSerializer(classOf[JobStatWrapper], new JobStatWrapperSerializer)
   objectMapper.registerModule(mod)
@@ -57,7 +72,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
             children.foreach {
               child =>
                 val childJob = jobGraph.lookupVertex(child).get.asInstanceOf[DependencyBasedJob]
-                val newParents = childJob.parents.filter { name => name != job.name} ++ j.parents
+                val newParents = childJob.parents.filter { name => name != job.name } ++ j.parents
                 val newChild = childJob.copy(parents = newParents)
                 jobScheduler.replaceJob(childJob, newChild)
                 parents.foreach { p =>
@@ -91,8 +106,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       disabled = childJob.disabled,
                       softError = childJob.softError,
                       uris = childJob.uris,
-                      highPriority = childJob.highPriority
-                    )
+                      highPriority = childJob.highPriority)
                     jobScheduler.updateJob(childJob, newChild)
                   case _ =>
                 }
@@ -102,7 +116,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       // No need to send notifications here, the jobScheduler.deregisterJob will do it
       jobScheduler.deregisterJob(job, persist = true)
       Response.noContent().build
-    } catch {
+    }
+    catch {
       case ex: IllegalArgumentException => {
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
@@ -128,7 +143,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
 
       val wrapperStr = objectMapper.writeValueAsString(jobStatsWrapper)
       Response.ok(wrapperStr).build()
-    } catch {
+    }
+    catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
@@ -143,15 +159,15 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @PUT
   @Timed
   def trigger(@PathParam("jobName") jobName: String,
-              @QueryParam("arguments") arguments: String
-               ): Response = {
+              @QueryParam("arguments") arguments: String): Response = {
     try {
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
       jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0), job.highPriority)
       Response.noContent().build
-    } catch {
+    }
+    catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
@@ -169,8 +185,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @POST
   @Path(PathConstants.jobTaskProgressPath)
   def updateTaskProgress(@PathParam("jobName") jobName: String,
-          @PathParam("taskId") taskId: String,
-          taskStat: TaskStat) : Response = {
+                         @PathParam("taskId") taskId: String,
+                         taskStat: TaskStat): Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
       require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
@@ -186,7 +202,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           jobStats.updateTaskProgress(jobOpt.get, taskId, num)
       }
       Response.noContent().build
-    } catch {
+    }
+    catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage).build
@@ -208,7 +225,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           jobs += jobGraph.getJobForName(job).get
       })
       Response.ok(jobs.toList).build
-    } catch {
+    }
+    catch {
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
@@ -222,8 +240,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
              @QueryParam("command") command: String,
              @QueryParam("any") any: String,
              @QueryParam("limit") limit: Integer,
-             @QueryParam("offset") offset: Integer
-              ) = {
+             @QueryParam("offset") offset: Integer) = {
     try {
       val jobs = ListBuffer[BaseJob]()
       import scala.collection.JavaConversions._
@@ -262,7 +279,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           valid
       }.toList.slice(_offset, _offset + _limit)
       Response.ok(filteredJobs).build
-    } catch {
+    }
+    catch {
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
         throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)

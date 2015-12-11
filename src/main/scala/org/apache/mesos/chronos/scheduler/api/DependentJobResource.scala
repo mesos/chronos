@@ -1,14 +1,31 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.api
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.{ Level, Logger }
 import javax.ws.rs.core.Response
-import javax.ws.rs.{POST, PUT, Path, Produces}
+import javax.ws.rs.{ POST, PUT, Path, Produces }
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs._
 
 /**
  * The REST API for adding job-dependencies to the scheduler.
@@ -17,15 +34,21 @@ import com.google.inject.Inject
 //TODO(FL): Create a case class that removes epsilon from the dependents.
 @Path(PathConstants.dependentJobPath)
 @Produces(Array("application/json"))
-class DependentJobResource @Inject()(
-                                      val jobScheduler: JobScheduler,
-                                      val jobGraph: JobGraph) {
+class DependentJobResource @Inject() (
+    val jobScheduler: JobScheduler,
+    val jobGraph: JobGraph) {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
   @POST
   @Timed
   def post(newJob: DependencyBasedJob): Response = {
+    handleRequest(newJob)
+  }
+
+  @PUT
+  @Timed
+  def put(newJob: DependencyBasedJob): Response = {
     handleRequest(newJob)
   }
 
@@ -41,7 +64,8 @@ class DependentJobResource @Inject()(
 
         jobScheduler.registerJob(List(newJob), persist = true)
         Response.noContent().build()
-      } else {
+      }
+      else {
         require(oldJobOpt.isDefined, "Job '%s' not found".format(newJob.name))
 
         val oldJob = oldJobOpt.get
@@ -79,7 +103,8 @@ class DependentJobResource @Inject()(
 
         Response.noContent().build()
       }
-    } catch {
+    }
+    catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
@@ -88,12 +113,6 @@ class DependentJobResource @Inject()(
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response.serverError().build()
     }
-  }
-
-  @PUT
-  @Timed
-  def put(newJob: DependencyBasedJob): Response = {
-    handleRequest(newJob)
   }
 
 }

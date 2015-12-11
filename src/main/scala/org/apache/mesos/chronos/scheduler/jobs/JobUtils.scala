@@ -1,15 +1,32 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.google.common.base.{Charsets, Joiner}
+import com.google.common.base.{ Charsets, Joiner }
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
+import org.apache.mesos.chronos.utils.{ JobDeserializer, JobSerializer }
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, Period, Seconds}
+import org.joda.time.{ DateTime, Period, Seconds }
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -52,7 +69,7 @@ object JobUtils {
   def isValidJobName(jobName: String): Boolean = {
     jobName match {
       case jobNamePattern(part) => true
-      case _ => false
+      case _                    => false
     }
   }
 
@@ -66,7 +83,7 @@ object JobUtils {
 
     jobs.foreach {
       case d: DependencyBasedJob => dependencyBasedJobs += d
-      case s: ScheduleBasedJob => scheduledJobs += s
+      case s: ScheduleBasedJob   => scheduledJobs += s
       case x: Any =>
         throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
     }
@@ -105,7 +122,8 @@ object JobUtils {
       case Some((_, scheduledTime, _)) =>
         if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
           skipForward(job, dateTime)
-        } else {
+        }
+        else {
           Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
         }
       case None =>
@@ -123,10 +141,12 @@ object JobUtils {
             .format(skip, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
           Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name, job.scheduleTimeZone))
-        } else if (rec < skip) {
+        }
+        else if (rec < skip) {
           log.warning("Filtered job as it is no longer valid.")
           None
-        } else {
+        }
+        else {
           val nRec = rec - skip
           val nStart = start.plus(per.multipliedBy(skip))
           log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
@@ -153,7 +173,8 @@ object JobUtils {
         skips += 1
       }
       skips
-    } else {
+    }
+    else {
       Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds
     }
   }
@@ -189,8 +210,7 @@ object JobUtils {
           environmentVariables = job.environmentVariables,
           shell = job.shell,
           arguments = job.arguments,
-          constraints = job.constraints
-        )
+          constraints = job.constraints)
       case j: ScheduleBasedJob =>
         new ScheduleBasedJob(
           schedule = j.schedule,
@@ -220,8 +240,7 @@ object JobUtils {
           environmentVariables = job.environmentVariables,
           shell = job.shell,
           arguments = job.arguments,
-          constraints = job.constraints
-        )
+          constraints = job.constraints)
     }
     jobWithArguments
   }

@@ -1,10 +1,25 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.api
 
 import javax.inject.Named
 import javax.validation.Validation
 
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.codahale.metrics.servlets.MetricsServlet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -12,10 +27,12 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.google.inject.name.Names
 import com.google.inject.servlet.ServletModule
-import com.google.inject.{Provides, Scopes, Singleton}
+import com.google.inject.{ Provides, Scopes, Singleton }
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
-import mesosphere.chaos.http.{LogConfigServlet, PingServlet}
-import mesosphere.chaos.validation.{ConstraintViolationExceptionMapper, JacksonMessageBodyProvider}
+import mesosphere.chaos.http.{ LogConfigServlet, PingServlet }
+import mesosphere.chaos.validation.{ ConstraintViolationExceptionMapper, JacksonMessageBodyProvider }
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
+import org.apache.mesos.chronos.utils.{ JobDeserializer, JobSerializer }
 
 /**
  * @author Tobi Knaup
@@ -33,7 +50,7 @@ class ChronosRestModule extends ServletModule {
   @Provides
   @Singleton
   def provideJacksonJsonProvider(
-                                  @Named("restMapper") mapper: ObjectMapper): JacksonJsonProvider = {
+    @Named("restMapper") mapper: ObjectMapper): JacksonJsonProvider = {
     val mod = new SimpleModule("JobModule")
     mod.addSerializer(classOf[BaseJob], new JobSerializer)
     mod.addDeserializer(classOf[BaseJob], new JobDeserializer)

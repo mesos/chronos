@@ -1,23 +1,40 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.concurrent.TimeUnit
 
+import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.apache.curator.framework.{ CuratorFramework, CuratorFrameworkFactory }
+import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.curator.test.{ InstanceSpec, TestingCluster }
+import org.apache.curator.utils.{ CloseableUtils, EnsurePath }
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.apache.curator.framework.recipes.leader.LeaderLatch
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.curator.test.{InstanceSpec, TestingCluster}
-import org.apache.curator.utils.{CloseableUtils, EnsurePath}
 import org.joda.time.Period
-import org.junit.Assert.{assertFalse, assertTrue}
+import org.junit.Assert.{ assertFalse, assertTrue }
 import org.junit.Test
 import org.mockito.Mockito.doNothing
 import org.specs2.mock.Mockito
 
 class JobSchedulerElectionSpec
-  extends Mockito {
+    extends Mockito {
   var port = 8080
 
   @Test
@@ -68,36 +85,6 @@ class JobSchedulerElectionSpec
     CloseableUtils.closeQuietly(testCluster)
   }
 
-  @Test
-  def testElectNewLeaderOnMasterFailure() {
-    val testCluster = new TestingCluster(3)
-    testCluster.start()
-
-    val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
-    val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
-
-    startAndWaitForElection(List(curator1, curator2), List(scheduler1, scheduler2), List(latch1, latch2))
-
-    val (leader, follower) = if (latch1.hasLeadership) (scheduler1, scheduler2)
-    else (scheduler2, scheduler1)
-
-    leader.shutDown()
-    awaitElection(List(latch1, latch2))
-
-    assertTrue("Reserve scheduler's latch should become leader on master failure", follower.leaderLatch.hasLeadership)
-
-    assertTrue("Reserve scheduler should become leader on master failure", follower.isLeader)
-    assertFalse("Former master scheduler should not be leader after failure", leader.isLeader)
-
-    assertTrue("Reserve scheduler should start running after master failure", follower.running.get())
-    assertFalse("Former master scheduler should not be running after failure", leader.running.get())
-
-    CloseableUtils.closeQuietly(curator1)
-    CloseableUtils.closeQuietly(latch2)
-    CloseableUtils.closeQuietly(curator2)
-    CloseableUtils.closeQuietly(testCluster)
-  }
-
   def scheduler(connectString: String): (JobScheduler, CuratorFramework, LeaderLatch) = {
     val curator = CuratorFrameworkFactory.builder()
       .connectionTimeoutMs(10000)
@@ -133,8 +120,7 @@ class JobSchedulerElectionSpec
       leaderLatch = leaderLatch,
       leaderPath = leaderPath,
       jobMetrics = mock[JobMetrics],
-      jobsObserver = mock[JobsObserver.Observer]
-    )
+      jobsObserver = mock[JobsObserver.Observer])
 
     val ensurePath: EnsurePath = new EnsurePath(leaderPath)
     ensurePath.ensure(curator.getZookeeperClient)
@@ -165,5 +151,35 @@ class JobSchedulerElectionSpec
       Thread.sleep(10)
     }
     println(s"Waited ${100 - maxWaits} for election")
+  }
+
+  @Test
+  def testElectNewLeaderOnMasterFailure() {
+    val testCluster = new TestingCluster(3)
+    testCluster.start()
+
+    val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
+    val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
+
+    startAndWaitForElection(List(curator1, curator2), List(scheduler1, scheduler2), List(latch1, latch2))
+
+    val (leader, follower) = if (latch1.hasLeadership) (scheduler1, scheduler2)
+    else (scheduler2, scheduler1)
+
+    leader.shutDown()
+    awaitElection(List(latch1, latch2))
+
+    assertTrue("Reserve scheduler's latch should become leader on master failure", follower.leaderLatch.hasLeadership)
+
+    assertTrue("Reserve scheduler should become leader on master failure", follower.isLeader)
+    assertFalse("Former master scheduler should not be leader after failure", leader.isLeader)
+
+    assertTrue("Reserve scheduler should start running after master failure", follower.running.get())
+    assertFalse("Former master scheduler should not be running after failure", leader.running.get())
+
+    CloseableUtils.closeQuietly(curator1)
+    CloseableUtils.closeQuietly(latch2)
+    CloseableUtils.closeQuietly(curator2)
+    CloseableUtils.closeQuietly(testCluster)
   }
 }

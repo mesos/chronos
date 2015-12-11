@@ -1,15 +1,32 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.mesos
 
 import java.util.logging.Logger
 import javax.inject.Inject
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
 import org.apache.mesos.Protos.Environment.Variable
 import org.apache.mesos.Protos._
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
@@ -19,7 +36,7 @@ import scala.collection.Map
  * names are valid.
  * @author Florian Leibert (flo@leibert.de)
  */
-class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
+class MesosTaskBuilder @Inject() (val conf: SchedulerConfiguration) {
   final val cpusResourceName = "cpus"
   final val memResourceName = "mem"
   final val diskResourceName = "disk"
@@ -58,19 +75,19 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .setTaskId(taskId)
     val environment = Environment.newBuilder()
       .addVariables(Variable.newBuilder()
-      .setName("mesos_task_id").setValue(taskIdStr))
+        .setName("mesos_task_id").setValue(taskIdStr))
       .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
+        .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
       .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_JOB_NAME").setValue(job.name))
+        .setName("CHRONOS_JOB_NAME").setValue(job.name))
       .addVariables(Variable.newBuilder()
-      .setName("HOST").setValue(offer.getHostname))
+        .setName("HOST").setValue(offer.getHostname))
       .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_RESOURCE_MEM").setValue(job.mem.toString))
+        .setName("CHRONOS_RESOURCE_MEM").setValue(job.mem.toString))
       .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_RESOURCE_CPU").setValue(job.cpus.toString))
+        .setName("CHRONOS_RESOURCE_CPU").setValue(job.cpus.toString))
       .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_RESOURCE_DISK").setValue(job.disk.toString))
+        .setName("CHRONOS_RESOURCE_DISK").setValue(job.disk.toString))
 
     // If the job defines custom environment variables, add them to the builder
     // Don't add them if they already exist to prevent overwriting the defaults
@@ -79,13 +96,13 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       job.environmentVariables.foreach(env =>
         if (!builtinEnvNames.contains(env.name)) {
           environment.addVariables(Variable.newBuilder().setName(env.name).setValue(env.value))
-        }
-      )
+        })
     }
 
     if (job.executor.nonEmpty) {
       appendExecutorData(taskInfo, job)
-    } else {
+    }
+    else {
       val command = CommandInfo.newBuilder()
       if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
         val uri1 = CommandInfo.URI.newBuilder()
@@ -95,7 +112,8 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         command.addUris(uri1)
           .setValue("\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
           .setEnvironment(environment)
-      } else {
+      }
+      else {
         val uriProtos = job.uris.map(uri => {
           CommandInfo.URI.newBuilder()
             .setValue(uri)
@@ -133,8 +151,8 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     // Give preference to reserved offers first (those whose roles do not match "*")
     import scala.collection.JavaConverters._
     val resources = offer.getResourcesList.asScala
-    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*"})
-    val reservedResource = reservedResources.find({ x => x.getName == name && x.getScalar.getValue >= value})
+    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*" })
+    val reservedResource = reservedResources.find({ x => x.getName == name && x.getScalar.getValue >= value })
     val role = reservedResource match {
       case Some(x) =>
         // We found a good candidate earlier, just use that.

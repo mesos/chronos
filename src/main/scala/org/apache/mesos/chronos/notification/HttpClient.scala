@@ -1,15 +1,31 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.notification
 
-import java.io.{DataOutputStream, StringWriter}
-import java.net.{HttpURLConnection, URL}
+import java.io.{ DataOutputStream, StringWriter }
+import java.net.{ HttpURLConnection, URL }
 import java.util.logging.Logger
 
-import org.apache.commons.codec.binary.Base64
-
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import com.fasterxml.jackson.core.JsonFactory
+import org.apache.commons.codec.binary.Base64
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 
-class HttpClient(val endpointUrl: String, 
+class HttpClient(val endpointUrl: String,
                  val credentials: Option[String]) extends NotificationClient {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -22,7 +38,7 @@ class HttpClient(val endpointUrl: String,
 
     // Create the payload
     generator.writeStartObject()
-    
+
     if (subject != null && subject.nonEmpty) {
       generator.writeStringField("subject", subject)
     }
@@ -49,17 +65,16 @@ class HttpClient(val endpointUrl: String,
     generator.writeStringField("successCount", job.successCount.toString())
     generator.writeStringField("uris", job.uris.mkString(","))
 
-
     generator.writeEndObject()
     generator.flush()
 
     val payload = jsonBuffer.toString
-    val auth = if(credentials.nonEmpty && credentials.get.nonEmpty) {
-       "Basic " + new String(Base64.encodeBase64(credentials.get.getBytes()));
-    } else {
+    val auth = if (credentials.nonEmpty && credentials.get.nonEmpty) {
+      "Basic " + new String(Base64.encodeBase64(credentials.get.getBytes()));
+    }
+    else {
       ""
     }
-
 
     var connection: HttpURLConnection = null
     try {
@@ -69,10 +84,10 @@ class HttpClient(val endpointUrl: String,
       connection.setDoOutput(true)
       connection.setUseCaches(false)
       connection.setRequestMethod("POST")
-      connection.setRequestProperty("Content-Type","application/json");
+      connection.setRequestProperty("Content-Type", "application/json");
 
       if (auth.nonEmpty) {
-        connection.setRequestProperty ("Authorization", auth);
+        connection.setRequestProperty("Authorization", auth);
       }
 
       val outputStream = new DataOutputStream(connection.getOutputStream)
@@ -84,7 +99,8 @@ class HttpClient(val endpointUrl: String,
         connection.getResponseCode +
         " - " +
         connection.getResponseMessage)
-    } finally {
+    }
+    finally {
       if (connection != null) {
         connection.disconnect()
       }

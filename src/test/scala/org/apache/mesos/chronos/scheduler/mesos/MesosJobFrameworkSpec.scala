@@ -1,3 +1,20 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.mesos
 
 import mesosphere.mesos.protos._
@@ -75,7 +92,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       val offer: Offer = makeBasicOffer
       mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
 
-      there was one (schedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
+      there was one(schedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
     }
 
     "Reject unused offers with default RefuseSeconds if --decline_offer_duration is not set" in {
@@ -104,7 +121,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       val offer: Offer = makeBasicOffer
       mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
 
-      there was one (schedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
+      there was one(schedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
     }
   }
 
@@ -135,7 +152,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
     mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
 
     val filters = Protos.Filters.newBuilder().setRefuseSeconds(3).build()
-    there was one (schedulerDriver).declineOffer(OfferID("1"), filters)
+    there was one(schedulerDriver).declineOffer(OfferID("1"), filters)
   }
 
   private[this] def makeBasicOffer: Offer = {

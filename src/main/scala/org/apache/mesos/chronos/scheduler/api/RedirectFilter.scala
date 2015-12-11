@@ -1,13 +1,30 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.api
 
-import java.io.{InputStream, OutputStream}
-import java.net.{HttpURLConnection, URL}
-import java.util.logging.{Level, Logger}
+import java.io.{ InputStream, OutputStream }
+import java.net.{ HttpURLConnection, URL }
+import java.util.logging.{ Level, Logger }
 import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 
-import org.apache.mesos.chronos.scheduler.jobs.JobScheduler
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.jobs.JobScheduler
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -16,7 +33,7 @@ import scala.language.postfixOps
  * Simple filter that redirects to the leader if applicable.
  * @author Florian Leibert (flo@leibert.de)
  */
-class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
+class RedirectFilter @Inject() (val jobScheduler: JobScheduler) extends Filter {
   val log = Logger.getLogger(getClass.getName)
 
   def init(filterConfig: FilterConfig) {}
@@ -31,7 +48,8 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
 
         if (jobScheduler.isLeader) {
           chain.doFilter(request, response)
-        } else {
+        }
+        else {
           var proxyStatus: Int = 200
           try {
             log.info("Proxying request to %s .".format(leaderData))
@@ -41,7 +59,6 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
             val proxy =
               buildUrl(leaderData, request)
                 .openConnection().asInstanceOf[HttpURLConnection]
-
 
             val names = request.getHeaderNames
             // getHeaderNames() and getHeaders() are known to return null, see:
@@ -87,7 +104,8 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
             copy(proxy.getInputStream, response.getOutputStream)
             proxy.getInputStream.close()
             responseOutputStream.close()
-          } catch {
+          }
+          catch {
             case t: Exception =>
               if ((200 to 299) contains proxyStatus) response.sendError(500)
               log.log(Level.WARNING, "Exception while proxying!", t)
@@ -108,7 +126,8 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
   def buildUrl(leaderData: String, request: HttpServletRequest) = {
     if (request.getQueryString != null) {
       new URL("http://%s%s?%s".format(leaderData, request.getRequestURI, request.getQueryString))
-    } else {
+    }
+    else {
       new URL("http://%s%s".format(leaderData, request.getRequestURI))
     }
   }

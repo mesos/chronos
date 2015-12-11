@@ -1,3 +1,20 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.logging.Logger
@@ -6,15 +23,24 @@ import org.apache.mesos.Protos.TaskStatus
 import org.joda.time.DateTime
 
 trait JobEvent
+
 case class JobQueued(job: BaseJob, taskId: String, attempt: Int) extends JobEvent
+
 case class JobSkipped(job: BaseJob, dateTime: DateTime) extends JobEvent
+
 case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+
 case class JobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+
 // Either a job name or job object, depending on whether the Job still exists
 case class JobFailed(job: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int) extends JobEvent
+
 case class JobDisabled(job: BaseJob, cause: String) extends JobEvent
+
 case class JobRetriesExhausted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+
 case class JobRemoved(job: BaseJob) extends JobEvent
+
 // This event is fired when job is disabled (e.g. due to recurrence going to 0) and its queued tasks are purged
 case class JobExpired(job: BaseJob, taskId: String) extends JobEvent
 
@@ -31,7 +57,9 @@ object JobsObserver {
 
   def withName(observer: Observer, name: String): Observer = new Observer {
     override def isDefinedAt(event: JobEvent) = observer.isDefinedAt(event)
+
     override def apply(event: JobEvent): Unit = observer.apply(event)
+
     override def toString(): String = name
   }
 }

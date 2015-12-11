@@ -1,15 +1,32 @@
+/* Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.mesos.chronos.scheduler.api
 
 import java.util.concurrent.atomic.AtomicLong
-import java.util.logging.{Level, Logger}
+import java.util.logging.{ Level, Logger }
 import javax.ws.rs._
-import javax.ws.rs.core.{MediaType, Response}
+import javax.ws.rs.core.{ MediaType, Response }
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.{ScheduleBasedJob, _}
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs.{ ScheduleBasedJob, _ }
 
 /**
  * The REST API to the iso8601 (timed, cron-like) component of the scheduler.
@@ -18,9 +35,9 @@ import com.google.inject.Inject
 @Path(PathConstants.iso8601JobPath)
 @Produces(Array(MediaType.APPLICATION_JSON))
 @Consumes(Array(MediaType.APPLICATION_JSON))
-class Iso8601JobResource @Inject()(
-                                    val jobScheduler: JobScheduler,
-                                    val jobGraph: JobGraph) {
+class Iso8601JobResource @Inject() (
+    val jobScheduler: JobScheduler,
+    val jobGraph: JobGraph) {
 
   val iso8601JobSubmissions = new AtomicLong(0)
   private val log = Logger.getLogger(getClass.getName)
@@ -28,12 +45,6 @@ class Iso8601JobResource @Inject()(
   @POST
   @Timed
   def post(newJob: ScheduleBasedJob): Response = {
-    handleRequest(newJob)
-  }
-
-  @PUT
-  @Timed
-  def put(newJob: ScheduleBasedJob): Response = {
     handleRequest(newJob)
   }
 
@@ -52,7 +63,8 @@ class Iso8601JobResource @Inject()(
         iso8601JobSubmissions.incrementAndGet()
         log.info("Added job to JobGraph")
         Response.noContent().build()
-      } else {
+      }
+      else {
         val oldJob = oldJobOpt.get
 
         if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
@@ -75,7 +87,8 @@ class Iso8601JobResource @Inject()(
 
         Response.noContent().build()
       }
-    } catch {
+    }
+    catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
         Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
@@ -84,6 +97,12 @@ class Iso8601JobResource @Inject()(
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response.serverError().build
     }
+  }
+
+  @PUT
+  @Timed
+  def put(newJob: ScheduleBasedJob): Response = {
+    handleRequest(newJob)
   }
 
 }
