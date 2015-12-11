@@ -182,7 +182,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       command.setUser(job.runAsUser)
     }
     val executor = ExecutorInfo.newBuilder()
-      .setExecutorId(ExecutorID.newBuilder().setValue("shell-wrapper-executor"))
+      .setExecutorId(ExecutorID.newBuilder().setValue(job.name))
       .setCommand(command.build())
     if (job.container != null) {
       executor.setContainer(createContainerInfo(job))
