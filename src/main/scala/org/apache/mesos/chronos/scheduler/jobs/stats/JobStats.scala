@@ -1,7 +1,5 @@
 package org.apache.mesos.chronos.scheduler.jobs.stats
 
-import com.fasterxml.jackson.core.JsonFactory
-
 import scala.collection._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
@@ -11,6 +9,7 @@ import java.net.{HttpURLConnection, URL}
 import com.datastax.driver.core.exceptions.{DriverException, NoHostAvailableException, QueryExecutionException, QueryValidationException}
 import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
 import com.datastax.driver.core._
+import com.fasterxml.jackson.core.JsonFactory
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskState, TaskStatus}
 import org.apache.mesos.chronos.scheduler.config.{StatsPublisherConfiguration, CassandraConfiguration}
