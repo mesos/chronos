@@ -1,3 +1,46 @@
+## Changes from 2.4.0 to 2.5.0
+
+### Highlights of this Release
+
+#### Added support for periods in job names
+The job names can now contain letters (`[a-zA-Z]`), digits (`[0-9]`), dashes (`-`), underscores
+(`_`), number signs (`#`), periods (`.`), and whitespace (`[ \t\n\x0B\f\r]`). They must match the
+following regular expression: `([\w\s\.#_-]+)`
+
+#### Better support for custom executors
+When using a custom executor, Chronos will now set the executor id to the job name and also include
+the uris in the CommandInfo proto.
+
+#### Added support for specifying Docker parameters
+It is now possible to specify arbitrary Docker parameters. Check the [REST API documentation](https://mesos.github.io/chronos/docs/api.html)
+for more details.
+
+#### Updates to the Dockerfile
+
+#### Various documentation improvements
+
+### Fixed Issues / Merged PRs
+- #534 - Add framework ID to log
+- #535 - Allow periods in job names
+- #538 - Add support for Docker parameters
+- #539 - Fix Dockerfile so node works with Ubuntu base image
+- #540 - Extend documentation of /scheduler/jobs by the possibility to get a single job
+- #541 - Add info for 'lastSuccess' and 'lastError' to docs for listing jobs
+- #545 - Document the job name requirements
+- #550 - Add a warning to the README
+- #551 - Fixes #540 - Document Search Endpoint
+- #556 - [docs:api] Add clarity around values available for constraints
+- #562 - Fix #561, constraints are not activate with argument
+- #572 - Fix a formatting issue with api doc
+- #578 - Fix the job listing lastSuccess and error type
+- #583 - Add SCoverage for generating test coverage reports
+- #586 - Add Go client to docs
+- #587 - Cache maven artifacts with Travis
+- #589 - Add Chronos Shuttle to tools section
+- #602 - Set executor id to job name instead of static value
+- #603 - Add uris to the CommandInfo when a custom executor is set
+
+
 ## Changes from 2.3.4 to 2.4.0
 
 ### Overview
