@@ -83,6 +83,18 @@ trait BaseJob {
 
   def lastHost: String = ""
 
+  def ports: Seq[Int] = List()
+
+  def currentPorts:  Seq[Int]= List()
+
+  def requirePorts: Boolean = false
+
+
+  def portMappings: Option[Seq[PortMappings]] = if (container != null)
+    for {
+//      n <- container.network if n == NetworkMode.BRIDGE
+      pms <- container.portMappings
+    } yield pms else None
 }
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -118,7 +130,10 @@ case class ScheduleBasedJob(
                              @JsonProperty override val softError: Boolean = false,
                              @JsonProperty override val dataProcessingJobType: Boolean = false,
                              @JsonProperty override val constraints: Seq[Constraint] = List(),
-                             @JsonProperty override val lastHost: String = "")
+                             @JsonProperty override val lastHost: String = "",
+                             @JsonProperty override val ports: Seq[Int] = List(),
+                             @JsonProperty override val requirePorts: Boolean = false,
+                             @JsonProperty override val currentPorts: Seq[Int] = List())
   extends BaseJob
 
 
@@ -154,5 +169,8 @@ case class DependencyBasedJob(
                                @JsonProperty override val softError: Boolean = false,
                                @JsonProperty override val dataProcessingJobType: Boolean = false,
                                @JsonProperty override val constraints: Seq[Constraint] = List(),
-                               @JsonProperty override val lastHost: String = "")
+                               @JsonProperty override val lastHost: String = "",
+                               @JsonProperty override val ports: Seq[Int] = List(),
+                               @JsonProperty override val requirePorts: Boolean = false,
+                               @JsonProperty override val currentPorts: Seq[Int]= List())
   extends BaseJob
