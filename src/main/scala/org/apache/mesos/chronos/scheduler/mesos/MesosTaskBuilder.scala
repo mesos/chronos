@@ -4,7 +4,7 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
+import org.apache.mesos.chronos.scheduler.jobs.{JobScheduler, DependencyBasedJob, ScheduleBasedJob, BaseJob}
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
@@ -19,7 +19,7 @@ import scala.collection.Map
  * names are valid.
  * @author Florian Leibert (flo@leibert.de)
  */
-class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
+class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration, val scheduler: JobScheduler) {
   final val cpusResourceName = "cpus"
   final val memResourceName = "mem"
   final val diskResourceName = "disk"
@@ -111,6 +111,16 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
         command.setUser(job.runAsUser)
       }
       taskInfo.setCommand(command.build())
+
+      //TODO refactor
+      val newJob = job match {
+        case job: DependencyBasedJob =>
+          job.copy(lastHost = offer.getHostname)
+        case job: ScheduleBasedJob =>
+          job.copy(lastHost = offer.getHostname)
+      }
+      scheduler.replaceJob(job, newJob)
+
       if (job.container != null) {
         taskInfo.setContainer(createContainerInfo(job))
       }
