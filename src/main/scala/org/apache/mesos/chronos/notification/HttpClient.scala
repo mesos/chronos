@@ -8,13 +8,14 @@ import org.apache.commons.codec.binary.Base64
 
 import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import com.fasterxml.jackson.core.JsonFactory
+import org.joda.time.DateTime
 
 class HttpClient(val endpointUrl: String, 
                  val credentials: Option[String]) extends NotificationClient {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
+  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String], status: String, taskId: Option[String]) {
 
     val jsonBuffer = new StringWriter
     val factory = new JsonFactory()
@@ -22,7 +23,7 @@ class HttpClient(val endpointUrl: String,
 
     // Create the payload
     generator.writeStartObject()
-    
+
     if (subject != null && subject.nonEmpty) {
       generator.writeStringField("subject", subject)
     }
@@ -32,6 +33,10 @@ class HttpClient(val endpointUrl: String,
     if (to != null && to.nonEmpty) {
       generator.writeStringField("to", to)
     }
+
+    generator.writeStringField("date", DateTime.now.toString)
+    generator.writeStringField("taskId", taskId.getOrElse(""))
+    generator.writeStringField("status", status)
     generator.writeStringField("job", job.name.toString())
     generator.writeStringField("command", job.command.toString())
     generator.writeStringField("cpus", job.cpus.toString())
@@ -48,7 +53,14 @@ class HttpClient(val endpointUrl: String,
     generator.writeStringField("retries", job.retries.toString())
     generator.writeStringField("successCount", job.successCount.toString())
     generator.writeStringField("uris", job.uris.mkString(","))
+    generator.writeStringField("lastHost", job.lastHost)
 
+    generator.writeFieldName("lastPorts")
+    generator.writeStartArray()
+    job.currentPorts.foreach { p =>
+      generator.writeNumber(p)
+    }
+    generator.writeEndArray()
 
     generator.writeEndObject()
     generator.flush()

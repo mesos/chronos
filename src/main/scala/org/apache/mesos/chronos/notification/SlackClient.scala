@@ -11,7 +11,7 @@ class SlackClient(val webhookUrl: String) extends NotificationClient {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
+  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String], status: String, taskId: Option[String]) {
 
     val jsonBuffer = new StringWriter
     val factory = new JsonFactory()

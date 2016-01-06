@@ -24,7 +24,7 @@ class MailClient(
   private[this] val split(mailHost, mailPortStr) = mailServerString
   val mailPort = mailPortStr.toInt
 
-  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
+  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String], status: String, taskId: Option[String]) {
     val email = new SimpleEmail
     email.setHostName(mailHost)
 
