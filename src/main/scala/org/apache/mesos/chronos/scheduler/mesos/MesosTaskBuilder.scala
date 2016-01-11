@@ -8,7 +8,10 @@ import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
+import org.apache.mesos.Protos.ContainerInfo.DockerInfo.PortMapping
 import org.apache.mesos.Protos.Environment.Variable
+import org.apache.mesos.Protos.Value.Range
+import org.apache.mesos.Protos.Value.Ranges
 import org.apache.mesos.Protos._
 
 import scala.collection.JavaConverters._
@@ -23,6 +26,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   final val cpusResourceName = "cpus"
   final val memResourceName = "mem"
   final val diskResourceName = "disk"
+  final val portsResourceName = "ports"
   val taskNameTemplate = "ChronosTask:%s"
   //args|command.
   //  e.g. args: -av (async job), verbose mode
@@ -123,6 +127,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .addResources(scalarResource(cpusResourceName, cpus, offer))
       .addResources(scalarResource(memResourceName, mem, offer))
       .addResources(scalarResource(diskResourceName, disk, offer))
+      .addResources(rangesResource(portsResourceName, job.container.portMappings.map(pm => pm.hostPort.toLong), offer))
 
     taskInfo
   }
@@ -151,6 +156,34 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .build
   }
 
+  def rangesResource(name: String, values: Seq[Long], offer: Offer) = {
+    // For a given named resource and list of values,
+    // find and return the role that matches the name and includes all the values in its ranges
+    // Give preference to reserved offers first (those whose roles do not match "*")
+    import scala.collection.JavaConverters._
+    val defaultRole = "*"
+    val role = offer.getResourcesList.asScala
+      .filter(x => (x.hasName && x.getName == name))
+      .filter(x => (x.hasRole && x.getRole != defaultRole))
+      .find(resource => {
+        values.find(value => {
+          resource.getRanges.getRangeList.asScala.find(range => {
+            value >= range.getBegin && value <= range.getEnd
+          }).isEmpty
+        }).isEmpty
+      }).map(x => x.getRole).getOrElse(defaultRole)
+
+    val rangesBuilder = Ranges.newBuilder
+    values.map(x => Range.newBuilder.setBegin(x).setEnd(x)).foreach(rangesBuilder.addRange)
+
+    Resource.newBuilder
+      .setName(name)
+      .setType(Value.Type.RANGES)
+      .setRanges(rangesBuilder)
+      .setRole(role)
+      .build
+  }
+
   def createContainerInfo(job: BaseJob): ContainerInfo = {
     val builder = ContainerInfo.newBuilder()
     job.container.volumes.map { v =>
@@ -165,12 +198,18 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
 
       volumeBuilder.build()
     }.foreach(builder.addVolumes)
-    builder.setType(ContainerInfo.Type.DOCKER)
-    builder.setDocker(DockerInfo.newBuilder()
+    val dockerBuilder = DockerInfo.newBuilder
       .setImage(job.container.image)
       .setNetwork(DockerInfo.Network.valueOf(job.container.network.toString.toUpperCase))
       .setForcePullImage(job.container.forcePullImage)
-      .build()).build
+    job.container.portMappings.map { pm =>
+      PortMapping.newBuilder
+        .setContainerPort(pm.containerPort)
+        .setHostPort(pm.hostPort)
+        .setProtocol(pm.protocol.toString.toLowerCase)
+        .build
+    }.foreach(dockerBuilder.addPortMappings)
+    builder.setType(ContainerInfo.Type.DOCKER).setDocker(dockerBuilder.build).build
   }
 
   def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob) {

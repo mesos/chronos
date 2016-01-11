@@ -28,8 +28,13 @@ class SerDeTest extends SpecificationWithJUnit {
         Volume(None, "container/dir", None)
       )
 
+      val portMappings = Seq(
+        PortMapping(12345, 54321, NetworkProtocol.TCP),
+        PortMapping(11111, 22222, NetworkProtocol.UDP)
+      )
+
       val forcePullImage = false
-      val container = DockerContainer("dockerImage", volumes, NetworkMode.BRIDGE, forcePullImage)
+      val container = DockerContainer("dockerImage", volumes, NetworkMode.BRIDGE, forcePullImage, portMappings)
 
       val arguments = Seq(
         "-testOne"
@@ -68,8 +73,13 @@ class SerDeTest extends SpecificationWithJUnit {
         Volume(None, "container/dir", None)
       )
 
+      val portMappings = Seq(
+        PortMapping(12345, 54321, NetworkProtocol.TCP),
+        PortMapping(11111, 22222, NetworkProtocol.UDP)
+      )
+
       val forcePullImage = true
-      val container = DockerContainer("dockerImage", volumes, NetworkMode.HOST, forcePullImage)
+      val container = DockerContainer("dockerImage", volumes, NetworkMode.HOST, forcePullImage, portMappings)
 
       val arguments = Seq(
         "-testOne"

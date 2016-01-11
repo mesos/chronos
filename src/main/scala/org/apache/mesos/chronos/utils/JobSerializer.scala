@@ -136,6 +136,19 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeEndArray()
       json.writeFieldName("forcePullImage")
       json.writeBoolean(baseJob.container.forcePullImage)
+      json.writeFieldName("portMappings")
+      json.writeStartArray()
+      baseJob.container.portMappings.foreach { pm =>
+        json.writeStartObject()
+        json.writeFieldName("hostPort")
+        json.writeNumber(pm.hostPort)
+        json.writeFieldName("containerPort")
+        json.writeNumber(pm.containerPort)
+        json.writeFieldName("protocol")
+        json.writeString(pm.protocol.toString)
+        json.writeEndObject()
+      }
+      json.writeEndArray()
       json.writeEndObject()
     }
 

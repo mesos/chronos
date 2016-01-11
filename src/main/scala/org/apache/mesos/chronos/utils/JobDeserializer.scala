@@ -171,7 +171,25 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         if (containerNode.has("forcePullImage") && containerNode.get("forcePullImage") != null)
           Try(containerNode.get("forcePullImage").asText.toBoolean).getOrElse(false)
         else false
-      container = DockerContainer(containerNode.get("image").asText, volumes, networkMode, forcePullImage)
+
+      val portMappings = scala.collection.mutable.ListBuffer[PortMapping]()
+      if (containerNode.has("portMappings")) {
+        containerNode.get("portMappings").elements().map {
+          case node: ObjectNode =>
+            val hostPort =
+              if (node.has("hostPort")) node.get("hostPort").asInt
+              else 0
+            val containerPort =
+              if (node.has("containerPort")) node.get("containerPort").asInt
+              else 0
+            val protocol =
+              if (node.has("protocol")) NetworkProtocol.withName(node.get("protocol").asText.toUpperCase)
+              else NetworkProtocol.TCP
+            PortMapping(hostPort, containerPort, protocol)
+        }.foreach(portMappings.add)
+      }
+
+      container = DockerContainer(containerNode.get("image").asText, volumes, networkMode, forcePullImage, portMappings)
     }
 
     val constraints = scala.collection.mutable.ListBuffer[Constraint]()
