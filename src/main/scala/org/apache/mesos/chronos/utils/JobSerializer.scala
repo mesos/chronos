@@ -107,6 +107,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("runAsUser")
     json.writeString(baseJob.runAsUser)
 
+    json.writeFieldName("lastHost")
+    json.writeString(baseJob.lastHost)
+
     if (baseJob.container != null) {
       json.writeFieldName("container")
       json.writeStartObject()
