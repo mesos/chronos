@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer,
 import org.joda.time.Period
 
 import scala.collection.JavaConversions._
+import scala.collection.immutable.Seq
 import scala.util.Try
 
 object JobDeserializer {
@@ -114,6 +115,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         node.get("errorsSinceLastSuccess").asLong
       else 0L
 
+    val requirePorts =
+      if (node.has("requirePorts") && node.get("requirePorts") != null) node.get("requirePorts").asBoolean()
+      else false
+
     var uris = scala.collection.mutable.ListBuffer[String]()
     if (node.has("uris")) {
       for (uri <- node.path("uris")) {
@@ -171,11 +176,25 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         }.foreach(volumes.add)
       }
 
+      val portMappings = scala.collection.mutable.ListBuffer[PortMappings]()
+      if (containerNode.has("portMappings")) {
+        containerNode.get("portMappings").elements().map {
+          case node: ObjectNode =>
+            val hostPort =
+              if (node.has("hostPort")) node.get("hostPort").asInt()
+              else 0
+            val protocol =
+              if (node.has("protocol")) Protocol.withName(node.get("protocol").asText.toUpperCase)
+              else Protocol.TCP
+            PortMappings(node.get("containerPort").asInt(), hostPort, protocol)
+        }.foreach(portMappings.add)
+      }
+
       val forcePullImage =
         if (containerNode.has("forcePullImage") && containerNode.get("forcePullImage") != null)
           Try(containerNode.get("forcePullImage").asText.toBoolean).getOrElse(false)
         else false
-      container = DockerContainer(containerNode.get("image").asText, volumes, networkMode, forcePullImage)
+      container = DockerContainer(containerNode.get("image").asText, volumes.to[Seq], networkMode, forcePullImage, Option(portMappings.to[Seq]))
     }
 
     val constraints = scala.collection.mutable.ListBuffer[Constraint]()
@@ -191,6 +210,21 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
     }
 
+    val ports  = scala.collection.mutable.ListBuffer[Int]()
+    if (node.has("ports")) {
+      for (port <- node.path("ports")) {
+        ports += port.asInt()
+      }
+    }
+
+    val currentPorts  = scala.collection.mutable.ListBuffer[Int]()
+    if (node.has("currentPorts")) {
+      for (port <- node.path("currentPorts")) {
+        currentPorts += port.asInt()
+      }
+    }
+
+
     var parentList = scala.collection.mutable.ListBuffer[String]()
     if (node.has("parents")) {
       for (parent <- node.path("parents")) {
@@ -204,7 +238,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints, lastHost = lastHost)
+        constraints = constraints, lastHost = lastHost, ports = ports, requirePorts = requirePorts, currentPorts = currentPorts)
     } else if (node.has("schedule")) {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
@@ -212,20 +246,20 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executorFlags = executorFlags, retries = retries, owner = owner, ownerName = ownerName,
         description = description, lastError = lastError, lastSuccess = lastSuccess, async = async,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
         environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
-        dataProcessingJobType = dataProcessingJobType, constraints = constraints, lastHost = lastHost)
+        dataProcessingJobType = dataProcessingJobType, constraints = constraints, lastHost = lastHost, ports = ports, requirePorts = requirePorts, currentPorts = currentPorts)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints, lastHost = lastHost)
+        constraints = constraints, lastHost = lastHost, ports = ports, requirePorts = requirePorts, currentPorts = currentPorts)
     }
   }
 }
