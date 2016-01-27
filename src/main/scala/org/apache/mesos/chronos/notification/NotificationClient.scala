@@ -20,12 +20,12 @@ trait NotificationClient extends Actor {
    * @param subject the subject line to use in notification
    * @param message the message that offers additional information about the notification
    */
-  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String])
+  def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String], status: String, taskId: Option[String])
 
   def receive = {
-    case (job: BaseJob, to: String, subject: String, message: Option[String] @unchecked) =>
+    case (job: BaseJob, to: String, subject: String, message: Option[String] @unchecked, status: String, taskId: Option[String] @unchecked) =>
       try {
-        sendNotification(job, to, subject, message)
+        sendNotification(job, to, subject, message, status, taskId)
       } catch {
         case t: Exception => log.log(Level.WARNING, "Caught a Exception while trying to send mail.", t)
       }

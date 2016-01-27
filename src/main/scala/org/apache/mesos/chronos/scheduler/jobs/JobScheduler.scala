@@ -440,7 +440,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     val (jobName, start, attempt, _) = TaskUtils.parseTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
 
-    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt))
+    jobsObserver.apply(JobKilled(jobOption.toRight(jobName), taskStatus, attempt))
   }
 
   /**

@@ -12,6 +12,7 @@ case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extend
 case class JobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
 // Either a job name or job object, depending on whether the Job still exists
 case class JobFailed(job: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobKilled(job: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int) extends JobEvent
 case class JobDisabled(job: BaseJob, cause: String) extends JobEvent
 case class JobRetriesExhausted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
 case class JobRemoved(job: BaseJob) extends JobEvent
