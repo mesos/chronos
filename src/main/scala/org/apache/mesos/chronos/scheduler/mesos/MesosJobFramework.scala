@@ -153,7 +153,7 @@ class MesosJobFramework @Inject()(
                   case None =>
                     val foundResources = offerResources.toIterator.map(_._2.toString()).mkString(",")
                     log.warning(
-                      "Insufficient resources remaining for task '%s', will append to queue. (Needed: [%s], Found: [%s])"
+                      "Insufficient resources or constraints not met for task '%s', will append to queue. (Needed: [%s], Found: [%s])"
                         .stripMargin.format(taskId, neededResources, foundResources)
                     )
                     taskManager.enqueue(taskId, job.highPriority)
