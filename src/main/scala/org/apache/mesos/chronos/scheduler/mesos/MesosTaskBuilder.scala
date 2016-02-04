@@ -4,7 +4,8 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{Fetch, BaseJob}
+import org.apache.mesos.chronos.scheduler.jobs.{TaskUtils, EnvironmentVariable, Fetch, BaseJob}
+
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
@@ -50,38 +51,42 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     builder.build()
   }
 
+  def envs(taskIdStr: String, job: BaseJob, offer: Offer): Environment.Builder = {
+    val (_, start, attempt, _) = TaskUtils.parseTaskId(taskIdStr)
+    val baseEnv = Map(
+      "mesos_task_id"           -> taskIdStr,
+      "CHRONOS_JOB_OWNER"       -> job.owner,
+      "CHRONOS_JOB_NAME"        -> job.name,
+      "HOST"                    -> offer.getHostname,
+      "CHRONOS_RESOURCE_MEM"    -> job.mem.toString,
+      "CHRONOS_RESOURCE_CPU"    -> job.cpus.toString,
+      "CHRONOS_RESOURCE_DISK"   -> job.disk.toString,
+      "CHRONOS_JOB_RUN_TIME"    -> start.toString,
+      "CHRONOS_JOB_RUN_ATTEMPT" -> attempt.toString
+    )
+
+    // If the job defines custom environment variables, add them to the builder
+    // Don't add them if they already exist to prevent overwriting the defaults
+    val finalEnv =
+      if (job.environmentVariables != null && job.environmentVariables.nonEmpty) {
+        job.environmentVariables.foldLeft(baseEnv)((envs, env) =>
+          if (envs.contains(env.name)) envs else envs + (env.name -> env.value)
+        )
+      } else {
+        baseEnv
+      }
+
+   finalEnv.foldLeft(Environment.newBuilder())((builder, env) =>
+      builder.addVariables(Variable.newBuilder().setName(env._1).setValue(env._2)))
+  }
+
   def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob, offer: Offer): TaskInfo.Builder = {
     //TODO(FL): Allow adding more fine grained resource controls.
     val taskId = TaskID.newBuilder().setValue(taskIdStr).build()
     val taskInfo = TaskInfo.newBuilder()
       .setName(taskNameTemplate.format(job.name))
       .setTaskId(taskId)
-    val environment = Environment.newBuilder()
-      .addVariables(Variable.newBuilder()
-      .setName("mesos_task_id").setValue(taskIdStr))
-      .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_JOB_OWNER").setValue(job.owner))
-      .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_JOB_NAME").setValue(job.name))
-      .addVariables(Variable.newBuilder()
-      .setName("HOST").setValue(offer.getHostname))
-      .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_RESOURCE_MEM").setValue(job.mem.toString))
-      .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_RESOURCE_CPU").setValue(job.cpus.toString))
-      .addVariables(Variable.newBuilder()
-      .setName("CHRONOS_RESOURCE_DISK").setValue(job.disk.toString))
-
-    // If the job defines custom environment variables, add them to the builder
-    // Don't add them if they already exist to prevent overwriting the defaults
-    val builtinEnvNames = environment.getVariablesList.asScala.map(_.getName).toSet
-    if (job.environmentVariables != null && job.environmentVariables.nonEmpty) {
-      job.environmentVariables.foreach(env =>
-        if (!builtinEnvNames.contains(env.name)) {
-          environment.addVariables(Variable.newBuilder().setName(env.name).setValue(env.value))
-        }
-      )
-    }
+    val environment = envs(taskIdStr, job, offer)
 
     val fetch = job.fetch ++ job.uris.map { Fetch(_) }
     val uriCommand = fetch.map { f =>
