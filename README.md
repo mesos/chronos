@@ -31,7 +31,7 @@ Documentation for installing and configuring the full Mesosphere stack including
 For questions and discussions around Chronos, please use the Google Group "chronos-scheduler":
 [Chronos Scheduler Group](https://groups.google.com/forum/#!forum/chronos-scheduler).
 
-Also join us on IRC in #mesos on freenode.
+Also join us on IRC in #chronos on freenode.
 
 
 ## Known Issues
