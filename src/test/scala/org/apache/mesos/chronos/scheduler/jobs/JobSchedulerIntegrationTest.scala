@@ -1,10 +1,10 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.apache.mesos.chronos.scheduler.api.{DependentJobResource, Iso8601JobResource}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
+import org.apache.mesos.chronos.scheduler.api.{DependentJobResource, Iso8601JobResource}
+import org.joda.time._
 import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.{DateTime, DateTimeZone, Hours, Minutes}
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
@@ -14,7 +14,8 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
   "JobScheduler" should {
     "A job creates a failed task and then a successful task from a synchronous job" in {
       val epsilon = Hours.hours(2).toPeriod
-      val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
+      val schedule = Schedule.parse("R5/2012-01-01T00:00:00.000Z/P1D").get
+      val job1 = new InternalScheduleBasedJob(schedule, "job1", "CMD", epsilon)
 
       val jobGraph = new JobGraph
       val persistenceStore = mock[PersistenceStore]
@@ -25,22 +26,30 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       scheduler.leader.set(true)
       scheduler.registerJob(job1, persist = true, startTime)
 
+      val nextInvocationTime = Schedule.parse("R4/2012-01-02T00:00:00.000Z/P1D").get.invocationTime
       val newStreams = scheduler.iteration(startTime, scheduler.streams)
-      newStreams.head.schedule must_== "R4/2012-01-02T00:00:00.000Z/P1D"
+      newStreams.head.schedule.invocationTime must_== nextInvocationTime
+      newStreams.head.schedule.recurrences must_== Some(4)
 
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
       scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, startTime, 0))
 
-      there was one(persistenceStore)
-        .persistJob(new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
-      there was one(persistenceStore)
-        .persistJob(new ScheduleBasedJob("R4/2012-01-02T00:00:00.000Z/P1D", "job1", "CMD", epsilon))
+      val jobCaptor = capture[InternalScheduleBasedJob]
+
+      there was two(persistenceStore)
+        .persistJob(jobCaptor)
+
+      val firstJob = jobCaptor.values.get(0)
+      val secondJob = jobCaptor.values.get(1)
+
+      firstJob must_== new InternalScheduleBasedJob(schedule, "job1", "CMD", epsilon)
+      secondJob must_== new InternalScheduleBasedJob(schedule.copy(invocationTime = nextInvocationTime, offset = 1, recurrences = Some(4)), "job1", "CMD", epsilon)
     }
 
     "Executing a job updates the job counts and errors" in {
       val epsilon = Minutes.minutes(20).toPeriod
       val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job1 = new InternalScheduleBasedJob(scheduleData = Schedule.parse("R/2012-01-01T00:00:00.000Z/PT1M").get,
         name = jobName, command = "fooo", epsilon = epsilon, retries = 0)
 
       val horizon = Minutes.minutes(5).toPeriod
@@ -72,7 +81,8 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that a disabled job does not run and does not execute dependant children." in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val schedule = Schedule.parse("R/2012-01-01T00:00:00.000Z/PT1M").get
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = true)
       val job2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD", disabled = true)
 
@@ -101,9 +111,11 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that dependent jobs runs when they should" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val schedule = Schedule.parse("R/2012-01-01T00:00:00.000Z/PT1M").get
+
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job2 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false)
 
       val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled = false)
@@ -159,9 +171,10 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that dependent jobs run even if their parents fail but have softError enabled" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
+      val schedule = Schedule.parse("R/2012-01-01T00:01:00.000Z/PT1M").get
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
+      val job2 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false, retries = 0, softError = true)
 
       val job3 = new DependencyBasedJob(Set("job1", "job2"), name = "job3", command = "CMD", disabled = false)
@@ -203,9 +216,10 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that dependent jobs don't run if their parents fail without softError enabled" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
+      val schedule = Schedule.parse("R/2012-01-01T00:01:00.000Z/PT1M").get
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
+      val job2 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false, retries = 0, softError = false)
 
       val job3 = new DependencyBasedJob(Set("job1", "job2"), name = "job3", command = "CMD", disabled = false)
@@ -242,9 +256,10 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that dependent jobs runs when they should after changing the jobgraph" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
+      val schedule = Schedule.parse("R/2012-01-01T00:01:00.000Z/PT1M").get
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
+      val job2 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false)
 
       val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled = false)
@@ -336,9 +351,10 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
 
     "Tests that complex dependent jobs run when they should" in {
       val epsilon = Minutes.minutes(20).toPeriod
-      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val schedule = Schedule.parse("R/2012-01-01T00:00:00.000Z/PT1M").get
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
+      val job2 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false)
 
       val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled = false)
@@ -417,9 +433,10 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       val epsilon = Minutes.minutes(20).toPeriod
       val date = DateTime.now(DateTimeZone.UTC)
       val fmt = ISODateTimeFormat.dateTime()
-      val job1 = new ScheduleBasedJob(schedule = s"R/${fmt.print(date)}/PT1M",
+      val schedule = Schedule.parse(s"R/${fmt.print(date)}/PT1M").get
+      val job1 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
-      val job2 = new ScheduleBasedJob(schedule = s"R/${fmt.print(date)}/PT1M",
+      val job2 = new InternalScheduleBasedJob(scheduleData = schedule,
         name = "job2", command = "fooo", epsilon = epsilon, disabled = false)
 
       val job3 = new DependencyBasedJob(Set("job1"), name = "job3", command = "CMD", disabled = false)
@@ -474,8 +491,8 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       graph.lookupVertex("job5").get.errorCount must_== 0
 
       val jobResource = new Iso8601JobResource(jobScheduler = scheduler, jobGraph = graph)
-      jobResource.handleRequest(job1)
-      jobResource.handleRequest(job2)
+      jobResource.handleRequest(JobUtils.convertInternalScheduleToExternalScheduled(job1))
+      jobResource.handleRequest(JobUtils.convertInternalScheduleToExternalScheduled(job2))
 
       scheduler.run(() => {
         date

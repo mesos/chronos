@@ -2,17 +2,17 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.google.common.base.{Charsets, Joiner}
+import com.google.common.base.Charsets
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
+import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
+import org.joda.time.{Period, DateTime}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, Period, Seconds}
 
+import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 /**
  * @author Florian Leibert (flo@leibert.de)
@@ -34,19 +34,93 @@ object JobUtils {
   def toBytes[T <: BaseJob](job: T): Array[Byte] =
     objectMapper.writeValueAsString(job).getBytes(Charsets.UTF_8)
 
+
   def fromBytes(data: Array[Byte]): BaseJob = {
     //TODO(FL): Fix this, as it is very inefficient since we're parsing twice.
     //          Link to article, doing this by creating a deserializer handling polymorphism nicer (but more code):
     //          http://programmerbruce.blogspot.com.es/2011/05/deserialize-json-with-jackson-into.html
     val strData = new String(data, Charsets.UTF_8)
-    val map = objectMapper.readValue(strData, classOf[java.util.Map[String, _]])
 
-    if (map.containsKey("parents"))
-      objectMapper.readValue(strData, classOf[DependencyBasedJob])
-    else if (map.containsKey("schedule"))
-      objectMapper.readValue(strData, classOf[ScheduleBasedJob])
-    else
-      objectMapper.readValue(strData, classOf[BaseJob])
+    objectMapper.readValue(strData, classOf[BaseJob])
+  }
+  
+  def convertJobToStored(job: BaseJob): Option[StoredJob] = job match {
+    case j: ScheduleBasedJob =>
+      Schedule.parse(j.schedule, j.scheduleTimeZone) map { parsedSched =>
+        InternalScheduleBasedJob(
+          parsedSched,
+          name = j.name,
+          command = j.command,
+          epsilon = j.epsilon,
+          successCount = j.successCount,
+          errorCount = j.errorCount,
+          executor = j.executor,
+          executorFlags = j.executorFlags,
+          retries = j.retries,
+          owner = j.owner,
+          ownerName = j.ownerName,
+          description = j.description,
+          lastError = j.lastError,
+          lastSuccess = j.lastSuccess,
+          async = j.async,
+          cpus = j.cpus,
+          disk = j.disk,
+          mem = j.mem,
+          disabled = j.disabled,
+          errorsSinceLastSuccess = j.errorsSinceLastSuccess,
+          uris = j.uris,
+          highPriority = j.highPriority,
+          runAsUser = j.runAsUser,
+          container = j.container,
+          environmentVariables = j.environmentVariables,
+          shell = j.shell,
+          arguments = j.arguments,
+          softError = j.softError,
+          dataProcessingJobType = j.dataProcessingJobType,
+          constraints = j.constraints
+        )
+      }
+    case otherwise: StoredJob => Some(otherwise)
+  }
+
+  def convertStoredToJob(job: StoredJob): BaseJob = job match {
+    case is: InternalScheduleBasedJob => convertInternalScheduleToExternalScheduled(is)
+    case other => other
+  }
+
+  def convertInternalScheduleToExternalScheduled(j: InternalScheduleBasedJob): ScheduleBasedJob = {
+    ScheduleBasedJob(
+      schedule = j.scheduleData.toZeroOffsetISO8601Representation,
+      name = j.name,
+      command = j.command,
+      epsilon = j.epsilon,
+      successCount = j.successCount,
+      errorCount = j.errorCount,
+      executor = j.executor,
+      executorFlags = j.executorFlags,
+      retries = j.retries,
+      owner = j.owner,
+      ownerName = j.ownerName,
+      description = j.description,
+      lastError = j.lastError,
+      lastSuccess = j.lastSuccess,
+      async = j.async,
+      cpus = j.cpus,
+      disk = j.disk,
+      mem = j.mem,
+      disabled = j.disabled,
+      errorsSinceLastSuccess = j.errorsSinceLastSuccess,
+      uris = j.uris,
+      highPriority = j.highPriority,
+      runAsUser = j.runAsUser,
+      container = j.container,
+      environmentVariables = j.environmentVariables,
+      shell = j.shell,
+      arguments = j.arguments,
+      softError = j.softError,
+      dataProcessingJobType = j.dataProcessingJobType,
+      constraints = j.constraints
+    )
   }
 
   def isValidJobName(jobName: String): Boolean = {
@@ -59,17 +133,11 @@ object JobUtils {
   //TODO(FL): Think about moving this back into the JobScheduler, though it might be a bit crowded.
   def loadJobs(scheduler: JobScheduler, store: PersistenceStore) {
     //TODO(FL): Create functions that map strings to jobs
-    val scheduledJobs = new ListBuffer[ScheduleBasedJob]
-    val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
 
     val jobs = store.getJobs
 
-    jobs.foreach {
-      case d: DependencyBasedJob => dependencyBasedJobs += d
-      case s: ScheduleBasedJob => scheduledJobs += s
-      case x: Any =>
-        throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
-    }
+    val dependencyBasedJobs = jobs.collect { case d: DependencyBasedJob => d }.toList
+    val scheduledJobs = jobs.collect { case s: InternalScheduleBasedJob => s }.toList
 
     log.info("Registering jobs:" + scheduledJobs.size)
     scheduler.registerJob(scheduledJobs.toList)
@@ -83,12 +151,11 @@ object JobUtils {
     dependencyBasedJobs.foreach {
       x =>
         log.info("mapping:" + x)
-        import scala.collection.JavaConversions._
-        log.info("Adding dependencies for %s -> [%s]".format(x.name, Joiner.on(",").join(x.parents)))
+        log.info("Adding dependencies for %s -> [%s]".format(x.name, x.parents.mkString(",")))
 
         scheduler.jobGraph.parentJobsOption(x) match {
           case None =>
-            log.warning(s"Coudn't find all parents of job ${x.name}... dropping it.")
+            log.warning(s"Couldn't find all parents of job ${x.name}... dropping it.")
             scheduler.jobGraph.removeVertex(x)
           case Some(parentJobs) =>
             parentJobs.foreach {
@@ -100,65 +167,39 @@ object JobUtils {
     }
   }
 
-  def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime) = {
-    Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
-      case Some((_, scheduledTime, _)) =>
-        if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
-          skipForward(job, dateTime)
-        } else {
-          Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
-        }
-      case None =>
-        None
-    }
+  def makeScheduleStream(job: InternalScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
+    val scheduleStream = new ScheduleStream(job.name, job.scheduleData)
+    skipForward(scheduleStream, dateTime, job.epsilon)
   }
 
-  def skipForward(job: ScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
-    Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
-      case Some((rec, start, per)) =>
-        val skip = calculateSkips(dateTime, start, per)
-        if (rec == -1) {
-          val nStart = start.plus(per.multipliedBy(skip))
-          log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
-            .format(skip, start.toString(DateTimeFormat.fullDate),
-              nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name, job.scheduleTimeZone))
-        } else if (rec < skip) {
-          log.warning("Filtered job as it is no longer valid.")
+  def skipForward(originalStream: ScheduleStream, now: DateTime, epsilon: Period, skippedAlready: Int = 0): Option[ScheduleStream] = {
+
+    @tailrec
+    def skip(scheduleStream: Option[ScheduleStream], now: DateTime, skippedAlready: Int): Option[ScheduleStream] = {
+      scheduleStream match {
+        case None =>
+          log.warning("Filtered job %s as it is no longer valid.".format(originalStream.jobName))
           None
-        } else {
-          val nRec = rec - skip
-          val nStart = start.plus(per.multipliedBy(skip))
-          log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
-            .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
-              nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
-        }
-      case None =>
-        None
-    }
-  }
-
-  /**
-   * Calculates the number of skips needed to bring the job start into the future
-   */
-  protected def calculateSkips(dateTime: DateTime, jobStart: DateTime, period: Period): Int = {
-    // If the period is at least a month, we have to actually add the period to the date
-    // until it's in the future because a month-long period might have different seconds
-    if (period.getMonths >= 1) {
-      var skips = 0
-      var newDate = new DateTime(jobStart)
-      while (newDate.isBefore(dateTime)) {
-        newDate = newDate.plus(period)
-        skips += 1
+        case Some(stream) =>
+          if (!stream.schedule.invocationTime.plus(epsilon).isBefore(now)) {
+            if (skippedAlready != 0) {
+              log.warning("Skipped job %s forward %d iterations, modified start from '%s' to '%s"
+                .format(
+                  originalStream.jobName,
+                  skippedAlready,
+                  originalStream.schedule.invocationTime.toString(DateTimeFormat.fullDate),
+                  stream.schedule.invocationTime.toString(DateTimeFormat.fullDate)))
+            }
+            Some(stream)
+          } else {
+            skip(stream.tail, now, skippedAlready + 1)
+          }
       }
-      skips
-    } else {
-      Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds
     }
+    skip(Some(originalStream), now, 0)
   }
 
-  def getJobWithArguments(job: BaseJob, arguments: String): BaseJob = {
+  def getJobWithArguments(job: StoredJob, arguments: String): BaseJob = {
     val commandWithArgs = job.command + " " + arguments
     val jobWithArguments = job match {
       case j: DependencyBasedJob =>
@@ -191,9 +232,9 @@ object JobUtils {
           arguments = job.arguments,
           constraints = job.constraints
         )
-      case j: ScheduleBasedJob =>
-        new ScheduleBasedJob(
-          schedule = j.schedule,
+      case j: InternalScheduleBasedJob =>
+        new InternalScheduleBasedJob(
+          scheduleData = j.scheduleData,
           scheduleTimeZone = j.scheduleTimeZone,
           name = job.name,
           command = commandWithArgs,

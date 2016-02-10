@@ -59,7 +59,7 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     }
   }
 
-  def persistJob(job: BaseJob): Boolean = {
+  def persistJob(job: StoredJob): Boolean = {
     log.info("Persisting job '%s' with data '%s'" format(job.name, job.toString))
     persistData(jobName(job.name), JobUtils.toBytes(job))
   }
@@ -98,23 +98,28 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     remove(taskName(taskId))
   }
 
-  def removeJob(job: BaseJob) {
+  def removeJob(job: StoredJob) {
     log.fine("Removing job:" + job.name)
     remove(jobName(job.name))
   }
 
-  def getJob(name: String): BaseJob = {
+  def getJob(name: String): StoredJob = {
     val bytes = state.fetch(jobName(name)).get
-    JobUtils.fromBytes(bytes.value)
+    JobUtils.convertJobToStored(JobUtils.fromBytes(bytes.value)).getOrElse {
+      throw new RuntimeException(s"Failed to migrate job; error parsing stored data for job $name")
+    }
   }
 
-  def getJobs: Iterator[BaseJob] = {
+  def getJobs: Iterator[StoredJob] = {
 
     import scala.collection.JavaConversions._
 
     state.names.get.filter(_.startsWith(jobPrefix))
       .map({
-      x: String => JobUtils.fromBytes(state.fetch(x).get.value)
+      x: String =>
+        JobUtils.convertJobToStored(JobUtils.fromBytes(state.fetch(x).get.value)).getOrElse {
+          throw new RuntimeException(s"Failed to migrate job; error parsing stored data for job $x")
+        }
     })
   }
 

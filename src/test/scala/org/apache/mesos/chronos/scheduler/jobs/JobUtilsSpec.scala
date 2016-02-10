@@ -14,7 +14,7 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     val config = new SchedulerConfiguration {}
     val store = new MesosStatePersistenceStore(mockZKClient, config)
     val startTime = "R1/2012-01-01T00:00:01.000Z/PT1M"
-    val job = new ScheduleBasedJob(startTime, "sample-name", "sample-command")
+    val job = new InternalScheduleBasedJob(scheduleData = Schedule.parse(startTime).get, "sample-name", "sample-command")
     val mockScheduler = mock[JobScheduler]
 
     store.persistJob(job)
@@ -24,26 +24,26 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
   }
 
   "Can skip forward a job" in {
-    val schedule = "R/2012-01-01T00:00:01.000Z/PT1M"
-    val job = new ScheduleBasedJob(schedule, "sample-name", "sample-command")
+    val schedule = Schedule.parse("R/2012-01-01T00:00:01.000Z/PT1M").get
+    val job = new InternalScheduleBasedJob(schedule, "sample-name", "sample-command")
     val now = new DateTime()
 
     // Get the schedule stream, which should have been skipped forward
-    val stream = JobUtils.skipForward(job, now)
-    val scheduledTime = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get._2
+    val stream = JobUtils.skipForward(new ScheduleStream("sample-name", schedule), now, job.epsilon)
+    val scheduledTime = stream.get.schedule.invocationTime
 
     // Ensure that this job runs today
     scheduledTime.toLocalDate must_== now.toLocalDate
   }
 
   "Can skip forward a job with a monthly period" in {
-    val schedule = "R/2012-01-01T00:00:01.000Z/P1M"
-    val job = new ScheduleBasedJob(schedule, "sample-name", "sample-command")
+    val schedule = Schedule.parse("R/2012-01-01T00:00:01.000Z/P1M").get
+    val job = new InternalScheduleBasedJob(schedule, "sample-name", "sample-command")
     val now = new DateTime()
 
     // Get the schedule stream, which should have been skipped forward
-    val stream = JobUtils.skipForward(job, now)
-    val scheduledTime = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get._2
+    val stream = JobUtils.skipForward(new ScheduleStream("sample-name", schedule), now, job.epsilon)
+    val scheduledTime = stream.get.schedule.invocationTime
 
     // Ensure that this job runs on the first of next month
     scheduledTime.isAfter(now) must beTrue
@@ -51,12 +51,12 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
   }
 
   "Can get job with arguments" in {
-    val schedule = "R/2012-01-01T00:00:01.000Z/P1M"
+    val schedule = Schedule.parse("R/2012-01-01T00:00:01.000Z/P1M").get
     val arguments = "--help"
     val command = "sample-command"
     val commandWithArguments = command + " " + arguments
 
-    val scheduledJob = new ScheduleBasedJob(schedule, "sample-name", command = command)
+    val scheduledJob = new InternalScheduleBasedJob(schedule, "sample-name", command = command)
     val dependencyJob = new DependencyBasedJob(parents = Set("sample-name"), "sample-name2", command = command)
     val scheduledJobWithArguments = JobUtils.getJobWithArguments(scheduledJob, arguments)
     val dependencyJobWithArguments = JobUtils.getJobWithArguments(dependencyJob, arguments)

@@ -6,27 +6,16 @@ package org.apache.mesos.chronos.scheduler.jobs
  * The schedule consists of a string representation of an ISO8601 expression as well as a BaseJob.
  * @author Florian Leibert (flo@leibert.de)
  */
-class ScheduleStream(val schedule: String, val jobName: String, val scheduleTimeZone: String = "") {
+class ScheduleStream(val jobName: String, val schedule: Schedule) {
 
-  def head: (String, String, String) = (schedule, jobName, scheduleTimeZone)
+  def head: (String, Schedule) = (jobName, schedule)
 
   /**
    * Returns a clipped schedule.
    * @return
    */
   def tail: Option[ScheduleStream] =
-    //TODO(FL) Represent the schedule as a data structure instead of a string.
-    Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
-      case Some((rec, start, per)) =>
-        if (rec == -1)
-          Some(new ScheduleStream(Iso8601Expressions.create(rec, start.plus(per), per), jobName,
-            scheduleTimeZone))
-        else if (rec > 0)
-          Some(new ScheduleStream(Iso8601Expressions.create(rec - 1, start.plus(per), per), jobName,
-            scheduleTimeZone))
-        else
-          None
-      case None =>
-        None
-    }
+    schedule.next.map(s => new ScheduleStream(jobName, s))
+
+  override def toString = s"ScheduleStream{ job: $jobName [$schedule] }"
 }

@@ -117,7 +117,7 @@ class JobSchedulerElectionSpec
     val mesosDriver: MesosDriverFactory = mock[MesosDriverFactory]
 
     persistenceStore.getTasks returns Map[String, Array[Byte]]()
-    persistenceStore.getJobs returns Iterator[BaseJob]()
+    persistenceStore.getJobs returns Iterator[StoredJob]()
 
     doNothing().when(mesosDriver).start()
 

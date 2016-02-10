@@ -11,8 +11,8 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
 
     "Writing and reading ScheduledBasedJob a job works" in {
       val store = new MesosStatePersistenceStore(null, null)
-      val startTime = "R1/2012-01-01T00:00:01.000Z/PT1M"
-      val job = new ScheduleBasedJob(schedule = startTime, name = "sample-name",
+      val schedule = Schedule.parse("R1/2012-01-01T00:00:01.000Z/PT1M").get
+      val job = new InternalScheduleBasedJob(scheduleData = schedule, name = "sample-name",
         command = "sample-command", successCount = 1L, epsilon = Hours.hours(1).toPeriod,
         executor = "fooexecutor", executorFlags = "args")
 
@@ -28,9 +28,9 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
 
     "Writing and reading DependencyBasedJob a job works" in {
       val store = new MesosStatePersistenceStore(null, null)
-      val startTime = "R1/2012-01-01T00:00:01.000Z/PT1M"
+      val schedule = Schedule.parse("R1/2012-01-01T00:00:01.000Z/PT1M").get
       val epsilon = Hours.hours(1).toPeriod
-      val schedJob = new ScheduleBasedJob(schedule = startTime, name = "sample-name",
+      val schedJob = new InternalScheduleBasedJob(scheduleData = schedule, name = "sample-name",
         command = "sample-command", epsilon = epsilon)
       val job = new DependencyBasedJob(parents = Set("sample-name"),
         name = "sample-dep", command = "sample-command",

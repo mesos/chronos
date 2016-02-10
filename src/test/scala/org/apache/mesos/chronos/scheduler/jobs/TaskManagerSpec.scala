@@ -31,7 +31,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
         mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], makeConfig(),
         mock[MesosOfferReviver])
 
-      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      val job = new InternalScheduleBasedJob(Schedule.parse("R/2012-01-01T00:00:01.000Z/PT1M").get, "test", "sample-command")
 
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
@@ -52,7 +52,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
         mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
 
-      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      val job = new InternalScheduleBasedJob(Schedule.parse("R/2012-01-01T00:00:01.000Z/PT1M").get, "test", "sample-command")
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
 
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
@@ -69,7 +69,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
         mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
 
-      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      val job = new InternalScheduleBasedJob(Schedule.parse("R/2012-01-01T00:00:01.000Z/PT1M").get, "test", "sample-command")
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
 
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)

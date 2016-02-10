@@ -1,6 +1,6 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.joda.time.{DateTime, Days, Period}
+import org.joda.time.{Minutes, DateTime, Days, Period}
 import org.specs2.mutable._
 
 class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
@@ -105,12 +105,12 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
     }
 
     "Test time zone change when time is not specified" in {
-      val fail = Iso8601Expressions.parse("R/2008-03-01/P1D", "PST") match {
+      val fail = Iso8601Expressions.parse("R/2008-03-01/PT1M", "PST") match {
         case Some((repetitions, startTime, period)) =>
           repetitions must_== -1L
           startTime.getMillis must_== DateTime.parse("2008-03-01T00:00:00-08:00").getMillis
           //This is a hack because Period's equals seems broken!
-          period.toString must_== new Period(Days.ONE).toString
+          period.toString must_== new Period(Minutes.ONE).toString
           false
         case _ =>
           true

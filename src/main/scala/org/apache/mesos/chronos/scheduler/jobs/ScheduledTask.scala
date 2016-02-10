@@ -11,7 +11,7 @@ import org.joda.time.DateTime
 class ScheduledTask(
                      val taskId: String,
                      val due: DateTime,
-                     val job: BaseJob,
+                     val job: StoredJob,
                      val taskManager: TaskManager)
   extends Callable[Void] {
 

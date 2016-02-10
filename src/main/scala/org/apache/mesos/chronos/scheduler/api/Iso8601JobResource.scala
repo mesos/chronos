@@ -47,8 +47,10 @@ class Iso8601JobResource @Inject()(
         if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone))
           return Response.status(Response.Status.BAD_REQUEST).build()
 
+        val newStoredJob = JobUtils.convertJobToStored(newJob).get
+
         //TODO(FL): Create a wrapper class that handles adding & removing jobs!
-        jobScheduler.registerJob(List(newJob), persist = true)
+        jobScheduler.registerJob(List(newStoredJob), persist = true)
         iso8601JobSubmissions.incrementAndGet()
         log.info("Added job to JobGraph")
         Response.noContent().build()
@@ -58,15 +60,16 @@ class Iso8601JobResource @Inject()(
         if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
           return Response.status(Response.Status.BAD_REQUEST).build()
         }
+        val newStoredJob = JobUtils.convertJobToStored(newJob).get
 
         oldJob match {
           case j: DependencyBasedJob =>
             val oldParents = jobGraph.parentJobs(j)
             oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
-          case j: ScheduleBasedJob =>
+          case _ =>
         }
 
-        jobScheduler.updateJob(oldJob, newJob)
+        jobScheduler.updateJob(oldJob, newStoredJob)
 
         log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
           newJob.name,

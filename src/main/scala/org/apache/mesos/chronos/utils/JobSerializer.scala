@@ -1,9 +1,10 @@
 package org.apache.mesos.chronos.utils
 
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, InternalScheduleBasedJob, ScheduleBasedJob}
+import org.joda.time.format.{ISOPeriodFormat, ISODateTimeFormat}
 
 /**
  * Custom JSON serializer for jobs.
@@ -181,8 +182,32 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeString(schedJob.schedule)
         json.writeFieldName("scheduleTimeZone")
         json.writeString(schedJob.scheduleTimeZone)
-      case _ =>
-        throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
+      case iSchedJob: InternalScheduleBasedJob =>
+        json.writeFieldName("scheduleTimeZone")
+        json.writeString(iSchedJob.scheduleTimeZone)
+        json.writeFieldName("scheduleData")
+        json.writeStartObject()
+
+        json.writeFieldName("schedule")
+        json.writeString(iSchedJob.scheduleData.schedule)
+        json.writeFieldName("scheduleTimeZone")
+        json.writeString(iSchedJob.scheduleData.scheduleTimeZone)
+        json.writeFieldName("originTime")
+        json.writeString(iSchedJob.scheduleData.originTime.toString(ISODateTimeFormat.dateTime))
+        json.writeFieldName("invocationTime")
+        json.writeString(iSchedJob.scheduleData.invocationTime.toString(ISODateTimeFormat.dateTime))
+        json.writeFieldName("offset")
+        json.writeNumber(iSchedJob.scheduleData.offset)
+
+        iSchedJob.scheduleData.recurrences.foreach { r =>
+          json.writeFieldName("recurrences")
+          json.writeNumber(r)
+        }
+
+        json.writeFieldName("period")
+        json.writeString(iSchedJob.scheduleData.period.toString(ISOPeriodFormat.standard()))
+
+        json.writeEndObject()
     }
 
     json.writeEndObject()
