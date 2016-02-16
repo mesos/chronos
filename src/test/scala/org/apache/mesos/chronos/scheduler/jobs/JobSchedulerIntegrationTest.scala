@@ -240,6 +240,30 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       there was no(mockTaskManager).enqueue(TaskUtils.getTaskId(job3, DateTime.parse(vJob2.lastError), 0), highPriority = false)
     }
 
+    "Tests that scheduled jobs changed to dependent jobs remove their schedules" in {
+      val epsilon = Minutes.minutes(1).toPeriod
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:05:00.000Z/PT10M",
+        name = "job1", command = "fooo", epsilon = epsilon, disabled = false)
+      val job2 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:05:00.000Z/PT10M",
+        name = "job2", command = "fooo", epsilon = epsilon, disabled = false)
+      val horizon = Minutes.minutes(5).toPeriod
+      val mockTaskManager = mock[TaskManager]
+      val graph = new JobGraph()
+      val mockPersistenceStore = mock[PersistenceStore]
+      val mockedScheduler = mock[JobScheduler]
+      val scheduler = mockScheduler(horizon, mockTaskManager, graph, mockPersistenceStore)
+      scheduler.leader.set(true)
+      val date = DateTime.parse("2012-01-01T00:00:00.000Z")
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job2, persist = true, date)
+      val dependentJob2 = new DependencyBasedJob(Set("job1"), name = "job2", command = "CMD", disabled = false)
+      val jobResource = new DependentJobResource(jobScheduler = mockedScheduler, jobGraph = graph)
+
+      jobResource.handleRequest(dependentJob2)
+      there was one(mockedScheduler).removeSchedule(job2)
+      there was one(mockedScheduler).updateJob(job2, dependentJob2)
+    }
+
     "Tests that dependent jobs runs when they should after changing the jobgraph" in {
       val epsilon = Minutes.minutes(20).toPeriod
       val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:01:00.000Z/PT1M",
