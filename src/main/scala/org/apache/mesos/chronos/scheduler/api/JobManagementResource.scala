@@ -91,6 +91,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       disabled = childJob.disabled,
                       softError = childJob.softError,
                       uris = childJob.uris,
+                      fetch = childJob.fetch,
                       highPriority = childJob.highPriority
                     )
                     jobScheduler.updateJob(childJob, newChild)

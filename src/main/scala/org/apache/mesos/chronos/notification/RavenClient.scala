@@ -17,6 +17,7 @@ class RavenClient(val dsn: String) extends NotificationClient {
 
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
     val ravenMessage = subject + "\n\n" + message.getOrElse("")
+    val uris = job.fetch.map { _.uri } ++ job.uris
     val event = new EventBuilder()
       .setMessage(ravenMessage)
       .setLevel(Event.Level.ERROR)
@@ -36,7 +37,7 @@ class RavenClient(val dsn: String) extends NotificationClient {
       .addExtra("mem", job.mem)
       .addExtra("retries", job.retries)
       .addExtra("successCount", job.successCount)
-      .addExtra("uris", job.uris.mkString(","))
+      .addExtra("uris", uris.mkString(","))
       .build()
 
     raven.sendEvent(event)
