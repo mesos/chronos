@@ -40,4 +40,3 @@ It is now possible to override the binary executed by the ENTRYPOINT script, e.g
 * #525 - Fix JVM crashes when the hostname is not resolvable
 * #520 - Chronos sometimes registers using an empty frameworkId after a leader fail over
 * #509 - Chronos should set a non-default filter when declining offers
-* #637 - Support Mesos fetcher cache
