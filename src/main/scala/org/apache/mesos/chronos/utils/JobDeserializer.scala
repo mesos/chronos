@@ -121,6 +121,19 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
     }
 
+    var fetch = scala.collection.mutable.ListBuffer[Fetch]()
+    if (node.has("fetch")) {
+      node.get("fetch").elements().map {
+        case node: ObjectNode => {
+          val uri = Option(node.get("uri")).map { _.asText() }.getOrElse("")
+          val executable = Option(node.get("executable")).map { _.asBoolean() }.getOrElse(false)
+          val cache = Option(node.get("cache")).map { _.asBoolean() }.getOrElse(false)
+          val extract = Option(node.get("extract")).map { _.asBoolean() }.getOrElse(false)
+          Fetch(uri, executable, cache, extract)
+        }
+      }.foreach(fetch.add)
+    }
+
     var arguments = scala.collection.mutable.ListBuffer[String]()
     if (node.has("arguments")) {
       for (argument <- node.path("arguments")) {
@@ -206,7 +219,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris, highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
         constraints = constraints)
@@ -217,7 +230,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executorFlags = executorFlags, retries = retries, owner = owner, ownerName = ownerName,
         description = description, lastError = lastError, lastSuccess = lastSuccess, async = async,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
         environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
         dataProcessingJobType = dataProcessingJobType, constraints = constraints)
@@ -227,7 +240,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, uris = uris,  highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
         constraints = constraints)

@@ -4,7 +4,7 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
+import org.apache.mesos.chronos.scheduler.jobs.{Fetch, BaseJob}
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
@@ -83,14 +83,18 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       )
     }
 
-    val uriProtos = job.uris.map { uri =>
+    val fetch = job.fetch ++ job.uris.map { Fetch(_) }
+    val uriCommand = fetch.map { f =>
       CommandInfo.URI.newBuilder()
-        .setValue(uri)
+        .setValue(f.uri)
+        .setExtract(f.extract)
+        .setExecutable(f.executable)
+        .setCache(f.cache)
         .build()
     }
 
     if (job.executor.nonEmpty) {
-      appendExecutorData(taskInfo, job, environment, uriProtos)
+      appendExecutorData(taskInfo, job, environment, uriCommand)
     } else {
       val command = CommandInfo.newBuilder()
       if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
@@ -106,7 +110,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
           .setShell(job.shell)
           .setEnvironment(environment)
           .addAllArguments(job.arguments.asJava)
-          .addAllUris(uriProtos.asJava)
+          .addAllUris(uriCommand.asJava)
       }
       if (job.runAsUser.nonEmpty) {
         command.setUser(job.runAsUser)

@@ -222,7 +222,7 @@ curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-nod
   },
   "cpus": "0.5",
   "mem": "512",
-  "uris": [],
+  "fetch": [],
   "command": "while sleep 10; do date =u %T; done"
 }
 ```
@@ -335,7 +335,8 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `mem`                 | Amount of Mesos Memory (in MB) for this job.                                                               | `128` or `--mesos_task_mem`    |
 | `disk`                | Amount of Mesos disk (in MB) for this job.                                                                 | `256` or `--mesos_task_disk`   |
 | `disabled`            | If set to `true`, this job will not be run.                                                              | `false`                        |
-| `uris`                | An array of URIs which Mesos will download when the task is started.                                     | -                              |
+| `uris`                | An array of URIs which Mesos will download when the task is started (deprecated).                         | -                             |
+| `fetch`               | An array of fetch configurations, one for each file that Mesos Fetcher will download when the task is started).| -                        |
 | `schedule`            | [ISO 8601][] repeating schedule for this job.  If specified, `parents` must not be specified.            | -                              |
 | `scheduleTimeZone`    | The time zone for the given schedule, specified in the [tz database](https://en.wikipedia.org/wiki/Tz_database) format. | -                              |
 | `parents`             | An array of parent jobs for a dependent job.  If specified, `schedule` must not be specified.            | -                              |
@@ -370,7 +371,14 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
   "disk": 10240,
   "mem": 1024,
   "disabled": false,
-  "uris": [],
+  "fetch": [
+    {
+      "uri": "https://url-to-file",
+      "cache": false,
+      "extract": false,
+      "executable": false
+    }
+  ],
   "schedule": "R/2014-03-08T20:00:00.000Z/PT2H",
   "environmentVariables": [
     {

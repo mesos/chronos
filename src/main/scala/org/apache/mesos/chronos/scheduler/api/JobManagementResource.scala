@@ -91,6 +91,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       disabled = childJob.disabled,
                       softError = childJob.softError,
                       uris = childJob.uris,
+                      fetch = childJob.fetch,
                       highPriority = childJob.highPriority
                     )
                     jobScheduler.updateJob(childJob, newChild)
@@ -201,13 +202,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def list(): Response = {
     try {
-      val jobs = ListBuffer[BaseJob]()
       import scala.collection.JavaConversions._
-      jobGraph.dag.vertexSet().map({
-        job =>
-          jobs += jobGraph.getJobForName(job).get
-      })
-      Response.ok(jobs.toList).build
+      val jobs = jobGraph.dag.vertexSet()
+        .map { jobGraph.getJobForName }
+        .flatten
+        .map { // copies fetch in uris or uris in fetch (only one can be set) __only__ in REST get, for compatibility
+          case j : ScheduleBasedJob  =>
+            if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
+            else                j.copy(uris =  j.fetch.map { _.uri })
+          case j : DependencyBasedJob =>
+            if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
+            else                j.copy(uris =  j.fetch.map { _.uri })
+        }
+      Response.ok(jobs).build
     } catch {
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)

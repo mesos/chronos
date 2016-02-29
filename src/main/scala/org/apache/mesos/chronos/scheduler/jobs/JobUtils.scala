@@ -56,6 +56,8 @@ object JobUtils {
     }
   }
 
+  def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty  // when you leave the deprecated one, then it should be empty
+
   //TODO(FL): Think about moving this back into the JobScheduler, though it might be a bit crowded.
   def loadJobs(scheduler: JobScheduler, store: PersistenceStore) {
     //TODO(FL): Create functions that map strings to jobs
@@ -183,6 +185,7 @@ object JobUtils {
           errorsSinceLastSuccess = job.errorsSinceLastSuccess,
           softError = job.softError,
           uris = job.uris,
+          fetch = job.fetch,
           highPriority = job.highPriority,
           runAsUser = job.runAsUser,
           container = job.container,
@@ -214,6 +217,7 @@ object JobUtils {
           errorsSinceLastSuccess = job.errorsSinceLastSuccess,
           softError = job.softError,
           uris = job.uris,
+          fetch = job.fetch,
           highPriority = job.highPriority,
           runAsUser = job.runAsUser,
           container = job.container,

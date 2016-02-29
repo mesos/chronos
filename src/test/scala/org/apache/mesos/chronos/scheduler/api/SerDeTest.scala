@@ -43,10 +43,12 @@ class SerDeTest extends SpecificationWithJUnit {
         LikeConstraint("rack", "rack-[1-3]")
       )
 
+      val fetch = Seq(Fetch("https://mesos.github.io/chronos/", true, false, true))
+
       val a = new DependencyBasedJob(Set("B", "C", "D", "E"), "A", "noop", Minutes.minutes(5).toPeriod, 10L,
         20L, "fooexec", "fooflags", 7, "foo@bar.com", "Foo", "Test dependency-based job", "TODAY",
         "YESTERDAY", true, container = container, environmentVariables = environmentVariables,
-        shell = false, arguments = arguments, softError = true, constraints = constraints)
+        shell = false, arguments = arguments, softError = true, constraints = constraints, fetch = fetch)
 
       val aStr = objectMapper.writeValueAsString(a)
       val aCopy = objectMapper.readValue(aStr, classOf[DependencyBasedJob])
@@ -85,10 +87,12 @@ class SerDeTest extends SpecificationWithJUnit {
         LikeConstraint("rack", "rack-[1-3]")
       )
 
+      val fetch = Seq(Fetch("https://mesos.github.io/chronos/", true, false, true))
+
       val a = new ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
         "fooexec", "fooflags", 7, "foo@bar.com", "Foo", "Test schedule-based job", "TODAY",
         "YESTERDAY", true, container = container, environmentVariables = environmentVariables,
-        shell = true, arguments = arguments, softError = true, constraints = constraints)
+        shell = true, arguments = arguments, softError = true, constraints = constraints, fetch = fetch)
 
       val aStr = objectMapper.writeValueAsString(a)
       val aCopy = objectMapper.readValue(aStr, classOf[ScheduleBasedJob])

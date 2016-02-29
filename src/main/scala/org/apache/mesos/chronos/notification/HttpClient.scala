@@ -47,7 +47,8 @@ class HttpClient(val endpointUrl: String,
     generator.writeStringField("mem", job.mem.toString())
     generator.writeStringField("retries", job.retries.toString())
     generator.writeStringField("successCount", job.successCount.toString())
-    generator.writeStringField("uris", job.uris.mkString(","))
+    val uris = job.fetch.map { _.uri } ++ job.uris
+    generator.writeStringField("uris", uris.mkString(","))
 
 
     generator.writeEndObject()

@@ -61,7 +61,10 @@ trait BaseJob {
 
   def errorsSinceLastSuccess: Long = 0L
 
+  @Deprecated
   def uris: Seq[String] = List()
+
+  def fetch: Seq[Fetch] = List()
 
   def highPriority: Boolean = false
 
@@ -104,7 +107,8 @@ case class ScheduleBasedJob(
                              @JsonProperty override val mem: Double = 0,
                              @JsonProperty override val disabled: Boolean = false,
                              @JsonProperty override val errorsSinceLastSuccess: Long = 0L,
-                             @JsonProperty override val uris: Seq[String] = List(),
+                             @Deprecated @JsonProperty override val uris: Seq[String] = List(),
+                             @JsonProperty override val fetch: Seq[Fetch] = List(),
                              @JsonProperty override val highPriority: Boolean = false,
                              @JsonProperty override val runAsUser: String = "",
                              @JsonProperty override val container: DockerContainer = null,
@@ -140,7 +144,8 @@ case class DependencyBasedJob(
                                @JsonProperty override val mem: Double = 0,
                                @JsonProperty override val disabled: Boolean = false,
                                @JsonProperty override val errorsSinceLastSuccess: Long = 0L,
-                               @JsonProperty override val uris: Seq[String] = List(),
+                               @Deprecated @JsonProperty override val uris: Seq[String] = List(),
+                               @JsonProperty override val fetch: Seq[Fetch] = List(),
                                @JsonProperty override val highPriority: Boolean = false,
                                @JsonProperty override val runAsUser: String = "",
                                @JsonProperty override val container: DockerContainer = null,

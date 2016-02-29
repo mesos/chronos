@@ -79,6 +79,22 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("errorsSinceLastSuccess")
     json.writeNumber(baseJob.errorsSinceLastSuccess)
 
+    json.writeFieldName("fetch")
+    json.writeStartArray()
+    baseJob.fetch.foreach { f =>
+      json.writeStartObject()
+      json.writeFieldName("uri")
+      json.writeString(f.uri)
+      json.writeFieldName("executable")
+      json.writeBoolean(f.executable)
+      json.writeFieldName("cache")
+      json.writeBoolean(f.cache)
+      json.writeFieldName("extract")
+      json.writeBoolean(f.extract)
+      json.writeEndObject()
+    }
+    json.writeEndArray()
+
     json.writeFieldName("uris")
     json.writeStartArray()
     baseJob.uris.foreach(json.writeString)
