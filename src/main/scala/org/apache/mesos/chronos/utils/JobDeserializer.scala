@@ -122,7 +122,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     }
 
     var fetch = scala.collection.mutable.ListBuffer[Fetch]()
-    if(node.has("fetch")) {
+    if (node.has("fetch")) {
       node.get("fetch").elements().map {
         case node: ObjectNode => {
           val uri = Option(node.get("uri")).map { _.asText() }.getOrElse("")
