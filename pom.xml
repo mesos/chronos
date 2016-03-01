@@ -56,7 +56,7 @@
     <repository>
       <id>mesosphere-public-repo</id>
       <name>Mesosphere Public Snapshot Repo</name>
-      <url>http://downloads.mesosphere.io/maven</url>
+      <url>http://downloads.mesosphere.com/maven</url>
     </repository>
     <repository>
       <id>apache-public-repo</id>
