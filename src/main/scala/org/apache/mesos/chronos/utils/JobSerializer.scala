@@ -31,6 +31,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("executorFlags")
     json.writeString(baseJob.executorFlags)
 
+    json.writeFieldName("taskInfoData")
+    json.writeString(baseJob.taskInfoData)
+
     json.writeFieldName("retries")
     json.writeNumber(baseJob.retries)
 

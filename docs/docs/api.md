@@ -323,6 +323,7 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `epsilon`             | If, for any reason, a job can't be started at the scheduled time, this is the window in which Chronos will attempt to run the job again | `PT60S` or `--task_epsilon`   |
 | `executor`            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
 | `executorFlags`       | Flags to pass to Mesos executor.                                                                         | -                              |
+| `taskInfoData`        | Data to pass to the taskInfo data field.  If set, this overrides the default data set by Chronos.   | -                              |
 | `retries`             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | `owner`               | Email address(es) to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
 | `ownerName`           | Name of the individual responsible for the job.                                                          | -                              |

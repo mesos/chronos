@@ -41,9 +41,12 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("executor") && node.get("executor") != null) node.get("executor").asText
       else ""
 
-
     val executorFlags =
       if (node.has("executorFlags") && node.get("executorFlags") != null) node.get("executorFlags").asText
+      else ""
+
+    val taskInfoData =
+      if (node.has("taskInfoData") && node.get("taskInfoData") != null) node.get("taskInfoData").asText
       else ""
 
     val retries =
@@ -216,7 +219,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
       new DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
-        executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
+        executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
@@ -227,7 +230,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
-        executorFlags = executorFlags, retries = retries, owner = owner, ownerName = ownerName,
+        executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner, ownerName = ownerName,
         description = description, lastError = lastError, lastSuccess = lastSuccess, async = async,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
@@ -237,7 +240,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
-        errorCount = errorCount, executor = executor, executorFlags = executorFlags, retries = retries, owner = owner,
+        errorCount = errorCount, executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,

@@ -179,7 +179,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .build()).build
   }
 
-  def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob, environment: Environment.Builder, uriProtos: Seq[CommandInfo.URI]) {
+  private def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob, environment: Environment.Builder, uriProtos: Seq[CommandInfo.URI]) {
     log.info("Appending executor:" + job.executor + ", flags:" + job.executorFlags + ", command:" + job.command)
     val command = CommandInfo.newBuilder()
       .setValue(job.executor)
@@ -194,14 +194,15 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     if (job.container != null) {
       executor.setContainer(createContainerInfo(job))
     }
-    taskInfo.setExecutor(executor)
-      .setData(getDataBytes(job.executorFlags, job.command))
+    taskInfo.setExecutor(executor).setData(getDataBytes(job))
   }
 
-  def getDataBytes(executorFlags: String, executorArgs: String) = {
-    val dataStr = executorArgsPattern.format(executorFlags, executorArgs)
-    ByteString.copyFrom(dataStr.getBytes(Charsets.UTF_8))
+  private def getDataBytes(job : BaseJob) : ByteString = {
+    val string = if (job.taskInfoData != "") {
+      job.taskInfoData
+    } else {
+      executorArgsPattern.format(job.executorFlags, job.command)
+    }
+    ByteString.copyFrom(string.getBytes(Charsets.UTF_8))
   }
-
-  def getExecutorName(x: String) = "%s".format(x)
 }
