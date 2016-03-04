@@ -45,10 +45,31 @@
            data-rv-text="job.command">{{command}}</div>
       <div class="field cmd">
         <input class="job-input" value="{{command}}"
-               data-rv-value="job.command" name="command" tabindex="3">
+               data-rv-value="job.command" name="command" tabindex="2">
       </div>
       <span class="help-inline hide"></span>
     </div>
+
+    <!-- JOB CONFIGURATION -->
+    <div class="row-fluid control-group job-detail-row job-detail"
+         data-toggle="tooltip"
+         data-html="true"
+         data-title="Job Configuration to be stored in Zookeeper."
+         data-placement="bottom">
+         
+         <div class="detail">job configuration</div>
+         
+         <textarea rows="8" cols="100" class="display hightlight cmd config" data-rv-text="job.config" readonly>
+             {{config}}
+         </textarea>
+         
+         <div class="field cmd">
+             <textarea rows="8" cols="100" class="job-input" value="{{config}}" data-rv-value="job.config" name="config" tabindex="3"/>
+         </div>
+         
+         <span class="help-inline hide"></span>
+    </div>
+    <!-- End of JOB CONFIGURATION -->
 
     <div class="row-fluid control-group job-detail-row job-detail parents-wrapper">
       <div class="span12">
@@ -70,40 +91,20 @@
 
     <div class="row-fluid job-detail-row">
       <div class="span6">
-        <div class="row-fluid">
-          <div class="control-group job-detail"
-               data-toggle="tooltip"
-               data-title="Owner's email address(es)<br>The owner(s) will be emailed in the event of a job failure or disruption."
-               data-html="true"
-               data-placement="bottom">
-            <div class="detail">Owner(s)</div>
-            <div class="display hightlight owner"
-                 data-rv-text="job.owner">{{owner}}</div>
-            <div class="field cmd">
-              <input class="job-input" value="{{owner}}" name="owner" tabindex="5"
-                     data-rv-value="job.owner">
-            </div>
-            <span class="help-inline hide"></span>
+        <div class="control-group job-detail"
+             data-toggle="tooltip"
+             data-title="Owner's email address(es)<br>The owner(s) will be emailed in the event of a job failure or disruption."
+             data-html="true"
+             data-placement="bottom">
+          <div class="detail">Owner(s)</div>
+          <div class="display hightlight owner"
+               data-rv-text="job.owner">{{owner}}</div>
+          <div class="field cmd">
+            <input class="job-input" value="{{owner}}" name="owner" tabindex="5"
+                   data-rv-value="job.owner">
           </div>
+          <span class="help-inline hide"></span>
         </div>
-
-        <div class="row-fluid">
-          <div class="control-group job-detail"
-               data-toggle="tooltip"
-               data-title="Owner's name."
-               data-html="true"
-               data-placement="bottom">
-            <div class="detail">Owner Name</div>
-            <div class="display hightlight owner"
-                 data-rv-text="job.ownerName">{{ownerName}}</div>
-            <div class="field cmd">
-              <input class="job-input" value="{{ownerName}}" name="ownerName" tabindex="6"
-                     data-rv-value="job.ownerName">
-            </div>
-            <span class="help-inline hide"></span>
-          </div>
-        </div>
-
       </div>
 
       {{#persisted}}
@@ -161,7 +162,7 @@
            data-rv-text="job.schedule">{{schedule}}</div>
       <div class="field cmd small-input repeats control-group">
         <label for="repeats" class="control-label">R</label>
-        <input class="job-input" value="{{repeats}}" name="repeats" tabindex="8"
+        <input class="job-input" value="{{repeats}}" name="repeats" tabindex="7"
          data-rv-value="job.repeats"
          placeholder="∞" data-placeholder="∞"
          data-title="Number of Repetitions<br>Blank for Infinite (∞), 0 for none."
@@ -174,7 +175,7 @@
       <div class="field cmd small-input control-group">
         <input class="job-input datepicker" value="{{startDate}}"
           data-rv-value="job.startDate"
-          name="startDate" tabindex="9"
+          name="startDate" tabindex="8"
           data-title="Date to start the job."
           data-toggle="tooltip">
       </div>
@@ -182,7 +183,7 @@
       <div class="small-input break">T</div>
 
       <div class="field cmd small-input bootstrap-timepicker control-group">
-        <input class="job-input timepicker" value="{{startTime}}" name="startTime" tabindex="10"
+        <input class="job-input timepicker" value="{{startTime}}" name="startTime" tabindex="9"
           data-rv-value="job.startTime"
           data-title="Time to start the job."
           data-toggle="tooltip"
@@ -196,7 +197,7 @@
 
       <div class="field cmd small-input period control-group">
         <label for="duration" class="control-label">P</label>
-        <input class="job-input" value="{{duration}}" name="duration" tabindex="11"
+        <input class="job-input" value="{{duration}}" name="duration" tabindex="10"
           data-rv-value="job.duration"
           data-title="Duration<br>The job will execute at every passing of duration from start time."
           data-html="true"
@@ -207,9 +208,6 @@
     {{/hasSchedule}}
 
     <div class="row-fluid job-detail-row job-detail stats-row">
-    </div>
-
-    <div class="row-fluid job-detail-row job-detail history-row hide" style="overflow-x:auto">
     </div>
   </div>
   <div class="job-details-wrapper-footer">
@@ -237,17 +235,17 @@
                      value="{{executor}}"
                      name="executor"
                      placeholder="/custom/executor"
-                     tabindex="7">
+                     tabindex="6">
             </div>
           </div>
         </div>
       </div>
       <div class="row-fluid job-detail-row">
-        <div class="span2 job-detail">
+        <div class="span6 job-detail">
           <div class="detail">Epsilon</div>
           <div class="display highlight cmd epsilon">{{epsilon}}</div>
           <div class="field cmd epsilon control-group">
-            <input class="job-input" value="{{epsilon}}" name="epsilon" tabindex="12"
+            <input class="job-input" value="{{epsilon}}" name="epsilon" tabindex="11"
               title="Amount of time after a failure within which to retry the job."
               data-rv-value="job.epsilon"
               data-container=".job-{{cid}}"
@@ -256,7 +254,7 @@
             <span class="help-inline hide"></span>
           </div>
         </div>
-        <div class="span4 job-detail">
+        <div class="span3 job-detail">
           <div class="detail">Asynchronous</div>
 
           <div class="display hightlight cmd async"
@@ -305,95 +303,6 @@
                      value="1"
                     {{^disabled}}checked{{/disabled}}>
               Enable
-            </label>
-          </div>
-        </div>
-        <div class="span3 job-detail">
-          <div class="detail">Soft Error</div>
-
-          <div class="display hightlight cmd async"
-               data-rv-text="job.softError | boolEnabled">{{boolEnabled softError}}</div>
-          <div class="pseudo-field hightlight cmd async">
-            <label class="radio">
-              <input type="radio"
-                     class="job-input"
-                     name="softError"
-                     id="softError-off"
-                     value="0"
-                     {{^softError}}checked{{/softError}}>
-              Disable
-            </label>
-            <label class="radio">
-              <input type="radio"
-                     class="job-input"
-                     name="softError"
-                     id="softError-on"
-                     value="1"
-                     {{#softError}}checked{{/softError}}>
-              Enable
-            </label>
-          </div>
-        </div>
-
-      </div>
-      <div class="job-detail-row job-detail">
-        <div class="span3 job-detail">
-          <div class="detail">CPU</div>
-          <div class="display highlight cmd cpu">{{cpus}}</div>
-          <div class="field cmd cpu control-group">
-            <input class="job-input"
-                   title="CPU resource setting to use for this job."
-                   data-rv-value="job.cpus"
-                   value="{{cpus}}"
-                   name="cpus"
-            />
-          </div>
-        </div>
-        <div class="span3 job-detail">
-          <div class="detail">Mem</div>
-          <div class="display highlight cmd mem">{{mem}}&nbsp;MB</div>
-          <div class="field cmd mem control-group">
-            <input class="job-input"
-                   title="Memory resource setting to use for this job."
-                   data-rv-value="job.mem"
-                   value="{{mem}}"
-                   name="mem"
-            />
-          </div>
-        </div>
-        <div class="span3 job-detail">
-          <div class="detail">Disk</div>
-          <div class="display highlight cmd disk">{{disk}}&nbsp;MB</div>
-          <div class="field cmd disk control-group">
-            <input class="job-input"
-                   title="Disk resource setting to use for this job."
-                   data-rv-value="job.disk"
-                   value="{{disk}}"
-                   name="disk"
-            />
-          </div>
-        </div>
-        <div class="span3 job-detail">
-          <div class="detail">High Priority</div>
-          <div class="display highlight cmd priority">{{boolHigh highPriority}}</div>
-          <div class="pseudo-field highlight cmd priority">
-            <label class="radio">
-              <input type="radio"
-                     class="job-input"
-                     name="highPriority"
-                     id="highPriority-off"
-                     value="false"
-                     {{^highPriority}}checked{{/highPriority}}>
-              Normal
-            </label>
-            <label class="radio">
-              <input type="radio"
-                     class="job-input"
-                     name="highPriority"
-                     id="highPriority-on"
-                     value="true"
-                     {{#highPriority}}checked{{/highPriority}}>
-              High
             </label>
           </div>
         </div>

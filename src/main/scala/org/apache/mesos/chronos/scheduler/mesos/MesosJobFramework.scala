@@ -16,6 +16,9 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{Buffer, HashMap, HashSet}
+import org.apache.mesos.chronos.etl.utils.ETLUtils
+import java.util
+import scala.collection.JavaConversions._
 
 /**
  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
@@ -125,6 +128,32 @@ class MesosJobFramework @Inject()(
       true
     }
 
+    def hostnameChecked(offer: Offer, job: BaseJob) : Boolean = {
+      var hostnames : util.List[String] = ETLUtils.getHostnames(job.config);
+      if(hostnames.isEmpty) {
+        var hostname : String = ETLUtils.getHostname(job.config)
+        if (hostname != "") {
+          hostnames.add(hostname.trim);
+        }
+      }
+      var hostnameChecked = true;
+      if (hostnames.size() > 0) {
+        hostnameChecked = false;
+      }
+      for( hostname <- hostnames ) {
+        if(hostname.length() > 0) {
+          if(offer.hasHostname()) {
+            var offerHostname : String = offer.getHostname()
+            log.info("Hostname from offer: " + offerHostname)
+            if(offerHostname == hostname) {
+              hostnameChecked = true;
+            }
+          }
+        }
+      }
+      return hostnameChecked
+    }
+
     @tailrec
     def generate() {
       taskManager.getTask match {
@@ -147,8 +176,10 @@ class MesosJobFramework @Inject()(
                 } match {
                   case Some((offer, resources)) =>
                     // Subtract this job's resource requirements from the remaining available resources in this offer.
-                    resources -= neededResources
-                    tasks.append((taskId, job, offer))
+                    if (hostnameChecked(offer, job)) {
+                      resources -= neededResources
+                      tasks.append((taskId, job, offer))
+                    }
                     generate()
                   case None =>
                     val foundResources = offerResources.toIterator.map(_._2.toString()).mkString(",")

@@ -27,12 +27,15 @@
     <commons-math3.version>3.2</commons-math3.version>
     <curator-framework.version>2.6.0</curator-framework.version>
     <guava.version>16.0.1</guava.version>
+    <guice.version>3.0</guice.version>
     <jgrapht.version>0.9.1</jgrapht.version>
     <joda-convert.version>1.7</joda-convert.version>
     <joda-time.version>2.3</joda-time.version>
     <lz4.version>1.2.0</lz4.version>
+    <mesos.version>0.27.0</mesos.version>
     <mesos-utils.version>0.23.0</mesos-utils.version>
     <metrics.version>3.1.0</metrics.version>
+    <twitter-commons.version>0.0.44</twitter-commons.version>
     <raven.version>4.1.2</raven.version>
 
     <!-- test deps versions -->
@@ -50,6 +53,10 @@
     <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
     <maven-surefire-plugins.version>2.14.1</maven-surefire-plugins.version>
     <scala-maven-plugin.version>3.1.0</scala-maven-plugin.version>
+
+    <!-- gson -->
+    <gson.version>2.1</gson.version>
+
   </properties>
 
   <repositories>
@@ -93,6 +100,11 @@
              If you use the installer, the version will be replaced
              with the compiled version-->
     <dependency>
+      <groupId>org.apache.mesos</groupId>
+      <artifactId>mesos</artifactId>
+      <version>${mesos.version}</version>
+    </dependency>
+    <dependency>
       <groupId>mesosphere</groupId>
       <artifactId>chaos_2.11</artifactId>
       <version>${chaos.version}</version>
@@ -115,6 +127,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>${guice.version}</version>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>
@@ -164,6 +181,11 @@
       <version>${metrics.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.codahale.metrics</groupId>
+      <artifactId>metrics-ganglia</artifactId>
+      <version>3.0.2</version>
+    </dependency>
+    <dependency>
       <groupId>com.datastax.cassandra</groupId>
       <artifactId>cassandra-driver-core</artifactId>
       <version>${cassandra-driver-core.version}</version>
@@ -211,6 +233,17 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>1.10</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <type>jar</type>
+      <version>${gson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20090211</version>
     </dependency>
 
     <!-- Test scope -->
