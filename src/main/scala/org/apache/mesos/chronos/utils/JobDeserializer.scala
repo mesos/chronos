@@ -152,6 +152,11 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }.foreach(environmentVariables.add)
     }
 
+    // Adding config param to the Chronos job
+    val config =
+        if (node.has("config") && node.get("config") != null) node.get("config").asText
+      else ""
+
     val highPriority =
       if (node.has("highPriority") && node.get("highPriority") != null) node.get("highPriority").asBoolean()
       else false
@@ -225,7 +230,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints)
+        constraints = constraints, config = config)
     } else if (node.has("schedule")) {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
@@ -236,7 +241,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
         environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
-        dataProcessingJobType = dataProcessingJobType, constraints = constraints)
+        dataProcessingJobType = dataProcessingJobType, constraints = constraints, config = config)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
@@ -246,7 +251,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints)
+        constraints = constraints, config = config)
     }
   }
 }

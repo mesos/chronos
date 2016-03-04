@@ -13,6 +13,7 @@ import org.apache.mesos.Protos._
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
+import org.apache.mesos.chronos.etl.utils.ETLUtils
 
 /**
  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
@@ -27,6 +28,9 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   //args|command.
   //  e.g. args: -av (async job), verbose mode
   val executorArgsPattern = "%s|%s"
+
+  //args|command|config
+  val executorArgsPatternWithConfig = "%s|%s|%s"
   private[this] val log = Logger.getLogger(getClass.getName)
 
   def scalarResource(name: String, value: Double): Resource = {
@@ -188,6 +192,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     if (job.runAsUser.nonEmpty) {
       command.setUser(job.runAsUser)
     }
+    val environmentFromConfig = ETLUtils.getEnvironment(job.config);
     val executor = ExecutorInfo.newBuilder()
       .setExecutorId(ExecutorID.newBuilder().setValue(job.name))
       .setCommand(command.build())
@@ -201,7 +206,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     val string = if (job.taskInfoData != "") {
       job.taskInfoData
     } else {
-      executorArgsPattern.format(job.executorFlags, job.command)
+      executorArgsPatternWithConfig.format(job.executorFlags, job.command, job.config)
     }
     ByteString.copyFrom(string.getBytes(Charsets.UTF_8))
   }
