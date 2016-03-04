@@ -18,6 +18,12 @@ import org.joda.time.{DateTime, DateTimeZone, Duration, Period}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.collection
+import scala.collection.mutable
+import scala.util.parsing.json.JSONObject
+import com.google.gson.Gson
+import org.apache.mesos.chronos.etl.utils.ETLUtils
+import jdk.nashorn.internal.parser.JSONParser
 
 /**
  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
@@ -267,6 +273,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       val job = jobOption.get
       jobsObserver.apply(JobFinished(job, taskStatus, attempt))
 
+      log.info("JobScheduler :: TaskStatus getMessage = " + taskStatus.getMessage)
+
       val newJob = job match {
         case job: ScheduleBasedJob =>
           job.copy(successCount = job.successCount + 1,
@@ -280,7 +288,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
           throw new IllegalArgumentException("Cannot handle unknown task type")
       }
       replaceJob(job, newJob)
-      processDependencies(jobName, taskDate)
+      processDependencies(jobName, taskDate, taskStatus)
 
       log.fine("Cleaning up finished task '%s'".format(taskId))
 
@@ -317,19 +325,35 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     }
   }
 
-  private def processDependencies(jobName: String, taskDate: Option[DateTime]) {
+  private def processDependencies(jobName: String, taskDate: Option[DateTime], taskStatus: TaskStatus) {
     val dependents = jobGraph.getExecutableChildren(jobName)
     if (dependents.nonEmpty) {
       log.fine("%s has dependents: %s .".format(jobName, dependents.mkString(",")))
       dependents.foreach {
         //TODO(FL): Ensure that the job for the given x exists. Lock.
         x =>
-          val dependentJob = jobGraph.getJobForName(x).get
+          val dependentJob: DependencyBasedJob = jobGraph.getJobForName(x).get.asInstanceOf[DependencyBasedJob]
+
           if (!dependentJob.disabled) {
             val date = taskDate match {
               case Some(d) => d
               case None => DateTime.now(DateTimeZone.UTC)
             }
+
+            // Get updated config value
+            val messageStr: String = taskStatus.getMessage
+            val updatedConfig: String = ETLUtils.mergeConfig(dependentJob.config, messageStr)
+
+            // Update config of the dependent job.
+            val newDJob: DependencyBasedJob = {
+              if (dependentJob.isInstanceOf[DependencyBasedJob]) {
+                dependentJob.asInstanceOf[DependencyBasedJob].copy(config = updatedConfig)
+              } else
+                throw new IllegalArgumentException("This Job is not a DependencyBasedJob.")
+            }
+            replaceJob(dependentJob, newDJob)
+ 
+            // Enqueue the job
             taskManager.enqueue(TaskUtils.getTaskId(dependentJob,
               date), dependentJob.highPriority)
 
@@ -401,7 +425,7 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
               }
             }
             updateJob(job, newJob)
-            if (job.softError) processDependencies(jobName, Option(lastErrorTime))
+            if (job.softError) processDependencies(jobName, Option(lastErrorTime), taskStatus)
 
             // Handle failure by either disabling the job and notifying the owner,
             // or just notifying the owner.
