@@ -16,6 +16,9 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{Buffer, HashMap, HashSet}
+import org.apache.mesos.chronos.etl.utils.ETLUtils
+import java.util
+import scala.collection.JavaConversions._
 
 /**
  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
@@ -125,6 +128,32 @@ class MesosJobFramework @Inject()(
       true
     }
 
+    def hostnameChecked(offer: Offer, job: BaseJob) : Boolean = {
+      var hostnames : util.List[String] = ETLUtils.getHostnames(job.config);
+      if(hostnames.isEmpty) {
+        var hostname : String = ETLUtils.getHostname(job.config)
+        if (hostname != "") {
+          hostnames.add(hostname.trim);
+        }
+      }
+      var hostnameChecked = true;
+      if (hostnames.size() > 0) {
+        hostnameChecked = false;
+      }
+      for( hostname <- hostnames ) {
+        if(hostname.length() > 0) {
+          if(offer.hasHostname()) {
+            var offerHostname : String = offer.getHostname()
+            log.info("Hostname from offer: " + offerHostname)
+            if(offerHostname == hostname) {
+              hostnameChecked = true;
+            }
+          }
+        }
+      }
+      return hostnameChecked
+    }
+
     @tailrec
     def generate() {
       taskManager.getTask match {
@@ -143,7 +172,7 @@ class MesosJobFramework @Inject()(
               case None =>
                 val neededResources = new Resources(job)
                 offerResources.toIterator.find { ors =>
-                  ors._2.canSatisfy(neededResources) && checkConstraints(ors._1.getAttributesList.asScala, job.constraints)
+                  ors._2.canSatisfy(neededResources) && checkConstraints(ors._1.getAttributesList.asScala, job.constraints) && hostnameChecked(ors._1, job)
                 } match {
                   case Some((offer, resources)) =>
                     // Subtract this job's resource requirements from the remaining available resources in this offer.
