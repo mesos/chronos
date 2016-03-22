@@ -96,6 +96,19 @@ You can manually start a job by issuing an HTTP request.
 * Example: `curl -L -X PUT chronos-node:8080/scheduler/job/job_name?arguments=-debug`
 * Response: HTTP 204
 
+## Marking a job as successful
+
+You can manually mark a job as successful by issuing an HTTP request. If a job is marked successful, the success count
+of the job is incremented, the latest successful run time is updated, and all downstream dependencies are handled as if
+the job had completed executing the code in a standard run.
+the job normally runs.
+
+* Endpoint: ___/scheduler/job/success/<jobname>
+* Method: __PUT__
+* Query string parameters: `arguments` - jobname to be marked success
+* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/success/request_event_counter_hourly`
+* Response: boolean (true or false depending on success of request)
+
 ## Adding a Scheduled Job
 
 The heart of job scheduling is a JSON POST request.
