@@ -312,6 +312,8 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
       jobMetrics.updateJobStatus(jobName, success = true)
       val newJob = getNewSuccessfulJob(job)
       replaceJob(job, newJob)
+      log.info("Resetting dependency invocations for %s".format(newJob))
+      jobGraph.resetDependencyInvocations(jobName)
       log.info("Processing dependencies for %s".format(jobName))
       processDependencies(jobName, Option(DateTime.parse(newJob.lastSuccess)))
     }
