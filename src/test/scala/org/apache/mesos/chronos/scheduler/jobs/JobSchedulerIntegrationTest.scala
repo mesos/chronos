@@ -70,6 +70,63 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       there was one(mockJobsObserver).apply(JobFailed(Right(job3), TaskUtils.getTaskStatus(job1, DateTime.parse("2012-01-03T00:00:01.000Z"), 0), 0))
     }
 
+    "Marking a job successful updates the success and error counts and triggers children" in {
+      val epsilon = Minutes.minutes(20).toPeriod
+      val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1D",
+        name = "job1", command = "fooo", epsilon = epsilon, retries = 0)
+      val dependentJob = new DependencyBasedJob(Set("job1", "job3"), name = "dependentJob", command = "CMD", disabled = false)
+      val job3 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1D",
+        name = "job3", command = "fooo", epsilon = epsilon, retries = 0)
+
+      val horizon = Minutes.minutes(5).toPeriod
+      val mockTaskManager = mock[TaskManager]
+      val jobGraph = new JobGraph()
+      val mockPersistenceStore = mock[PersistenceStore]
+      val mockJobsObserver = mockFullObserver
+
+      val scheduler = mockScheduler(horizon, mockTaskManager, jobGraph, mockPersistenceStore, mockJobsObserver)
+      val date = DateTime.parse("2011-01-01T00:05:01.000Z")
+
+      val edgeInvocationCount = jobGraph.edgeInvocationCount
+
+      scheduler.leader.set(true)
+      scheduler.registerJob(job1, persist = true, date)
+      scheduler.registerJob(job3, persist = true, date)
+      scheduler.registerJob(dependentJob, persist = true, date)
+
+      scheduler.run(() => {
+        date
+      })
+
+      val failedDate = date.plusMinutes(1)
+      val passingDate = date.plusMinutes(1)
+
+      scheduler.handleFailedTask(TaskUtils.getTaskStatus(job1, failedDate, 0))
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job3, passingDate, 0))
+      val failedJob = jobGraph.lookupVertex("job1").get
+      failedJob.errorCount must_== 1
+      failedJob.successCount must_== 0
+      failedJob.errorsSinceLastSuccess must_== 1
+
+      scheduler.markJobSuccessAndFireOffDependencies("job1")
+      val jobMarkedSuccess = jobGraph.lookupVertex("job1").get
+      jobMarkedSuccess.errorCount must_== 1
+      jobMarkedSuccess.successCount must_== 1
+      jobMarkedSuccess.errorsSinceLastSuccess must_== 0
+      val lastSuccess = DateTime.parse(jobMarkedSuccess.lastSuccess)
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(dependentJob, lastSuccess, 0),
+        highPriority = false)
+      scheduler.handleStartedTask(TaskUtils.getTaskStatus(dependentJob, lastSuccess, 0))
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(dependentJob, lastSuccess, 0))
+      edgeInvocationCount.get(jobGraph.dag.getEdge("job1", "dependentJob")) must_== Some(0L)
+      jobGraph.lookupVertex("dependentJob").get.successCount must_== 1
+
+      scheduler.handleFinishedTask(TaskUtils.getTaskStatus(job1, passingDate, 0))
+      scheduler.markJobSuccessAndFireOffDependencies("dependentJob")
+      jobGraph.lookupVertex("dependentJob").get.successCount must_== 2
+      edgeInvocationCount.get(jobGraph.dag.getEdge("job1", "dependentJob")) must_== Some(0L)
+    }
+
     "Tests that a disabled job does not run and does not execute dependant children." in {
       val epsilon = Minutes.minutes(20).toPeriod
       val job1 = new ScheduleBasedJob(schedule = "R/2012-01-01T00:00:00.000Z/PT1M",
