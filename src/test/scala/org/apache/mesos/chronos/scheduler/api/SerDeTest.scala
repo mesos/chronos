@@ -1,6 +1,6 @@
 package org.apache.mesos.chronos.scheduler.api
 
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
 import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, DockerContainer, EnvironmentVariable, ScheduleBasedJob, _}
 import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -40,7 +40,8 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val constraints = Seq(
         EqualsConstraint("rack", "rack-1"),
-        LikeConstraint("rack", "rack-[1-3]")
+        LikeConstraint("rack", "rack-[1-3]"),
+        UnlikeConstraint("host", "foo")
       )
 
       val fetch = Seq(Fetch("https://mesos.github.io/chronos/", true, false, true))
@@ -84,7 +85,8 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val constraints = Seq(
         EqualsConstraint("rack", "rack-1"),
-        LikeConstraint("rack", "rack-[1-3]")
+        LikeConstraint("rack", "rack-[1-3]"),
+        UnlikeConstraint("host", "foo")
       )
 
       val fetch = Seq(Fetch("https://mesos.github.io/chronos/", true, false, true))
