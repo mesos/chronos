@@ -409,8 +409,9 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 
 ## Constraints
 
-These constraints will currently only work against attributes that are specifically set on the Mesos slaves [as described in the Mesos documentation](http://mesos.apache.org/documentation/latest/configuration).
-(i.e. the `hostname` attribute is not currently automatically available for constraints [as it is in Marathon](https://mesosphere.github.io/marathon/docs/constraints))
+These constraints will work against attributes that are specifically set on the Mesos slaves [as described in the Mesos documentation](http://mesos.apache.org/documentation/latest/configuration).
+
+If a `hostname` attribute is not explicitly specified, one will automatically be created and made available for constraints. It should be noted that calling out specific hostnames is not resilient to slave failure and should be avoided if possible.
 
 ### EQUALS constraint
 
