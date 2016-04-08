@@ -119,7 +119,7 @@ class JobSchedulerElectionSpec
     persistenceStore.getTasks returns Map[String, Array[Byte]]()
     persistenceStore.getJobs returns Iterator[BaseJob]()
 
-    doNothing().when(mesosDriver).start()
+    doNothing.when(mesosDriver).start()
 
     port += 1
 
