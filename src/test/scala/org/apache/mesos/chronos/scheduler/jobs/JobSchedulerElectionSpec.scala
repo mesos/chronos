@@ -9,11 +9,10 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.{InstanceSpec, TestingCluster}
-import org.apache.curator.utils.{CloseableUtils, EnsurePath}
+import org.apache.curator.utils.CloseableUtils
 import org.joda.time.Period
 import org.junit.Assert.{assertFalse, assertTrue}
 import org.junit.Test
-import org.mockito.Mockito.doNothing
 import org.specs2.mock.Mockito
 
 class JobSchedulerElectionSpec
@@ -135,9 +134,6 @@ class JobSchedulerElectionSpec
       jobMetrics = mock[JobMetrics],
       jobsObserver = mock[JobsObserver.Observer]
     )
-
-    val ensurePath: EnsurePath = new EnsurePath(leaderPath)
-    ensurePath.ensure(curator.getZookeeperClient)
 
     (scheduler, curator, leaderLatch)
   }
