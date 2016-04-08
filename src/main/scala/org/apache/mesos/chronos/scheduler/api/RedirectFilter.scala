@@ -11,12 +11,14 @@ import com.google.inject.Inject
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
+import mesosphere.chaos.http.HttpConf
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 
 /**
  * Simple filter that redirects to the leader if applicable.
  * @author Florian Leibert (flo@leibert.de)
  */
-class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
+class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: SchedulerConfiguration with HttpConf) extends Filter {
   val log = Logger.getLogger(getClass.getName)
 
   def init(filterConfig: FilterConfig) {}
@@ -28,8 +30,9 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler) extends Filter {
       case request: HttpServletRequest =>
         val leaderData = jobScheduler.getLeader
         val response = rawResponse.asInstanceOf[HttpServletResponse]
+        val currentId = "%s:%d".format(config.hostname(), config.httpPort())
 
-        if (jobScheduler.isLeader) {
+        if (jobScheduler.isLeader || currentId == leaderData) {
           chain.doFilter(request, response)
         } else {
           var proxyStatus: Int = 200
