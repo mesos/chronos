@@ -1,5 +1,4 @@
 # Chronos [![Build Status](https://travis-ci.org/mesos/chronos.svg?branch=master)](https://travis-ci.org/mesos/chronos)
-
 Chronos is a replacement for `cron`. It is a distributed and fault-tolerant scheduler that runs on top of [Apache Mesos][mesos] that can be used for job orchestration.  It supports custom Mesos executors as well
 as the default command executor. Thus by default, Chronos executes `sh`
 (on most systems bash) scripts.
@@ -8,6 +7,8 @@ Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if
 
 Chronos has a number of advantages over regular cron.
 It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval notation, which enables more flexibility in job scheduling. Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.
+
+*The easiest way to use Chronos is to use [DC/OS](https://dcos.io/get-started/) and install chronos via the universe.*
 
 
 ## Features
