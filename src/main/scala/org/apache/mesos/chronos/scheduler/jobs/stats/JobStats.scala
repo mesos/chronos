@@ -361,6 +361,9 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             try {
               val session = c.build.connect()
               session.execute(new SimpleStatement(
+                s"CREATE KEYSPACE IF NOT EXISTS ${config.cassandraKeyspace()} WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
+              ))
+              session.execute(new SimpleStatement(
                 s"USE ${config.cassandraKeyspace()};"
               ))
 

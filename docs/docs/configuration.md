@@ -24,6 +24,10 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
                                                   (default = metrics)
       --cassandra_port  <arg>                     Port for Cassandra
                                                   (default = 9042)
+      --cassandra_user  <arg>                     User for Cassandra
+                                                  (default = None)
+      --cassandra_password  <arg>                 Password for Cassandra
+                                                  (default = None)
       --cassandra_stat_count_table  <arg>         Table to track stat counts in
                                                   Cassandra
                                                   (default = chronos_stat_count)
