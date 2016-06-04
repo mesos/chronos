@@ -79,14 +79,14 @@ class MesosJobFramework @Inject()(
   //          entire task stream.
   @Override
   def resourceOffers(schedulerDriver: SchedulerDriver, receivedOffers: java.util.List[Offer]) {
-    log.info("Received resource offers")
+    log.fine("Received resource offers")
     import scala.collection.JavaConverters._
 
     val offers = receivedOffers.asScala.toList
     val offerResources = mutable.HashMap(offers.map(o => (o, Resources(o))).toSeq: _*)
     val tasksToLaunch = generateLaunchableTasks(offerResources)
 
-    log.info("Declining unused offers.")
+    log.fine("Declining unused offers.")
     val usedOffers = mutable.HashSet(tasksToLaunch.map(_._3.getId.getValue): _*)
 
     offers.foreach(o => {
@@ -94,7 +94,7 @@ class MesosJobFramework @Inject()(
         mesosDriver.get().declineOffer(o.getId, declineOfferFilters)
     })
 
-    log.info(s"Declined unused offers with filter refuseSeconds=${declineOfferFilters.getRefuseSeconds} " +
+    log.fine(s"Declined unused offers with filter refuseSeconds=${declineOfferFilters.getRefuseSeconds} " +
       s"(use --${config.declineOfferDuration.name} to reconfigure)")
 
     launchTasks(tasksToLaunch)
@@ -119,7 +119,7 @@ class MesosJobFramework @Inject()(
     @tailrec
     def generate() {
       taskManager.getTask match {
-        case None => log.info("No tasks scheduled or next task has been disabled.\n")
+        case None => log.fine("No tasks scheduled or next task has been disabled.\n")
         case Some((taskId, job)) =>
           if (runningTasks.contains(job.name)) {
             val deleted = taskManager.removeTask(taskId)
