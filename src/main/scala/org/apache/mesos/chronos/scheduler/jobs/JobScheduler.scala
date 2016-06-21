@@ -722,7 +722,13 @@ class JobScheduler @Inject()(val scheduleHorizon: Period,
     log.info("Adding schedule for time:" + now.toString(DateTimeFormat.fullTime()))
     lock.synchronized {
       log.fine("Starting iteration")
-      streams = iteration(now, newStreams ++ streams)
+      for(stream <- newStreams) {
+        if (!streams.exists(_.jobName == stream.jobName)) {
+          streams = streams :+ stream
+        }
+      }
+
+      streams = iteration(now, streams)
       log.fine("Size of streams: %d".format(streams.size))
     }
   }
