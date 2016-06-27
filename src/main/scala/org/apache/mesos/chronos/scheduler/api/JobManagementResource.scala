@@ -150,8 +150,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
-      log.info("Manually triggering job:" + jobName)
-      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0), job.highPriority)
+      log.info("Manually triggering job: " + jobName + ", arguments: " + arguments)
+      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0, arguments), job.highPriority)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException =>
