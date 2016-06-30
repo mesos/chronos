@@ -31,7 +31,7 @@
     <joda-convert.version>1.7</joda-convert.version>
     <joda-time.version>2.3</joda-time.version>
     <lz4.version>1.2.0</lz4.version>
-    <mesos-utils.version>0.24.0</mesos-utils.version>
+    <mesos-utils.version>0.28.0</mesos-utils.version>
     <metrics.version>3.1.0</metrics.version>
     <raven.version>4.1.2</raven.version>
 
