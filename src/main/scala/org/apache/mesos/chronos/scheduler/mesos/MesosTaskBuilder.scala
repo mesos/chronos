@@ -6,9 +6,10 @@ import javax.inject.Inject
 import mesosphere.mesos.protos.RangesResource
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo.PortMapping
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{DockerContainer, BaseJob, DependencyBasedJob, ScheduleBasedJob, JobScheduler}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, DockerContainer, JobScheduler, ScheduleBasedJob}
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
+import org.apache.mesos.Protos
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
 import org.apache.mesos.Protos.Environment.Variable
 import org.apache.mesos.Protos._
@@ -151,6 +152,19 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration, val scheduler
         taskInfo.setContainer(createContainerInfo(newJob, offer, portsOpt))
       }
     }
+
+    //add discoveryInfo
+    val discoveryInfoBuilder = Protos.DiscoveryInfo.newBuilder()
+    discoveryInfoBuilder.setName(job.name)
+    discoveryInfoBuilder.setVisibility(org.apache.mesos.Protos.DiscoveryInfo.Visibility.FRAMEWORK)
+
+    val portsBuilder = Protos.Ports.newBuilder()
+    ports.get.map { u =>
+        portsBuilder.addPorts(Protos.Port.newBuilder().setProtocol("tcp").setNumber(u.toInt))
+    }
+
+    discoveryInfoBuilder.setPorts(portsBuilder)
+    taskInfo.setDiscovery(discoveryInfoBuilder)
 
     val mem = if (job.mem > 0) job.mem else conf.mesosTaskMem()
     val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
