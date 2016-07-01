@@ -166,6 +166,13 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration, val scheduler
     discoveryInfoBuilder.setPorts(portsBuilder)
     taskInfo.setDiscovery(discoveryInfoBuilder)
 
+
+    val labelsBuilder = Labels.newBuilder()
+    job.labels.map { m =>
+      labelsBuilder.addLabels(Label.newBuilder().setKey(m._1).setValue(m._2))
+    }
+    taskInfo.setLabels(labelsBuilder)
+
     val mem = if (job.mem > 0) job.mem else conf.mesosTaskMem()
     val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
     val disk = if (job.disk > 0) job.disk else conf.mesosTaskDisk()

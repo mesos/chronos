@@ -95,6 +95,8 @@ trait BaseJob {
 //      n <- container.network if n == NetworkMode.BRIDGE
       pms <- container.portMappings
     } yield pms else None
+
+  def labels: Map[String, String] = Map.empty
 }
 
 @JsonDeserialize(using = classOf[JobDeserializer])
@@ -133,7 +135,8 @@ case class ScheduleBasedJob(
                              @JsonProperty override val lastHost: String = "",
                              @JsonProperty override val ports: Seq[Int] = List(),
                              @JsonProperty override val requirePorts: Boolean = false,
-                             @JsonProperty override val currentPorts: Seq[Int] = List())
+                             @JsonProperty override val currentPorts: Seq[Int] = List(),
+                             @JsonProperty override val labels: Map[String, String] = Map.empty)
   extends BaseJob
 
 
@@ -172,5 +175,6 @@ case class DependencyBasedJob(
                                @JsonProperty override val lastHost: String = "",
                                @JsonProperty override val ports: Seq[Int] = List(),
                                @JsonProperty override val requirePorts: Boolean = false,
-                               @JsonProperty override val currentPorts: Seq[Int]= List())
+                               @JsonProperty override val currentPorts: Seq[Int]= List(),
+                               @JsonProperty override val labels: Map[String, String] = Map.empty)
   extends BaseJob

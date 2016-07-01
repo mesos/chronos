@@ -62,6 +62,17 @@ class HttpClient(val endpointUrl: String,
     }
     generator.writeEndArray()
 
+
+    generator.writeFieldName("labels")
+    generator.writeStartArray()
+    job.labels.foreach { m =>
+      generator.writeStartArray()
+      generator.writeString(m._1)
+      generator.writeString(m._2)
+      generator.writeEndArray()
+    }
+    generator.writeEndArray()
+
     generator.writeEndObject()
     generator.flush()
 
