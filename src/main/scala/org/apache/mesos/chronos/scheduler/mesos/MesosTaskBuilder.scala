@@ -4,8 +4,7 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{TaskUtils, EnvironmentVariable, Fetch, BaseJob}
-
+import org.apache.mesos.chronos.scheduler.jobs.{Volume => _, _}
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
@@ -172,16 +171,51 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       v.mode.map { m =>
         volumeBuilder.setMode(Volume.Mode.valueOf(m.toString.toUpperCase))
       }
+      v.external.foreach { e =>
+        volumeBuilder.setSource(Volume.Source.newBuilder()
+            .setType(Volume.Source.Type.DOCKER_VOLUME)
+            .setDockerVolume(Volume.Source.DockerVolume.newBuilder()
+              .setDriver(e.provider)
+              .setName(e.name)
+              .setDriverOptions(Parameters.newBuilder()
+                .addAllParameter(e.options.map(_.toProto()).asJava).build()
+              ).build()
+            ).build()
+        ).build()
+      }
 
       volumeBuilder.build()
     }.foreach(builder.addVolumes)
-    builder.setType(ContainerInfo.Type.DOCKER)
-    builder.setDocker(DockerInfo.newBuilder()
-      .setImage(job.container.image)
-      .setNetwork(DockerInfo.Network.valueOf(job.container.network.toString.toUpperCase))
-      .setForcePullImage(job.container.forcePullImage)
-      .addAllParameters(job.container.parameters.map(_.toProto).asJava)
-      .build()).build
+
+    job.container.`type` match {
+      case ContainerType.DOCKER =>
+        builder.setType(ContainerInfo.Type.DOCKER)
+        builder.setDocker(DockerInfo.newBuilder()
+          .setImage(job.container.image)
+          .setNetwork(DockerInfo.Network.valueOf(job.container.network.toString.toUpperCase))
+          .setForcePullImage(job.container.forcePullImage)
+          .addAllParameters(job.container.parameters.map(_.toProto()).asJava)
+          .build())
+      case ContainerType.MESOS =>
+        builder.setType(ContainerInfo.Type.MESOS)
+        builder.setMesos(ContainerInfo.MesosInfo.newBuilder()
+          .setImage(Image.newBuilder()
+            // TODO add APPC image support
+            .setType(Image.Type.DOCKER)
+            .setDocker(Image.Docker.newBuilder()
+              .setName(job.container.image)
+              // TODO add setCredential
+              .build())
+            .setCached(job.container.forcePullImage)
+            .build())
+          .build())
+    }
+    job.container.networkName.foreach {
+      n => builder.addNetworkInfos(NetworkInfo.newBuilder()
+          .setName(n).build()
+        )
+    }
+    builder.build
   }
 
   private def appendExecutorData(taskInfo: TaskInfo.Builder, job: BaseJob, environment: Environment.Builder, uriProtos: Seq[CommandInfo.URI]) {
