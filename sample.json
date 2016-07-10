@@ -1,0 +1,36 @@
+{
+  "schedule": "R/2016-01-01T00:00:00Z/PT1M",
+  "name": "test",
+  "container": {
+    "type": "MESOS",
+    "forcePullImage": true,
+    "image": "debian",
+    "networkName": "mynet",
+    "volumes": [
+      {
+        "mode": "RW",
+        "containerPath": "/tmp",
+        "external": {
+          "name": "test",
+          "provider": "local-persist",
+          "options": [
+            {
+              "key": "mountpoint",
+              "value": "/tmp/test"
+            }
+          ]
+        }
+      },
+      {
+        "mode": "RW",
+        "containerPath": "test",
+        "persistent": {
+          "size": 100
+        }
+      }
+    ]
+  },
+  "cpus": "0.1",
+  "mem": "32",
+  "command": "date"
+}
