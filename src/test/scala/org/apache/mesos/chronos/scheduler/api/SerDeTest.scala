@@ -1,7 +1,8 @@
 package org.apache.mesos.chronos.scheduler.api
 
 import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
-import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, DockerContainer, EnvironmentVariable, ScheduleBasedJob, _}
+import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, Container, EnvironmentVariable, ScheduleBasedJob, _}
+
 import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -24,15 +25,15 @@ class SerDeTest extends SpecificationWithJUnit {
       )
 
       val volumes = Seq(
-        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RO)),
-        Volume(None, "container/dir", None)
+        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RO), None, None),
+        Volume(None, "container/dir", None, None, None)
       )
 
       val forcePullImage = false
 
-      var parameters = scala.collection.mutable.ListBuffer[Parameter]()
+      val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-      val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.BRIDGE, forcePullImage)
+      val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.BRIDGE, None, forcePullImage)
 
       val arguments = Seq(
         "-testOne"
@@ -70,14 +71,14 @@ class SerDeTest extends SpecificationWithJUnit {
       )
 
       val volumes = Seq(
-        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW)),
-        Volume(None, "container/dir", None)
+        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW), None, None),
+        Volume(None, "container/dir", None, None, None)
       )
 
       val forcePullImage = true
-      var parameters = scala.collection.mutable.ListBuffer[Parameter]()
+      val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-      val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.HOST, forcePullImage)
+      val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.HOST, None, forcePullImage)
 
       val arguments = Seq(
         "-testOne"

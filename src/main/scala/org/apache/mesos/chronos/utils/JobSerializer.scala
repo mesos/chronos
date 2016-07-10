@@ -1,7 +1,7 @@
 package org.apache.mesos.chronos.utils
 
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, ContainerType, DependencyBasedJob, ScheduleBasedJob}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 
@@ -129,13 +129,17 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     if (baseJob.container != null) {
       json.writeFieldName("container")
       json.writeStartObject()
-      // TODO: Handle more container types when added.
       json.writeFieldName("type")
-      json.writeString("docker")
+      json.writeString(baseJob.container.`type`.toString)
       json.writeFieldName("image")
       json.writeString(baseJob.container.image)
       json.writeFieldName("network")
       json.writeString(baseJob.container.network.toString)
+      baseJob.container.networkName.foreach {
+        networkName =>
+          json.writeFieldName("networkName")
+          json.writeString(networkName)
+      }
       json.writeFieldName("volumes")
       json.writeStartArray()
       baseJob.container.volumes.foreach { v =>
@@ -149,6 +153,33 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         v.mode.foreach { mode =>
           json.writeFieldName("mode")
           json.writeString(mode.toString)
+        }
+        v.persistent.foreach { persistent =>
+          json.writeFieldName("persistent")
+          json.writeStartObject()
+          json.writeFieldName("size")
+          json.writeNumber(persistent.size)
+          json.writeEndObject()
+        }
+        v.external.foreach { external =>
+          json.writeFieldName("external")
+          json.writeStartObject()
+          json.writeFieldName("name")
+          json.writeString(external.name)
+          json.writeFieldName("provider")
+          json.writeString(external.provider)
+          json.writeFieldName("options")
+          json.writeStartArray()
+          external.options.foreach { o =>
+            json.writeStartObject()
+            json.writeFieldName("key")
+            json.writeString(o.key)
+            json.writeFieldName("value")
+            json.writeString(o.value)
+            json.writeEndObject()
+          }
+          json.writeEndArray()
+          json.writeEndObject()
         }
         json.writeEndObject()
       }
