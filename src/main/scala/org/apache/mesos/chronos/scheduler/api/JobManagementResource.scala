@@ -226,18 +226,20 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   def list(): Response = {
     try {
       import scala.collection.JavaConversions._
-      val jobs = jobGraph.dag.vertexSet()
-        .map { jobGraph.getJobForName }
-        .flatten
-        .map { // copies fetch in uris or uris in fetch (only one can be set) __only__ in REST get, for compatibility
-          case j : ScheduleBasedJob  =>
-            if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
-            else                j.copy(uris =  j.fetch.map { _.uri })
-          case j : DependencyBasedJob =>
-            if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
-            else                j.copy(uris =  j.fetch.map { _.uri })
+      jobGraph.synchronized {
+        val jobs = jobGraph.dag.vertexSet()
+          .map { jobGraph.getJobForName }
+          .flatten
+          .map { // copies fetch in uris or uris in fetch (only one can be set) __only__ in REST get, for compatibility
+            case j : ScheduleBasedJob  =>
+              if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
+              else                j.copy(uris =  j.fetch.map { _.uri })
+            case j : DependencyBasedJob =>
+              if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
+              else                j.copy(uris =  j.fetch.map { _.uri })
         }
-      Response.ok(jobs).build
+        Response.ok(jobs).build
+      }
     } catch {
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
@@ -257,10 +259,14 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       val jobs = ListBuffer[BaseJob]()
       import scala.collection.JavaConversions._
-      jobGraph.dag.vertexSet().map({
-        job =>
-          jobs += jobGraph.getJobForName(job).get
-      })
+      jobGraph.synchronized {
+        jobGraph.dag.vertexSet()
+          .map { jobGraph.getJobForName }
+          .flatten
+          .map {
+            job => jobs += job
+          }
+      }
 
       val _limit: Integer = limit match {
         case x: Integer =>
