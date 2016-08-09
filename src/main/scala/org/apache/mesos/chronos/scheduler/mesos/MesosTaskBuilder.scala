@@ -211,7 +211,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
               .setName(job.container.image)
               // TODO add setCredential
               .build())
-            .setCached(job.container.forcePullImage)
+            .setCached(!job.container.forcePullImage)
             .build())
           .build())
     }
