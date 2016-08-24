@@ -22,6 +22,8 @@ object TaskUtils {
   val taskIdTemplate = "ct:%d:%d:%s:%s"
   val argumentsPattern = """(.*)?""".r
   val taskIdPattern = """ct:(\d+):(\d+):%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
+  val commandInjectionFilter = ";".toSet
+
   private[this] val log = Logger.getLogger(getClass.getName)
 
   def getTaskStatus(job: BaseJob, due: DateTime, attempt: Int = 0): TaskStatus = {
@@ -100,7 +102,8 @@ object TaskUtils {
   }
 
   def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0, arguments: Option[String] = None): String = {
-    taskIdTemplate.format(due.getMillis, attempt, job.name, arguments.getOrElse(job.arguments.mkString(" ")))
+    val args: String = arguments.getOrElse(job.arguments.mkString(" ")).filterNot(commandInjectionFilter)
+    taskIdTemplate.format(due.getMillis, attempt, job.name, args)
   }
 
   def getDueTimes(tasks: Map[String, Array[Byte]]): Map[String, (BaseJob, Long, Int)] = {
