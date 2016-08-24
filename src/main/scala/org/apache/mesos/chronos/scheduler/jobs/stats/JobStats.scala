@@ -190,7 +190,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @return updated TaskStat object
    */
   private def updateTaskStat(taskStat: TaskStat, row: Row): TaskStat = {
-    val taskTimestamp = row.getDate(TIMESTAMP)
+    val taskTimestamp = row.getTimestamp(TIMESTAMP)
     val taskState = row.getString(TASK_STATE)
 
     if (taskState == TaskState.TASK_RUNNING.toString) {
@@ -360,6 +360,9 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
           case Some(c) =>
             try {
               val session = c.build.connect()
+              session.execute(new SimpleStatement(
+                s"CREATE KEYSPACE IF NOT EXISTS ${config.cassandraKeyspace()} WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
+              ))
               session.execute(new SimpleStatement(
                 s"USE ${config.cassandraKeyspace()};"
               ))
