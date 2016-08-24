@@ -114,7 +114,7 @@ class JobSchedulerIntegrationTest extends SpecificationWithJUnit with Mockito {
       jobMarkedSuccess.successCount must_== 1
       jobMarkedSuccess.errorsSinceLastSuccess must_== 0
       val lastSuccess = DateTime.parse(jobMarkedSuccess.lastSuccess)
-      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(dependentJob, lastSuccess, 0),
+      there was one(mockTaskManager).enqueue(TaskUtils.getTaskId(dependentJob, lastSuccess, 0, None),
         highPriority = false)
       scheduler.handleStartedTask(TaskUtils.getTaskStatus(dependentJob, lastSuccess, 0))
       scheduler.handleFinishedTask(TaskUtils.getTaskStatus(dependentJob, lastSuccess, 0))
