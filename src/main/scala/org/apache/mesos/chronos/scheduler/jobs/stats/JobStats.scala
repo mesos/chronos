@@ -1,5 +1,7 @@
 package org.apache.mesos.chronos.scheduler.jobs.stats
 
+import java.util.{Calendar, Date}
+
 import scala.collection._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
@@ -35,6 +37,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   private val TASK_ID: String  = "id"
   private val TASK_STATE: String = "task_state"
   private val TIMESTAMP: String = "ts"
+  private val calendar = Calendar.getInstance()
 
   protected val jobStates = new mutable.HashMap[String, CurrentState.Value]()
 
@@ -190,7 +193,9 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
    * @return updated TaskStat object
    */
   private def updateTaskStat(taskStat: TaskStat, row: Row): TaskStat = {
-    val taskTimestamp = row.getDate(TIMESTAMP)
+    val localDate = row.getDate(TIMESTAMP)
+    calendar.set(localDate.getYear, localDate.getMonth, localDate.getDay)
+    val taskTimestamp = calendar.getTime
     val taskState = row.getString(TASK_STATE)
 
     if (taskState == TaskState.TASK_RUNNING.toString) {

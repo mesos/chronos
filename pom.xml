@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache.mesos</groupId>
@@ -16,38 +16,38 @@
     <assets.dir>${basedir}/src/main/resources/assets</assets.dir>
 
     <!-- language versions -->
-    <java.abi>1.7</java.abi>
-    <scala.version>2.11.2</scala.version>
-    <scala.abi>2.11.2</scala.abi>
+    <java.abi>1.8</java.abi>
+    <scala.version>2.11.8</scala.version>
+    <scala.abi>2.11.8</scala.abi>
 
     <!-- runtime deps versions -->
-    <akka.version>2.3.6</akka.version>
-    <cassandra-driver-core.version>2.1.0</cassandra-driver-core.version>
-    <chaos.version>0.6.3</chaos.version>
+    <akka.version>2.4.3</akka.version>
+    <cassandra-driver-core.version>3.0.0</cassandra-driver-core.version>
+    <chaos.version>0.8.4</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
-    <curator-framework.version>2.6.0</curator-framework.version>
+    <curator-framework.version>2.9.1</curator-framework.version>
     <guava.version>16.0.1</guava.version>
     <jgrapht.version>0.9.1</jgrapht.version>
-    <joda-convert.version>1.7</joda-convert.version>
+    <joda-convert.version>1.8</joda-convert.version>
     <joda-time.version>2.3</joda-time.version>
     <lz4.version>1.2.0</lz4.version>
-    <mesos-utils.version>0.23.0</mesos-utils.version>
+    <mesos-utils.version>0.28.0</mesos-utils.version>
     <metrics.version>3.1.0</metrics.version>
-    <raven.version>4.1.2</raven.version>
+    <raven.version>7.1.0</raven.version>
 
     <!-- test deps versions -->
-    <akka-testkit.version>2.3.6</akka-testkit.version>
-    <junit.version>4.11</junit.version>
+    <akka-testkit.version>2.4.3</akka-testkit.version>
+    <junit.version>4.12</junit.version>
     <mockito.version>1.9.5</mockito.version>
     <specs2.version>3.6.4-20150927082714-7cac887</specs2.version>
 
     <!-- maven versions-->
-    <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
+    <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
     <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
     <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
     <maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
     <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-    <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
+    <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
     <maven-surefire-plugins.version>2.14.1</maven-surefire-plugins.version>
     <scala-maven-plugin.version>3.1.0</scala-maven-plugin.version>
   </properties>
@@ -186,15 +186,15 @@
     </dependency>
 
     <dependency>
-      <groupId>net.kencochrane.raven</groupId>
+      <groupId>com.getsentry.raven</groupId>
       <artifactId>raven</artifactId>
       <version>${raven.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.kencochrane.raven</groupId>
-      <artifactId>raven-getsentry</artifactId>
-      <version>${raven.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -211,6 +211,12 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>1.10</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.0</version>
     </dependency>
 
     <!-- Test scope -->
@@ -260,6 +266,12 @@
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
       <version>${curator-framework.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>1.7.21</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -420,13 +432,13 @@
         </configuration>
       </plugin>
       <!-- TODO(FL): use this plugin to run a local version directly from maven <plugin>-->
-        <!--<groupId>org.codehaus.mojo</groupId>-->
-        <!--<artifactId>exec-maven-plugin</artifactId>-->
-        <!--<version>1.2.1</version>-->
-        <!--<configuration>-->
-          <!--<mainClass>${mainClass}</mainClass>-->
-          <!--</configuration>-->
-        <!--</plugin>-->
+      <!--<groupId>org.codehaus.mojo</groupId>-->
+      <!--<artifactId>exec-maven-plugin</artifactId>-->
+      <!--<version>1.2.1</version>-->
+      <!--<configuration>-->
+      <!--<mainClass>${mainClass}</mainClass>-->
+      <!--</configuration>-->
+      <!--</plugin>-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
