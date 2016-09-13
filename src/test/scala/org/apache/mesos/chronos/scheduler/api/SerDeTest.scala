@@ -48,7 +48,7 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val a = new DependencyBasedJob(Set("B", "C", "D", "E"), "A", "noop", Minutes.minutes(5).toPeriod, 10L,
         20L, "fooexec", "fooflags", "", 7, "foo@bar.com", "Foo", "Test dependency-based job", "TODAY",
-        "YESTERDAY", true, container = container, environmentVariables = environmentVariables,
+        "YESTERDAY", true, 0.1, 256.0, 128.0, container = container, environmentVariables = environmentVariables,
         shell = false, arguments = arguments, softError = true, constraints = constraints, fetch = fetch)
 
       val aStr = objectMapper.writeValueAsString(a)
@@ -93,7 +93,7 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val a = new ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
         "fooexec", "fooflags", "", 7, "foo@bar.com", "Foo", "Test schedule-based job", "TODAY",
-        "YESTERDAY", true, container = container, environmentVariables = environmentVariables,
+        "YESTERDAY", true, 0.1, 256.0, 128.0, container = container, environmentVariables = environmentVariables,
         shell = true, arguments = arguments, softError = true, constraints = constraints, fetch = fetch)
 
       val aStr = objectMapper.writeValueAsString(a)
