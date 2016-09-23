@@ -15,7 +15,7 @@ import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.mesos.Scheduler
-import org.apache.mesos.chronos.notification.{HttpClient, JobNotificationObserver, MailClient, RavenClient, SlackClient}
+import org.apache.mesos.chronos.notification.{HttpClient, JobNotificationObserver, MailClient, RavenClient, SlackClient, MattermostClient}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.jobs.{JobMetrics, JobScheduler, JobsObserver, TaskManager}
