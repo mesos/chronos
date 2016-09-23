@@ -117,6 +117,11 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
         create(classOf[SlackClient], webhookUrl)
       },
       for {
+        webhookUrl <- config.mattermostWebhookUrl.get if !config.mattermostWebhookUrl.isEmpty
+      } yield {
+        create(classOf[MattermostClient], webhookUrl)
+      },
+      for {
         endpointUrl <- config.httpNotificationUrl.get if !config.httpNotificationUrl.isEmpty
       } yield {
         create(classOf[HttpClient], endpointUrl, config.httpNotificationCredentials.get)
