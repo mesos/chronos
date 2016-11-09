@@ -14,7 +14,7 @@ import org.specs2.mutable.SpecificationWithJUnit
 
 class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
 
-  val taskId = "ct:1454467003926:0:test2Execution:run"
+  val taskId = "ct~1454467003926~0~test2Execution~run"
 
   val (_, start, attempt, _) = TaskUtils.parseTaskId(taskId)
 

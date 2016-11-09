@@ -34,13 +34,13 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
 
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
-      taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
+      taskManager.enqueue("ct~1420843781398~0~test~", highPriority = true)
 
       mockJobGraph.getJobForName("test").returns(None)
 
       taskManager.getTask must_== None
 
-      there was one(mockPersistencStore).removeTask("ct:1420843781398:0:test:")
+      there was one(mockPersistencStore).removeTask("ct~1420843781398~0~test~")
     }
 
     "Revive offers when adding a new task and --revive_offers_for_new_jobs is set" in {
@@ -55,7 +55,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
 
-      taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
+      taskManager.enqueue("ct~1420843781398~0~test~", highPriority = true)
 
       there was one(mockMesosOfferReviver).reviveOffers
     }
@@ -72,7 +72,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
 
-      taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
+      taskManager.enqueue("ct~1420843781398~0~test~", highPriority = true)
 
       there were noCallsTo(mockMesosOfferReviver)
     }
