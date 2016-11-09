@@ -33,7 +33,7 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
       .connectionTimeoutMs(config.zooKeeperTimeout().toInt)
       .canBeReadOnly(false)
       .connectString(validateZkServers())
-      .authorization(getAuthScheme(), getAuthBytes())
+      .authorization(getAuthScheme, getAuthBytes)
       .retryPolicy(new ExponentialBackoffRetry(1000, 10))
       .build()
 
@@ -81,8 +81,8 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
       config.zooKeeperTimeout(),
       TimeUnit.MILLISECONDS,
       config.zooKeeperStatePath,
-      getAuthScheme(),
-      getAuthBytes()
+      getAuthScheme,
+      getAuthBytes
       )
   }
 
