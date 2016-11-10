@@ -36,6 +36,10 @@ Also join us on IRC in #chronos on freenode.
 
 If you'd like to take part in design research and test new features in Chronos before they're released, please add your name to Mesosphere's [UX Research](http://uxresearch.mesosphere.com) list.
 
+## Packaging
+
+Mesosphere publishes Docker images for Chronos to Dockerhub, at <https://hub.docker.com/r/mesosphere/chronos/>.
+
 ## Known Issues
 
 The GUI will often drop defined fields (e.g., uri, mem, cpu) when saving a job. We strongly recommend to update jobs *only* through the REST API until issue #426 is fixed.
