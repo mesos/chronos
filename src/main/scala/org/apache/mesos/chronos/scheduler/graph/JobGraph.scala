@@ -22,7 +22,6 @@ class JobGraph {
   val edgeInvocationCount = mutable.Map[DefaultEdge, Long]()
   private[this] val log = Logger.getLogger(getClass.getName)
   private[this] val jobNameMapping: concurrent.Map[String, BaseJob] = new ConcurrentHashMap().asScala
-  private[this] val lock = new Object
 
   def parentJobs(job: DependencyBasedJob) = parentJobsOption(job) match {
     case None =>
@@ -66,7 +65,7 @@ class JobGraph {
     require(lookupVertex(vertex.name).isEmpty, "Vertex already exists in graph %s".format(vertex.name))
     require(!vertex.name.isEmpty, "In order to be added to the graph, the vertex must have a name")
     jobNameMapping.put(vertex.name, vertex)
-    lock.synchronized {
+    this.synchronized {
       dag.addVertex(vertex.name)
     }
     log.warning("Current number of vertices:" + dag.vertexSet.size)
@@ -81,14 +80,14 @@ class JobGraph {
     log.info("Removing vertex:" + vertex.name)
     require(lookupVertex(vertex.name).isDefined, "Vertex doesn't exist")
     jobNameMapping.remove(vertex.name)
-    lock.synchronized {
+    this.synchronized {
       dag.removeVertex(vertex.name)
     }
     log.info("Current number of vertices:" + dag.vertexSet.size)
   }
 
   def addDependency(from: String, to: String) {
-    lock.synchronized {
+    this.synchronized {
       if (!dag.vertexSet.contains(from) || !dag.vertexSet.contains(to))
         throw new NoSuchElementException("Vertex: %s not found in graph. Job rejected!".format(from))
       val edge = dag.addDagEdge(from, to)
@@ -97,7 +96,7 @@ class JobGraph {
   }
 
   def removeDependency(from: String, to: String) {
-    lock.synchronized {
+    this.synchronized {
       if (!dag.vertexSet.contains(from) || !dag.vertexSet.contains(to))
         throw new NoSuchElementException("Vertex: %s not found in graph. Job rejected!".format(from))
       val edge = dag.removeEdge(from, to)
@@ -107,7 +106,7 @@ class JobGraph {
 
   def reset() {
     jobNameMapping.clear()
-    lock.synchronized {
+    this.synchronized {
       edgeInvocationCount.clear()
       val names = ListBuffer[String]()
       import scala.collection.JavaConversions._
@@ -129,7 +128,7 @@ class JobGraph {
   def getExecutableChildren(vertex: String): List[String] = {
     val results = new scala.collection.mutable.ListBuffer[String]
     //TODO(FL): Make functional, making locking more efficient
-    lock.synchronized {
+    this.synchronized {
 
       /*
         The algorithm:
@@ -170,7 +169,7 @@ class JobGraph {
 
   def getChildren(job: String): Iterable[String] = {
     import scala.collection.JavaConversions._
-    lock.synchronized {
+    this.synchronized {
       dag.edgesOf(job)
         .filter(x => dag.getEdgeSource(x) == job)
         .map(x => dag.getEdgeTarget(x))
@@ -179,7 +178,7 @@ class JobGraph {
 
   def resetDependencyInvocations(vertex: String) {
     val edges = getEdgesToParents(vertex)
-    lock.synchronized {
+    this.synchronized {
       edges.foreach({
         edge =>
           edgeInvocationCount.put(edge, 0)
@@ -188,7 +187,7 @@ class JobGraph {
   }
 
   def getEdgesToParents(child: String): Iterable[DefaultEdge] = {
-    lock.synchronized {
+    this.synchronized {
       import scala.collection.JavaConversions._
       dag.edgesOf(child).filter(n => dag.getEdgeTarget(n).eq(child))
     }
