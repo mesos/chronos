@@ -13,7 +13,6 @@ import org.apache.curator.utils.{CloseableUtils, EnsurePath}
 import org.joda.time.Period
 import org.junit.Assert.{assertFalse, assertTrue}
 import org.junit.Test
-import org.mockito.Mockito.doNothing
 import org.specs2.mock.Mockito
 
 class JobSchedulerElectionSpec
