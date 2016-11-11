@@ -92,6 +92,7 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
       --mail_user  <arg>                          Mail user (for auth)
       --master  <arg>                             The URL of the Mesos master
                                                   (default = local)
+      --mattermost_url  <arg>                     Webhook URL for posting to Mattermost
       --mesos_authentication_principal  <arg>     Mesos Authentication Principal
       --mesos_authentication_secret_file  <arg>   Mesos Authentication Secret
       --mesos_checkpoint                          Enable checkpointing in Mesos

@@ -70,6 +70,9 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val slackWebhookUrl = opt[String]("slack_url",
     descr = "Webhook URL for posting to Slack",
     default = None)
+  lazy val mattermostWebhookUrl = opt[String]("mattermost_url",
+    descr = "Webhook URL for posting to Mattermost",
+    default = None)
   lazy val httpNotificationUrl = opt[String]("http_notification_url",
     descr = "Http URL for notifying failures",
     default = None)
