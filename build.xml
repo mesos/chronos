@@ -7,7 +7,7 @@
         <arg value="-o"/>
         <arg value="${requirejs.optimizer.settings}"/>
     </exec>
-    <echo message="optimized ${requirejs.optimizer.settings} with node" />
+    <echo message="optimized ${requirejs.optimizer.settings} with nodejs" />
   </target>
 
   <target name="assets.uptodate" depends="sourceDir.check" if="sourceDir.nochanges">

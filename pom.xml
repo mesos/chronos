@@ -37,9 +37,9 @@
 
     <!-- test deps versions -->
     <akka-testkit.version>2.3.16</akka-testkit.version>
-    <junit.version>4.11</junit.version>
+    <junit.version>4.12</junit.version>
     <mockito.version>1.9.5</mockito.version>
-    <specs2.version>3.6.4-20150927082714-7cac887</specs2.version>
+    <specs2.version>3.7</specs2.version>
 
     <!-- maven versions-->
     <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
