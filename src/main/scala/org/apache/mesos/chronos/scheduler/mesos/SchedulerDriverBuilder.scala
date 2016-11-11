@@ -29,7 +29,7 @@ class SchedulerDriverBuilder {
         if ((filePermissions & Set(PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_WRITE)).nonEmpty)
           log.warning(s"Secret file $secretFile should not be globally accessible.")
 
-        credentialBuilder.setSecret(secretBytes)
+        credentialBuilder.setSecret(secretBytes.toString)
       }
       catch {
         case cause: Throwable =>
