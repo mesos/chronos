@@ -47,7 +47,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def delete(@PathParam("jobName") jobName: String): Response = {
     try {
-      require(jobGraph.lookupVertex(jobName).nonEmpty, "Job '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).nonEmpty, "JobSchedule '%s' not found".format(jobName))
       val job = jobGraph.lookupVertex(jobName).get
       val children = jobGraph.getChildren(jobName)
       if (children.nonEmpty) {
@@ -70,12 +70,11 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               child =>
                 jobGraph.lookupVertex(child).get match {
                   case childJob: DependencyBasedJob =>
-                    val newChild = new ScheduleBasedJob(
+                    val newChild = ScheduleBasedJob(
                       schedule = j.schedule,
                       scheduleTimeZone = j.scheduleTimeZone,
                       name = childJob.name,
                       command = childJob.command,
-                      epsilon = childJob.epsilon,
                       successCount = childJob.successCount,
                       errorCount = childJob.errorCount,
                       executor = childJob.executor,
@@ -85,7 +84,6 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       owner = childJob.owner,
                       lastError = childJob.lastError,
                       lastSuccess = childJob.lastSuccess,
-                      async = childJob.async,
                       cpus = childJob.cpus,
                       disk = childJob.disk,
                       mem = childJob.mem,
@@ -122,7 +120,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   def getStat(@PathParam("jobName") jobName: String): Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
-      require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
+      require(jobOpt.nonEmpty, "JobSchedule '%s' not found".format(jobName))
 
       val histoStats = jobMetrics.getJobHistogramStats(jobName)
       val jobStatsList: List[TaskStat] = jobStats.getMostRecentTaskStatsByJob(jobOpt.get, cassandraConfig.jobHistoryLimit())
@@ -148,7 +146,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               @QueryParam("arguments") arguments: String
                ): Response = {
     try {
-      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).isDefined, "JobSchedule '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
       jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0, Option(arguments).filter(_.trim.nonEmpty))
@@ -166,7 +164,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   }
 
   /**
-   * Mark Job successful
+   * Mark JobSchedule successful
    */
   @Path(PathConstants.jobSuccessPath)
   @PUT
@@ -198,9 +196,9 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
           taskStat: TaskStat) : Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
-      require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
+      require(jobOpt.nonEmpty, "JobSchedule '%s' not found".format(jobName))
       require(TaskUtils.isValidVersion(taskId), "Invalid task id format %s".format(taskId))
-      require(jobOpt.get.dataProcessingJobType, "Job '%s' is not enabled to track data".format(jobName))
+      require(jobOpt.get.dataProcessingJobType, "JobSchedule '%s' is not enabled to track data".format(jobName))
 
       taskStat.numAdditionalElementsProcessed.foreach {
         num =>

@@ -59,7 +59,7 @@ object JobUtils {
   def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty  // when you leave the deprecated one, then it should be empty
 
   //TODO(FL): Think about moving this back into the JobScheduler, though it might be a bit crowded.
-  def loadJobs(scheduler: JobScheduler, store: PersistenceStore) {
+  def loadJobs(store: PersistenceStore) = {
     //TODO(FL): Create functions that map strings to jobs
     val scheduledJobs = new ListBuffer[ScheduleBasedJob]
     val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
@@ -73,58 +73,28 @@ object JobUtils {
         throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
     }
 
-    log.info("Registering jobs:" + scheduledJobs.size)
-    scheduler.registerJob(scheduledJobs.toList)
-
-    //We cannot simply register
-    dependencyBasedJobs.foreach({ x =>
-      log.info("Adding vertex in the vertex map:" + x.name)
-      scheduler.jobGraph.addVertex(x)
-    })
-
-    dependencyBasedJobs.foreach {
-      x =>
-        log.info("mapping:" + x)
-        import scala.collection.JavaConversions._
-        log.info("Adding dependencies for %s -> [%s]".format(x.name, Joiner.on(",").join(x.parents)))
-
-        scheduler.jobGraph.parentJobsOption(x) match {
-          case None =>
-            log.warning(s"Coudn't find all parents of job ${x.name}... dropping it.")
-            scheduler.jobGraph.removeVertex(x)
-          case Some(parentJobs) =>
-            parentJobs.foreach {
-              //Setup all the dependencies
-              y: BaseJob =>
-                scheduler.jobGraph.addDependency(y.name, x.name)
-            }
-        }
-    }
+    scheduledJobs.toList
   }
 
-  def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime) = {
+  def getScheduledTime(job: ScheduleBasedJob): DateTime = {
     Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((_, scheduledTime, _)) =>
-        if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
-          skipForward(job, dateTime)
-        } else {
-          Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
-        }
-      case None =>
-        None
+        scheduledTime
+      case _ =>
+        new DateTime
     }
   }
 
-  def skipForward(job: ScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
+  def skipForward(job: ScheduleBasedJob, currentDateTime: DateTime): Option[JobSchedule] = {
     Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((rec, start, per)) =>
-        val skip = calculateSkips(dateTime, start, per)
+        val skip = calculateSkips(currentDateTime, start, per)
         if (rec == -1) {
           val nStart = start.plus(per.multipliedBy(skip))
           log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
             .format(skip, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name, job.scheduleTimeZone))
+          Some(new JobSchedule(Iso8601Expressions.create(rec, nStart, per), job.name, job.scheduleTimeZone))
         } else if (rec < skip) {
           log.warning("Filtered job as it is no longer valid.")
           None
@@ -134,7 +104,7 @@ object JobUtils {
           log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
             .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
+          Some(new JobSchedule(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
         }
       case None =>
         None

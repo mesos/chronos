@@ -2,284 +2,161 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.joda.time._
-import org.specs2.mock._
-import org.specs2.mutable._
-import MockJobUtils._
-  
+import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.format.ISODateTimeFormat
+import org.specs2.mock.Mockito
+import org.specs2.mutable.SpecificationWithJUnit
+
+import scala.util.Random
+
 class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
-
-  //TODO(FL): Write more specs for the REST framework.
   "JobScheduler" should {
-    "Construct a task for a given time when the schedule is within epsilon" in {
-      val epsilon = Minutes.minutes(1).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
+    "Run the correct job" in {
+      val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
+      val job2 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job2", "CMD", disabled=true)
+      val futureDate = DateTime.now().plusYears(1)
+      val job3 = ScheduleBasedJob(s"R5/${ISODateTimeFormat.dateTime().print(futureDate)}/P1D", "job3", "CMD")
 
-      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
-
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val horizon = Minutes.minutes(10).toPeriod
-      //TODO(FL): Mock the DispatchQueue here and below
-      val schedules = mockScheduler(horizon, null, mockGraph)
-      val (task1, stream1) = schedules.next(new DateTime("2012-01-01T00:00:00.000Z"), singleJobStream)
-      task1.get.due must beEqualTo(DateTime.parse("2012-01-01T00:00:01.000Z"))
-      val (task2, stream2) = schedules.next(new DateTime("2012-01-01T00:01:00.000Z"), stream1.get)
-      task2 must beNone
-      stream2 must beNone
-    }
-
-    "Ignore a task that has been due past epsilon" in {
-      val epsilon = Minutes.minutes(1).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-
-      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
-
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val horizon = Minutes.minutes(10).toPeriod
-      val schedules = mockScheduler(horizon, null, mockGraph)
-      val (task1, stream1) = schedules.next(new DateTime("2012-01-01T00:01:01.000Z"), singleJobStream)
-      task1 must beNone
-      stream1 must beNone
-    }
-
-    "Get an empty stream if no-op schedule is given" in {
-      val epsilon = Minutes.minutes(1).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-
-      val singleJobStream = new ScheduleStream("R0/2012-01-01T00:00:01.000Z/PT1M", jobName)
-
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val horizon = Minutes.minutes(10).toPeriod
-      val schedules = mockScheduler(horizon, null, mockGraph)
-      val (task1, stream1) = schedules.next(new DateTime("2012-01-01T00:01:01.000Z"), singleJobStream)
-      task1 must beNone
-      stream1 must beNone
-    }
-
-    "Old schedule stream is removed" in {
-      val epsilon = Minutes.minutes(1).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val singleJobStream = new ScheduleStream("R1/2012-01-01T00:00:01.000Z/PT1M", jobName)
-
-      val horizon = Minutes.minutes(10).toPeriod
-      val scheduler = mockScheduler(horizon, null, mockGraph)
-      val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-02T00:01:01.000Z"), List(singleJobStream))
-      newScheduleStreams.size must_== 0
-    }
-
-    //"This is really not a unit test but an integration test!
-    "Old schedule streams are removed but newer ones are kept" in {
-      val epsilon = Seconds.seconds(20).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-
-      //2012-01-01T00:00:00.000 -> 2012-01-01T00:09:00.000
-      val jobStream = new ScheduleStream("R10/2012-01-01T00:00:00.000Z/PT1M", jobName)
-      // 1st planned invocation @ 2012-01-01T00:00:00.000Z (missed)
-      // 2nd planned invocation @ 2012-01-01T00:01:00.000Z (executed)
-      // 3rd planned invocation @ 2012-01-01T00:02:00.000Z (scheduled)
-      // 4th planned invocation @ 2012-01-01T00:03:00.000Z (scheduled)
-      // 5th planned invocation @ 2012-01-01T00:04:00.000Z (scheduled)
-      // 6th planned invocation @ 2012-01-01T00:05:00.000Z (scheduled)
-      // 7th planned invocation @ 2012-01-01T00:06:00.000Z (scheduled)
-      // 8th planned invocation @ 2012-01-01T00:07:00.000Z (ahead of schedule horizon)
-
-      val horizon = Minutes.minutes(5).toPeriod
-      val mockTaskManager = mock[TaskManager]
-      val mockGraph = mock[JobGraph]
-      val mockPersistenceStore = mock[PersistenceStore]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val scheduler = mockScheduler(horizon, mockTaskManager, mockGraph)
-      // First one passed, next invocation is 01:01 (b/c of 20 second epsilon)
-      // Horizon is 5 minutes, so lookforward until 00:06:01.000Z
-      val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _, _) = newScheduleStreams.head.head
-
-      var date: DateTime = new DateTime()
-      Iso8601Expressions.parse(isoExpr) match {
-        case Some((_, d, _)) =>
-          date = d
-        case None =>
-      }
-      date must_== DateTime.parse("2012-01-01T00:07:00.000Z")
-
-      there were 6.times(mockTaskManager).scheduleDelayedTask(any[ScheduledTask], anyLong, any[Boolean])
-    }
-
-    "Future task beyond time-horizon should not be scheduled" in {
-      val epsilon = Seconds.seconds(60).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-
-      val jobStream = new ScheduleStream("R10/2012-01-10T00:00:00.000Z/PT1M", jobName)
-
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val horizon = Minutes.minutes(60).toPeriod
-      val scheduler = mockScheduler(horizon, null, mockGraph)
-      val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
-      val (isoExpr, _, _) = newScheduleStreams.head.head
-
-      var date: DateTime = new DateTime()
-      Iso8601Expressions.parse(isoExpr) match {
-        case Some((_, d, _)) =>
-          date = d
-        case None =>
-      }
-      date must_== DateTime.parse("2012-01-10T00:00:00.000Z")
-
-    }
-
-    "Multiple tasks must be scheduled if they're within epsilon and before time-horizon" in {
-      val epsilon = Minutes.minutes(5).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
-      val jobStream = new ScheduleStream("R60/2012-01-01T00:00:00.000Z/PT1S", jobName)
-
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
-
-      val horizon = Minutes.minutes(1).toPeriod
+      val jobGraph = mock[JobGraph]
+      val persistenceStore = mock[PersistenceStore]
       val mockTaskManager = mock[TaskManager]
 
-      val scheduler = mockScheduler(horizon, mockTaskManager, mockGraph)
+      val scheduler = MockJobUtils.mockScheduler(mockTaskManager, jobGraph, persistenceStore)
 
-      val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:00.000Z"), List(jobStream))
-      newScheduleStreams.size must beEqualTo(0)
-      there were 60.times(mockTaskManager).scheduleDelayedTask(any[ScheduledTask], anyLong, any[Boolean])
+      scheduler.leader.set(true)
+      val scheduledJobs = scheduler.registerJobs(List(job1, job2, job3))
+      val (jobsToRun, jobsNotToRun) = scheduler.getJobsToRun(scheduledJobs)
+      scheduler.runJobs(jobsToRun)
+
+      jobsToRun.size must_== 1
+      jobsNotToRun.size must_== 2
+
+      jobsNotToRun.head.name must beEqualTo("job2")
+      jobsNotToRun(1).name must beEqualTo("job3")
+
+      there was one(jobGraph).addVertex(job1) andThen
+        one(jobGraph).addVertex(job2) andThen
+        one(jobGraph).addVertex(job3)
+
+      there was one(mockTaskManager).enqueue(endWith(":job1:"), anyBoolean)
     }
 
-    "Infinite task must be scheduled" in {
-      val epsilon = Seconds.seconds(60).toPeriod
-      val jobName = "FOO"
-      val job1 = new ScheduleBasedJob(schedule = "", name = jobName, command = "", epsilon = epsilon)
+    "Register dependent job correctly" in {
+      val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
+      val job2 = DependencyBasedJob(Set("job1"), "job2", "CMD")
 
-
-      val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1M", jobName)
-
-      val horizon = Seconds.seconds(30).toPeriod
+      val jobGraph = new JobGraph
+      val persistenceStore = mock[PersistenceStore]
       val mockTaskManager = mock[TaskManager]
 
-      val mockGraph = mock[JobGraph]
-      mockGraph.lookupVertex(jobName).returns(Some(job1))
+      val scheduler = MockJobUtils.mockScheduler(mockTaskManager, jobGraph, persistenceStore)
 
-      val scheduler = mockScheduler(horizon, mockTaskManager, mockGraph)
-      val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:01.000Z"), List(jobStream))
+      scheduler.leader.set(true)
+      val jobs = List(job1, job2)
+      scheduler.registerJobs(jobs)
 
-      there was one(mockTaskManager).scheduleDelayedTask(any[ScheduledTask], any[Long], any[Boolean])
+      jobGraph.lookupVertex("job1") mustEqual Some(job1)
+      jobGraph.lookupVertex("job2") mustEqual Some(job2)
+      jobGraph.parentJobsOption(job2) mustEqual Some(List(job1))
     }
 
-    //TODO(FL): Write test that ensures that other tasks don't cause a stackoverflow
+    "Register jobs in correct order and enqueue them" in {
+      val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
+      val job2 = ScheduleBasedJob("R5/2012-02-01T00:00:00.000Z/P1D", "job2", "CMD")
+      val job3 = ScheduleBasedJob("R5/2012-03-01T00:00:00.000Z/P1D", "job3", "CMD")
+      val futureDate = DateTime.now().plusYears(1)
+      val job4 = ScheduleBasedJob(s"R5/${ISODateTimeFormat.dateTime().print(futureDate)}/P1D", "job4", "CMD")
 
-    "Job scheduler sans streams is empty" in {
-      val scheduler = mockScheduler(Period.hours(1), null, null)
-      val newScheduleStreams = scheduler.iteration(DateTime.parse("2012-01-01T00:01:00.000Z"), List())
-      newScheduleStreams.size must beEqualTo(0)
+      val jobGraph = mock[JobGraph]
+      val persistenceStore = mock[PersistenceStore]
+      val mockTaskManager = mock[TaskManager]
+
+      val scheduler = MockJobUtils.mockScheduler(mockTaskManager, jobGraph, persistenceStore)
+
+      scheduler.leader.set(true)
+      val scheduledJobs = scheduler.registerJobs(Random.shuffle(List(job1, job2, job3, job4)))
+      val (jobsToRun, jobsNotToRun) = scheduler.getJobsToRun(scheduledJobs)
+      scheduler.runJobs(jobsToRun)
+
+      jobsToRun.size must_== 3
+      jobsNotToRun.size must_== 1
+
+      jobsToRun.head.name must beEqualTo("job1")
+      jobsToRun(1).name must beEqualTo("job2")
+      jobsToRun(2).name must beEqualTo("job3")
+      jobsNotToRun.head.name must beEqualTo("job4")
+
+      there was one(jobGraph).addVertex(job1) andThen
+        one(jobGraph).addVertex(job2) andThen
+        one(jobGraph).addVertex(job3) andThen
+        one(jobGraph).addVertex(job4)
+      there were 3.times(mockTaskManager).enqueue(anyString, anyBoolean)
+      there was one(mockTaskManager).enqueue(endingWith(":job3:"), anyBoolean) andThen
+        one(mockTaskManager).enqueue(endingWith(":job2:"), anyBoolean) andThen
+        one(mockTaskManager).enqueue(endingWith(":job1:"), anyBoolean)
     }
-    // TODO(FL): The interfaces have changed, this unit test needs to be added back in!
-    //        "New schedules can be added to JobScheduler" in {
-    //          val horizon = Seconds.seconds(30).toPeriod
-    //          val queue = mock[DispatchQueue]
-    //          val mockTaskManager = mock[TaskManager]
-    //          val jobGraph = mock[JobGraph]
-    //          val scheduler = new JobScheduler(horizon, queue, mockTaskManager, jobGraph, mock[PersistenceStore])
-    //          val newScheduleStreams = scheduler.(DateTime.parse("2012-01-01T00:00:00.000Z"), List())
-    //          newScheduleStreams.size must beEqualTo(0)
-    //          val newScheduler1 = scheduler.addSchedule("R1/2012-01-01T01:00:00.000Z/PT1M", new BaseJob("foo", Period.minutes(5)))
-    //          val newScheduler2 = newScheduler1.addSchedule("R1/2012-01-01T02:00:00.000Z/PT1M", new BaseJob("bar", Period.minutes(5)))
-    //          val updatedScheduleStreams = newScheduler2.checkAndSchedule(DateTime.parse("2012-01-01T00:01:00.000Z"))
-    //          updatedScheduleStreams.size must beEqualTo(0)
-    //          //TODO(FL): Implement a test verifying that the jobs have launched
-    //          //newScheduler2.numberOfScheduledJobs.get() must_== 2
-    //        }
 
-  }
+    "Compute the correct amount of sleep time" in {
+      val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
+      val job2 = ScheduleBasedJob("R5/2012-02-01T00:00:00.000Z/P1D", "job2", "CMD")
+      val job3 = ScheduleBasedJob("R5/2012-03-01T00:00:00.000Z/P1D", "job3", "CMD", disabled=true)
+      val futureDate1 = DateTime.now(DateTimeZone.UTC).plusHours(1)
+      val job4 = ScheduleBasedJob(s"R5/${ISODateTimeFormat.dateTime().print(futureDate1)}/P1D", "job4", "CMD")
+      val futureDate2 = DateTime.now(DateTimeZone.UTC).plusHours(2)
+      val job5 = ScheduleBasedJob(s"R5/${ISODateTimeFormat.dateTime().print(futureDate2)}/P1D", "job5", "CMD")
 
-  "Removing tasks must also remove the streams" in {
-    val epsilon = Seconds.seconds(60).toPeriod
-    val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "FOO", "CMD", epsilon)
-    val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1M", "BAR", "CMD", epsilon)
+      val jobGraph = mock[JobGraph]
+      val persistenceStore = mock[PersistenceStore]
+      val mockTaskManager = mock[TaskManager]
 
-    val horizon = Seconds.seconds(30).toPeriod
-    val mockTaskManager = mock[TaskManager]
-    val jobGraph = mock[JobGraph]
-    val store = mock[PersistenceStore]
-    store.getTaskIds(Some(anyString)).returns(List())
+      val scheduler = MockJobUtils.mockScheduler(mockTaskManager, jobGraph, persistenceStore)
 
-    jobGraph.lookupVertex(job1.name).returns(Some(job1))
-    jobGraph.lookupVertex(job2.name).returns(Some(job2))
-    jobGraph.getChildren(job2.name).returns(List())
+      var nanos = scheduler.nanosUntilNextJob(List(job1, job2, job3, job4, job5))
+      nanos must_== 0
 
-    val scheduler = mockScheduler(horizon, mockTaskManager, jobGraph, store)
+      nanos = scheduler.nanosUntilNextJob(List(job2, job3, job4, job5))
+      nanos must_== 0
 
-    scheduler.leader.set(true)
-    scheduler.registerJob(job1, persist = false, DateTime.parse("2012-01-01T00:00:05.000Z"))
-    scheduler.registerJob(job2, persist = false, DateTime.parse("2012-01-01T00:00:10.000Z"))
+      nanos = scheduler.nanosUntilNextJob(List(job3, job4, job5))
+      nanos must beCloseTo(60*60*1000000000l, 5000000000l) // within 5s
 
-    val res1: List[ScheduleStream] = scheduler.iteration(DateTime.parse("2012-01-01T00:00:00.000Z"), scheduler.streams)
+      nanos = scheduler.nanosUntilNextJob(List(job4, job5))
+      nanos must beCloseTo(60*60*1000000000l, 5000000000l) // within 5s
 
-    scheduler.deregisterJob(job2, persist = false)
+      nanos = scheduler.nanosUntilNextJob(List(job5))
+      nanos must beCloseTo(2*60*60*1000000000l, 5000000000l) // within 5s
+    }
 
-    val res2: List[ScheduleStream] = scheduler.iteration(DateTime.parse("2012-01-01T00:05:00.000Z"), scheduler.streams)
-    res2.size must_== 1
-    res2.head.jobName must_== job1.name
-  }
+    "A parent job succeeds and child is enqueued" in {
+      val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
+      val job2 = DependencyBasedJob(Set("job1"), "job2", "CMD")
+      val job3 = DependencyBasedJob(Set("job1"), "job3", "CMD", disabled=true)
+      val job4 = DependencyBasedJob(Set("job2"), "job4", "CMD")
 
-  "Job scheduler persists job state after runs" in {
-    val store = mock[PersistenceStore]
-    val epsilon = Seconds.seconds(1).toPeriod
-    val jobName = "FOO"
-    val jobCmd = "BARCMD"
+      val jobGraph = new JobGraph
+      val persistenceStore = mock[PersistenceStore]
+      val mockTaskManager = mock[TaskManager]
 
-    val job1 = new ScheduleBasedJob("R/2012-01-01T00:00:00.000Z/PT1S", jobName, jobCmd, epsilon)
-    val mockGraph = mock[JobGraph]
-    mockGraph.lookupVertex(job1.name).returns(Some(job1))
+      val scheduler = MockJobUtils.mockScheduler(mockTaskManager, jobGraph, persistenceStore)
 
-    val jobStream = new ScheduleStream("R/2012-01-01T00:00:00.000Z/PT1S", jobName)
-    val scheduler = mockScheduler(Period.hours(1), mock[TaskManager], mockGraph, store)
-    scheduler.leader.set(true)
+      scheduler.leader.set(true)
+      val jobs = List(job1, job2, job3, job4)
+      scheduler.registerJobs(jobs)
 
-    val startTime = DateTime.parse("2012-01-01T00:00:00.000Z")
-    var t: DateTime = startTime
-    var stream = scheduler.iteration(startTime, List(jobStream))
-    t = t.plus(Period.millis(1).toPeriod)
-    stream = scheduler.iteration(t, stream)
-    val job2 = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1S", jobName, jobCmd, epsilon, 0)
-    there was one(store).persistJob(job2)
-    there was one(mockGraph).replaceVertex(job1, job2)
-  }
+      jobGraph.lookupVertex("job1") mustEqual Some(job1)
+      jobGraph.lookupVertex("job2") mustEqual Some(job2)
+      jobGraph.lookupVertex("job3") mustEqual Some(job3)
+      jobGraph.lookupVertex("job4") mustEqual Some(job4)
+      jobGraph.parentJobsOption(job2) mustEqual Some(List(job1))
+      jobGraph.parentJobsOption(job3) mustEqual Some(List(job1))
+      jobGraph.parentJobsOption(job4) mustEqual Some(List(job2))
 
-  "Missed executions have to be skipped" in {
-    val epsilon = Seconds.seconds(60).toPeriod
-    val job1 = new ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD", epsilon)
+      scheduler.markJobSuccessAndFireOffDependencies("job1")
+      scheduler.markJobSuccessAndFireOffDependencies("job2")
 
-    val mockTaskManager = mock[TaskManager]
-    val jobGraph = new JobGraph
-    val mockPersistenceStore = mock[PersistenceStore]
-
-    val scheduler = mockScheduler(epsilon, mockTaskManager, jobGraph, mockPersistenceStore)
-
-    val startTime = DateTime.parse("2012-01-03T00:00:00.000Z")
-    scheduler.leader.set(true)
-    scheduler.registerJob(job1, persist = true, startTime)
-
-    val newStreams = scheduler.iteration(startTime, scheduler.streams)
-    newStreams.head.schedule must_== "R2/2012-01-04T00:00:00.000Z/P1D"
+      there was one(mockTaskManager).enqueue(endWith(":job2:"), anyBoolean) andThen
+        no(mockTaskManager).enqueue(endWith(":job3:"), anyBoolean) andThen
+        one(mockTaskManager).enqueue(endWith(":job4:"), anyBoolean)
+    }
   }
 }

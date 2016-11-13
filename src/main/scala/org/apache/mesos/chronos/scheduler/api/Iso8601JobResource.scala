@@ -28,16 +28,6 @@ class Iso8601JobResource @Inject()(
   @POST
   @Timed
   def post(newJob: ScheduleBasedJob): Response = {
-    handleRequest(newJob)
-  }
-
-  @PUT
-  @Timed
-  def put(newJob: ScheduleBasedJob): Response = {
-    handleRequest(newJob)
-  }
-
-  def handleRequest(newJob: ScheduleBasedJob): Response = {
     try {
       val oldJobOpt = jobGraph.lookupVertex(newJob.name)
       if (oldJobOpt.isEmpty) {
@@ -52,7 +42,7 @@ class Iso8601JobResource @Inject()(
         }
 
         //TODO(FL): Create a wrapper class that handles adding & removing jobs!
-        jobScheduler.registerJob(List(newJob), persist = true)
+        jobScheduler.loadJob(newJob)
         iso8601JobSubmissions.incrementAndGet()
         log.info("Added job to JobGraph")
         Response.noContent().build()

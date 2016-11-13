@@ -22,9 +22,6 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("shell")
     json.writeBoolean(baseJob.shell)
 
-    json.writeFieldName("epsilon")
-    json.writeString(baseJob.epsilon.toString)
-
     json.writeFieldName("executor")
     json.writeString(baseJob.executor)
 
@@ -45,9 +42,6 @@ class JobSerializer extends JsonSerializer[BaseJob] {
 
     json.writeFieldName("description")
     json.writeString(baseJob.description)
-
-    json.writeFieldName("async")
-    json.writeBoolean(baseJob.async)
 
     json.writeFieldName("successCount")
     json.writeNumber(baseJob.successCount)
