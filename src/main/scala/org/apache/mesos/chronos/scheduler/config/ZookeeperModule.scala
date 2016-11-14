@@ -33,6 +33,7 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
       .connectionTimeoutMs(config.zooKeeperTimeout().toInt)
       .canBeReadOnly(false)
       .connectString(validateZkServers())
+      .authorization(getAuthScheme, getAuthBytes)
       .retryPolicy(new ExponentialBackoffRetry(1000, 10))
       .build()
 
@@ -40,6 +41,20 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
     log.info("Connecting to ZK...")
     curator.blockUntilConnected()
     curator
+  }
+
+  private def getAuthScheme: String = {
+    if (config.zooKeeperAuth.isDefined) {
+      return "digest"
+    }
+    null
+  }
+
+  private def getAuthBytes: Array[Byte] = {
+    if (config.zooKeeperAuth.isDefined) {
+      return config.zooKeeperAuth().getBytes()
+    }
+    null
   }
 
   private def validateZkServers(): String = {
@@ -65,7 +80,10 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
     new ZooKeeperState(config.zookeeperServers(),
       config.zooKeeperTimeout(),
       TimeUnit.MILLISECONDS,
-      config.zooKeeperStatePath)
+      config.zooKeeperStatePath,
+      getAuthScheme,
+      getAuthBytes
+      )
   }
 
   @Inject

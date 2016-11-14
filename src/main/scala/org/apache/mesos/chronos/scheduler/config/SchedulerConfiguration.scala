@@ -49,6 +49,9 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val zooKeeperPath = opt[String]("zk_path",
     descr = "Path in ZooKeeper for storing state",
     default = Some("/chronos/state"))
+  lazy val zooKeeperAuth = opt[String]("zk_auth",
+    descr = "Authorization string for ZooKeeper",
+    default = None)
   lazy val mailServer = opt[String]("mail_server",
     descr = "Address of the mailserver in server:port format",
     default = None)
