@@ -18,10 +18,10 @@ import scala.collection.mutable
 
 object TaskUtils {
 
-  //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT:ARGUMENTS
-  val taskIdTemplate = "ct:%d:%d:%s:%s"
+  //TaskIdFormat: ct~JOB_NAME~DUE~ATTEMPT~ARGUMENTS
+  val taskIdTemplate = "ct~%d~%d~%s~%s"
   val argumentsPattern = """(.*)?""".r
-  val taskIdPattern = """ct:(\d+):(\d+):%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
+  val taskIdPattern = """ct~(\d+)~(\d+)~%s~?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
   val commandInjectionFilter = ";".toSet
 
   private[this] val log = Logger.getLogger(getClass.getName)
