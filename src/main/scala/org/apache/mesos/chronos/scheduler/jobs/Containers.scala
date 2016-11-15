@@ -9,14 +9,7 @@ object VolumeMode extends Enumeration {
   val RW, RO = Value
 }
 
-object NetworkMode extends Enumeration {
-  type NetworkMode = Value
 
-  // Bridged and Host
-  val BRIDGE, HOST = Value
-}
-
-import org.apache.mesos.chronos.scheduler.jobs.NetworkMode._
 import org.apache.mesos.chronos.scheduler.jobs.VolumeMode._
 
 case class Volume(
@@ -28,5 +21,5 @@ case class DockerContainer(
                             @JsonProperty image: String,
                             @JsonProperty volumes: Seq[Volume],
                             @JsonProperty parameters: Seq[Parameter],
-                            @JsonProperty network: NetworkMode = NetworkMode.HOST,
+                            @JsonProperty network: String = "HOST",
                             @JsonProperty forcePullImage: Boolean = false)

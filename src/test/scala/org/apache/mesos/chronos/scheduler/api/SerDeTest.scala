@@ -32,7 +32,7 @@ class SerDeTest extends SpecificationWithJUnit {
 
       var parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-      val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.BRIDGE, forcePullImage)
+      val container = DockerContainer("dockerImage", volumes, parameters, "BRIDGE", forcePullImage)
 
       val arguments = Seq(
         "-testOne"
@@ -78,7 +78,7 @@ class SerDeTest extends SpecificationWithJUnit {
       val forcePullImage = true
       var parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-      val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.HOST, forcePullImage)
+      val container = DockerContainer("dockerImage", volumes, parameters, "HOST", forcePullImage)
 
       val arguments = Seq(
         "-testOne"

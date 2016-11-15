@@ -176,9 +176,18 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       volumeBuilder.build()
     }.foreach(builder.addVolumes)
     builder.setType(ContainerInfo.Type.DOCKER)
+
+    val containerNetwork = job.container.network.toString
+    val supportedNetworks: Set[String] = DockerInfo.Network.values().map(_.toString.toLowerCase()).toSet
+    val isUserNetwork = !supportedNetworks.contains(containerNetwork.toLowerCase())
+
+    if (isUserNetwork) {
+      builder.addNetworkInfos(NetworkInfo.newBuilder().setName(containerNetwork))
+    }
+
     builder.setDocker(DockerInfo.newBuilder()
       .setImage(job.container.image)
-      .setNetwork(DockerInfo.Network.valueOf(job.container.network.toString.toUpperCase))
+      .setNetwork(if (isUserNetwork) DockerInfo.Network.USER else DockerInfo.Network.valueOf(containerNetwork.toUpperCase()))
       .setForcePullImage(job.container.forcePullImage)
       .addAllParameters(job.container.parameters.map(_.toProto).asJava)
       .build()).build

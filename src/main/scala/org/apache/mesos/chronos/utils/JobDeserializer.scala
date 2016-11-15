@@ -165,8 +165,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       val containerNode = node.get("container")
       val networkMode =
         if (containerNode.has("network") && containerNode.get("network") != null)
-          NetworkMode.withName(containerNode.get("network").asText)
-        else NetworkMode.HOST
+          containerNode.get("network").asText
+        else "HOST"
 
       // TODO: Add support for more containers when they're added.
       val volumes = scala.collection.mutable.ListBuffer[Volume]()
