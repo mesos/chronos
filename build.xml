@@ -1,13 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="chronos">
-
-  <target name="-optimize" description="Combine and minify files.">
-    <exec executable="node">
-        <arg value="${requirejs.optimizer.script}"/>
-        <arg value="-o"/>
-        <arg value="${requirejs.optimizer.settings}"/>
+  <target name="install" description="Install dependencies">
+    <exec executable="npm" dir="${sourceDir}">
+      <arg value="install"/>
     </exec>
-    <echo message="optimized ${requirejs.optimizer.settings} with nodejs" />
+    <echo message="install project dependencies" />
+  </target>
+  <target name="build" description="Generate assets">
+    <delete includeemptydirs="true" failonerror="false">
+      <fileset dir="${sourceDir}/build" includes="**/*"/>
+    </delete>
+    <exec executable="npm" dir="${sourceDir}">
+      <arg value="run"/>
+      <arg value="build"/>
+    </exec>
+    <echo message="build project with npm" />
+    <mkdir dir="${sourceDir}/build/assets" />
+    <copy todir="${sourceDir}/build/assets">
+      <fileset dir="${sourceDir}/assets" />
+    </copy>
+    <copy file="${sourceDir}/index.html" tofile="${sourceDir}/build/index.html"/>
   </target>
 
   <target name="assets.uptodate" depends="sourceDir.check" if="sourceDir.nochanges">
@@ -16,16 +28,18 @@
 
   <target name="sourceDir.check">
     <uptodate property="sourceDir.nochanges">
-      <srcfiles dir="${sourceDir}" includes="**/*" />
-      <mapper type="merge" to="${sourceDir}/build/build.txt" />
+      <srcfiles dir="${sourceDir}" includes="**/*.js" />
+      <srcfiles dir="${sourceDir}" includes="**/*.jsx" />
+      <srcfiles dir="${sourceDir}" includes="**/*.css" />
+      <mapper type="merge" to="${sourceDir}/build/assets/js/bundle.js" />
     </uptodate>
   </target>
 
   <target name="generateAssets" depends="assets.uptodate" unless="sourceDir.nochanges">
-    <echo message="Combining and minifying JS files." />
-    <antcall target="-optimize">
-      <param name="requirejs.optimizer.script" value="${optimizerFile}" />
-      <param name="requirejs.optimizer.settings" value="${configFile}" />
+    <echo message="Building assets" />
+    <antcall target="install">
+    </antcall>
+    <antcall target="build">
     </antcall>
   </target>
 </project>

@@ -1,0 +1,48 @@
+{
+  "name": "chronos-ui",
+  "version": "1.0.0",
+  "description": "Chronos UI",
+  "author": "Brenden Matthews <brenden@diddyinc.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/mesos/chronos/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mesos/chronos.git"
+  },
+  "homepage": "https://github.com/mesos/chronos",
+  "scripts": {
+    "start": "node bin/server.js",
+    "dev": "webpack --progress --colors",
+    "build": "webpack --progress --colors --config webpack-release.config.js",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.7",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-plugin-transform-react-jsx": "^6.8.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-1": "^6.16.0",
+    "body-parser": "^1.15.2",
+    "eslint": "^3.10.2",
+    "eslint-plugin-react": "^6.7.1",
+    "express": "^4.14.0",
+    "webpack": "^1.13.3",
+    "webpack-dev-middleware": "^1.8.4",
+    "webpack-dev-server": "^1.16.2",
+    "webpack-hot-middleware": "^2.13.2"
+  },
+  "dependencies": {
+    "mobx": "^2.6.2",
+    "mobx-react": "^3.5.9",
+    "mobx-react-form": "^1.13.28",
+    "react": "^15.4.0",
+    "react-dom": "^15.4.0",
+    "react-select": "^1.0.0-rc.2",
+    "validatorjs": "^3.8.0"
+  }
+}

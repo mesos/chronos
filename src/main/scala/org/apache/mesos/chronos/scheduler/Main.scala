@@ -1,8 +1,9 @@
 package org.apache.mesos.chronos.scheduler
 
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.{ Level, Logger }
+import java.util.logging.{Level, Logger}
 
+import com.google.inject.AbstractModule
 import org.apache.mesos.chronos.scheduler.api._
 import org.apache.mesos.chronos.scheduler.config._
 import org.apache.mesos.chronos.scheduler.jobs.{JobScheduler, MetricReporterService, ZookeeperService}
@@ -22,12 +23,13 @@ object Main extends App {
     with GraphiteConfiguration with CassandraConfiguration
   val isLeader = new AtomicBoolean(false)
   private[this] val log = Logger.getLogger(getClass.getName)
+  conf.verify
 
   log.info("---------------------")
   log.info("Initializing chronos.")
   log.info("---------------------")
 
-  def modules() = {
+  def modules(): Seq[AbstractModule] = {
     Seq(
       new HttpModule(conf),
       new ChronosRestModule,

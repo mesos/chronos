@@ -32,33 +32,6 @@ class TaskManagementResource @Inject()(
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  /**
-   * Updates the status of a job, especially useful for asynchronous jobs such as hadoop jobs.
-   * @return
-   */
-  @Path("/{id}")
-  @PUT
-  @Timed
-  def updateStatus(@PathParam("id") id: String, taskNotification: TaskNotification): Response = {
-    log.info("Update request received")
-    try {
-      log.info("Received update for asynchronous taskId: %s, statusCode: %d".format(id, taskNotification.statusCode))
-
-      if (taskNotification.statusCode == 0) {
-        log.info("Task completed successfully '%s'".format(id))
-        jobScheduler.handleFinishedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).setState(TaskState.TASK_FINISHED).build)
-      } else {
-        log.info("Task failed '%s'".format(id))
-        jobScheduler.handleFailedTask(TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(id)).setState(TaskState.TASK_FAILED).build)
-      }
-      Response.noContent().build()
-    } catch {
-      case ex: Exception =>
-        log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
-    }
-  }
-
   @DELETE
   @Path(PathConstants.killTaskPattern)
   def killTasksForJob(@PathParam("jobName") jobName: String): Response = {
@@ -67,21 +40,6 @@ class TaskManagementResource @Inject()(
       require(jobGraph.lookupVertex(jobName).isDefined, "JobSchedule '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       taskManager.cancelMesosTasks(job)
-      Response.noContent().build()
-    } catch {
-      case ex: Exception =>
-        log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
-    }
-  }
-
-  @DELETE
-  @Path("/all")
-  @Timed
-  def purge(): Response = {
-    log.info("Task purge request received")
-    try {
-      taskManager.queues.foreach(_.clear())
       Response.noContent().build()
     } catch {
       case ex: Exception =>

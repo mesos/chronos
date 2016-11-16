@@ -78,7 +78,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
 
     replaceJob(oldJob, newJob)
-    notifyCondition()
   }
 
   def notifyCondition(): Unit = {
@@ -110,7 +109,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     notifyCondition()
   }
 
-  def registerJobs(jobs: List[BaseJob]) = {
+  def registerJobs(jobs: List[BaseJob]): List[ScheduleBasedJob] = {
     var scheduledJobList = List[ScheduleBasedJob]()
     lock.synchronized {
       require(isLeader, "Cannot register a job with this scheduler, not the leader!")
@@ -132,7 +131,12 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
         })
         scheduleBasedJobs.foreach({
           job =>
-            jobGraph.addVertex(job)
+            jobGraph.lookupVertex(job.name) match {
+              case Some(_) =>
+                replaceJob(job, job)
+              case _ =>
+                jobGraph.addVertex(job)
+            }
         })
         if (newScheduledJobs.nonEmpty) {
           scheduledJobList = newScheduledJobs.toList
@@ -142,7 +146,12 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
 
       dependencyBasedJobs.foreach {
         job =>
-          jobGraph.addVertex(job)
+          jobGraph.lookupVertex(job.name) match {
+            case Some(_) =>
+              replaceJob(job, job)
+            case _ =>
+              jobGraph.addVertex(job)
+          }
       }
       dependencyBasedJobs.foreach {
         job =>
@@ -166,7 +175,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     scheduledJobList
   }
 
-  def deregisterJob(job: BaseJob, persist: Boolean = false) {
+  def deregisterJob(job: BaseJob) {
     require(isLeader, "Cannot deregister a job with this scheduler, not the leader!")
     lock.synchronized {
       log.info("Removing vertex")
@@ -174,26 +183,24 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       jobGraph.getChildren(job.name)
         .map(x => jobGraph.lookupVertex(x).get)
         .filter {
-        case j: DependencyBasedJob => true
-        case _ => false
-      }
+          case j: DependencyBasedJob => true
+          case _ => false
+        }
         .map(x => x.asInstanceOf[DependencyBasedJob])
         .filter(x => x.parents.size > 1)
         .foreach({
-        childJob =>
-          log.info("Updating job %s".format(job.name))
-          val copy = childJob.copy(parents = childJob.parents.filter(_ != job.name))
-          updateJob(childJob, copy)
-      })
+          childJob =>
+            log.info("Updating job %s".format(job.name))
+            val copy = childJob.copy(parents = childJob.parents.filter(_ != job.name))
+            updateJob(childJob, copy)
+        })
 
       jobGraph.removeVertex(job)
       taskManager.cancelMesosTasks(job)
       jobsObserver.apply(JobRemoved(job))
 
-      if (persist) {
-        log.info("Removing job from underlying state abstraction:" + job.name)
-        persistenceStore.removeJob(job)
-      }
+      log.info("Removing job from underlying state abstraction:" + job.name)
+      persistenceStore.removeJob(job)
     }
   }
 
@@ -218,7 +225,11 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
           jobGraph.resetDependencyInvocations(j.name)
         case _ =>
       }
+
+      val newJob = getNewRunningJob(job)
+      replaceJob(job, newJob)
     }
+    notifyCondition()
   }
 
   /**
@@ -277,6 +288,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     }
   }
 
+
   /**
    * Mark job by job name as successful. Trigger any dependent children jobs that should be run as a result
    */
@@ -301,13 +313,31 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
   def getNewSuccessfulJob(job: BaseJob): BaseJob = {
     val newJob = job match {
       case job: ScheduleBasedJob =>
+        val now = DateTime.now(DateTimeZone.UTC)
         job.copy(successCount = job.successCount + 1,
           errorsSinceLastSuccess = 0,
-          lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+          lastSuccess = now.toString
+        )
       case job: DependencyBasedJob =>
         job.copy(successCount = job.successCount + 1,
           errorsSinceLastSuccess = 0,
           lastSuccess = DateTime.now(DateTimeZone.UTC).toString)
+      case _ =>
+        throw new scala.IllegalArgumentException("Cannot handle unknown task type")
+    }
+    newJob
+  }
+
+  def getNewRunningJob(job: BaseJob): BaseJob = {
+    val newJob = job match {
+      case job: ScheduleBasedJob =>
+        val now = DateTime.now(DateTimeZone.UTC)
+        val nextJobSchedule = JobUtils.skipForward(job, now).get
+        job.copy(
+          schedule = nextJobSchedule.schedule
+        )
+      case job: DependencyBasedJob =>
+        job.copy()
       case _ =>
         throw new scala.IllegalArgumentException("Cannot handle unknown task type")
     }
@@ -319,7 +349,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       jobGraph.replaceVertex(oldJob, newJob)
       persistenceStore.persistJob(newJob)
     }
-    notifyCondition()
   }
 
   private def processDependencies(jobName: String, taskDate: Option[DateTime]) {
@@ -462,13 +491,13 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
           case _ =>
         }
     }
-    1000000000 // 1 second
+    60000000000l // 60 seconds
   }
 
   def run() {
     log.info("Starting run loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
+    var nanos = 1000000000l // 1 second
     while (running.get) {
-      var nanos = 1000000000l // 1 second
       lock.lock()
       try {
         if (!conditionNotified.getAndSet(false) && nanos > 0) {
@@ -495,7 +524,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     log.info("No longer running.")
   }
 
-  def getJobsToRun(scheduledJobs: List[ScheduleBasedJob]) = {
+  def getJobsToRun(scheduledJobs: List[ScheduleBasedJob]): (List[ScheduleBasedJob], List[ScheduleBasedJob]) = {
     val now = DateTime.now(DateTimeZone.UTC)
     scheduledJobs.partition({
       job =>

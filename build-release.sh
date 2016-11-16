@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 branch=`git rev-parse --abbrev-ref HEAD`
 if [ "$branch" = "master" ]; then
@@ -23,7 +24,8 @@ mkdir -p tmp
 
 # build jar
 docker run -v `pwd`:/mnt/build --entrypoint=/bin/sh maven:3-jdk-8 -c "\
-  apt-get update && apt-get install -y --no-install-recommends nodejs \
+  curl -sL https://deb.nodesource.com/setup_7.x | bash - \
+  && apt-get update && apt-get install -y --no-install-recommends nodejs \
   && ln -sf /usr/bin/nodejs /usr/bin/node \
   && cp -r /mnt/build /chronos \
   && cd /chronos \
@@ -35,3 +37,11 @@ docker run -v `pwd`:/mnt/build --entrypoint=/bin/sh maven:3-jdk-8 -c "\
 
 # build image
 docker build -t mesosphere/chronos:$image_tag .
+
+if [ ! -z ${DOCKER_HUB_USERNAME+x} -a ! -z ${DOCKER_HUB_PASSWORD+x} ]; then
+  # login to dockerhub
+  docker login -u "${DOCKER_HUB_USERNAME}" -p "${DOCKER_HUB_PASSWORD}"
+
+  # push image
+  docker push mesosphere/chronos:$image_tag
+fi

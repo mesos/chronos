@@ -86,7 +86,7 @@ trait context extends BeforeAfter with Mockito with ThrownExpectations {
   def before = {
     actorSystem = ActorSystem()
     conf = new SchedulerConfiguration with HttpConf {}
-    conf.afterInit()
+    conf.verify()
     driverFactory = new MesosDriverFactory(mock[org.apache.mesos.Scheduler], mock[FrameworkIdUtil], conf)
     driverFactory.mesosDriver = Some(mock[SchedulerDriver])
 

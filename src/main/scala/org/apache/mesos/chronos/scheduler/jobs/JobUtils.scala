@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
  */
 object JobUtils {
 
-  val jobNamePattern = """([\w\s\.#_-]+)""".r
+  val jobNamePattern = """([\w\.-]+)""".r
   val stats = new mutable.HashMap[String, DescriptiveStatistics]()
   val maxValues = 100
   //The object mapper, which is, according to the docs, Threadsafe once configured.
@@ -58,22 +58,19 @@ object JobUtils {
 
   def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty  // when you leave the deprecated one, then it should be empty
 
-  //TODO(FL): Think about moving this back into the JobScheduler, though it might be a bit crowded.
-  def loadJobs(store: PersistenceStore) = {
-    //TODO(FL): Create functions that map strings to jobs
-    val scheduledJobs = new ListBuffer[ScheduleBasedJob]
-    val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
+  def loadJobs(store: PersistenceStore): List[BaseJob] = {
+    val validatedJobs = new ListBuffer[BaseJob]
 
     val jobs = store.getJobs
 
     jobs.foreach {
-      case d: DependencyBasedJob => dependencyBasedJobs += d
-      case s: ScheduleBasedJob => scheduledJobs += s
+      case d: DependencyBasedJob => validatedJobs += d
+      case s: ScheduleBasedJob => validatedJobs += s
       case x: Any =>
         throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
     }
 
-    scheduledJobs.toList
+    validatedJobs.toList
   }
 
   def getScheduledTime(job: ScheduleBasedJob): DateTime = {
@@ -126,7 +123,11 @@ object JobUtils {
       }
       skips
     } else {
-      Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds
+      if (jobStart.isBefore(dateTime)) {
+        Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds + 1
+      } else {
+        0
+      }
     }
   }
 

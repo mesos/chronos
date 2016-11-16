@@ -39,7 +39,6 @@ object Exporter {
       val lastErrorTime = DateTime.parse(job.lastError)
       if (lastSuccessTime.isAfter(lastErrorTime)) LastState.success
       else LastState.failure
-
     }
   }
 
