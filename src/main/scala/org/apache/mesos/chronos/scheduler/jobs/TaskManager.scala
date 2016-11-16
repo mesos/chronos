@@ -84,8 +84,6 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
       //If the job was deleted after the taskId was added to the queue, the task could be empty.
       if (jobOption.isEmpty) {
-        //remove invalid task
-        removeTask(taskId)
         None
       } else if (jobOption.get.disabled) {
         jobsObserver.apply(JobExpired(jobOption.get, taskId))
@@ -143,10 +141,6 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     queues.foreach(_.clear())
   }
 
-  def removeTask(taskId: String) {
-    persistenceStore.removeTask(taskId)
-  }
-
   def enqueue(taskId: String, highPriority: Boolean) {
     /* Don't want to change previous logging if we don't have to... */
     log.fine(s"Adding task '$taskId' to ${if (highPriority) "high priority" else ""} queue")
@@ -158,7 +152,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     val jobName = TaskUtils.getJobNameForTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
      if (jobOption.isEmpty) {
-      log.warning("Job '%s' no longer registered.".format(jobName))
+      log.warning("JobSchedule '%s' no longer registered.".format(jobName))
     } else {
         val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
         val job = jobOption.get
@@ -168,53 +162,6 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     if (config.reviveOffersForNewJobs()) {
       mesosOfferReviver.reviveOffers()
     }
-  }
-
-  /**
-   * Adds a task to the local queue, meaning it will be executed with the next resource offer. The task will be
-   * dispatched to chronos as soon as both the task is in the front of the queue and a chronos offer comes in.
-   * @param taskId task to run
-   */
-  def scheduleTask(taskId: String, job: BaseJob, persist: Boolean) {
-    scheduleDelayedTask(new ScheduledTask(taskId, DateTime.now(DateTimeZone.UTC), job, this), 0, persist)
-  }
-
-  /**
-   * Enqeueues a wrapped Task with a calculated delay, after this time, the job is added to the job queue. This means
-   * that the job is not necessarily dispatched right away, as this depends both on the time an offer comes in as well
-   * as the size of the job queue.
-   * @param task the wrapped task
-   * @param delay the delay in milliseconds
-   */
-  def scheduleDelayedTask(task: ScheduledTask, delay: Long, persist: Boolean) {
-    log.info("Scheduling task '%s' with delay: '%d'".format(task.taskId, delay))
-    if (persist) {
-      persistTask(task.taskId, task.job)
-    }
-    val futureTask = ListenableFutureTask.create(task)
-    val f = listeningExecutor.schedule(futureTask, delay, TimeUnit.MILLISECONDS)
-    taskMapping.getOrElseUpdate(task.job.name, new mutable.ListBuffer()) += ((task.taskId, f))
-  }
-
-  def persistTask(taskId: String, baseJob: BaseJob) {
-    persistenceStore.persistTask(taskId, JobUtils.toBytes(baseJob))
-  }
-
-  /**
-   * Cancels all the taskMappings
-   * @param baseJob BaseJob for which to cancel all tasks.
-   */
-  def cancelTasks(baseJob: BaseJob) {
-    taskMapping.get(baseJob.name) match {
-      case Some(i) =>
-        i.foreach({ x =>
-          log.info("Cancelling task: " + x._1)
-          x._2.cancel(true)
-        })
-      case None => log.info("No tasks found that need to be cancelled")
-    }
-    taskMapping -= baseJob.name
-    cancelMesosTasks(baseJob)
   }
 
   def cancelMesosTasks(job: BaseJob) {
@@ -228,14 +175,4 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     })
   }
 
-  /**
-   * Removes all tasks from the persistence store that belong to a job.
-   * @param baseJob BaseJob for which to remove all tasks from persistence store.
-   */
-  def removeTasks(baseJob: BaseJob) {
-    log.info("Removing all tasks for job:" + baseJob)
-    persistenceStore.getTaskIds(Some(baseJob.name)).foreach({ x =>
-      persistenceStore.removeTask(x)
-    })
-  }
 }

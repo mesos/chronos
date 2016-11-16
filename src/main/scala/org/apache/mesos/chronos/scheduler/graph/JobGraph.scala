@@ -26,7 +26,7 @@ class JobGraph {
 
   def parentJobs(job: DependencyBasedJob) = parentJobsOption(job) match {
     case None =>
-      throw new IllegalArgumentException(s"requirement failed: Job ${job.name} does not have all parents defined!")
+      throw new IllegalArgumentException(s"requirement failed: JobSchedule ${job.name} does not have all parents defined!")
     case Some(jobs) =>
       jobs
   }
@@ -62,14 +62,14 @@ class JobGraph {
 
   //TODO(FL): Documentation here and elsewhere in this file.
   def addVertex(vertex: BaseJob) {
-    log.warning("Adding vertex:" + vertex.name)
+    log.fine("Adding vertex:" + vertex.name)
     require(lookupVertex(vertex.name).isEmpty, "Vertex already exists in graph %s".format(vertex.name))
     require(!vertex.name.isEmpty, "In order to be added to the graph, the vertex must have a name")
     jobNameMapping.put(vertex.name, vertex)
     lock.synchronized {
       dag.addVertex(vertex.name)
     }
-    log.warning("Current number of vertices:" + dag.vertexSet.size)
+    log.fine("Current number of vertices:" + dag.vertexSet.size)
   }
 
   /* TODO(FL): Replace usage of this method with the hashmap */
@@ -89,8 +89,12 @@ class JobGraph {
 
   def addDependency(from: String, to: String) {
     lock.synchronized {
-      if (!dag.vertexSet.contains(from) || !dag.vertexSet.contains(to))
-        throw new NoSuchElementException("Vertex: %s not found in graph. Job rejected!".format(from))
+      if (!dag.vertexSet.contains(from)) {
+        throw new NoSuchElementException("Vertex: %s not found in graph. JobSchedule rejected!".format(from))
+      }
+      if (!dag.vertexSet.contains(to)) {
+        throw new NoSuchElementException("Vertex: %s not found in graph. JobSchedule rejected!".format(to))
+      }
       val edge = dag.addDagEdge(from, to)
       edgeInvocationCount.put(edge, 0L)
     }
@@ -99,7 +103,7 @@ class JobGraph {
   def removeDependency(from: String, to: String) {
     lock.synchronized {
       if (!dag.vertexSet.contains(from) || !dag.vertexSet.contains(to))
-        throw new NoSuchElementException("Vertex: %s not found in graph. Job rejected!".format(from))
+        throw new NoSuchElementException("Vertex: %s not found in graph. JobSchedule rejected!".format(from))
       val edge = dag.removeEdge(from, to)
       edgeInvocationCount.remove(edge)
     }
@@ -164,7 +168,7 @@ class JobGraph {
         }
       }
     }
-    log.info("Dependents: [%s]".format(results.mkString(",")))
+    log.fine("Dependents: [%s]".format(results.mkString(",")))
     results.toList
   }
 

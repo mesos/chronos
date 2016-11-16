@@ -34,9 +34,6 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("shell") && node.get("shell") != null) node.get("shell").asBoolean
       else true
 
-    val epsilon = {
-      if (node.has("epsilon")) Period.parse(node.get("epsilon").asText) else Period.seconds(JobDeserializer.config.taskEpsilon())
-    }
     val executor =
       if (node.has("executor") && node.get("executor") != null) node.get("executor").asText
       else ""
@@ -64,10 +61,6 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     val description =
       if (node.has("description") && node.get("description") != null) node.get("description").asText
       else ""
-
-    val async =
-      if (node.has("async") && node.get("async") != null) node.get("async").asBoolean
-      else false
 
     val disabled =
       if (node.has("disabled") && node.get("disabled") != null) node.get("disabled").asBoolean
@@ -220,10 +213,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         parentList += parent.asText
       }
       new DependencyBasedJob(parents = parentList.toSet,
-        name = name, command = command, epsilon = epsilon, successCount = successCount, errorCount = errorCount,
+        name = name, command = command, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
-        async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
@@ -231,9 +224,9 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     } else if (node.has("schedule")) {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
-        epsilon = epsilon, successCount = successCount, errorCount = errorCount, executor = executor,
+        successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner, ownerName = ownerName,
-        description = description, lastError = lastError, lastSuccess = lastSuccess, async = async,
+        description = description, lastError = lastError, lastSuccess = lastSuccess,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
@@ -241,10 +234,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         dataProcessingJobType = dataProcessingJobType, constraints = constraints)
     } else {
       /* schedule now */
-      new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
+      new ScheduleBasedJob("R1//PT24H", name = name, command = command, successCount = successCount,
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
-        async = async, cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        cpus = cpus, disk = disk, mem = mem, disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,

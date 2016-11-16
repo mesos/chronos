@@ -29,7 +29,7 @@ abstract case class Timestamp private (utcDateTime: DateTime) extends Ordered[Ti
 object Timestamp {
   /**
     * Returns a new Timestamp representing the instant that is the supplied
-    * dateTime converted to UTC.
+    * currentDateTime converted to UTC.
     */
   def apply(dateTime: DateTime): Timestamp = new Timestamp(dateTime.toDateTime(DateTimeZone.UTC)) {}
 

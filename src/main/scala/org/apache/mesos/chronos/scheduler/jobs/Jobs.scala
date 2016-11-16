@@ -13,7 +13,7 @@ import org.joda.time.{Minutes, Period}
  * the execution cycle is skipped.
  * @author Florian Leibert (flo@leibert.de)
  */
-//The fact that Job is a trait rather than part of this class is a problem with dropwizards json serializer which will
+//The fact that JobSchedule is a trait rather than part of this class is a problem with dropwizards json serializer which will
 //omit fields defined in superclasses but not traits.
 
 // It may be surprising that a DependencyBasedJob (DPJ) has an epsilon: If it didn't have an epsilon, and no resources
@@ -26,8 +26,6 @@ trait BaseJob {
   def name: String
 
   def command: String
-
-  def epsilon: Period = Minutes.minutes(5).toPeriod
 
   def successCount: Long = 0L
 
@@ -50,8 +48,6 @@ trait BaseJob {
   def lastSuccess: String = ""
 
   def lastError: String = ""
-
-  def async: Boolean = false
 
   def cpus: Double = 0
 
@@ -92,7 +88,6 @@ case class ScheduleBasedJob(
                              @JsonProperty schedule: String,
                              @JsonProperty override val name: String,
                              @JsonProperty override val command: String,
-                             @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,
                              @JsonProperty override val successCount: Long = 0L,
                              @JsonProperty override val errorCount: Long = 0L,
                              @JsonProperty override val executor: String = "",
@@ -104,7 +99,6 @@ case class ScheduleBasedJob(
                              @JsonProperty override val description: String = "",
                              @JsonProperty override val lastSuccess: String = "",
                              @JsonProperty override val lastError: String = "",
-                             @JsonProperty override val async: Boolean = false,
                              @JsonProperty override val cpus: Double = 0,
                              @JsonProperty override val disk: Double = 0,
                              @JsonProperty override val mem: Double = 0,
@@ -130,7 +124,6 @@ case class DependencyBasedJob(
                                @JsonProperty parents: Set[String],
                                @JsonProperty override val name: String,
                                @JsonProperty override val command: String,
-                               @JsonProperty override val epsilon: Period = Minutes.minutes(5).toPeriod,
                                @JsonProperty override val successCount: Long = 0L,
                                @JsonProperty override val errorCount: Long = 0L,
                                @JsonProperty override val executor: String = "",
@@ -142,7 +135,6 @@ case class DependencyBasedJob(
                                @JsonProperty override val description: String = "",
                                @JsonProperty override val lastSuccess: String = "",
                                @JsonProperty override val lastError: String = "",
-                               @JsonProperty override val async: Boolean = false,
                                @JsonProperty override val cpus: Double = 0,
                                @JsonProperty override val disk: Double = 0,
                                @JsonProperty override val mem: Double = 0,

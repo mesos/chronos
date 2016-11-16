@@ -40,9 +40,9 @@ class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
       LikeConstraint("rack", "rack-[1-3]")
     )
 
-    new ScheduleBasedJob("FOO/BAR/BAM", "AJob", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
+    ScheduleBasedJob("FOO/BAR/BAM", "AJob", "noop", 10L, 20L,
       "fooexec", "fooflags", "none", 7, "foo@bar.com", "Foo", "Test schedule based job", "TODAY",
-      "YESTERDAY", true, cpus = 2, disk = 3, mem = 5, container = container, environmentVariables = Seq(),
+      "YESTERDAY", cpus = 2, disk = 3, mem = 5, container = container, environmentVariables = Seq(),
       shell = true, arguments = Seq(), softError = true, constraints = constraints)
   }
 

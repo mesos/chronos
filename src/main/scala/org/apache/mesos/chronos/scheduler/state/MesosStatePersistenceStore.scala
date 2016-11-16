@@ -64,12 +64,6 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     persistData(jobName(job.name), JobUtils.toBytes(job))
   }
 
-  //TODO(FL): Think about caching tasks locally such that we don't have to query zookeeper.
-  def persistTask(name: String, data: Array[Byte]): Boolean = {
-    log.finest("Persisting task: " + name)
-    persistData(taskName(name), data)
-  }
-
   private def persistData(name: String, data: Array[Byte]): Boolean = {
     val existingVar = state.fetch(name).get
 
@@ -93,11 +87,6 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     success
   }
 
-  def removeTask(taskId: String): Boolean = {
-    log.fine("Removing task:" + taskId)
-    remove(taskName(taskId))
-  }
-
   def removeJob(job: BaseJob) {
     log.fine("Removing job:" + job.name)
     remove(jobName(job.name))
@@ -116,51 +105,6 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
       .map({
       x: String => JobUtils.fromBytes(state.fetch(x).get.value)
     })
-  }
-
-  def purgeTasks() {
-    val tasks = getTaskIds(None)
-    tasks.foreach({
-      x =>
-        log.warning("Removing task node in ZK:" + x)
-        remove(x)
-    })
-  }
-
-  def getTaskIds(filter: Option[String]): List[String] = {
-    val results = new mutable.ListBuffer[String]
-
-    import scala.collection.JavaConversions._
-    for (f: String <- state.names.get) {
-      if (f.startsWith(taskPrefix)) {
-        if (filter.isEmpty || f.contains(filter.get)) {
-          results += f.substring(taskPrefix.length)
-        }
-      }
-    }
-    results.toList
-  }
-
-  def getTasks: Map[String, Array[Byte]] = {
-    lock.synchronized {
-      val results = new mutable.HashMap[String, Array[Byte]]
-
-      import scala.collection.JavaConversions._
-      for (f: String <- state.names.get) {
-        if (f.startsWith(taskPrefix)) {
-          val taskId = f.substring(taskPrefix.length)
-          if (TaskUtils.isValidVersion(f)) {
-            val data = state.fetch(f).get.value
-            results += (taskId -> data)
-          } else {
-            log.warning("Found old incompatible version of task, deleting:" + taskId)
-            // remove(f) is easier but it should not invoke func remove directly
-            removeTask(taskId)
-          }
-        }
-      }
-      return results.toMap
-    }
   }
 
   private def remove(name: String): Boolean = {

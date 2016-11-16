@@ -64,7 +64,6 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
                             jobsObserver: JobsObserver.Observer,
                             metrics: JobMetrics): JobScheduler = {
     new JobScheduler(
-      scheduleHorizon = Seconds.seconds(config.scheduleHorizonSeconds()).toPeriod,
       taskManager = taskManager,
       jobGraph = dependencyScheduler,
       persistenceStore = persistenceStore,

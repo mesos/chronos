@@ -6,12 +6,11 @@ import org.joda.time.Period
 import org.specs2.mock._
 
 object MockJobUtils extends Mockito {
-  def mockScheduler(horizon: Period,
-                    taskManager: TaskManager,
+  def mockScheduler(taskManager: TaskManager,
                     jobGraph: JobGraph,
                     persistenceStore: PersistenceStore = mock[PersistenceStore],
                     jobsObserver: JobsObserver.Observer = mock[JobsObserver.Observer]): JobScheduler =
-    new JobScheduler(horizon, taskManager, jobGraph, persistenceStore,
+    new JobScheduler(taskManager, jobGraph, persistenceStore,
       jobMetrics = mock[JobMetrics], jobsObserver = jobsObserver)
 
   def mockFullObserver: JobsObserver.Observer = {

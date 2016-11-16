@@ -26,10 +26,6 @@ trait SchedulerConfiguration extends ScallopConf {
     descr = "The failover timeout in seconds for Mesos",
     default = Some(604800))
 
-  lazy val scheduleHorizonSeconds = opt[Int]("schedule_horizon",
-    descr = "The look-ahead time for scheduling tasks in seconds",
-    default = Some(60))
-
   lazy val clusterName = opt[String]("cluster_name",
     descr = "The name of the cluster where Chronos is run",
     default = None)
