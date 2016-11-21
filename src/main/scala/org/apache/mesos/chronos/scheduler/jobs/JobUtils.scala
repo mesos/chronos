@@ -125,8 +125,10 @@ object JobUtils {
         skips += 1
       }
       skips
-    } else {
+    } else if (period.toStandardSeconds.getSeconds > 0) {
       Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds
+    } else {
+      0 // no skip needed for non-repetitive schedule
     }
   }
 
