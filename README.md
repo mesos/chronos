@@ -14,7 +14,7 @@ It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval 
 ## Features
 
 * Web UI
-* 8601 Repeating Interval Notation
+* ISO8601 Repeating Interval Notation
 * Handles dependencies
 * Job Stats (e.g. 50th, 75th, 95th and 99th percentile timing, failure/success)
 * Job History (e.g. job duration, start time, end time, failure/success)
