@@ -169,7 +169,7 @@ class MesosJobFramework @Inject()(
   def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
     import scala.collection.JavaConverters._
 
-    tasks.groupBy(_._3).toIterable.foreach({ case (offer, subTasks) =>
+    tasks.groupBy(_._3).foreach({ case (offer, subTasks) =>
       val mesosTasks = subTasks.map(task => {
         taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
       })
@@ -213,7 +213,6 @@ class MesosJobFramework @Inject()(
         runningTasks.remove(jobName)
     }
 
-    //TOOD(FL): Add statistics for jobs
     taskStatus.getState match {
       case TaskState.TASK_FINISHED =>
         log.info("Task with id '%s' FINISHED".format(taskStatus.getTaskId.getValue))
