@@ -19,7 +19,7 @@ import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
  * @author Florian Leibert (flo@leibert.de)
  */
 class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: SchedulerConfiguration with HttpConf) extends Filter {
-  val log = Logger.getLogger(getClass.getName)
+  val log: Logger = Logger.getLogger(getClass.getName)
 
   def init(filterConfig: FilterConfig) {}
 

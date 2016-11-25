@@ -13,17 +13,17 @@
 
   <properties>
     <encoding>UTF-8</encoding>
-    <assets.dir>${basedir}/src/main/resources/assets</assets.dir>
+    <assets.dir>${basedir}/src/main/resources/ui</assets.dir>
 
     <!-- language versions -->
     <java.abi>1.8</java.abi>
-    <scala.version>2.11.7</scala.version>
-    <scala.abi>2.11.7</scala.abi>
+    <scala.version>2.11.8</scala.version>
+    <scala.abi>2.11.8</scala.abi>
 
     <!-- runtime deps versions -->
     <akka.version>2.3.16</akka.version>
     <cassandra-driver-core.version>3.1.2</cassandra-driver-core.version>
-    <chaos.version>0.8.4</chaos.version>
+    <chaos.version>0.8.7</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
     <curator-framework.version>2.11.0</curator-framework.version>
     <guava.version>16.0.1</guava.version>
@@ -266,7 +266,13 @@
     <resources>
       <resource>
         <targetPath>assets</targetPath>
-        <directory>src/main/resources/assets/app</directory>
+        <directory>src/main/resources/ui/build</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
       </resource>
     </resources>
     <pluginManagement>
@@ -449,10 +455,9 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>src/main/resources/assets</directory>
+              <directory>src/main/resources/ui</directory>
               <includes>
-                <include>build/**</include>
-                <include>build</include>
+                <include>assets/js/bundle.js</include>
               </includes>
               <followSymlinks>false</followSymlinks>
             </fileset>
@@ -466,7 +471,7 @@
         <version>${maven-antrun-plugin.version}</version>
         <executions>
           <execution>
-            <id>ant-run-requirejs</id>
+            <id>ant-run-npm</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>run</goal>
@@ -474,8 +479,6 @@
             <configuration>
               <target>
                 <property name="compile_classpath" refid="maven.compile.classpath"/>
-                <property name="configFile" value="${assets.dir}/app.build.js"/>
-                <property name="optimizerFile" value="${assets.dir}/r.js"/>
                 <property name="sourceDir" value="${assets.dir}"/>
                 <property name="failOnError" value="true"/>
                 <ant antfile="${basedir}/build.xml">

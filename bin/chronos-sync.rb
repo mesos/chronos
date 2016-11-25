@@ -69,11 +69,11 @@ end
 json = nil
 if !options.validate
   if (defined? options.http_auth_user) && (defined? options.http_auth_pass)
-    open("#{options.uri}/scheduler/jobs", :http_basic_authentication => ["#{options.http_auth_user}", "#{options.http_auth_pass}"]) do |f|
+    open("#{options.uri}/v1/scheduler/jobs", :http_basic_authentication => ["#{options.http_auth_user}", "#{options.http_auth_pass}"]) do |f|
       json = parse_scheduler_jobs(f)
     end
   else
-    open("#{options.uri}/scheduler/jobs") do |f|
+    open("#{options.uri}/v1/scheduler/jobs") do |f|
       json = parse_scheduler_jobs(f)
     end
   end
@@ -395,13 +395,13 @@ if !options.skip_sync
     else
       method = 'dependency'
     end
-    uri = URI("#{options.uri}/scheduler/#{method}")
-    req = Net::HTTP::Put.new(uri.request_uri)
+    uri = URI("#{options.uri}/v1/scheduler/#{method}")
+    req = Net::HTTP::Post.new(uri.request_uri)
     req.body = JSON.generate(job)
     req.content_type = 'application/json'
     req.basic_auth options.http_auth_user, options.http_auth_pass if (defined? options.http_auth_user)
 
-    puts "Sending PUT for `#{job['name']}` to #{uri.request_uri}"
+    puts "Sending POST for `#{job['name']}` to #{uri.request_uri}"
 
     begin
       res = Net::HTTP.start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https') do |http|
@@ -427,7 +427,7 @@ if !options.skip_sync
 end
 
 def delete_job(options, job_name)
-  uri = URI("#{options.uri}/scheduler/job/#{job_name}")
+  uri = URI("#{options.uri}/v1/scheduler/job/#{job_name}")
   req = Net::HTTP::Delete.new(uri.request_uri)
   req.basic_auth options.http_auth_user, options.http_auth_pass if (defined? options.http_auth_user)
 

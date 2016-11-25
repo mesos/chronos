@@ -11,8 +11,8 @@ import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.curator.utils.EnsurePath
 import org.apache.mesos.state.{State, ZooKeeperState}
+import org.apache.zookeeper.KeeperException
 
 /**
  * Guice glue-code for zookeeper related things.
@@ -29,13 +29,19 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideZookeeperClient(): CuratorFramework = {
-    val curator = CuratorFrameworkFactory.builder()
+    val builder = CuratorFrameworkFactory.builder()
       .connectionTimeoutMs(config.zooKeeperTimeout().toInt)
       .canBeReadOnly(false)
       .connectString(validateZkServers())
-      .authorization(getAuthScheme, getAuthBytes)
       .retryPolicy(new ExponentialBackoffRetry(1000, 10))
-      .build()
+
+    config.zooKeeperAuth.get match {
+      case Some(s) =>
+        builder.authorization("digest", s.getBytes())
+      case _ =>
+    }
+
+    val curator = builder.build()
 
     curator.start()
     log.info("Connecting to ZK...")
@@ -44,17 +50,18 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   }
 
   private def getAuthScheme: String = {
-    if (config.zooKeeperAuth.isDefined) {
-      return "digest"
+    config.zooKeeperAuth.get match {
+      case Some(_) =>
+        "digest"
+      case _ => null
     }
-    null
   }
 
   private def getAuthBytes: Array[Byte] = {
-    if (config.zooKeeperAuth.isDefined) {
-      return config.zooKeeperAuth().getBytes()
+    config.zooKeeperAuth.get match {
+      case Some(s) => s.getBytes()
+      case _ => null
     }
-    null
   }
 
   private def validateZkServers(): String = {
@@ -89,11 +96,13 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Inject
   @Singleton
   @Provides
-  def provideStore(zk: CuratorFramework, state: State): PersistenceStore = {
-    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperStatePath)
-    ensurePath.ensure(zk.getZookeeperClient)
-
-    new MesosStatePersistenceStore(zk, config, state)
+  def provideStore(curator: CuratorFramework, state: State): PersistenceStore = {
+    scala.util.control.Exception.ignoring(classOf[KeeperException.NodeExistsException ]) {
+      curator.create()
+        .creatingParentContainersIfNeeded()
+        .forPath(config.zooKeeperStatePath)
+    }
+    new MesosStatePersistenceStore(curator, config, state)
   }
 
   @Provides
@@ -106,10 +115,14 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideLeaderLatch(curator: CuratorFramework): LeaderLatch = {
-    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperCandidatePath)
-    ensurePath.ensure(curator.getZookeeperClient)
-
     val id = "%s:%d".format(config.hostname(), config.httpPort())
+
+    scala.util.control.Exception.ignoring(classOf[KeeperException.NodeExistsException ]) {
+        curator.create()
+      .creatingParentContainersIfNeeded()
+      .forPath(config.zooKeeperCandidatePath)
+    }
+
     new LeaderLatch(curator, config.zooKeeperCandidatePath, id)
   }
 }

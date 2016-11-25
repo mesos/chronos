@@ -3,7 +3,7 @@ language: scala
 addons:
   apt:
     packages:
-      - nodejs
+      - npm
 install: true # disable travis' default mvn install before running the tests
 scala:
   - "2.11.2"

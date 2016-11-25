@@ -8,12 +8,11 @@ import javax.ws.rs.core.{MediaType, Response}
 import org.apache.mesos.chronos.scheduler.config.{CassandraConfiguration, SchedulerConfiguration}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-
 import com.codahale.metrics.annotation.Timed
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.jobs.graph.Exporter
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.joda.time.{DateTime, DateTimeZone}
 
@@ -100,7 +99,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         }
       }
       // No need to send notifications here, the jobScheduler.deregisterJob will do it
-      jobScheduler.deregisterJob(job, persist = true)
+      jobScheduler.deregisterJob(job)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException => {
@@ -120,7 +119,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   def getStat(@PathParam("jobName") jobName: String): Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
-      require(jobOpt.nonEmpty, "JobSchedule '%s' not found".format(jobName))
+      require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
 
       val histoStats = jobMetrics.getJobHistogramStats(jobName)
       val jobStatsList: List[TaskStat] = jobStats.getMostRecentTaskStatsByJob(jobOpt.get, cassandraConfig.jobHistoryLimit())
@@ -146,12 +145,31 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               @QueryParam("arguments") arguments: String
                ): Response = {
     try {
-      require(jobGraph.lookupVertex(jobName).isDefined, "JobSchedule '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
       jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0, Option(arguments).filter(_.trim.nonEmpty))
         , job.highPriority)
       Response.noContent().build
+    } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+          .build()
+      case ex: Exception =>
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        Response.serverError().build
+    }
+  }
+
+  @Path(PathConstants.jobPatternPath)
+  @GET
+  @Timed
+  def trigger(@PathParam("jobName") jobName: String): Response = {
+    try {
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+      val job = jobGraph.getJobForName(jobName).get
+      Response.ok(job).build()
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
@@ -237,6 +255,33 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
             else                j.copy(uris =  j.fetch.map { _.uri })
         }
       Response.ok(jobs).build
+    } catch {
+      case ex: Exception =>
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  @Path(PathConstants.jobSummaryPath)
+  @GET
+  @Timed
+  def getSummary(): Response = {
+    try {
+      import scala.collection.JavaConversions._
+      val jobs = jobGraph.dag.vertexSet()
+        .flatMap { jobGraph.getJobForName }
+        .map {
+          job =>
+            val state = Exporter.getLastState(job).toString
+            val status = jobStats.getJobState(job.name).toString
+            job match {
+              case s: ScheduleBasedJob =>
+                new JobSummary(job.name, state, status, s.schedule, List(), job.disabled)
+              case d: DependencyBasedJob =>
+                new JobSummary(job.name, state, status, "", d.parents.toList, job.disabled)
+            }
+        }
+      Response.ok(new JobSummaryWrapper(jobs.toList)).build
     } catch {
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)

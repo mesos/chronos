@@ -60,7 +60,6 @@ class JobGraph {
     jobNameMapping.put(oldVertex.name, newVertex)
   }
 
-  //TODO(FL): Documentation here and elsewhere in this file.
   def addVertex(vertex: BaseJob) {
     log.fine("Adding vertex:" + vertex.name)
     require(lookupVertex(vertex.name).isEmpty, "Vertex already exists in graph %s".format(vertex.name))

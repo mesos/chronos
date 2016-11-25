@@ -68,7 +68,7 @@ class MesosJobFramework @Inject()(
     (
       getScalarValueOrElse(reservedResources.find(x => x.getName == "cpus"), 0),
       getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0)
-      )
+    )
   }
 
   def getScalarValueOrElse(opt: Option[Resource], value: Double): Double = {

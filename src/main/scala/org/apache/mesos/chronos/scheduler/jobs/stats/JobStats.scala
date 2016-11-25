@@ -55,10 +55,10 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   }
 
   def updateJobState(jobName: String, nextState: CurrentState.Value) {
-    val shouldUpdate = jobStates.get(jobName).map {
+    val shouldUpdate = jobStates.get(jobName).forall {
       currentState =>
         !(currentState == CurrentState.running && nextState == CurrentState.queued)
-    }.getOrElse(true)
+    }
 
     if (shouldUpdate) {
       log.info("Updating state for job (%s) to %s".format(jobName, nextState))
