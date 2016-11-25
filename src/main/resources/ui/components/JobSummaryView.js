@@ -18,11 +18,22 @@ class JobSummaryView extends React.Component {
       )
     }
   }
+  getNameTd(job) {
+    if (job.disabled) {
+      return (
+        <td data-container="body" data-toggle="tooltip" data-placement="top" title="Job is disabled"><s>{job.name}</s></td>
+      )
+    } else {
+      return (
+        <td>{job.name}</td>
+      )
+    }
+  }
   render() {
     const job = this.props.job;
     return (
       <tr>
-        <td>{this.disabledWrap(job, job.name)}</td>
+        {this.getNameTd(job)}
         <td className={job.nextExpected === "OVERDUE" ? "danger" : null} data-container="body" data-toggle="tooltip" data-placement="top" title={job.schedule}>{job.nextExpected}</td>
         <td className={this.getStatusClass(job)}>{job.status}</td>
         <td className={this.getStateClass(job)}>{job.state}</td>

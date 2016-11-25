@@ -39,7 +39,7 @@ export default class JobForm {
     },
     parents: {
       name: "parents",
-      label: "Parent jobs",
+      label: "Parent Jobs",
       description: "Job parents",
       sync: this.syncParentsField,
       error: "",
@@ -48,6 +48,7 @@ export default class JobForm {
       valid: false,
       type: "multiselect",
       advanced: false,
+      getOptions: this.getParentsOptions,
     },
     command: {
       name: "command",
@@ -60,6 +61,31 @@ export default class JobForm {
       valid: false,
       type: "textinput",
       advanced: false,
+    },
+    container_image: {
+      name: "container.image",
+      label: "Container Image",
+      description: "Container image name",
+      sync: this.syncContainerName,
+      value: "",
+      defaultValue: "",
+      error: "",
+      valid: true,
+      type: "textinput",
+      advanced: true,
+    },
+    container_network: {
+      name: "container.network",
+      label: "Container Network",
+      description: "Container network type",
+      sync: this.syncContainerNetwork,
+      value: "BRIDGE",
+      defaultValue: "BRIDGE",
+      error: "",
+      valid: true,
+      type: "select",
+      advanced: true,
+      getOptions: this.getNetworkOptions,
     },
     cpus: {
       name: "cpus",
@@ -111,7 +137,7 @@ export default class JobForm {
     },
     ownerName: {
       name: "ownerName",
-      label: "Owner name",
+      label: "Owner Name",
       description: "Own name",
       sync: this.syncStringField,
       value: "",
@@ -133,12 +159,37 @@ export default class JobForm {
       if (this.scheduled && v.name === "parents") {
         return false
       }
+      if (v.name === "command" &&
+          this.fields.container_image.value &&
+          this.fields.container_image.valid) {
+        return false
+      }
       if (!v.valid) {
         hasError = true
         return true
       }
     })
     return hasError ? "disabled" : ""
+  }
+
+  getParentsOptions(jobSummaryStore) {
+    var options = []
+    jobSummaryStore.jobNames.forEach(j => {
+      options.push({label: j, value: j})
+    })
+    return options
+  }
+
+  getNetworkOptions(jobSummaryStore) {
+    return [
+      {label: "BRIDGE", value: "BRIDGE"},
+      {label: "HOST", value: "HOST"},
+    ]
+    var options = []
+    jobSummaryStore.jobNames.forEach(j => {
+      options.push({label: j, value: j})
+    })
+    return options
   }
 
   syncNameField(event, field) {
@@ -216,6 +267,25 @@ export default class JobForm {
     field.value = value
   }
 
+  syncContainerName(event, field) {
+    var value = event.target.value
+    if (value) {
+      if (!value.match(/^[a-z0-9\/:]+$/)) {
+        field.valid = false
+        field.error = field.label + " must match regex /^[a-z0-9\/:]+$/"
+      } else {
+        field.valid = true
+        field.error = ""
+      }
+    }
+    field.value = value
+  }
+
+  syncContainerNetwork(value, field) {
+    field.valid = true
+    field.value = value
+  }
+
   constructor(scheduled) {
     this.scheduled = scheduled
     this.allFields = [
@@ -223,6 +293,8 @@ export default class JobForm {
       this.fields.schedule,
       this.fields.parents,
       this.fields.command,
+      this.fields.container_image,
+      this.fields.container_network,
       this.fields.cpus,
       this.fields.mem,
       this.fields.disk,

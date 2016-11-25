@@ -105,12 +105,8 @@ NumberInput.propTypes = {
 
 @observer
 class MultiSelectInput extends React.Component {
-  dependentOptions() {
-    var options = []
-    this.props.jobSummaryStore.jobNames.forEach(j => {
-      options.push({label: j, value: j})
-    })
-    return options
+  getOptions() {
+    return this.props.field.getOptions(this.props.jobSummaryStore)
   }
   render() {
     const field = this.props.field
@@ -121,7 +117,7 @@ class MultiSelectInput extends React.Component {
           <Select
             multi
             simpleValue
-            options={this.dependentOptions()}
+            options={this.getOptions()}
             name={field.name}
             id={"sf-"+field.name}
             aria-describedby={"sf-"+field.name+"-status"}
@@ -142,6 +138,39 @@ MultiSelectInput.propTypes = {
 }
 
 @observer
+class SelectInput extends React.Component {
+  getOptions() {
+    return this.props.field.getOptions(this.props.jobSummaryStore)
+  }
+  render() {
+    const field = this.props.field
+    return (
+      <div className="form-group">
+        <label className="control-label col-sm-3" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-sm-9">
+          <Select
+            simpleValue
+            options={this.getOptions()}
+            name={field.name}
+            id={"sf-"+field.name}
+            aria-describedby={"sf-"+field.name+"-status"}
+            onChange={(value) => field.sync(value, field)}
+            value={field.value}
+            />
+          <span id={"sf-"+field.name+"-status"} className="sr-only">{field.error}</span>
+          {field.error ? <p>{field.error}</p> : null}
+        </div>
+      </div>
+    )
+  }
+}
+
+SelectInput.propTypes = {
+  field: React.PropTypes.object.isRequired,
+  jobSummaryStore: React.PropTypes.object.isRequired,
+}
+
+@observer
 class Input extends React.Component {
   render() {
     const field = this.props.field
@@ -155,6 +184,14 @@ class Input extends React.Component {
     if (field.type === "multiselect") {
       return (
         <MultiSelectInput
+          field={field}
+          jobSummaryStore={this.props.jobSummaryStore}
+          />
+      )
+    }
+    if (field.type === "select") {
+      return (
+        <SelectInput
           field={field}
           jobSummaryStore={this.props.jobSummaryStore}
           />
