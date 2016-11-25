@@ -3,7 +3,9 @@ set -e
 
 branch=`git rev-parse --abbrev-ref HEAD`
 if [ "$branch" = "master" ]; then
+  set +e # ignore error of following command
   tag=`git describe --exact-match --tags HEAD`
+  set -e
   exit_code=$?
   if [ $exit_code = 0 ]; then
     image_tag=`git describe --tags`
