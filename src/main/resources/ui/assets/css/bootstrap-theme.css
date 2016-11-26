@@ -9,6 +9,11 @@ p, div, span {
 .tooltip-inner {
     max-width: 350px;
 }
+@media screen and (min-width: 768px) {
+    .custom-modal {
+        width: 90%; /* either % (e.g. 60%) or px (400px) */
+    }
+}
 .btn-default,
 .btn-primary,
 .btn-success,

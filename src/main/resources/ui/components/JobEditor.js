@@ -2,6 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import JobForm from '../models/JobForm'
 import Select from 'react-select'
+import $ from 'jquery'
 
 $(document).ready(function() {
   $('.collapse').on('shown.bs.collapse', function() {
@@ -15,11 +16,11 @@ $(document).ready(function() {
 class TextInput extends React.Component {
   getGroupClassName(field) {
     if (field.error) {
-      return "form-group has-error has-feedback"
+      return "has-error has-feedback"
     } else if (field.value) {
-      return "form-group has-success has-feedback"
+      return "has-success has-feedback"
     }
-    return "form-group"
+    return ""
   }
   getFieldIcon(field) {
     if (field.error) {
@@ -33,8 +34,8 @@ class TextInput extends React.Component {
     const field = this.props.field
     return (
       <div className={this.getGroupClassName(field)}>
-        <label className="control-label col-sm-3" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-sm-9">
+        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-md-3">
           <input
             type="text"
             className="form-control"
@@ -61,11 +62,11 @@ TextInput.propTypes = {
 class NumberInput extends React.Component {
   getGroupClassName(field) {
     if (field.error) {
-      return "form-group has-error has-feedback"
+      return "has-error has-feedback"
     } else if (field.value) {
-      return "form-group has-success has-feedback"
+      return "has-success has-feedback"
     }
-    return "form-group"
+    return ""
   }
   getFieldIcon(field) {
     if (field.error) {
@@ -79,8 +80,8 @@ class NumberInput extends React.Component {
     const field = this.props.field
     return (
       <div className={this.getGroupClassName(field)}>
-        <label className="control-label col-sm-3" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-sm-9">
+        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-md-3">
           <input
             type="number"
             className="form-control"
@@ -111,9 +112,9 @@ class MultiSelectInput extends React.Component {
   render() {
     const field = this.props.field
     return (
-      <div className="form-group">
-        <label className="control-label col-sm-3" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-sm-9">
+      <div>
+        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-md-3">
           <Select
             multi
             simpleValue
@@ -145,9 +146,9 @@ class SelectInput extends React.Component {
   render() {
     const field = this.props.field
     return (
-      <div className="form-group">
-        <label className="control-label col-sm-3" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-sm-9">
+      <div className="">
+        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-md-3">
           <Select
             simpleValue
             options={this.getOptions()}
@@ -236,20 +237,33 @@ class ModalComponent extends React.Component {
   render() {
     const jobForm = this.props.jobForm
     var normalFields = []
+    var _normalFields = []
     var advancedFields = []
+    var _advancedFields = []
     this.props.jobForm.allFields.forEach(f => {
       if (f.name === "schedule" && !jobForm.scheduled) return
       if (f.name === "scheduleTimeZone" && !jobForm.scheduled) return
       if (f.name === "parents" && jobForm.scheduled) return
       if (f.advanced) {
-        advancedFields.push(<Input key={f.name} field={f} jobSummaryStore={this.props.jobSummaryStore} />)
+        _advancedFields.push(<Input key={f.name} field={f} jobSummaryStore={this.props.jobSummaryStore} />)
+        if (_advancedFields.length >= 3) {
+          advancedFields.push(<div className="row">{_advancedFields}</div>)
+          advancedFields.push(<div className="clearfix visible-xs-block"></div>)
+          _advancedFields = []
+        }
       } else {
-        normalFields.push(<Input key={f.name} field={f} jobSummaryStore={this.props.jobSummaryStore} />)
+        _normalFields.push(<Input key={f.name} field={f} jobSummaryStore={this.props.jobSummaryStore} />)
+        if (_normalFields.length >= 3) {
+          normalFields.push(<div className="row">{_normalFields}</div>)
+          _normalFields = []
+        }
       }
     })
+    normalFields.push(<div className="row">{_normalFields}</div>)
+    advancedFields.push(<div className="row">{_advancedFields}</div>)
     return (
       <div className="modal fade" id={this.typeName() + "-job-editor-modal"} tabIndex="-1" role="dialog" aria-labelledby="mymodallabel">
-        <div className="modal-dialog" role="document">
+        <div className="modal-dialog custom-modal" role="document">
           <div className="modal-content">
             <div className="modal-header">
               <button type="button" className="close" data-dismiss="modal" aria-label="close"><span aria-hidden="true">&times;</span></button>
@@ -258,7 +272,11 @@ class ModalComponent extends React.Component {
             <form className="form-horizontal" id={this.typeName() + "-job-editor-form"} onSubmit={jobForm.onSubmit.bind(jobForm)}>
               <div className="modal-body">
                 {this.alertField()}
-                {normalFields}
+                <div className="panel-group">
+                  <div className="container">
+                    {normalFields}
+                  </div>
+                </div>
                 <div className="panel-group">
                   <div className="panel panel-default">
                     <div className="panel-heading">
@@ -270,7 +288,9 @@ class ModalComponent extends React.Component {
                     </div>
                     <div id={"collapse" + this.typeName()} className="panel-collapse collapse">
                       <div className="panel-body">
-                        {advancedFields}
+                        <div className="container">
+                          {advancedFields}
+                        </div>
                       </div>
                     </div>
                   </div>

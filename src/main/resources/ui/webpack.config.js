@@ -1,5 +1,6 @@
 var path = require('path');
 var webpack = require('webpack');
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 module.exports = {
   devtool: 'eval',
@@ -21,6 +22,11 @@ module.exports = {
       __CLIENT__: JSON.stringify(true),
       __SERVER__: JSON.stringify(false),
     }),
+    new webpack.ProvidePlugin({
+        jQuery: 'jquery',
+        $: 'jquery',
+        jquery: 'jquery'
+    }),
   ],
   resolve: {
     extensions: ['', '.js', '.jsx']
@@ -30,6 +36,7 @@ module.exports = {
       test: /\.jsx?$/,
       loader: 'babel',
       exclude: /(node_modules)/,
-    }]
+    },
+  ]
   }
 };
