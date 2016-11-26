@@ -15,7 +15,7 @@
   "scripts": {
     "start": "node bin/server.js",
     "dev": "webpack --progress --colors",
-    "build": "webpack --progress --colors --config webpack-release.config.js",
+    "build": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack-release.config.js",
     "lint": "eslint src"
   },
   "devDependencies": {
