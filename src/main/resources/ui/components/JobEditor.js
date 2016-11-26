@@ -34,8 +34,8 @@ class TextInput extends React.Component {
     const field = this.props.field
     return (
       <div className={this.getGroupClassName(field)}>
-        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-md-3">
+        <label className="control-label col-sm-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-sm-3">
           <input
             type="text"
             className="form-control"
@@ -80,8 +80,8 @@ class NumberInput extends React.Component {
     const field = this.props.field
     return (
       <div className={this.getGroupClassName(field)}>
-        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-md-3">
+        <label className="control-label col-sm-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-sm-3">
           <input
             type="number"
             className="form-control"
@@ -113,8 +113,8 @@ class MultiSelectInput extends React.Component {
     const field = this.props.field
     return (
       <div>
-        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-md-3">
+        <label className="control-label col-sm-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-sm-3">
           <Select
             multi
             simpleValue
@@ -147,8 +147,8 @@ class SelectInput extends React.Component {
     const field = this.props.field
     return (
       <div className="">
-        <label className="control-label col-md-1" htmlFor={"sf-"+field.name}>{field.label}</label>
-        <div className="col-md-3">
+        <label className="control-label col-sm-1" htmlFor={"sf-"+field.name}>{field.label}</label>
+        <div className="col-sm-3">
           <Select
             simpleValue
             options={this.getOptions()}
@@ -240,6 +240,7 @@ class ModalComponent extends React.Component {
     var _normalFields = []
     var advancedFields = []
     var _advancedFields = []
+    var counter = 0
     this.props.jobForm.allFields.forEach(f => {
       if (f.name === "schedule" && !jobForm.scheduled) return
       if (f.name === "scheduleTimeZone" && !jobForm.scheduled) return
@@ -247,20 +248,21 @@ class ModalComponent extends React.Component {
       if (f.advanced) {
         _advancedFields.push(<Input key={f.name} field={f} jobSummaryStore={this.props.jobSummaryStore} />)
         if (_advancedFields.length >= 3) {
-          advancedFields.push(<div className="row">{_advancedFields}</div>)
-          advancedFields.push(<div className="clearfix visible-xs-block"></div>)
+          advancedFields.push(<div key={counter++} className="row">{_advancedFields}</div>)
+          advancedFields.push(<div key={counter++} className="clearfix visible-xs-block"></div>)
           _advancedFields = []
         }
       } else {
         _normalFields.push(<Input key={f.name} field={f} jobSummaryStore={this.props.jobSummaryStore} />)
         if (_normalFields.length >= 3) {
-          normalFields.push(<div className="row">{_normalFields}</div>)
+          normalFields.push(<div key={counter++} className="row">{_normalFields}</div>)
+          normalFields.push(<div key={counter++} className="clearfix visible-xs-block"></div>)
           _normalFields = []
         }
       }
     })
-    normalFields.push(<div className="row">{_normalFields}</div>)
-    advancedFields.push(<div className="row">{_advancedFields}</div>)
+    normalFields.push(<div key={counter++} className="row">{_normalFields}</div>)
+    advancedFields.push(<div key={counter++} className="row">{_advancedFields}</div>)
     return (
       <div className="modal fade" id={this.typeName() + "-job-editor-modal"} tabIndex="-1" role="dialog" aria-labelledby="mymodallabel">
         <div className="modal-dialog custom-modal" role="document">
@@ -273,7 +275,7 @@ class ModalComponent extends React.Component {
               <div className="modal-body">
                 {this.alertField()}
                 <div className="panel-group">
-                  <div className="container">
+                  <div className="container-fluid">
                     {normalFields}
                   </div>
                 </div>
@@ -288,7 +290,7 @@ class ModalComponent extends React.Component {
                     </div>
                     <div id={"collapse" + this.typeName()} className="panel-collapse collapse">
                       <div className="panel-body">
-                        <div className="container">
+                        <div className="container-fluid">
                           {advancedFields}
                         </div>
                       </div>
