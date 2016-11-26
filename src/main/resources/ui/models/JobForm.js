@@ -85,7 +85,20 @@ export default class JobForm {
       valid: true,
       type: "select",
       advanced: true,
-      getOptions: this.getNetworkOptions,
+      getOptions: this.getContainerNetworkOptions,
+    },
+    container_type: {
+      name: "container.type",
+      label: "Container Type",
+      description: "Container type",
+      sync: this.syncContainerType,
+      value: "DOCKER",
+      defaultValue: "DOCKER",
+      error: "",
+      valid: true,
+      type: "select",
+      advanced: true,
+      getOptions: this.getContainerTypeOptions,
     },
     cpus: {
       name: "cpus",
@@ -180,10 +193,21 @@ export default class JobForm {
     return options
   }
 
-  getNetworkOptions(jobSummaryStore) {
+  getContainerNetworkOptions(jobSummaryStore) {
     return [
       {label: "BRIDGE", value: "BRIDGE"},
       {label: "HOST", value: "HOST"},
+    ]
+    var options = []
+    jobSummaryStore.jobNames.forEach(j => {
+      options.push({label: j, value: j})
+    })
+    return options
+  }
+
+  getContainerTypeOptions(jobSummaryStore) {
+    return [
+      {label: "DOCKER", value: "DOCKER"},
     ]
     var options = []
     jobSummaryStore.jobNames.forEach(j => {
@@ -286,6 +310,11 @@ export default class JobForm {
     field.value = value
   }
 
+  syncContainerType(value, field) {
+    field.valid = true
+    field.value = value
+  }
+
   constructor(scheduled) {
     this.scheduled = scheduled
     this.allFields = [
@@ -295,6 +324,7 @@ export default class JobForm {
       this.fields.command,
       this.fields.container_image,
       this.fields.container_network,
+      this.fields.container_type,
       this.fields.cpus,
       this.fields.mem,
       this.fields.disk,
@@ -352,7 +382,25 @@ export default class JobForm {
         if (v.name === "parents") {
           obj[v.name] = v.value.split(",")
         } else {
-          obj[v.name] = v.value
+          if (v.name.split(".").length > 1) {
+            // handle nested values
+            var splat = v.name.split(".").reverse()
+            var unflatten = function(obj, remaining) {
+              var n = remaining.pop()
+              if (remaining.length > 0) {
+                if (!(n in obj)) {
+                  obj[n] = Object.create(null)
+                }
+                unflatten(obj[n], remaining)
+              } else {
+                // this is the final value, store it
+                obj[n] = v.value
+              }
+            }
+            unflatten(obj, splat)
+          } else {
+            obj[v.name] = v.value
+          }
         }
       }
     })
