@@ -35,10 +35,7 @@ app.get('/', function(req, res) {
 	  </head>
 	  <body>
 	    <div id="root" />
-	    <script type="text/javascript" src="assets/js/jquery-3.1.1.min.js" charset="utf-8"></script>
-	    <script type="text/javascript" src="assets/js/bootstrap.min.js" charset="utf-8"></script>
 	    <script type="text/javascript" src="assets/js/bundle.js" charset="utf-8"></script>
-	    <script type="text/javascript" src="assets/js/react-select.min.js" charset="utf-8"></script>
 	  </body>
 	</html>
 	`

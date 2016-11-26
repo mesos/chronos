@@ -1,5 +1,6 @@
 import {observable, computed, autorun} from 'mobx';
 import JobSummaryModel from '../models/JobSummaryModel'
+import $ from 'jquery'
 
 export class JobSummaryStore {
   @observable jobSummarys = new Array;

@@ -1,5 +1,7 @@
 import React from 'react'
 import {observer} from 'mobx-react'
+import $ from 'jquery'
+import 'bootstrap'
 
 $(document).ready(function(){
   $('[data-toggle="tooltip"]').tooltip()
