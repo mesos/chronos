@@ -19,6 +19,7 @@ title: Chronos Resources
 ## Libraries
 
 * [Go Chronos Client](https://github.com/yieldbot/chronos-client)
+* [Python Chronos Client](https://github.com/asher/chronos-python)
 
 ## Tools
 
