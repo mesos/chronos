@@ -1,15 +1,27 @@
-FROM java:8-jre
+FROM ubuntu:14.04
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
-    && echo "deb http://repos.mesosphere.com/debian jessie-unstable main" | tee /etc/apt/sources.list.d/mesosphere.list \
-    && echo "deb http://repos.mesosphere.com/debian jessie-testing main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
-    && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y --force-yes mesos=1.0.1-2.0.93.debian81 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN echo "deb http://repos.mesosphere.io/ubuntu/ trusty main" > /etc/apt/sources.list.d/mesosphere.list && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF && \
+    apt-get update && \
+    apt-get install --no-install-recommends -y maven \
+    npm \
+    default-jdk \
+    mesos \
+    scala \
+    curl && \
+    apt-get clean all && \
+    ln -s /usr/bin/nodejs /usr/bin/node
 
+ADD . /chronos
 
-ADD ./tmp/chronos.jar /chronos/chronos.jar
-ADD bin/start.sh /chronos/bin/start.sh
-ENTRYPOINT ["/chronos/bin/start.sh"]
+RUN cd /chronos && \
+    mvn -Dmaven.test.skip=true clean package && \
+    mv target/chronos*jar /chronos.jar && \
+    mv bin/entrypoint.sh /entrypoint.sh && \
+    cd / && rm -rf /chronos && \
+    dpkg --purge npm scala && \
+    rm -rf /var/lib/apt/lists/*
+
+EXPOSE 8080
+
+ENTRYPOINT ["/entrypoint.sh"]
