@@ -98,7 +98,7 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
       --mesos_authentication_secret_file  <arg>   Mesos Authentication Secret
       --mesos_checkpoint                          Enable checkpointing in Mesos
       --mesos_framework_name  <arg>               The framework name
-                                                  (default = chronos-2.3.5-SNAPSHOT)
+                                                  (default = chronos)
       --mesos_role  <arg>                         The Mesos role to run tasks
                                                   under (default = *)
       --mesos_task_cpu  <arg>                     Number of CPUs to request from

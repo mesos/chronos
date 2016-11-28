@@ -100,12 +100,9 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val taskEpsilon = opt[Int]("task_epsilon",
     descr = "The default epsilon value for tasks, in seconds",
     default = Some(60))
-  // Chronos version
-  lazy val version =
-    Option(classOf[SchedulerConfiguration].getPackage.getImplementationVersion).getOrElse("unknown")
   lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
     descr = "The framework name",
-    default = Some("chronos-" + version))
+    default = Some("chronos"))
   lazy val webuiUrl = opt[String]("webui_url",
     descr = "The http(s) url of the web ui, defaulting to the advertised hostname",
     noshort = true,
