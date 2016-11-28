@@ -107,7 +107,7 @@ trait SchedulerConfiguration extends ScallopConf {
     Option(classOf[SchedulerConfiguration].getPackage.getImplementationVersion).getOrElse("unknown")
   lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
     descr = "The framework name",
-    default = Some("chronos-" + version))
+    default = Some("chronos"))
   lazy val webuiUrl = opt[String]("webui_url",
     descr = "The http(s) url of the web ui, defaulting to the advertised hostname",
     noshort = true,
