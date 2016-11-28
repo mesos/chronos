@@ -30,6 +30,16 @@ Chronos registers itself with [ZooKeeper][ZooKeeper] at the location `/chronos/s
 ### <a name="chronos-cassandra"></a>How does Chronos use Cassandra?
 
 Chronos can optionally use [Cassandra] for job history, reporting and statistics. By default, Chronos attempts to connect to the `metrics` keyspace.
+To use this feature, you must at a minimum:
+
+1. Create a keyspace (named `metrics` and configurable with `--cassandra_keyspace`)
+    ```sql
+    CREATE KEYSPACE IF NOT EXISTS metrics
+    WITH REPLICATION = {
+      'class' : 'SimpleStrategy', 'replication_factor' : 3
+    };
+    ```
+1. Pass the `--cassandra_contact_points` flag to Chronos with a comma-separated list of Cassandra contact points
 
 ### <a name="osx-mesos"></a>[osx] Making Mesos fails on deprecated header warning
 
