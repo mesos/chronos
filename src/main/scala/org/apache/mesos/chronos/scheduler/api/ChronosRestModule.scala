@@ -52,6 +52,7 @@ class ChronosRestModule extends ServletModule {
     bind(classOf[MetricsServlet]).in(Scopes.SINGLETON)
     bind(classOf[LogConfigServlet]).in(Scopes.SINGLETON)
     bind(classOf[ConstraintViolationExceptionMapper]).in(Scopes.SINGLETON)
+    bind(classOf[LeaderResource]).in(Scopes.SINGLETON)
 
     serve(pingUrl).`with`(classOf[PingServlet])
     serve(metricsUrl).`with`(classOf[MetricsServlet])

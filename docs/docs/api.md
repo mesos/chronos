@@ -31,6 +31,13 @@ All examples in this section assume that you've found a running leader at `chron
 When you have multiple Chronos nodes running, only one of them will be elected as the leader.
 The leader is the only node that responds to API requests, but if you attempt to talk to a non-leader your request will automatically be redirected to a leader.
 
+To get the current leader you can hit the following endpoint.
+
+* Endpoint: __/leader__
+* Method: __GET__
+* Example: `curl -L chronos-node:8080/leader`
+* Response: A JSON dict containing a single `leader` key.
+
 ## Listing Jobs
 
 * Endpoint: __/scheduler/jobs__
