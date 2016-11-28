@@ -5,8 +5,11 @@ import {observer} from 'mobx-react'
 
 @observer
 export default class Main extends React.Component {
+  derp(event) {
+    console.log(event)
+  }
   render() {
-    const jobSummaryStore = this.props.jobSummaryStore;
+    const jobSummaryStore = this.props.jobSummaryStore
     return (
       <div className="container">
         <div className="panel panel-default">
@@ -29,24 +32,7 @@ export default class Main extends React.Component {
               <div className="col-md-1 bg-success">{jobSummaryStore.idleCount}</div>
             </div>
           </div>
-          <div className="table-responsive">
-            <table className="table table-striped table-hover table-condensed">
-              <thead>
-                <tr>
-                  <th>JOB</th>
-                  <th>NEXT RUN</th>
-                  <th>STATUS</th>
-                  <th>STATE</th>
-                  <th className="text-right">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {this.getVisibleJobs().map(job =>
-                  (<JobSummaryView key={job.name} job={job} />)
-                )}
-              </tbody>
-            </table>
-          </div>
+          <JobSummaryView jobs={this.getVisibleJobs()} />
         </div>
       </div>
     )

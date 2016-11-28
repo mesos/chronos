@@ -140,7 +140,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
         })
         if (newScheduledJobs.nonEmpty) {
           scheduledJobList = newScheduledJobs.toList
-          log.info("Job list: %s".format(scheduledJobList.toString()))
         }
       }
 
@@ -155,7 +154,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       }
       dependencyBasedJobs.foreach {
         job =>
-          log.info("mapping:" + job)
           import scala.collection.JavaConversions._
           log.info("Adding dependencies for %s -> [%s]".format(job.name, Joiner.on(",").join(job.parents)))
 
@@ -204,7 +202,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     }
   }
 
-  def handleStartedTask(taskStatus: TaskStatus) {
+  def handleStartedTask(taskStatus: TaskStatus, count: Int) {
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
@@ -218,7 +216,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     } else {
       val job = jobOption.get
       val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
-      jobsObserver.apply(JobStarted(job, taskStatus, attempt))
+      jobsObserver.apply(JobStarted(job, taskStatus, attempt, count))
 
       job match {
         case j: DependencyBasedJob =>
@@ -494,8 +492,8 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     60000000000l // 60 seconds
   }
 
-  def run() {
-    log.info("Starting run loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
+  def mainLoop() {
+    log.info("Starting main loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
     var nanos = 1000000000l // 1 second
     while (running.get) {
       lock.lock()
@@ -512,6 +510,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
           val baseJobs = JobUtils.loadJobs(persistenceStore)
           val scheduledJobs = registerJobs(baseJobs)
           val (jobsToRun, jobsNotToRun) = getJobsToRun(scheduledJobs)
+          log.info(s"jobsToRun.size=${jobsToRun.size}, jobsNotToRun.size=${jobsNotToRun.size}")
           runJobs(jobsToRun)
           nanos = nanosUntilNextJob(jobsNotToRun)
         } catch {
@@ -529,8 +528,8 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     scheduledJobs.partition({
       job =>
         Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
-          case Some((_, schedule, _)) =>
-            !job.disabled && schedule.isBefore(now)
+          case Some((repeat, schedule, _)) =>
+            !job.disabled && repeat != 0 && schedule.isBefore(now)
           case _ =>
             false
         }
@@ -586,7 +585,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       new Thread() {
         override def run() {
           log.info("Running background thread")
-          jobScheduler.run()
+          jobScheduler.mainLoop()
         }
       })
 

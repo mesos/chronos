@@ -123,7 +123,7 @@ object JobUtils {
       }
       skips
     } else {
-      if (jobStart.isBefore(dateTime)) {
+      if (jobStart.isBefore(dateTime) && period.toStandardSeconds.getSeconds > 0) {
         Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds + 1
       } else {
         0

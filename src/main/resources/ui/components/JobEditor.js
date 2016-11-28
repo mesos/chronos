@@ -1,5 +1,5 @@
-import React from 'react';
-import { observer } from 'mobx-react';
+import React from 'react'
+import { observer } from 'mobx-react'
 import JobForm from '../models/JobForm'
 import Select from 'react-select'
 import $ from 'jquery'
@@ -100,7 +100,30 @@ class NumberInput extends React.Component {
   }
 }
 
-NumberInput.propTypes = {
+@observer
+class Checkbox extends React.Component {
+  render() {
+    const field = this.props.field
+    return (
+      <div>
+        <label className="control-label col-sm-4" htmlFor={"sf-"+field.name}>
+          {field.label} <input
+            type="checkbox"
+            name={field.name}
+            id={"sf-"+field.name}
+            defaultValue={field.defaultValue}
+            aria-describedby={"sf-"+field.name+"-status"}
+            onChange={(event) => field.sync(event, field)}
+            />
+        </label>
+          <span id={"sf-"+field.name+"-status"} className="sr-only">{field.error}</span>
+          {field.error ? <p>{field.error}</p> : null}
+      </div>
+    )
+  }
+}
+
+Checkbox.propTypes = {
   field: React.PropTypes.object.isRequired,
 }
 
@@ -205,6 +228,13 @@ class Input extends React.Component {
           />
       )
     }
+    if (field.type === "checkbox") {
+      return (
+        <Checkbox
+          field={field}
+          />
+      )
+    }
   }
 }
 
@@ -241,7 +271,7 @@ class ModalComponent extends React.Component {
     var advancedFields = []
     var _advancedFields = []
     var counter = 0
-    this.props.jobForm.allFields.forEach(f => {
+    this.props.jobForm.fields.forEach(f => {
       if (f.name === "schedule" && !jobForm.scheduled) return
       if (f.name === "scheduleTimeZone" && !jobForm.scheduled) return
       if (f.name === "parents" && jobForm.scheduled) return
