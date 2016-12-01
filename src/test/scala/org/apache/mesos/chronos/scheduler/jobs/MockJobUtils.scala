@@ -1,6 +1,7 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.apache.mesos.Protos.{Filters, OfferID, Status}
+import com.google.common.cache.CacheBuilder
+import org.apache.mesos.Protos.{Filters, OfferID, Status, TaskState}
 import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
@@ -26,5 +27,11 @@ object MockJobUtils extends Mockito {
     mockSchedulerDriver.declineOffer(any[OfferID], any[Filters]) returns Status.DRIVER_RUNNING
     val mesosDriverFactory = mock[MesosDriverFactory]
     mesosDriverFactory.get() returns mockSchedulerDriver
+  }
+
+  def mockTaskManager: TaskManager = {
+    val mockTaskManager = mock[TaskManager]
+    val cache = CacheBuilder.newBuilder().maximumSize(10L).build[String, TaskState]()
+    mockTaskManager.getTaskCache returns cache
   }
 }

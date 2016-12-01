@@ -202,18 +202,22 @@ class MesosJobFramework @Inject()(
     log.warning("Offer rescinded for offer:" + offerID.getValue)
   }
 
+  def getRunningCount(jobName: String): Int = {
+    runningTasks.getOrElse(jobName, List()).size
+  }
+
   @Override
   def statusUpdate(schedulerDriver: SchedulerDriver, taskStatus: TaskStatus) {
-    taskManager.taskCache.put(taskStatus.getTaskId.getValue, taskStatus.getState)
+    taskManager.getTaskCache.put(taskStatus.getTaskId.getValue, taskStatus.getState)
 
     val (jobName, _, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
         updateRunningTask(jobName, taskStatus)
-        scheduler.handleStartedTask(taskStatus, runningTasks(jobName).size)
+        scheduler.handleStartedTask(taskStatus, getRunningCount(jobName))
       case TaskState.TASK_STAGING =>
         updateRunningTask(jobName, taskStatus)
-        scheduler.handleStartedTask(taskStatus, runningTasks(jobName).size)
+        scheduler.handleStartedTask(taskStatus, getRunningCount(jobName))
       case _ =>
         if (runningTasks.contains(jobName)) {
           val remainingTasks = runningTasks(jobName)
@@ -228,18 +232,18 @@ class MesosJobFramework @Inject()(
     taskStatus.getState match {
       case TaskState.TASK_FINISHED =>
         log.info("Task with id '%s' FINISHED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFinishedTask(taskStatus, None, runningTasks(jobName).size)
+        scheduler.handleFinishedTask(taskStatus, None, getRunningCount(jobName))
       case TaskState.TASK_FAILED =>
         log.info("Task with id '%s' FAILED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus, runningTasks(jobName).size)
+        scheduler.handleFailedTask(taskStatus, getRunningCount(jobName))
       case TaskState.TASK_LOST =>
         log.info("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus, runningTasks(jobName).size)
+        scheduler.handleFailedTask(taskStatus, getRunningCount(jobName))
       case TaskState.TASK_RUNNING =>
         log.info("Task with id '%s' RUNNING".format(taskStatus.getTaskId.getValue))
       case TaskState.TASK_KILLED =>
         log.info("Task with id '%s' KILLED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleKilledTask(taskStatus, runningTasks(jobName).size)
+        scheduler.handleKilledTask(taskStatus, getRunningCount(jobName))
       case _ =>
         log.warning("Unknown TaskState:" + taskStatus.getState + " for task: " + taskStatus.getTaskId.getValue)
     }

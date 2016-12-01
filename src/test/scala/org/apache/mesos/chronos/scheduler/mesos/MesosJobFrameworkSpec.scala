@@ -6,6 +6,7 @@ import org.apache.mesos.Protos.Offer
 import org.apache.mesos.chronos.ChronosTestHelper._
 import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, JobScheduler, MockJobUtils, TaskManager}
 import org.apache.mesos.{Protos, SchedulerDriver}
+import org.joda.time.DateTime
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -101,6 +102,45 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
 
       there was one (mockSchedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
     }
+
+    "Handle status updates without crashing" in {
+      import mesosphere.mesos.protos.Implicits._
+
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val mockDriverFactory = MockJobUtils.mockDriverFactory
+      val jobScheduler = mock[JobScheduler]
+
+      val mesosJobFramework = new MesosJobFramework(
+        mockDriverFactory,
+        jobScheduler,
+        MockJobUtils.mockTaskManager,
+        makeConfig(),
+        mock[FrameworkIdUtil],
+        mock[MesosTaskBuilder],
+        mockMesosOfferReviver)
+
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskStaging))
+      mesosJobFramework.getRunningCount("task1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskRunning))
+      mesosJobFramework.getRunningCount("task1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskFinished))
+      mesosJobFramework.getRunningCount("task1") must_== 0
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskRunning))
+      mesosJobFramework.getRunningCount("task1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskFailed))
+      mesosJobFramework.getRunningCount("task1") must_== 0
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskRunning))
+      mesosJobFramework.getRunningCount("task1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskKilled))
+      mesosJobFramework.getRunningCount("task1") must_== 0
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:unknown:"), TaskFailed))
+      mesosJobFramework.getRunningCount("unknown") must_== 0
+
+      there was 4.times (jobScheduler).handleStartedTask(any[org.apache.mesos.Protos.TaskStatus], any[Int])
+      there was one (jobScheduler).handleFinishedTask(any[org.apache.mesos.Protos.TaskStatus], any, any[Int])
+      there was 2.times (jobScheduler).handleFailedTask(any[org.apache.mesos.Protos.TaskStatus], any[Int])
+      there was one (jobScheduler).handleKilledTask(any[org.apache.mesos.Protos.TaskStatus], any[Int])
+    }
   }
 
   "Reject unused offers with the configured value of RefuseSeconds if --decline_offer_duration is set" in {
@@ -115,7 +155,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       new MesosJobFramework(
         mesosDriverFactory,
         mock[JobScheduler],
-        mock[TaskManager],
+        MockJobUtils.mockTaskManager,
         makeConfig("--decline_offer_duration", "3000"),
         mock[FrameworkIdUtil],
         mock[MesosTaskBuilder],
@@ -145,4 +185,6 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       .addResources(ScalarResource(Resource.DISK, 100, "*"))
       .build()
   }
+
+
 }
