@@ -12,35 +12,35 @@ export class JobSummaryStore {
 
   @computed get successCount() {
     return this.jobSummarys.reduce(
-      (sum, job) => sum + (job.status === "success" ? 1 : 0),
+      (sum, job) => sum + (job.status === 'success' ? 1 : 0),
       0
     )
   }
 
   @computed get failureCount() {
     return this.jobSummarys.reduce(
-      (sum, job) => sum + (job.status === "failure" ? 1 : 0),
+      (sum, job) => sum + (job.status === 'failure' ? 1 : 0),
       0
     )
   }
 
   @computed get freshCount() {
     return this.jobSummarys.reduce(
-      (sum, job) => sum + (job.status === "fresh" ? 1 : 0),
+      (sum, job) => sum + (job.status === 'fresh' ? 1 : 0),
       0
     )
   }
 
   @computed get queuedCount() {
     return this.jobSummarys.reduce(
-      (sum, job) => sum + (job.state === "queued" ? 1 : 0),
+      (sum, job) => sum + (job.state === 'queued' ? 1 : 0),
       0
     )
   }
 
   @computed get idleCount() {
     return this.jobSummarys.reduce(
-      (sum, job) => sum + (job.state === "idle" ? 1 : 0),
+      (sum, job) => sum + (job.state === 'idle' ? 1 : 0),
       0
     )
   }

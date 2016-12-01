@@ -39,7 +39,7 @@ class JobSummaryView extends React.Component {
     return (
       <tr key={job.name}>
         {this.getNameTd(job)}
-        <td className={job.nextExpected === "OVERDUE" ? "danger" : null} data-container="body" data-toggle="tooltip" data-placement="top" title={job.schedule}>{job.nextExpected}</td>
+        <td className={job.nextExpected === 'OVERDUE' ? 'danger' : null} data-container="body" data-toggle="tooltip" data-placement="top" title={job.schedule}>{job.nextExpected}</td>
         <td className={this.getStatusClass(job)}>{job.status}</td>
         <td className={this.getStateClass(job)}>{job.state}</td>
         <td className="text-right">
@@ -111,23 +111,23 @@ class JobSummaryView extends React.Component {
   }
 
   getStatusClass(job) {
-    if (job.status === "success") {
-      return "success"
+    if (job.status === 'success') {
+      return 'success'
     }
-    if (job.status === "failure") {
-      return "warning"
+    if (job.status === 'failure') {
+      return 'warning'
     }
-    return ""
+    return ''
   }
 
   getStateClass(job) {
     if (job.state.match(/\d+ running/)) {
-      return "success"
+      return 'success'
     }
-    if (job.state === "queued") {
-      return "info"
+    if (job.state === 'queued') {
+      return 'info'
     }
-    return ""
+    return ''
   }
 
   doRequest(target, method, url, success, fail) {
@@ -155,7 +155,7 @@ class JobSummaryView extends React.Component {
   runJob(event, job) {
     this.doRequest(
       event.currentTarget,
-      "PUT",
+      'PUT',
       '/v1/scheduler/job/' + encodeURIComponent(job.name)
     )
   }
@@ -163,7 +163,7 @@ class JobSummaryView extends React.Component {
   stopJob(event, job) {
     this.doRequest(
       event.currentTarget,
-      "DELETE",
+      'DELETE',
       '/v1/scheduler/task/kill/' + encodeURIComponent(job.name)
     )
   }
@@ -172,7 +172,7 @@ class JobSummaryView extends React.Component {
     let _job = job
     this.doRequest(
       event.currentTarget,
-      "DELETE",
+      'DELETE',
       '/v1/scheduler/job/' + encodeURIComponent(job.name),
       function(resp) {
         _job.destroy()
