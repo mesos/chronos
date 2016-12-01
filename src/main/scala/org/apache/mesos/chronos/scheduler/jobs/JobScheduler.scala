@@ -1,11 +1,11 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
-import java.util.concurrent.locks.{Lock, ReentrantLock}
+import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.{Executors, Future, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import com.google.common.base.Joiner
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
@@ -15,7 +15,8 @@ import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.apache.mesos.Protos.TaskStatus
-import org.joda.time.{DateTime, DateTimeZone, Duration, Period}
+import org.apache.mesos.chronos.utils.Supervisor
+import org.joda.time.{DateTime, DateTimeZone, Duration}
 
 import scala.collection.mutable.ListBuffer
 
@@ -46,8 +47,10 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
   val lock = new ReentrantLock
   val condition = lock.newCondition
 
-  val actorSystem = ActorSystem()
+  implicit val actorSystem = ActorSystem()
+  val supervisor = actorSystem.actorOf(Props[Supervisor], "supervisor")
   val akkaScheduler = actorSystem.scheduler
+
 
   //TODO(FL): Take some methods out of this class.
   val running = new AtomicBoolean(false)

@@ -26,7 +26,7 @@ object MockJobUtils extends Mockito {
     mockSchedulerDriver.reviveOffers() returns Status.DRIVER_RUNNING
     mockSchedulerDriver.declineOffer(any[OfferID], any[Filters]) returns Status.DRIVER_RUNNING
     val mesosDriverFactory = mock[MesosDriverFactory]
-    mesosDriverFactory.get() returns mockSchedulerDriver
+    mesosDriverFactory.get returns mockSchedulerDriver
   }
 
   def mockTaskManager: TaskManager = {

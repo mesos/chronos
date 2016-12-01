@@ -173,7 +173,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       .filter(_._2 == TaskState.TASK_RUNNING)
       .foreach({ x =>
       log.warning("Killing task '%s'".format(x._1))
-      mesosDriver.get().killTask(TaskID.newBuilder().setValue(x._1).build())
+      mesosDriver.get.killTask(TaskID.newBuilder().setValue(x._1).build())
     })
   }
 

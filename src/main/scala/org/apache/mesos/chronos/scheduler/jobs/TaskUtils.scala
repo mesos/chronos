@@ -7,6 +7,7 @@ import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.mutable
+import scala.util.matching.Regex
 
 /**
  * This file contains a number of classes and objects for dealing with tasks. Tasks are the actual units of work that
@@ -20,9 +21,9 @@ object TaskUtils {
 
   //TaskIdFormat: ct:JOB_NAME:DUE:ATTEMPT:ARGUMENTS
   val taskIdTemplate = "ct:%d:%d:%s:%s"
-  val argumentsPattern = """(.*)?""".r
-  val taskIdPattern = """ct:(\d+):(\d+):%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
-  val commandInjectionFilter = ";".toSet
+  val argumentsPattern: Regex = """(.*)?""".r
+  val taskIdPattern: Regex = """ct:(\d+):(\d+):%s:?%s""".format(JobUtils.jobNamePattern, argumentsPattern).r
+  val commandInjectionFilter: Set[Any] = ";".toSet
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
