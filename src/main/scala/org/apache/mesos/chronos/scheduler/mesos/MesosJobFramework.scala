@@ -4,18 +4,16 @@ import java.util.logging.Logger
 
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs._
-import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
 import org.apache.mesos.chronos.utils.JobDeserializer
 import com.google.inject.Inject
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.Protos._
-import org.apache.mesos.{Protos, Scheduler, SchedulerDriver}
+import org.apache.mesos.{Scheduler, SchedulerDriver}
 import org.joda.time.DateTime
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.mutable.{Buffer, HashMap, HashSet}
 
 /**
  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
@@ -57,6 +55,12 @@ class MesosJobFramework @Inject()(
   }
   JobDeserializer.config = config
 
+  def checkDriver(status: Status): Unit = {
+    if (status != Status.DRIVER_RUNNING) {
+      throw new RuntimeException("Driver is no longer running")
+    }
+  }
+
   @Override
   def disconnected(schedulerDriver: SchedulerDriver) {
     log.warning("Disconnected")
@@ -91,7 +95,7 @@ class MesosJobFramework @Inject()(
 
     offers.foreach(o => {
       if (!usedOffers.contains(o.getId.getValue))
-        mesosDriver.get().declineOffer(o.getId, declineOfferFilters)
+        checkDriver(mesosDriver.get.declineOffer(o.getId, declineOfferFilters))
     })
 
     log.fine(s"Declined unused offers with filter refuseSeconds=${declineOfferFilters.getRefuseSeconds} " +
@@ -174,26 +178,20 @@ class MesosJobFramework @Inject()(
         taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
       })
       log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
-      val status: Protos.Status = mesosDriver.get().launchTasks(
+      checkDriver(mesosDriver.get.launchTasks(
         List(offer.getId).asJava,
         mesosTasks.asJava
-      )
-      if (status == Protos.Status.DRIVER_RUNNING) {
-        for (task <- tasks) {
-          val name = task._2.name
-          val newTask = new ChronosTask(task._3.getSlaveId.getValue, task._1)
-          if (runningTasks.contains(name)) {
-            val tasks = runningTasks(name) ++ List(newTask)
-            runningTasks(name) = tasks
-          } else {
-            runningTasks(name) = List(newTask)
-          }
-
-          //TODO(FL): Handle case if chronos can't launch the task.
-          log.info("Task '%s' launched, status: '%s'".format(task._1, status.toString))
+      ))
+      for (task <- tasks) {
+        val name = task._2.name
+        val newTask = new ChronosTask(task._3.getSlaveId.getValue, task._1)
+        if (runningTasks.contains(name)) {
+          val tasks = runningTasks(name) ++ List(newTask)
+          runningTasks(name) = tasks
+        } else {
+          runningTasks(name) = List(newTask)
         }
-      } else {
-        log.warning("Other status returned.")
+        log.info(s"Task '${task._1}' launched")
       }
     })
   }
@@ -228,18 +226,18 @@ class MesosJobFramework @Inject()(
     taskStatus.getState match {
       case TaskState.TASK_FINISHED =>
         log.info("Task with id '%s' FINISHED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFinishedTask(taskStatus)
+        scheduler.handleFinishedTask(taskStatus, None, runningTasks(jobName).size)
       case TaskState.TASK_FAILED =>
         log.info("Task with id '%s' FAILED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus)
+        scheduler.handleFailedTask(taskStatus, runningTasks(jobName).size)
       case TaskState.TASK_LOST =>
         log.info("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus)
+        scheduler.handleFailedTask(taskStatus, runningTasks(jobName).size)
       case TaskState.TASK_RUNNING =>
         log.info("Task with id '%s' RUNNING".format(taskStatus.getTaskId.getValue))
       case TaskState.TASK_KILLED =>
         log.info("Task with id '%s' KILLED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleKilledTask(taskStatus)
+        scheduler.handleKilledTask(taskStatus, runningTasks(jobName).size)
       case _ =>
         log.warning("Unknown TaskState:" + taskStatus.getState + " for task: " + taskStatus.getTaskId.getValue)
     }
