@@ -20,25 +20,25 @@ export default class JobSummaryModel {
 
   @computed get nextExpected() {
     if (!this.schedule) {
-      return "—"
+      return '—'
     } else {
-      var scheduledDate = Date.parse(this.schedule.split("/")[1])
+      var scheduledDate = Date.parse(this.schedule.split('/')[1])
       var dateDiff = (scheduledDate - new Date().getTime()) / 1000.
       if (dateDiff <= 1) {
-        return "OVERDUE"
+        return 'OVERDUE'
       } else if (dateDiff <= 3600) {
         var minutes = Math.ceil(dateDiff / 60.0)
         if (minutes == 1) {
-          return "in <" + minutes + " minute"
+          return 'in <' + minutes + ' minute'
         } else {
-          return "in ~" + minutes + " minutes"
+          return 'in ~' + minutes + ' minutes'
         }
       } else if (dateDiff <= 86400) {
         var hours = Math.ceil(dateDiff / 3600.0)
-        return "in ~" + hours + " hours"
+        return 'in ~' + hours + ' hours'
       } else {
         var days = Math.ceil(dateDiff / 86400.0)
-        return "in ~" + days + " days"
+        return 'in ~' + days + ' days'
       }
     }
   }

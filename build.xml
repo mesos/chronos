@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="chronos">
   <target name="install" description="Install dependencies">
-    <exec executable="npm" dir="${sourceDir}">
+    <exec executable="npm" dir="${sourceDir}" failonerror="true">
       <arg value="install"/>
     </exec>
     <echo message="install project dependencies" />
+  </target>
+  <target name="eslint" description="Check source lint">
+    <exec executable="npm" dir="${sourceDir}" failonerror="true">
+      <arg value="run"/>
+      <arg value="lint"/>
+    </exec>
   </target>
   <target name="build" description="Generate assets">
     <delete includeemptydirs="true" failonerror="false">
       <fileset dir="${sourceDir}/build" includes="**/*"/>
     </delete>
-    <exec executable="npm" dir="${sourceDir}">
+    <exec executable="npm" dir="${sourceDir}" failonerror="true">
       <arg value="run"/>
       <arg value="build"/>
     </exec>

@@ -15,12 +15,13 @@
   "scripts": {
     "start": "node bin/server.js",
     "dev": "webpack --progress --colors",
-    "build": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack-release.config.js",
-    "lint": "eslint src"
+    "build": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack-release.config.js --bail",
+    "lint": "eslint --fix ./"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-core": "^6.18.2",
+    "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.7",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-plugin-transform-react-jsx": "^6.8.0",

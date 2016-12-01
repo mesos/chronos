@@ -14,7 +14,7 @@ export default class JsonEditor extends React.Component {
     if (!this.setAceCallback && this.refs.ace) {
       this.setAceCallback = true
       this.editor = this.refs.ace.editor
-      this.editor.getSession().on("changeAnnotation", function() {
+      this.editor.getSession().on('changeAnnotation', function() {
         var annotations = _this.editor.getSession().getAnnotations()
         var canSave = true
         if (annotations && annotations.length > 0) {
@@ -37,7 +37,7 @@ export default class JsonEditor extends React.Component {
     if (jsonStore.job) {
       return JSON.stringify(jsonStore.job.json, null, '  ')
     }
-    return ""
+    return ''
   }
   saveJson() {
     if (this.refs.ace) {
@@ -53,11 +53,11 @@ export default class JsonEditor extends React.Component {
         url = '/v1/scheduler/dependency'
       }
       $.ajax({
-        type: "POST",
+        type: 'POST',
         url: url,
         data: session.getValue(),
-        dataType: "json",
-        contentType: "application/json; charset=utf-8",
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
       }).done(function(resp) {
         setTimeout(function() {
           $('#json-modal').modal('hide')
