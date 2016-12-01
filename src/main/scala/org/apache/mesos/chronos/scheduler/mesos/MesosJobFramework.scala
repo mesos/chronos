@@ -215,11 +215,13 @@ class MesosJobFramework @Inject()(
         updateRunningTask(jobName, taskStatus)
         scheduler.handleStartedTask(taskStatus, runningTasks(jobName).size)
       case _ =>
-        val remainingTasks = runningTasks(jobName)
-          .filter(task => task.taskStatus.get.getTaskId.getValue != taskStatus.getTaskId.getValue)
-        runningTasks(jobName) = remainingTasks
-        if (runningTasks(jobName).isEmpty) {
-          runningTasks.remove(jobName)
+        if (runningTasks.contains(jobName)) {
+          val remainingTasks = runningTasks(jobName)
+            .filter(task => task.taskStatus.get.getTaskId.getValue != taskStatus.getTaskId.getValue)
+          runningTasks(jobName) = remainingTasks
+          if (runningTasks(jobName).isEmpty) {
+            runningTasks.remove(jobName)
+          }
         }
     }
 
