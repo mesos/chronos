@@ -48,9 +48,9 @@ export default class JsonEditor extends React.Component {
       btn.button('loading')
       let url = ''
       if ('schedule' in job.json) {
-        url = '/v1/scheduler/iso8601'
+        url = 'v1/scheduler/iso8601'
       } else {
-        url = '/v1/scheduler/dependency'
+        url = 'v1/scheduler/dependency'
       }
       $.ajax({
         type: 'POST',

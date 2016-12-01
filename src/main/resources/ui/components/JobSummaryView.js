@@ -156,7 +156,7 @@ class JobSummaryView extends React.Component {
     this.doRequest(
       event.currentTarget,
       'PUT',
-      '/v1/scheduler/job/' + encodeURIComponent(job.name)
+      'v1/scheduler/job/' + encodeURIComponent(job.name)
     )
   }
 
@@ -164,7 +164,7 @@ class JobSummaryView extends React.Component {
     this.doRequest(
       event.currentTarget,
       'DELETE',
-      '/v1/scheduler/task/kill/' + encodeURIComponent(job.name)
+      'v1/scheduler/task/kill/' + encodeURIComponent(job.name)
     )
   }
 
@@ -173,7 +173,7 @@ class JobSummaryView extends React.Component {
     this.doRequest(
       event.currentTarget,
       'DELETE',
-      '/v1/scheduler/job/' + encodeURIComponent(job.name),
+      'v1/scheduler/job/' + encodeURIComponent(job.name),
       function(resp) {
         _job.destroy()
       }
