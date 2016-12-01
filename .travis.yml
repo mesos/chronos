@@ -1,13 +1,16 @@
 sudo: false
 language: scala
-node_js:
-  - "6"
-install: true # disable travis' default mvn install before running the tests
+env:
+  - NODE_VERSION=7.2.0
+install:
+  - nvm install $NODE_VERSION
+script:
+  - nvm use $NODE_VERSION
+  - mvn clean test package
 scala:
   - "2.11.2"
 jdk:
   - oraclejdk8
-script: mvn clean test package
 cache:
   directories:
     - $HOME/.m2/repository
