@@ -4,9 +4,8 @@ import mesosphere.mesos.protos._
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.Protos.Offer
 import org.apache.mesos.chronos.ChronosTestHelper._
-import org.apache.mesos.chronos.scheduler.jobs.{ BaseJob, JobScheduler, TaskManager }
-import org.apache.mesos.{ Protos, SchedulerDriver }
-import org.mockito.Mockito.{ doNothing, doReturn }
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, JobScheduler, MockJobUtils, TaskManager}
+import org.apache.mesos.{Protos, SchedulerDriver}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -18,7 +17,7 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       val mockMesosOfferReviver = mock[MesosOfferReviver]
 
       val mesosJobFramework = new MesosJobFramework(
-        mock[MesosDriverFactory],
+        MockJobUtils.mockDriverFactory,
         mock[JobScheduler],
         mock[TaskManager],
         makeConfig(),
@@ -51,16 +50,14 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
 
     "Reject unused offers with the default " in {
       import mesosphere.mesos.protos.Implicits._
-
       import scala.collection.JavaConverters._
 
-      val mesosDriverFactory = mock[MesosDriverFactory]
-      val schedulerDriver = mock[SchedulerDriver]
-      mesosDriverFactory.get().returns(schedulerDriver)
+      val mockDriverFactory = MockJobUtils.mockDriverFactory
+      val mockSchedulerDriver = mockDriverFactory.get
 
       val mesosJobFramework = spy(
         new MesosJobFramework(
-          mesosDriverFactory,
+          mockDriverFactory,
           mock[JobScheduler],
           mock[TaskManager],
           makeConfig(),
@@ -73,23 +70,21 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       doNothing.when(mesosJobFramework).reconcile(any)
 
       val offer: Offer = makeBasicOffer
-      mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
+      mesosJobFramework.resourceOffers(mockSchedulerDriver, Seq[Protos.Offer](offer).asJava)
 
-      there was one (schedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
+      there was one (mockSchedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
     }
 
     "Reject unused offers with default RefuseSeconds if --decline_offer_duration is not set" in {
       import mesosphere.mesos.protos.Implicits._
-
       import scala.collection.JavaConverters._
 
-      val mesosDriverFactory = mock[MesosDriverFactory]
-      val schedulerDriver = mock[SchedulerDriver]
-      mesosDriverFactory.get().returns(schedulerDriver)
+      val mockDriverFactory = MockJobUtils.mockDriverFactory
+      val mockSchedulerDriver = mockDriverFactory.get
 
       val mesosJobFramework = spy(
         new MesosJobFramework(
-          mesosDriverFactory,
+          mockDriverFactory,
           mock[JobScheduler],
           mock[TaskManager],
           makeConfig(),
@@ -102,9 +97,9 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       doNothing.when(mesosJobFramework).reconcile(any)
 
       val offer: Offer = makeBasicOffer
-      mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
+      mesosJobFramework.resourceOffers(mockSchedulerDriver, Seq[Protos.Offer](offer).asJava)
 
-      there was one (schedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
+      there was one (mockSchedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
     }
   }
 
@@ -113,9 +108,8 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
 
     import scala.collection.JavaConverters._
 
-    val mesosDriverFactory = mock[MesosDriverFactory]
-    val schedulerDriver = mock[SchedulerDriver]
-    mesosDriverFactory.get().returns(schedulerDriver)
+    val mesosDriverFactory = MockJobUtils.mockDriverFactory
+    val mockSchedulerDriver = mesosDriverFactory.get
 
     val mesosJobFramework = spy(
       new MesosJobFramework(
@@ -132,10 +126,10 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
     doNothing.when(mesosJobFramework).reconcile(any)
 
     val offer: Offer = makeBasicOffer
-    mesosJobFramework.resourceOffers(mock[SchedulerDriver], Seq[Protos.Offer](offer).asJava)
+    mesosJobFramework.resourceOffers(mockSchedulerDriver, Seq[Protos.Offer](offer).asJava)
 
     val filters = Protos.Filters.newBuilder().setRefuseSeconds(3).build()
-    there was one (schedulerDriver).declineOffer(OfferID("1"), filters)
+    there was one (mockSchedulerDriver).declineOffer(OfferID("1"), filters)
   }
 
   private[this] def makeBasicOffer: Offer = {

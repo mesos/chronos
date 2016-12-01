@@ -234,7 +234,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
    * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
    * launch tasks for dependent jobs
    */
-  def handleFinishedTask(taskStatus: TaskStatus, taskDate: Option[DateTime] = None) {
+  def handleFinishedTask(taskStatus: TaskStatus, taskDate: Option[DateTime] = None, count: Int) {
     // `taskDate` is purely for unit testing
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
@@ -252,7 +252,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
       jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
-      jobsObserver.apply(JobFinished(job, taskStatus, attempt))
+      jobsObserver.apply(JobFinished(job, taskStatus, attempt, count))
 
       val newJob = getNewSuccessfulJob(job)
       replaceJob(job, newJob)
@@ -373,7 +373,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     }
   }
 
-  def handleFailedTask(taskStatus: TaskStatus) {
+  def handleFailedTask(taskStatus: TaskStatus, count: Int) {
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
@@ -383,7 +383,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) =>
-          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt))
+          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt, count))
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
@@ -461,7 +461,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
    *   -invoked kill via task manager API
    *   -job is deleted
    */
-  def handleKilledTask(taskStatus: TaskStatus) {
+  def handleKilledTask(taskStatus: TaskStatus, count: Int) {
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
       log.warning("Found old or invalid task, ignoring!")
@@ -471,7 +471,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     val (jobName, start, attempt, _) = TaskUtils.parseTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
 
-    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt))
+    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt, count))
   }
 
   def nanosUntilNextJob(scheduledJobs: List[ScheduleBasedJob]): Long = {

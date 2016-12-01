@@ -1,10 +1,12 @@
 package org.apache.mesos.chronos.scheduler.mesos
 
-import akka.actor.{ Props, Cancellable, ActorLogging, Actor }
+import akka.actor.{Actor, ActorLogging, Cancellable, Props}
 import akka.event.LoggingReceive
 import com.codahale.metrics.MetricRegistry
+import org.apache.mesos.Protos.Status
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.utils.Timestamp
+
 import scala.concurrent.duration._
 
 object MesosOfferReviverActor {
@@ -37,7 +39,9 @@ class MesosOfferReviverActor(
         nextReviveCancellableOpt.foreach(_.cancel())
         nextReviveCancellableOpt = None
 
-        mesosDriverFactory.mesosDriver.foreach(_.reviveOffers())
+        if (mesosDriverFactory.get.reviveOffers() != Status.DRIVER_RUNNING) {
+          throw new RuntimeException("Driver is no longer running")
+        }
         lastRevive = now
 
         reviveCounter.inc()

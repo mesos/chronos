@@ -327,8 +327,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
     case JobStarted(job, taskStatus, attempt, runningCount) => jobStarted(job, taskStatus, attempt, runningCount)
-    case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
-    case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
+    case JobFinished(job, taskStatus, attempt, runningCount) => jobFinished(job, taskStatus, attempt, runningCount)
+    case JobFailed(job, taskStatus, attempt, runningCount) => jobFailed(job, taskStatus, attempt, runningCount)
   }, getClass.getSimpleName)
 
   private def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
@@ -436,7 +436,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     _session = None
   }
 
-  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) {
+    this.runningCount(job.name) = runningCount
     updateJobState(job.name, CurrentState.idle)
 
     var jobSchedule:Option[String] = None
@@ -461,8 +462,9 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             isFailure=None)
   }
 
-  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
+  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int, runningCount: Int): Unit = {
     val jobName = jobNameOrJob.fold(name => name, _.name)
+    this.runningCount(jobName) = runningCount
     val jobSchedule = jobNameOrJob.fold(_ => None,  {
       case job: ScheduleBasedJob => Some(job.schedule)
       case _ => None
