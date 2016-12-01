@@ -1,6 +1,6 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.joda.time.{DateTime, Days, Period}
+import org.joda.time.{DateTime, Days, Period, Seconds}
 import org.specs2.mutable._
 
 class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
@@ -28,6 +28,21 @@ class Iso8601ExpressionParserSpec extends SpecificationWithJUnit {
         case Some((repetitions, startTime, period)) =>
           repetitions must_== -1L
           startTime must_== DateTime.parse("2008-03-01T13:00:00Z")
+          //This is a hack because Period's equals seems broken!
+          period.toString must_== new Period(Days.ONE).toString
+          false
+        case _ =>
+          true
+      }
+      fail must beEqualTo(false)
+    }
+
+
+    "empty schedule parses" in {
+      val fail = Iso8601Expressions.parse("R1//P1D") match {
+        case Some((repetitions, startTime, period)) =>
+          repetitions must_== 1L
+          Seconds.secondsBetween(DateTime.now(), startTime).getSeconds must be_<=(60)
           //This is a hack because Period's equals seems broken!
           period.toString must_== new Period(Days.ONE).toString
           false

@@ -8,7 +8,7 @@ import org.apache.mesos.chronos.scheduler.jobs.constraints._
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonNode}
-import org.joda.time.Period
+import org.joda.time.{DateTime, DateTimeZone, Period}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -64,6 +64,10 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
 
     val disabled =
       if (node.has("disabled") && node.get("disabled") != null) node.get("disabled").asBoolean
+      else false
+
+    val concurrent =
+      if (node.has("concurrent") && node.get("concurrent") != null) node.get("concurrent").asBoolean
       else false
 
     val softError =
@@ -154,7 +158,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else JobDeserializer.config.user()
 
     var container: DockerContainer = null
-    if (node.has("container")) {
+    if (node.has("container") && node.get("container").has("image")) {
       val containerNode = node.get("container")
       val networkMode =
         if (containerNode.has("network") && containerNode.get("network") != null)
@@ -212,29 +216,29 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       for (parent <- node.path("parents")) {
         parentList += parent.asText
       }
-      new DependencyBasedJob(parents = parentList.toSet,
+      DependencyBasedJob(parents = parentList.toSet,
         name = name, command = command, successCount = successCount, errorCount = errorCount,
         executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
-        cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        cpus = cpus, disk = disk, mem = mem, disabled = disabled, concurrent = concurrent,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
         constraints = constraints)
     } else if (node.has("schedule")) {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
-      new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
+      ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
         successCount = successCount, errorCount = errorCount, executor = executor,
         executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner, ownerName = ownerName,
         description = description, lastError = lastError, lastSuccess = lastSuccess,
-        cpus = cpus, disk = disk, mem = mem, disabled = disabled,
+        cpus = cpus, disk = disk, mem = mem, disabled = disabled, concurrent = concurrent,
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
         environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
         dataProcessingJobType = dataProcessingJobType, constraints = constraints)
     } else {
       /* schedule now */
-      new ScheduleBasedJob("R1//PT24H", name = name, command = command, successCount = successCount,
+      ScheduleBasedJob(s"R1/${DateTime.now(DateTimeZone.UTC).toDateTimeISO.toString}/PT24H", name = name, command = command, successCount = successCount,
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled,

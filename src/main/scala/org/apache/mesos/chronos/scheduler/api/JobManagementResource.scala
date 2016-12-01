@@ -244,8 +244,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       import scala.collection.JavaConversions._
       val jobs = jobGraph.dag.vertexSet()
-        .map { jobGraph.getJobForName }
-        .flatten
+        .flatMap { jobGraph.getJobForName }
         .map { // copies fetch in uris or uris in fetch (only one can be set) __only__ in REST get, for compatibility
           case j : ScheduleBasedJob  =>
             if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })

@@ -39,25 +39,31 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   private val TIMESTAMP: String = "ts"
 
   protected val jobStates = new mutable.HashMap[String, CurrentState.Value]()
+  protected val runningCount = new mutable.HashMap[String, Int]()
 
   val log = Logger.getLogger(getClass.getName)
   val statements = new ConcurrentHashMap[String, PreparedStatement]().asScala
   var _session: Option[Session] = None
 
-  def getJobState(jobName: String) : CurrentState.Value = {
+  def getJobState(jobName: String) : String = {
     /**
      * NOTE: currently everything stored in memory, look into moving
      * this to Cassandra. ZK is not an option cause serializers and
      * deserializers need to be written. Need a good solution, potentially
      * lots of writes and very few reads (only on failover)
      */
-    jobStates.getOrElse(jobName, CurrentState.idle)
+    val state = jobStates.getOrElse(jobName, CurrentState.idle)
+    if (state == CurrentState.running) {
+      s"${runningCount.getOrElse(jobName, 0)} ${state.toString}"
+    } else {
+      state.toString
+    }
   }
 
-  def updateJobState(jobName: String, nextState: CurrentState.Value) {
+  def updateJobState(jobName: String, nextState: CurrentState.Value, count: Option[Int] = None) {
     val shouldUpdate = jobStates.get(jobName).forall {
       currentState =>
-        !(currentState == CurrentState.running && nextState == CurrentState.queued)
+        !(currentState == CurrentState.running && nextState == CurrentState.queued) && (!runningCount.contains(jobName) || runningCount(jobName) <= 1)
     }
 
     if (shouldUpdate) {
@@ -320,7 +326,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     case JobExpired(job, _) => updateJobState(job.name, CurrentState.idle)
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
-    case JobStarted(job, taskStatus, attempt) => jobStarted(job, taskStatus, attempt)
+    case JobStarted(job, taskStatus, attempt, runningCount) => jobStarted(job, taskStatus, attempt, runningCount)
     case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
     case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
   }, getClass.getSimpleName)
@@ -329,7 +335,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     updateJobState(job.name, CurrentState.queued)
   }
 
-  private def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
+  private def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) {
+    this.runningCount(job.name) = runningCount
     updateJobState(job.name, CurrentState.running)
 
     var jobSchedule:Option[String] = None

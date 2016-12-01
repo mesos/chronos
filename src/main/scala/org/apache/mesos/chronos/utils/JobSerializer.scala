@@ -120,6 +120,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("runAsUser")
     json.writeString(baseJob.runAsUser)
 
+    json.writeFieldName("concurrent")
+    json.writeBoolean(baseJob.concurrent)
+
     if (baseJob.container != null) {
       json.writeFieldName("container")
       json.writeStartObject()
