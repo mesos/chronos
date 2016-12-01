@@ -1,9 +1,7 @@
 sudo: false
 language: scala
-addons:
-  apt:
-    packages:
-      - npm
+node_js:
+  - "6"
 install: true # disable travis' default mvn install before running the tests
 scala:
   - "2.11.2"
