@@ -56,6 +56,8 @@ class JobSchedulerElectionSpec
     val instance: InstanceSpec = testCluster.findConnectionInstance(firstLeader.curator.getZookeeperClient.getZooKeeper)
     testCluster.killServer(instance)
 
+    Thread.sleep(200)
+
     awaitElection(List(latch1, latch2))
     assertTrue("After ZK node failure, one candidate, but not both, must be elected", latch1.hasLeadership ^ latch2.hasLeadership)
 
