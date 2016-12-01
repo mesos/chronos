@@ -364,9 +364,9 @@ export default class JobForm {
     var btn = $(event.currentTarget).button('loading')
     var url = ''
     if (_this.scheduled) {
-      url = '/v1/scheduler/iso8601'
+      url = 'v1/scheduler/iso8601'
     } else {
-      url = '/v1/scheduler/dependency'
+      url = 'v1/scheduler/dependency'
     }
     $.ajax({
       type: 'POST',
