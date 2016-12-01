@@ -19,7 +19,7 @@ class MesosDriverFactorySpec extends SpecificationWithJUnit with Mockito {
 
       frameworkIdUtil.fetch(any, any).returns(None)
 
-      mesosDriverFactory.get()
+      mesosDriverFactory.get
 
       there was one(frameworkIdUtil).fetch(any, any)
       ok

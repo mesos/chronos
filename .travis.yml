@@ -14,3 +14,4 @@ jdk:
 cache:
   directories:
     - $HOME/.m2/repository
+    - src/main/resources/ui/node_modules
