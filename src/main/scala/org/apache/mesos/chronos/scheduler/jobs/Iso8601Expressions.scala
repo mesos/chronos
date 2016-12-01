@@ -46,7 +46,7 @@ object Iso8601Expressions {
           repeatStr.substring(1).toLong
       }
 
-      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC) else convertToDateTime(startStr, timeZoneStr)
+      val start: DateTime = if (startStr.length == 0) DateTime.now(DateTimeZone.UTC).minusSeconds(1) else convertToDateTime(startStr, timeZoneStr)
       val period: Period = ISOPeriodFormat.standard.parsePeriod(periodStr)
       Some((repeat, start, period))
     } catch {

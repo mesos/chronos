@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java $JVM_OPTS -jar /chronos/chronos.jar $@
+LIBPROCESS_PORT="${PORT1}" java $JVM_OPTS -jar /chronos/chronos.jar $@ --http_port $PORT0

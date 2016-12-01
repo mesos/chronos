@@ -340,14 +340,12 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `command`             | Command to execute.                                                                                      | -                              |
 | `arguments`           | Arguments to pass to the command.  Ignored if `shell` is `true`                                            | -                              |
 | `shell`               | If `true`, Mesos will execute `command` by running `/bin/sh -c <command>` and will ignore `arguments`. If `false`, `command` will be treated as the filename of an executable and `arguments` will be the arguments passed.  If this is a Docker job and `shell` is `true`, the entrypoint of the container will be overridden with `/bin/sh -c`                  | `true`                         |
-| `epsilon`             | If, for any reason, a job can't be started at the scheduled time, this is the window in which Chronos will attempt to run the job again | `PT60S` or `--task_epsilon`   |
 | `executor`            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
 | `executorFlags`       | Flags to pass to Mesos executor.                                                                         | -                              |
 | `taskInfoData`        | Data to pass to the taskInfo data field.  If set, this overrides the default data set by Chronos.   | -                              |
 | `retries`             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | `owner`               | Email address(es) to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
 | `ownerName`           | Name of the individual responsible for the job.                                                          | -                              |
-| `async`               | Execute using Async executor.                                                                            | `false`                        |
 | `successCount`        | Number of successes since the job was last modified.                                                     | -                              |
 | `errorCount`          | Number of errors since the job was last modified.                                                        | -                              |
 | `lastSuccess`         | Date of last successful attempt.                                                                         | -                              |
@@ -356,6 +354,7 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `mem`                 | Amount of Mesos Memory (in MB) for this job.                                                               | `128` or `--mesos_task_mem`    |
 | `disk`                | Amount of Mesos disk (in MB) for this job.                                                                 | `256` or `--mesos_task_disk`   |
 | `disabled`            | If set to `true`, this job will not be run.                                                              | `false`                        |
+| `concurrent`          | If set to `true`, this job may execute concurrently (multiple instances).                                                             | `false`                        |
 | `uris`                | An array of URIs which Mesos will download when the task is started (deprecated).                         | -                             |
 | `fetch`               | An array of fetch configurations, one for each file that Mesos Fetcher will download when the task is started).| -                        |
 | `schedule`            | [ISO 8601][] repeating schedule for this job.  If specified, `parents` must not be specified.            | -                              |

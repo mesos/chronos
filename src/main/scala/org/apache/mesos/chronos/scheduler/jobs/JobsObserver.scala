@@ -8,7 +8,7 @@ import org.joda.time.DateTime
 trait JobEvent
 case class JobQueued(job: BaseJob, taskId: String, attempt: Int) extends JobEvent
 case class JobSkipped(job: BaseJob, dateTime: DateTime) extends JobEvent
-case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) extends JobEvent
 case class JobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
 // Either a job name or job object, depending on whether the JobSchedule still exists
 case class JobFailed(job: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int) extends JobEvent

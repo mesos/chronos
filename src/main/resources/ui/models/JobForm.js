@@ -1,4 +1,5 @@
 import {observable, computed} from 'mobx';
+import $ from 'jquery'
 
 function nextHour(date) {
   date.setHours(date.getHours() + Math.floor(date.getMinutes() / 60))
@@ -12,8 +13,9 @@ export default class JobForm {
   scheduled = true
   @observable submitError = ""
   @observable submitStatus = ""
-  @observable fields = {
-    name: {
+  @observable fields = []
+  defaultFields = [
+    {
       name: "name",
       label: "Name",
       description: "Unique name for this job",
@@ -25,7 +27,7 @@ export default class JobForm {
       type: "textinput",
       advanced: false,
     },
-    schedule: {
+    {
       name: "schedule",
       label: "Schedule",
       description: "ISO8601 job schedule",
@@ -37,7 +39,7 @@ export default class JobForm {
       type: "textinput",
       advanced: false,
     },
-    parents: {
+    {
       name: "parents",
       label: "Parent Jobs",
       description: "Job parents",
@@ -50,7 +52,7 @@ export default class JobForm {
       advanced: false,
       getOptions: this.getParentsOptions,
     },
-    command: {
+    {
       name: "command",
       label: "Command",
       description: "Job command (i.e., `sh -c 'command'`)",
@@ -62,7 +64,7 @@ export default class JobForm {
       type: "textinput",
       advanced: false,
     },
-    container_image: {
+    {
       name: "container.image",
       label: "Container Image",
       description: "Container image name",
@@ -74,7 +76,7 @@ export default class JobForm {
       type: "textinput",
       advanced: true,
     },
-    container_network: {
+    {
       name: "container.network",
       label: "Container Network",
       description: "Container network type",
@@ -87,7 +89,7 @@ export default class JobForm {
       advanced: true,
       getOptions: this.getContainerNetworkOptions,
     },
-    container_type: {
+    {
       name: "container.type",
       label: "Container Type",
       description: "Container type",
@@ -100,7 +102,7 @@ export default class JobForm {
       advanced: true,
       getOptions: this.getContainerTypeOptions,
     },
-    cpus: {
+    {
       name: "cpus",
       label: "CPUs",
       description: "CPU shares (ex: 0.1)",
@@ -112,7 +114,7 @@ export default class JobForm {
       type: "numberinput",
       advanced: true,
     },
-    mem: {
+    {
       name: "mem",
       label: "Memory",
       description: "Memory limit in GiB",
@@ -124,7 +126,7 @@ export default class JobForm {
       type: "numberinput",
       advanced: true,
     },
-    disk: {
+    {
       name: "disk",
       label: "Disk",
       description: "Disk space in GiB",
@@ -136,7 +138,19 @@ export default class JobForm {
       type: "numberinput",
       advanced: true,
     },
-    owner: {
+    {
+      name: "concurrent",
+      label: "Concurrent",
+      description: "A job which may execute concurrently (i.e., multiple instances)",
+      sync: this.syncBooleanField,
+      value: false,
+      defaultValue: false,
+      error: "",
+      valid: true,
+      type: "checkbox",
+      advanced: true,
+    },
+    {
       name: "owner",
       label: "Owner",
       description: "Comma-separated list of job owners (i.e., `peter@aol.com`)",
@@ -148,7 +162,7 @@ export default class JobForm {
       type: "textinput",
       advanced: true,
     },
-    ownerName: {
+    {
       name: "ownerName",
       label: "Owner Name",
       description: "Own name",
@@ -160,12 +174,19 @@ export default class JobForm {
       type: "textinput",
       advanced: true,
     },
+  ]
+
+  getField(name) {
+    for (let i = 0; i < this.fields.length; i++) {
+      if (this.fields[i].name === name) {
+        return this.fields[i]
+      }
+    }
   }
-  @observable allFields = []
 
   @computed get submitDisabled() {
     var hasError = false
-    this.allFields.some(v => {
+    this.fields.some(v => {
       if (!this.scheduled && v.name === "schedule") {
         return false
       }
@@ -173,8 +194,8 @@ export default class JobForm {
         return false
       }
       if (v.name === "command" &&
-          this.fields.container_image.value &&
-          this.fields.container_image.valid) {
+          this.getField('container.image').value &&
+          this.getField('container.image').valid) {
         return false
       }
       if (!v.valid) {
@@ -217,7 +238,7 @@ export default class JobForm {
   }
 
   syncNameField(event, field) {
-    var value = event.target.value
+    let value = event.target.value
     if (!value) {
       field.valid = false
       field.error = "Name must not be empty"
@@ -232,7 +253,7 @@ export default class JobForm {
   }
 
   syncScheduleField(event, field) {
-    var value = event.target.value
+    let value = event.target.value
     if (!value) {
       field.valid = false
       field.error = "Schedule must not be empty"
@@ -247,7 +268,7 @@ export default class JobForm {
   }
 
   syncNonEmptyStringField(event, field) {
-    var value = event.target.value
+    let value = event.target.value
     if (!value) {
       field.valid = false
       field.error = field.label + " must not be empty"
@@ -259,7 +280,7 @@ export default class JobForm {
   }
 
   syncStringField(event, field) {
-    var value = event.target.value
+    let value = event.target.value
     field.valid = true
     field.error = ""
     field.value = value
@@ -277,7 +298,7 @@ export default class JobForm {
   }
 
   syncNonzeroRealField(event, field) {
-    var value = event.target.value
+    let value = event.target.value
     if (isNaN(value)) {
       field.valid = false
       field.error = field.label + " must contain real number"
@@ -292,7 +313,7 @@ export default class JobForm {
   }
 
   syncContainerName(event, field) {
-    var value = event.target.value
+    let value = event.target.value
     if (value) {
       if (!value.match(/^[a-z0-9\/:]+$/)) {
         field.valid = false
@@ -315,33 +336,27 @@ export default class JobForm {
     field.value = value
   }
 
-  constructor(scheduled) {
-    this.scheduled = scheduled
-    this.allFields = [
-      this.fields.name,
-      this.fields.schedule,
-      this.fields.parents,
-      this.fields.command,
-      this.fields.container_image,
-      this.fields.container_network,
-      this.fields.container_type,
-      this.fields.cpus,
-      this.fields.mem,
-      this.fields.disk,
-      this.fields.owner,
-      this.fields.ownerName,
-    ]
+  syncBooleanField(event, field) {
+    let checked = event.target.checked
+    field.valid = true
+    field.value = checked
   }
 
   reset() {
-    this.allFields.forEach(f => {
-      f.value = f.defaultValue
-      f.sync({target: {value: f.value}}, f)
-    })
+    this.fields = $.extend(true, [], this.defaultFields)
     this.submitError = ""
     this.submitStatus = ""
-    $('#scheduled-job-editor-form')[0].reset()
-    $('#dependent-job-editor-form')[0].reset()
+    if ($('#scheduled-job-editor-form')[0]) {
+      $('#scheduled-job-editor-form')[0].reset()
+    }
+    if ($('#dependent-job-editor-form')[0]) {
+      $('#dependent-job-editor-form')[0].reset()
+    }
+  }
+
+  constructor(scheduled) {
+    this.scheduled = scheduled
+    this.reset()
   }
 
   onSubmit(event) {
@@ -377,14 +392,29 @@ export default class JobForm {
 
   toJS() {
     let obj = Object.create(null)
-    this.allFields.forEach(v => {
-      if (v.value) {
+    this.fields.forEach(v => {
+      if (this.scheduled && v.name === "parents") {
+        return
+      } else if (!this.scheduled && v.name === "schedule") {
+        return
+      }
+      if (v.value || v.defaultValue) {
+        if (!v.value) {
+          v.value = v.defaultValue
+        }
         if (v.name === "parents") {
           obj[v.name] = v.value.split(",")
         } else {
           if (v.name.split(".").length > 1) {
             // handle nested values
             var splat = v.name.split(".").reverse()
+            if (splat[splat.length - 1] == "container") {
+              // check that there's actually an image name defined
+              if (!this.getField('container.image').value) {
+                // skip if there's no image
+                return
+              }
+            }
             var unflatten = function(obj, remaining) {
               var n = remaining.pop()
               if (remaining.length > 0) {

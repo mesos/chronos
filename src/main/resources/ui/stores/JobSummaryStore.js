@@ -3,8 +3,8 @@ import JobSummaryModel from '../models/JobSummaryModel'
 import $ from 'jquery'
 
 export class JobSummaryStore {
-  @observable jobSummarys = new Array;
-  @observable isLoading = true;
+  @observable jobSummarys = new Array
+  @observable isLoading = true
 
   constructor() {
     this.loadJobSummarys();
@@ -47,7 +47,7 @@ export class JobSummaryStore {
 
   @computed get runningCount() {
     return this.jobSummarys.reduce(
-      (sum, job) => sum + (job.state === "running" ? 1 : 0),
+      (sum, job) => sum + (job.state.match(/\d+ running/) ? 1 : 0),
       0
     )
   }
