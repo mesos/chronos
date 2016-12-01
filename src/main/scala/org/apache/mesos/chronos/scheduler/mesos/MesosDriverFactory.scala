@@ -24,14 +24,14 @@ class MesosDriverFactory(
   var mesosDriver: Option[SchedulerDriver] = None
 
   def start(): Unit = {
-    val status = get().start()
+    val status = get.start()
     if (status != Status.DRIVER_RUNNING) {
       log.severe(s"MesosSchedulerDriver start resulted in status: $status. Committing suicide!")
       System.exit(1)
     }
   }
 
-  def get(): SchedulerDriver = {
+  def get: SchedulerDriver = {
     if (mesosDriver.isEmpty) {
       mesosDriver = Some(makeDriver())
     }
