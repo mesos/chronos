@@ -40,10 +40,6 @@ If you'd like to take part in design research and test new features in Chronos b
 
 Mesosphere publishes Docker images for Chronos to Dockerhub, at <https://hub.docker.com/r/mesosphere/chronos/>.
 
-## Known Issues
-
-The GUI will often drop defined fields (e.g., uri, mem, cpu) when saving a job. We strongly recommend to update jobs *only* through the REST API until issue #426 is fixed.
-
 ## Contributing
 
 Instructions on how to contribute to Chronos are available on the [Contributing](http://mesos.github.io/chronos/docs/contributing.html) docs page.
