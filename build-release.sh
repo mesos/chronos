@@ -25,7 +25,7 @@ echo "Version: $version"
 mkdir -p tmp
 
 # build jar
-docker run -v `pwd`:/mnt/build --entrypoint=/bin/sh maven:3-jdk-8 -c "\
+docker run -e http_proxy=$http_proxy -v `pwd`:/mnt/build --entrypoint=/bin/sh maven:3-jdk-8 -c "\
   curl -sL https://deb.nodesource.com/setup_7.x | bash - \
   && apt-get update && apt-get install -y --no-install-recommends nodejs \
   && ln -sf /usr/bin/nodejs /usr/bin/node \
