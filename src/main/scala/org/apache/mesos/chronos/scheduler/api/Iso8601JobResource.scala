@@ -10,6 +10,7 @@ import com.google.common.base.Charsets
 import com.google.inject.Inject
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.{ScheduleBasedJob, _}
+import org.joda.time.{DateTime, DateTimeZone}
 
 /**
   * The REST API to the iso8601 (timed, cron-like) component of the scheduler.
@@ -35,8 +36,19 @@ class Iso8601JobResource @Inject()(
         log.info("Received request for job:" + newJob.toString)
         require(JobUtils.isValidJobName(newJob.name),
           "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
-        if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone))
-          return Response.status(Response.Status.BAD_REQUEST).build()
+        if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
+          return Response.status(Response.Status.BAD_REQUEST).entity("Could not parse schedule").build()
+        }
+
+        Iso8601Expressions.parse(newJob.schedule, newJob.scheduleTimeZone) match {
+          case Some((_, startDate, _)) =>
+            if (startDate.isBefore(new DateTime(DateTimeZone.UTC).minusYears(1))) {
+              return Response.status(Response.Status.BAD_REQUEST).entity("Start date is more than 1 year in the past").build()
+            }
+          case _ =>
+            return Response.status(Response.Status.BAD_REQUEST).entity("Schedule didn't parse (wtf bro)").build()
+        }
+
         if (!JobUtils.isValidURIDefinition(newJob)) {
           log.warning(s"Tried to add both uri (deprecated) and fetch parameters on ${newJob.name}")
           return Response.status(Response.Status.BAD_REQUEST).build()
@@ -57,7 +69,7 @@ class Iso8601JobResource @Inject()(
         oldJob match {
           case j: DependencyBasedJob =>
             val oldParents = jobGraph.parentJobs(j)
-            oldParents.map(x => jobGraph.removeDependency(x.name, oldJob.name))
+            oldParents.foreach(x => jobGraph.removeDependency(x.name, oldJob.name))
           case j: ScheduleBasedJob =>
         }
 
