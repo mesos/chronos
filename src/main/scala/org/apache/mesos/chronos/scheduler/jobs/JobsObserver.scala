@@ -11,7 +11,7 @@ case class JobQueued(job: BaseJob, taskId: String, attempt: Int) extends JobEven
 
 case class JobSkipped(job: BaseJob, dateTime: DateTime) extends JobEvent
 
-case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
+case class JobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) extends JobEvent
 
 case class JobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) extends JobEvent
 
