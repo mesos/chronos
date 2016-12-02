@@ -56,7 +56,36 @@ class JobSchedulerElectionSpec
     val instance: InstanceSpec = testCluster.findConnectionInstance(firstLeader.curator.getZookeeperClient.getZooKeeper)
     testCluster.killServer(instance)
 
-    Thread.sleep(200)
+    Thread.sleep(1100)
+
+    awaitElection(List(latch1, latch2))
+    assertTrue("After ZK node failure, one candidate, but not both, must be elected", latch1.hasLeadership ^ latch2.hasLeadership)
+
+    CloseableUtils.closeQuietly(latch1)
+    CloseableUtils.closeQuietly(curator1)
+    CloseableUtils.closeQuietly(latch2)
+    CloseableUtils.closeQuietly(curator2)
+    CloseableUtils.closeQuietly(testCluster)
+  }
+
+
+  @Test
+  def testElectLeaderOnZkRestart() {
+    val testCluster = new TestingCluster(3)
+    testCluster.start()
+
+    val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
+    val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
+
+    startAndWaitForElection(List(curator1, curator2), List(scheduler1, scheduler2), List(latch1, latch2))
+
+    val (firstLeader, _) = if (latch1.hasLeadership) (scheduler1, scheduler2)
+    else (scheduler2, scheduler1)
+
+    val instance: InstanceSpec = testCluster.findConnectionInstance(firstLeader.curator.getZookeeperClient.getZooKeeper)
+    testCluster.restartServer(instance)
+
+    Thread.sleep(1100)
 
     awaitElection(List(latch1, latch2))
     assertTrue("After ZK node failure, one candidate, but not both, must be elected", latch1.hasLeadership ^ latch2.hasLeadership)
@@ -70,7 +99,7 @@ class JobSchedulerElectionSpec
 
   def scheduler(connectString: String): (JobScheduler, CuratorFramework, LeaderLatch) = {
     val curator = CuratorFrameworkFactory.builder()
-      .connectionTimeoutMs(10000)
+      .connectionTimeoutMs(1000)
       .canBeReadOnly(true)
       .connectString(connectString)
       .retryPolicy(new ExponentialBackoffRetry(1000, 20))

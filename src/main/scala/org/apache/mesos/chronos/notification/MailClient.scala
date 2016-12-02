@@ -19,10 +19,10 @@ class MailClient(
                   val ssl: Boolean)
   extends NotificationClient {
 
-  val mailPort = mailPortStr.toInt
   private[this] val log = Logger.getLogger(getClass.getName)
   private[this] val split = """(.*):([0-9]*)""".r
   private[this] val split(mailHost, mailPortStr) = mailServerString
+  private[this] val mailPort: Int = mailPortStr.toInt
 
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
     val email = new SimpleEmail
