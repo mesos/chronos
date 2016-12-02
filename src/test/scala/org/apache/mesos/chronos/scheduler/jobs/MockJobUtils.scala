@@ -1,9 +1,8 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
 import com.codahale.metrics.MetricRegistry
-import com.google.common.cache.CacheBuilder
 import com.google.common.util.concurrent.ListeningScheduledExecutorService
-import org.apache.mesos.Protos.{Filters, OfferID, Status, TaskState}
+import org.apache.mesos.Protos.{Filters, OfferID, Status}
 import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.ChronosTestHelper.makeConfig
 import org.apache.mesos.chronos.scheduler.graph.JobGraph

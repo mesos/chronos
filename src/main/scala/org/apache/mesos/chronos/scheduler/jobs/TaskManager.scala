@@ -6,7 +6,7 @@ import java.util.logging.Logger
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.google.common.util.concurrent.ListeningScheduledExecutorService
 import com.google.inject.Inject
-import org.apache.mesos.Protos.{TaskID, TaskState, TaskStatus}
+import org.apache.mesos.Protos.{TaskID, TaskStatus}
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.{MesosDriverFactory, MesosOfferReviver}

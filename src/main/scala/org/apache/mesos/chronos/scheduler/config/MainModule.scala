@@ -21,7 +21,6 @@ import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.jobs.{JobMetrics, JobScheduler, JobsObserver, TaskManager}
 import org.apache.mesos.chronos.scheduler.mesos._
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.joda.time.Seconds
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

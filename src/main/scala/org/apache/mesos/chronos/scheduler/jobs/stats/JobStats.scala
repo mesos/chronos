@@ -22,7 +22,7 @@ object CurrentState extends Enumeration {
   val idle, queued, running = Value
 }
 
-class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) {
+class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration, taskManager: TaskManager) {
 
   // Cassandra table column names
   private val ATTEMPT: String = "attempt"
@@ -39,7 +39,6 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   private val TIMESTAMP: String = "ts"
 
   protected val jobStates = new mutable.HashMap[String, CurrentState.Value]()
-  protected val runningCount = new mutable.HashMap[String, Int]()
 
   val log = Logger.getLogger(getClass.getName)
   val statements = new ConcurrentHashMap[String, PreparedStatement]().asScala
@@ -54,7 +53,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
      */
     val state = jobStates.getOrElse(jobName, CurrentState.idle)
     if (state == CurrentState.running) {
-      s"${runningCount.getOrElse(jobName, 0)} ${state.toString}"
+      s"${taskManager.getRunningTaskCount(jobName)} ${state.toString}"
     } else {
       state.toString
     }
@@ -63,7 +62,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   def updateJobState(jobName: String, nextState: CurrentState.Value, count: Option[Int] = None) {
     val shouldUpdate = jobStates.get(jobName).forall {
       currentState =>
-        !(currentState == CurrentState.running && nextState == CurrentState.queued) && (!runningCount.contains(jobName) || runningCount(jobName) <= 1)
+        !(currentState == CurrentState.running && nextState == CurrentState.queued) && taskManager.getRunningTaskCount(jobName) <= 1
     }
 
     if (shouldUpdate) {
@@ -326,17 +325,16 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     case JobExpired(job, _) => updateJobState(job.name, CurrentState.idle)
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
-    case JobStarted(job, taskStatus, attempt, runningCount) => jobStarted(job, taskStatus, attempt, runningCount)
-    case JobFinished(job, taskStatus, attempt, runningCount) => jobFinished(job, taskStatus, attempt, runningCount)
-    case JobFailed(job, taskStatus, attempt, runningCount) => jobFailed(job, taskStatus, attempt, runningCount)
+    case JobStarted(job, taskStatus, attempt) => jobStarted(job, taskStatus, attempt)
+    case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
+    case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
   }, getClass.getSimpleName)
 
   private def jobQueued(job: BaseJob, taskId: String, attempt: Int) {
     updateJobState(job.name, CurrentState.queued)
   }
 
-  private def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) {
-    this.runningCount(job.name) = runningCount
+  private def jobStarted(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(job.name, CurrentState.running)
 
     var jobSchedule:Option[String] = None
@@ -436,8 +434,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     _session = None
   }
 
-  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) {
-    this.runningCount(job.name) = runningCount
+  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
     updateJobState(job.name, CurrentState.idle)
 
     var jobSchedule:Option[String] = None
@@ -462,9 +459,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
             isFailure=None)
   }
 
-  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int, runningCount: Int): Unit = {
+  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
     val jobName = jobNameOrJob.fold(name => name, _.name)
-    this.runningCount(jobName) = runningCount
     val jobSchedule = jobNameOrJob.fold(_ => None,  {
       case job: ScheduleBasedJob => Some(job.schedule)
       case _ => None
