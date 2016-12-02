@@ -23,7 +23,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       actualSeconds must_== expectedSeconds
     }
 
-    "Handle None job option in getTask" in {
+    "Handle None job option in getTaskFromQueue" in {
       val mockJobGraph = mock[JobGraph]
       val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
 
@@ -38,7 +38,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
 
       mockJobGraph.getJobForName("test").returns(None)
 
-      taskManager.getTask must_== None
+      taskManager.getTaskFromQueue must_== None
     }
 
     "Revive offers when adding a new task and --revive_offers_for_new_jobs is set" in {
@@ -73,6 +73,35 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
 
       there were noCallsTo(mockMesosOfferReviver)
+    }
+
+    "Add a new task" in {
+      val mockJobGraph = mock[JobGraph]
+      val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val config = makeConfig()
+
+      val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
+
+      taskManager.addTask("job", "slave", "task")
+
+      taskManager.getRunningTaskCount("job") must_== 1
+    }
+
+    "Remove a task" in {
+      val mockJobGraph = mock[JobGraph]
+      val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val config = makeConfig()
+
+      val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
+
+      taskManager.addTask("job", "slave", "ct:1420843781398:0:job:")
+      taskManager.getRunningTaskCount("job") must_== 1
+      taskManager.removeTask("ct:1420843781398:0:job:")
+      taskManager.getRunningTaskCount("job") must_== 0
     }
   }
 }

@@ -119,27 +119,29 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
         mock[MesosTaskBuilder],
         mockMesosOfferReviver)
 
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskStaging))
-      mesosJobFramework.getRunningCount("task1") must_== 1
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskRunning))
-      mesosJobFramework.getRunningCount("task1") must_== 1
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskFinished))
-      mesosJobFramework.getRunningCount("task1") must_== 0
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskRunning))
-      mesosJobFramework.getRunningCount("task1") must_== 1
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskFailed))
-      mesosJobFramework.getRunningCount("task1") must_== 0
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskRunning))
-      mesosJobFramework.getRunningCount("task1") must_== 1
-      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:task1:"), TaskKilled))
-      mesosJobFramework.getRunningCount("task1") must_== 0
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskStaging))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskRunning))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskFinished))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 0
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskRunning))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskFailed))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 0
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskRunning))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 1
+      mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:job1:"), TaskKilled))
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 0
+      mesosJobFramework.taskManager.getRunningTaskCount("unknown") must_== 0
       mesosJobFramework.statusUpdate(mockDriverFactory.get, TaskStatus(TaskID("ct:0:1:unknown:"), TaskFailed))
-      mesosJobFramework.getRunningCount("unknown") must_== 0
+      mesosJobFramework.taskManager.getRunningTaskCount("job1") must_== 0
+      mesosJobFramework.taskManager.getRunningTaskCount("unknown") must_== 0
 
-      there was 4.times (jobScheduler).handleStartedTask(any[org.apache.mesos.Protos.TaskStatus], any[Int])
-      there was one (jobScheduler).handleFinishedTask(any[org.apache.mesos.Protos.TaskStatus], any, any[Int])
-      there was 2.times (jobScheduler).handleFailedTask(any[org.apache.mesos.Protos.TaskStatus], any[Int])
-      there was one (jobScheduler).handleKilledTask(any[org.apache.mesos.Protos.TaskStatus], any[Int])
+      there was 4.times (jobScheduler).handleStartedTask(any[org.apache.mesos.Protos.TaskStatus])
+      there was one (jobScheduler).handleFinishedTask(any[org.apache.mesos.Protos.TaskStatus], any)
+      there was 2.times (jobScheduler).handleFailedTask(any[org.apache.mesos.Protos.TaskStatus])
+      there was one (jobScheduler).handleKilledTask(any[org.apache.mesos.Protos.TaskStatus])
     }
   }
 
