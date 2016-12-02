@@ -340,7 +340,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     * @return updated TaskStat object
     */
   private def updateTaskStat(taskStat: TaskStat, row: Row): TaskStat = {
-    val taskTimestamp = new Date(row.getTimestamp(TIMESTAMP))
+    val taskTimestamp = new Date(row.getDate(TIMESTAMP).getMillisSinceEpoch)
     val taskState = row.getString(TASK_STATE)
 
     if (taskState == TaskState.TASK_RUNNING.toString) {
