@@ -35,8 +35,8 @@ object HistogramSerializerUtil {
 }
 
 /**
- * Author: @andykram
- */
+  * Author: @andykram
+  */
 class HistogramSerializer extends JsonSerializer[Histogram] {
   def serialize(hist: Histogram, json: JsonGenerator, provider: SerializerProvider) {
     HistogramSerializerUtil.serialize(hist, json, provider)

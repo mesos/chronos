@@ -7,26 +7,27 @@ import java.util.logging.{Level, Logger}
 
 import akka.actor.{ActorSystem, Props}
 import com.google.common.base.Joiner
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import com.google.common.util.concurrent.AbstractIdleService
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.apache.mesos.Protos.TaskStatus
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.apache.mesos.chronos.utils.Supervisor
 import org.joda.time.{DateTime, DateTimeZone, Duration}
 
 import scala.collection.mutable.ListBuffer
 
 /**
- * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
- * The schedule horizon represents the advance-time the schedule is constructed.
- *
- * A lot of the methods in this class are broken into small pieces to allow for better unit testing.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Constructs concrete tasks given a  list of schedules and a global scheduleHorizon.
+  * The schedule horizon represents the advance-time the schedule is constructed.
+  *
+  * A lot of the methods in this class are broken into small pieces to allow for better unit testing.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class JobScheduler @Inject()(val taskManager: TaskManager,
                              val jobGraph: JobGraph,
                              val persistenceStore: PersistenceStore,
@@ -58,8 +59,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
   val conditionNotified = new AtomicBoolean(false)
   private[this] val log = Logger.getLogger(getClass.getName)
 
-  def isLeader: Boolean = leader.get()
-
   def getLeader: String = {
     try {
       leaderLatch.getLeader.getId
@@ -68,29 +67,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
         log.log(Level.SEVERE, "Error trying to talk to zookeeper. Exiting.", e)
         System.exit(1)
         null
-    }
-  }
-
-  /**
-   * Update job definition
-   * @param oldJob job definition
-   * @param newJob new job definition
-   */
-  def updateJob(oldJob: BaseJob, newJob: BaseJob) {
-    //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
-    assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
-
-    replaceJob(oldJob, newJob)
-  }
-
-  def notifyCondition(): Unit = {
-    // Notify run() that there may be new work
-    lock.lock()
-    try {
-      conditionNotified.set(true)
-      condition.signal()
-    } finally {
-      lock.unlock()
     }
   }
 
@@ -112,68 +88,15 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     notifyCondition()
   }
 
-  def registerJobs(jobs: List[BaseJob]): List[ScheduleBasedJob] = {
-    var scheduledJobList = List[ScheduleBasedJob]()
-    lock.synchronized {
-      require(isLeader, "Cannot register a job with this scheduler, not the leader!")
-      val scheduleBasedJobs = ListBuffer[ScheduleBasedJob]()
-      val dependencyBasedJobs = ListBuffer[DependencyBasedJob]()
-
-      jobs.foreach {
-        case x: DependencyBasedJob =>
-          dependencyBasedJobs += x
-        case x: ScheduleBasedJob =>
-          scheduleBasedJobs += x
-        case x: Any =>
-          throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
-      }
-
-      if (scheduleBasedJobs.nonEmpty) {
-        val newScheduledJobs = scheduleBasedJobs.sortWith({(lhs, rhs) =>
-          JobUtils.getScheduledTime(lhs).isBefore(JobUtils.getScheduledTime(rhs))
-        })
-        scheduleBasedJobs.foreach({
-          job =>
-            jobGraph.lookupVertex(job.name) match {
-              case Some(_) =>
-                replaceJob(job, job)
-              case _ =>
-                jobGraph.addVertex(job)
-            }
-        })
-        if (newScheduledJobs.nonEmpty) {
-          scheduledJobList = newScheduledJobs.toList
-        }
-      }
-
-      dependencyBasedJobs.foreach {
-        job =>
-          jobGraph.lookupVertex(job.name) match {
-            case Some(_) =>
-              replaceJob(job, job)
-            case _ =>
-              jobGraph.addVertex(job)
-          }
-      }
-      dependencyBasedJobs.foreach {
-        job =>
-          import scala.collection.JavaConversions._
-          log.info("Adding dependencies for %s -> [%s]".format(job.name, Joiner.on(",").join(job.parents)))
-
-          jobGraph.parentJobsOption(job) match {
-            case None =>
-              log.warning(s"Coudn't find all parents of job ${job.name}... dropping it.")
-              jobGraph.removeVertex(job)
-            case Some(parentJobs) =>
-              parentJobs.foreach {
-                //Setup all the dependencies
-                parentJob: BaseJob =>
-                  jobGraph.addDependency(parentJob.name, job.name)
-              }
-          }
-      }
+  def notifyCondition(): Unit = {
+    // Notify run() that there may be new work
+    lock.lock()
+    try {
+      conditionNotified.set(true)
+      condition.signal()
+    } finally {
+      lock.unlock()
     }
-    scheduledJobList
   }
 
   def deregisterJob(job: BaseJob) {
@@ -205,6 +128,28 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     }
   }
 
+  def isLeader: Boolean = leader.get()
+
+  /**
+    * Update job definition
+    *
+    * @param oldJob job definition
+    * @param newJob new job definition
+    */
+  def updateJob(oldJob: BaseJob, newJob: BaseJob) {
+    //TODO(FL): Ensure we're using job-ids rather than relying on jobs names for identification.
+    assert(newJob.name == oldJob.name, "Renaming jobs is currently not supported!")
+
+    replaceJob(oldJob, newJob)
+  }
+
+  def replaceJob(oldJob: BaseJob, newJob: BaseJob) {
+    lock.synchronized {
+      jobGraph.replaceVertex(oldJob, newJob)
+      persistenceStore.persistJob(newJob)
+    }
+  }
+
   def handleStartedTask(taskStatus: TaskStatus) {
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
@@ -233,10 +178,26 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     notifyCondition()
   }
 
+  def getNewRunningJob(job: BaseJob): BaseJob = {
+    val newJob = job match {
+      case job: ScheduleBasedJob =>
+        val now = DateTime.now(DateTimeZone.UTC)
+        val nextJobSchedule = JobUtils.skipForward(job, now).get
+        job.copy(
+          schedule = nextJobSchedule.schedule
+        )
+      case job: DependencyBasedJob =>
+        job.copy()
+      case _ =>
+        throw new scala.IllegalArgumentException("Cannot handle unknown task type")
+    }
+    newJob
+  }
+
   /**
-   * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
-   * launch tasks for dependent jobs
-   */
+    * Takes care of follow-up actions for a finished task, i.e. update the job schedule in the persistence store or
+    * launch tasks for dependent jobs
+    */
   def handleFinishedTask(taskStatus: TaskStatus, taskDate: Option[DateTime] = None) {
     // `taskDate` is purely for unit testing
     val taskId = taskStatus.getTaskId.getValue
@@ -277,9 +238,10 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
                 log.info("Disabling job that reached a zero-recurrence count!")
 
                 val disabledJob: ScheduleBasedJob = scheduleBasedJob.copy(disabled = true)
-                jobsObserver.apply(JobDisabled(job, """JobSchedule '%s' has exhausted all of its recurrences and has been disabled.
-                                                        |Please consider either removing your job, or updating its schedule and re-enabling it.
-                                                      """.stripMargin.format(job.name)))
+                jobsObserver.apply(JobDisabled(job,
+                  """JobSchedule '%s' has exhausted all of its recurrences and has been disabled.
+                    |Please consider either removing your job, or updating its schedule and re-enabling it.
+                  """.stripMargin.format(job.name)))
                 replaceJob(scheduleBasedJob, disabledJob)
               }
             case None =>
@@ -287,28 +249,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
         case _ =>
       }
     }
-  }
-
-
-  /**
-   * Mark job by job name as successful. Trigger any dependent children jobs that should be run as a result
-   */
-  def markJobSuccessAndFireOffDependencies(jobName : String): Boolean = {
-    val optionalJob = jobGraph.getJobForName(jobName)
-    if (optionalJob.isEmpty) {
-      log.warning("%s not found in job graph, not marking success".format(jobName))
-      return false
-    } else {
-      val job = optionalJob.get
-      jobMetrics.updateJobStatus(jobName, success = true)
-      val newJob = getNewSuccessfulJob(job)
-      replaceJob(job, newJob)
-      log.info("Resetting dependency invocations for %s".format(newJob))
-      jobGraph.resetDependencyInvocations(jobName)
-      log.info("Processing dependencies for %s".format(jobName))
-      processDependencies(jobName, Option(DateTime.parse(newJob.lastSuccess)))
-    }
-    true
   }
 
   def getNewSuccessfulJob(job: BaseJob): BaseJob = {
@@ -327,29 +267,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
         throw new scala.IllegalArgumentException("Cannot handle unknown task type")
     }
     newJob
-  }
-
-  def getNewRunningJob(job: BaseJob): BaseJob = {
-    val newJob = job match {
-      case job: ScheduleBasedJob =>
-        val now = DateTime.now(DateTimeZone.UTC)
-        val nextJobSchedule = JobUtils.skipForward(job, now).get
-        job.copy(
-          schedule = nextJobSchedule.schedule
-        )
-      case job: DependencyBasedJob =>
-        job.copy()
-      case _ =>
-        throw new scala.IllegalArgumentException("Cannot handle unknown task type")
-    }
-    newJob
-  }
-
-  def replaceJob(oldJob: BaseJob, newJob: BaseJob) {
-    lock.synchronized {
-      jobGraph.replaceVertex(oldJob, newJob)
-      persistenceStore.persistJob(newJob)
-    }
   }
 
   private def processDependencies(jobName: String, taskDate: Option[DateTime]) {
@@ -374,6 +291,27 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     } else {
       log.fine("%s does not have any ready dependents.".format(jobName))
     }
+  }
+
+  /**
+    * Mark job by job name as successful. Trigger any dependent children jobs that should be run as a result
+    */
+  def markJobSuccessAndFireOffDependencies(jobName: String): Boolean = {
+    val optionalJob = jobGraph.getJobForName(jobName)
+    if (optionalJob.isEmpty) {
+      log.warning("%s not found in job graph, not marking success".format(jobName))
+      return false
+    } else {
+      val job = optionalJob.get
+      jobMetrics.updateJobStatus(jobName, success = true)
+      val newJob = getNewSuccessfulJob(job)
+      replaceJob(job, newJob)
+      log.info("Resetting dependency invocations for %s".format(newJob))
+      jobGraph.resetDependencyInvocations(jobName)
+      log.info("Processing dependencies for %s".format(jobName))
+      processDependencies(jobName, Option(DateTime.parse(newJob.lastSuccess)))
+    }
+    true
   }
 
   def handleFailedTask(taskStatus: TaskStatus) {
@@ -459,11 +397,11 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
   }
 
   /**
-   * Task has been killed. Do appropriate cleanup
-   * Possible reasons for task being killed:
-   *   -invoked kill via task manager API
-   *   -job is deleted
-   */
+    * Task has been killed. Do appropriate cleanup
+    * Possible reasons for task being killed:
+    * -invoked kill via task manager API
+    * -job is deleted
+    */
   def handleKilledTask(taskStatus: TaskStatus) {
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
@@ -475,68 +413,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     val jobOption = jobGraph.lookupVertex(jobName)
 
     jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt))
-  }
-
-  def nanosUntilNextJob(scheduledJobs: List[ScheduleBasedJob]): Long = {
-    scheduledJobs.foreach {
-      job =>
-        Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
-          case Some((_, schedule, _)) =>
-            if (!job.disabled) {
-              val nanos = new Duration(DateTime.now(DateTimeZone.UTC), schedule).getMillis * 1000000
-              if (nanos > 0) {
-                return nanos
-              }
-              return 0
-            }
-          case _ =>
-        }
-    }
-    60000000000l // 60 seconds
-  }
-
-  def mainLoop() {
-    log.info("Starting main loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
-    var nanos = 1000000000l // 1 second
-    while (running.get) {
-      lock.lock()
-      try {
-        if (!conditionNotified.getAndSet(false) && nanos > 0) {
-          condition.awaitNanos(nanos)
-        }
-      } finally {
-        lock.unlock()
-      }
-      lock.synchronized {
-        try {
-          log.info("Reloading jobs")
-          val baseJobs = JobUtils.loadJobs(persistenceStore)
-          val scheduledJobs = registerJobs(baseJobs)
-          val (jobsToRun, jobsNotToRun) = getJobsToRun(scheduledJobs)
-          log.info(s"jobsToRun.size=${jobsToRun.size}, jobsNotToRun.size=${jobsNotToRun.size}")
-          runJobs(jobsToRun)
-          nanos = nanosUntilNextJob(jobsNotToRun)
-        } catch {
-          case e: Exception =>
-            log.log(Level.SEVERE, "Loading tasks or jobs failed. Exiting.", e)
-            System.exit(1)
-        }
-      }
-    }
-    log.info("No longer running.")
-  }
-
-  def getJobsToRun(scheduledJobs: List[ScheduleBasedJob]): (List[ScheduleBasedJob], List[ScheduleBasedJob]) = {
-    val now = DateTime.now(DateTimeZone.UTC)
-    scheduledJobs.partition({
-      job =>
-        Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
-          case Some((repeat, schedule, _)) =>
-            !job.disabled && repeat != 0 && schedule.isBefore(now)
-          case _ =>
-            false
-        }
-    })
   }
 
   //Begin Service interface
@@ -556,14 +432,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       }
     }, leaderExecutor)
     leaderLatch.start()
-  }
-
-  override def shutDown() {
-    running.set(false)
-    log.info("Shutting down job scheduler")
-
-    leaderLatch.close(LeaderLatch.CloseMode.NOTIFY_LEADER)
-    leaderExecutor.shutdown()
   }
 
   //Begin Leader interface, which is required for CandidateImpl.
@@ -597,12 +465,146 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     mesosDriver.start()
   }
 
+  def mainLoop() {
+    log.info("Starting main loop for JobScheduler. CurrentTime: %s".format(DateTime.now(DateTimeZone.UTC)))
+    var nanos = 1000000000l // 1 second
+    while (running.get) {
+      lock.lock()
+      try {
+        if (!conditionNotified.getAndSet(false) && nanos > 0) {
+          condition.awaitNanos(nanos)
+        }
+      } finally {
+        lock.unlock()
+      }
+      lock.synchronized {
+        try {
+          log.info("Reloading jobs")
+          val baseJobs = JobUtils.loadJobs(persistenceStore)
+          val scheduledJobs = registerJobs(baseJobs)
+          val (jobsToRun, jobsNotToRun) = getJobsToRun(scheduledJobs)
+          log.info(s"jobsToRun.size=${jobsToRun.size}, jobsNotToRun.size=${jobsNotToRun.size}")
+          runJobs(jobsToRun)
+          nanos = nanosUntilNextJob(jobsNotToRun)
+        } catch {
+          case e: Exception =>
+            log.log(Level.SEVERE, "Loading tasks or jobs failed. Exiting.", e)
+            System.exit(1)
+        }
+      }
+    }
+    log.info("No longer running.")
+  }
+
+  def registerJobs(jobs: List[BaseJob]): List[ScheduleBasedJob] = {
+    var scheduledJobList = List[ScheduleBasedJob]()
+    lock.synchronized {
+      require(isLeader, "Cannot register a job with this scheduler, not the leader!")
+      val scheduleBasedJobs = ListBuffer[ScheduleBasedJob]()
+      val dependencyBasedJobs = ListBuffer[DependencyBasedJob]()
+
+      jobs.foreach {
+        case x: DependencyBasedJob =>
+          dependencyBasedJobs += x
+        case x: ScheduleBasedJob =>
+          scheduleBasedJobs += x
+        case x: Any =>
+          throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
+      }
+
+      if (scheduleBasedJobs.nonEmpty) {
+        val newScheduledJobs = scheduleBasedJobs.sortWith({ (lhs, rhs) =>
+          JobUtils.getScheduledTime(lhs).isBefore(JobUtils.getScheduledTime(rhs))
+        })
+        scheduleBasedJobs.foreach({
+          job =>
+            jobGraph.lookupVertex(job.name) match {
+              case Some(_) =>
+                replaceJob(job, job)
+              case _ =>
+                jobGraph.addVertex(job)
+            }
+        })
+        if (newScheduledJobs.nonEmpty) {
+          scheduledJobList = newScheduledJobs.toList
+        }
+      }
+
+      dependencyBasedJobs.foreach {
+        job =>
+          jobGraph.lookupVertex(job.name) match {
+            case Some(_) =>
+              replaceJob(job, job)
+            case _ =>
+              jobGraph.addVertex(job)
+          }
+      }
+      dependencyBasedJobs.foreach {
+        job =>
+          import scala.collection.JavaConversions._
+          log.info("Adding dependencies for %s -> [%s]".format(job.name, Joiner.on(",").join(job.parents)))
+
+          jobGraph.parentJobsOption(job) match {
+            case None =>
+              log.warning(s"Coudn't find all parents of job ${job.name}... dropping it.")
+              jobGraph.removeVertex(job)
+            case Some(parentJobs) =>
+              parentJobs.foreach {
+                //Setup all the dependencies
+                parentJob: BaseJob =>
+                  jobGraph.addDependency(parentJob.name, job.name)
+              }
+          }
+      }
+    }
+    scheduledJobList
+  }
+
+  def nanosUntilNextJob(scheduledJobs: List[ScheduleBasedJob]): Long = {
+    scheduledJobs.foreach {
+      job =>
+        Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
+          case Some((_, schedule, _)) =>
+            if (!job.disabled) {
+              val nanos = new Duration(DateTime.now(DateTimeZone.UTC), schedule).getMillis * 1000000
+              if (nanos > 0) {
+                return nanos
+              }
+              return 0
+            }
+          case _ =>
+        }
+    }
+    60000000000l // 60 seconds
+  }
+
+  def getJobsToRun(scheduledJobs: List[ScheduleBasedJob]): (List[ScheduleBasedJob], List[ScheduleBasedJob]) = {
+    val now = DateTime.now(DateTimeZone.UTC)
+    scheduledJobs.partition({
+      job =>
+        Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
+          case Some((repeat, schedule, _)) =>
+            !job.disabled && repeat != 0 && schedule.isBefore(now)
+          case _ =>
+            false
+        }
+    })
+  }
+
   final def runJobs(jobs: List[ScheduleBasedJob]) {
     jobs.foreach {
       job =>
         log.info("Scheduling:" + job.name)
         taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC)), job.highPriority)
     }
+  }
+
+  override def shutDown() {
+    running.set(false)
+    log.info("Shutting down job scheduler")
+
+    leaderLatch.close(LeaderLatch.CloseMode.NOTIFY_LEADER)
+    leaderExecutor.shutdown()
   }
 
 }

@@ -6,24 +6,26 @@ import akka.actor.{Actor, Terminated}
 import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 
 /**
- * The form and design of the ability to send a notification to a specific source
- * @author Greg Bowyer (gbowyer@fastmail.co.uk)
- */
+  * The form and design of the ability to send a notification to a specific source
+  *
+  * @author Greg Bowyer (gbowyer@fastmail.co.uk)
+  */
 trait NotificationClient extends Actor {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
   /**
-   * Send the notification
-   * @param job the job that is being notified on
-   * @param to the recipient of the notification
-   * @param subject the subject line to use in notification
-   * @param message the message that offers additional information about the notification
-   */
+    * Send the notification
+    *
+    * @param job     the job that is being notified on
+    * @param to      the recipient of the notification
+    * @param subject the subject line to use in notification
+    * @param message the message that offers additional information about the notification
+    */
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String])
 
   def receive = {
-    case (job: BaseJob, to: String, subject: String, message: Option[String] @unchecked) =>
+    case (job: BaseJob, to: String, subject: String, message: Option[String]@unchecked) =>
       try {
         sendNotification(job, to, subject, message)
       } catch {

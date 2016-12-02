@@ -1,14 +1,12 @@
 package org.apache.mesos.chronos.utils
 
-import java.util.regex.Pattern
-
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
-import org.apache.mesos.chronos.scheduler.jobs.constraints._
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonNode}
-import org.joda.time.{DateTime, DateTimeZone, Period}
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.scheduler.jobs.constraints._
+import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.JavaConversions._
 import scala.util.Try
@@ -18,9 +16,10 @@ object JobDeserializer {
 }
 
 /**
- * Custom JSON deserializer for jobs.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Custom JSON deserializer for jobs.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class JobDeserializer extends JsonDeserializer[BaseJob] {
 
   def deserialize(jsonParser: JsonParser, ctxt: DeserializationContext): BaseJob = {
@@ -125,10 +124,18 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     if (node.has("fetch")) {
       node.get("fetch").elements().map {
         case node: ObjectNode => {
-          val uri = Option(node.get("uri")).map { _.asText() }.getOrElse("")
-          val executable = Option(node.get("executable")).map { _.asBoolean() }.getOrElse(false)
-          val cache = Option(node.get("cache")).map { _.asBoolean() }.getOrElse(false)
-          val extract = Option(node.get("extract")).map { _.asBoolean() }.getOrElse(false)
+          val uri = Option(node.get("uri")).map {
+            _.asText()
+          }.getOrElse("")
+          val executable = Option(node.get("executable")).map {
+            _.asBoolean()
+          }.getOrElse(false)
+          val cache = Option(node.get("cache")).map {
+            _.asBoolean()
+          }.getOrElse(false)
+          val extract = Option(node.get("extract")).map {
+            _.asBoolean()
+          }.getOrElse(false)
           Fetch(uri, executable, cache, extract)
         }
       }.foreach(fetch.add)
@@ -189,7 +196,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (containerNode.has("parameters")) {
         containerNode.get("parameters").elements().map {
           case node: ObjectNode =>
-          Parameter(node.get("key").asText(), node.get("value").asText)
+            Parameter(node.get("key").asText(), node.get("value").asText)
         }.foreach(parameters.add)
       }
 
@@ -232,7 +239,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner, ownerName = ownerName,
         description = description, lastError = lastError, lastSuccess = lastSuccess,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled, concurrent = concurrent,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
         environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
         dataProcessingJobType = dataProcessingJobType, constraints = constraints)
@@ -242,7 +249,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorCount = errorCount, executor = executor, executorFlags = executorFlags, taskInfoData = taskInfoData, retries = retries, owner = owner,
         ownerName = ownerName, description = description, lastError = lastError, lastSuccess = lastSuccess,
         cpus = cpus, disk = disk, mem = mem, disabled = disabled,
-        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
+        errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
         constraints = constraints)

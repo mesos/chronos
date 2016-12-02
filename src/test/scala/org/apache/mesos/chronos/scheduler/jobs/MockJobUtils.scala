@@ -18,11 +18,6 @@ object MockJobUtils extends Mockito {
     new JobScheduler(taskManager, jobGraph, persistenceStore,
       jobMetrics = mock[JobMetrics], jobsObserver = jobsObserver)
 
-  def mockFullObserver: JobsObserver.Observer = {
-    val observer = mock[JobsObserver.Observer]
-    observer.apply(any[JobEvent]) returns Unit
-  }
-
   def mockDriverFactory: MesosDriverFactory = {
     val mockSchedulerDriver = mock[SchedulerDriver]
     mockSchedulerDriver.reviveOffers() returns Status.DRIVER_RUNNING
@@ -40,5 +35,10 @@ object MockJobUtils extends Mockito {
     val mockTaskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
       mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
     mockTaskManager
+  }
+
+  def mockFullObserver: JobsObserver.Observer = {
+    val observer = mock[JobsObserver.Observer]
+    observer.apply(any[JobEvent]) returns Unit
   }
 }

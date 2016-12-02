@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.ActorSystem
 import akka.testkit.TestProbe
-import com.codahale.metrics.{ Counter, MetricRegistry }
+import com.codahale.metrics.{Counter, MetricRegistry}
 import org.specs2.mock._
 import org.specs2.mutable._
 

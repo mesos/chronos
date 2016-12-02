@@ -1,7 +1,6 @@
 package org.apache.mesos.chronos.scheduler.state
 
 import org.apache.mesos.chronos.scheduler.jobs._
-import org.joda.time.Hours
 import org.specs2.mock._
 import org.specs2.mutable._
 
@@ -36,7 +35,7 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
         name = "sample-dep", command = "sample-command",
         softError = true,
         successCount = 1L, errorCount = 0L,
-        executor = "fooexecutor", executorFlags = "-w", taskInfoData="SomeData",
+        executor = "fooexecutor", executorFlags = "-w", taskInfoData = "SomeData",
         retries = 1, disabled = false)
 
       store.persistJob(job)

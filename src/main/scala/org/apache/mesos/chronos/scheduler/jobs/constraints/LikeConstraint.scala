@@ -3,6 +3,7 @@ package org.apache.mesos.chronos.scheduler.jobs.constraints
 import java.util.logging.Logger
 
 import org.apache.mesos.Protos
+
 import scala.collection.JavaConversions._
 
 case class LikeConstraint(attribute: String, value: String) extends Constraint {

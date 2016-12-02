@@ -1,18 +1,18 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
-import org.apache.mesos.chronos.utils.JobDeserializer
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import org.joda.time.{Minutes, Period}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
+import org.apache.mesos.chronos.utils.JobDeserializer
 
 /**
- * BaseJob encapsulates job specific information. BaseJob is defined for all tasks within a job.
- * At a bare minimum, it contains the command and a default epsilon value. Epsilon is the maximum allowed delay that a
- * job may be triggered at - if a job cannot be scheduled within epsilon (e.g. no resources),
- * the execution cycle is skipped.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * BaseJob encapsulates job specific information. BaseJob is defined for all tasks within a job.
+  * At a bare minimum, it contains the command and a default epsilon value. Epsilon is the maximum allowed delay that a
+  * job may be triggered at - if a job cannot be scheduled within epsilon (e.g. no resources),
+  * the execution cycle is skipped.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 //The fact that JobSchedule is a trait rather than part of this class is a problem with dropwizards json serializer which will
 //omit fields defined in superclasses but not traits.
 
@@ -154,5 +154,5 @@ case class DependencyBasedJob(
                                @JsonProperty override val softError: Boolean = false,
                                @JsonProperty override val dataProcessingJobType: Boolean = false,
                                @JsonProperty override val constraints: Seq[Constraint] = List(),
-                             @JsonProperty override val concurrent: Boolean = false)
+                               @JsonProperty override val concurrent: Boolean = false)
   extends BaseJob

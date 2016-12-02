@@ -2,12 +2,12 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.google.common.base.{Charsets, Joiner}
+import com.google.common.base.Charsets
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
+import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, Period, Seconds}
 
@@ -15,8 +15,8 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 /**
- * @author Florian Leibert (flo@leibert.de)
- */
+  * @author Florian Leibert (flo@leibert.de)
+  */
 object JobUtils {
 
   val jobNamePattern = """([\w\.-]+)""".r
@@ -56,7 +56,7 @@ object JobUtils {
     }
   }
 
-  def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty  // when you leave the deprecated one, then it should be empty
+  def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty // when you leave the deprecated one, then it should be empty
 
   def loadJobs(store: PersistenceStore): List[BaseJob] = {
     val validatedJobs = new ListBuffer[BaseJob]
@@ -109,8 +109,8 @@ object JobUtils {
   }
 
   /**
-   * Calculates the number of skips needed to bring the job start into the future
-   */
+    * Calculates the number of skips needed to bring the job start into the future
+    */
   protected def calculateSkips(dateTime: DateTime, jobStart: DateTime, period: Period): Int = {
     // If the period is at least a month, we have to actually add the period to the date
     // until it's in the future because a month-long period might have different seconds
@@ -131,7 +131,7 @@ object JobUtils {
     }
   }
 
-  def getJobWithArguments(job : BaseJob, arguments: String): BaseJob = {
+  def getJobWithArguments(job: BaseJob, arguments: String): BaseJob = {
     val commandWithArgs = job.command + " " + arguments
     job match {
       case j: DependencyBasedJob => j.copy(command = commandWithArgs)

@@ -1,8 +1,8 @@
 package org.apache.mesos.chronos.scheduler.api
 
 /**
- * @author Florian Leibert (flo@leibert.de)
- */
+  * @author Florian Leibert (flo@leibert.de)
+  */
 object PathConstants {
   final val iso8601JobPath = "/iso8601"
   final val dependentJobPath = "/dependency"

@@ -5,16 +5,17 @@ import java.util.logging.{Level, Logger}
 import javax.ws.rs._
 import javax.ws.rs.core.{MediaType, Response}
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs.{ScheduleBasedJob, _}
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs.{ScheduleBasedJob, _}
 
 /**
- * The REST API to the iso8601 (timed, cron-like) component of the scheduler.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * The REST API to the iso8601 (timed, cron-like) component of the scheduler.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 @Path(PathConstants.iso8601JobPath)
 @Produces(Array(MediaType.APPLICATION_JSON))
 @Consumes(Array(MediaType.APPLICATION_JSON))

@@ -4,7 +4,9 @@ import akka.actor.ActorRef
 import com.codahale.metrics.MetricRegistry
 
 object MesosOfferReviverDelegate {
+
   case object ReviveOffers
+
 }
 
 class MesosOfferReviverDelegate(offerReviverRef: ActorRef, registry: MetricRegistry) extends MesosOfferReviver {

@@ -5,9 +5,10 @@ import java.util.concurrent.Callable
 import org.joda.time.DateTime
 
 /**
- * A wrapper around a task-tuple (taskId, baseJob), which appends the tuple to the job queue once the task is due.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * A wrapper around a task-tuple (taskId, baseJob), which appends the tuple to the job queue once the task is due.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class ScheduledTask(
                      val taskId: String,
                      val due: DateTime,

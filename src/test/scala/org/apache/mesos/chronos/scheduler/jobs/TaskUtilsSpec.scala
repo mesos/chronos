@@ -24,8 +24,8 @@ class TaskUtilsSpec extends SpecificationWithJUnit with Mockito {
 
       taskIdOne must_== "ct:1420843781398:0:sample-name:" + arguments
       taskIdTwo must_== "ct:1420843781398:0:sample-name:"
-      taskIdThree must_== "ct:1420843781398:0:sample-name:" + cmdArgs    // test override
-      taskIdFour must_== "ct:1420843781398:0:sample-name:" + cmdArgs    // test adding args
+      taskIdThree must_== "ct:1420843781398:0:sample-name:" + cmdArgs // test override
+      taskIdFour must_== "ct:1420843781398:0:sample-name:" + cmdArgs // test adding args
     }
 
     "Get job arguments for taskId" in {

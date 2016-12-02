@@ -1,10 +1,8 @@
 package org.apache.mesos.chronos.scheduler.api
 
-import org.apache.mesos.chronos.scheduler.jobs.JobStatWrapper
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
-
+import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
+import org.apache.mesos.chronos.scheduler.jobs.JobStatWrapper
 import org.joda.time.DateTime
 import org.joda.time.format.{DateTimeFormat, PeriodFormatterBuilder}
 
@@ -31,6 +29,7 @@ class JobStatWrapperSerializer extends JsonSerializer[JobStatWrapper] {
       json.writeString(taskStat.taskSlaveId)
 
       val fmt = DateTimeFormat.forPattern("MM/dd/yy HH:mm:ss")
+
       def writeTime(timeOpt: Option[DateTime]): Unit =
         timeOpt.fold(json.writeString("N/A"))(dT => json.writeString(fmt.print(dT)))
 
@@ -51,8 +50,8 @@ class JobStatWrapperSerializer extends JsonSerializer[JobStatWrapper] {
             .appendSeconds().appendSuffix("s")
             .toFormatter
 
-            json.writeFieldName("duration")
-            json.writeString(pFmt.print(dur.toPeriod))
+          json.writeFieldName("duration")
+          json.writeString(pFmt.print(dur.toPeriod))
 
       }
 

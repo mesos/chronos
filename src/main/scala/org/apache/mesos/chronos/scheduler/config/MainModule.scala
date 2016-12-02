@@ -15,7 +15,7 @@ import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.mesos.Scheduler
-import org.apache.mesos.chronos.notification.{HttpClient, JobNotificationObserver, MailClient, RavenClient, SlackClient, MattermostClient}
+import org.apache.mesos.chronos.notification._
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.apache.mesos.chronos.scheduler.jobs.{JobMetrics, JobScheduler, JobsObserver, TaskManager}
@@ -26,11 +26,12 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /**
- * Guice glue code of application logic components.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Guice glue code of application logic components.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class MainModule(val config: SchedulerConfiguration with HttpConf)
-    extends AbstractModule {
+  extends AbstractModule {
 
   private[this] val log = Logger.getLogger(getClass.getName)
 
@@ -148,8 +149,7 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
                                 system: ActorSystem,
                                 conf: SchedulerConfiguration,
                                 mesosDriverFactory: MesosDriverFactory,
-                                registry: MetricRegistry): ActorRef =
-  {
+                                registry: MetricRegistry): ActorRef = {
     val props = MesosOfferReviverActor.props(conf, mesosDriverFactory, registry)
     system.actorOf(props, MesosOfferReviverActor.NAME)
   }

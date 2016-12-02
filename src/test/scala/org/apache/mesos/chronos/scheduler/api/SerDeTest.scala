@@ -1,11 +1,10 @@
 package org.apache.mesos.chronos.scheduler.api
 
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
-import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, DockerContainer, EnvironmentVariable, ScheduleBasedJob, _}
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import org.joda.time.Minutes
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, DockerContainer, EnvironmentVariable, ScheduleBasedJob, _}
+import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import org.specs2.mutable.SpecificationWithJUnit
 
 class SerDeTest extends SpecificationWithJUnit {

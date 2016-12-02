@@ -2,15 +2,15 @@ package org.apache.mesos.chronos.notification
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import org.apache.commons.mail.{DefaultAuthenticator, SimpleEmail}
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 
 /**
- * A very simple mail client that works out of the box with providers such as Amazon SES.
- * TODO(FL): Test with other providers.
-
- * @author Florian Leibert (flo@leibert.de)
- */
+  * A very simple mail client that works out of the box with providers such as Amazon SES.
+  * TODO(FL): Test with other providers.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class MailClient(
                   val mailServerString: String,
                   val fromUser: String,
@@ -19,10 +19,10 @@ class MailClient(
                   val ssl: Boolean)
   extends NotificationClient {
 
+  val mailPort = mailPortStr.toInt
   private[this] val log = Logger.getLogger(getClass.getName)
   private[this] val split = """(.*):([0-9]*)""".r
   private[this] val split(mailHost, mailPortStr) = mailServerString
-  val mailPort = mailPortStr.toInt
 
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
     val email = new SimpleEmail

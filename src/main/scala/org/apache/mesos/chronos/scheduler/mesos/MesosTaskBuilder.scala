@@ -3,23 +3,23 @@ package org.apache.mesos.chronos.scheduler.mesos
 import java.util.logging.Logger
 import javax.inject.Inject
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{TaskUtils, EnvironmentVariable, Fetch, BaseJob}
-
 import com.google.common.base.Charsets
 import com.google.protobuf.ByteString
 import org.apache.mesos.Protos.ContainerInfo.DockerInfo
 import org.apache.mesos.Protos.Environment.Variable
 import org.apache.mesos.Protos._
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, Fetch, TaskUtils}
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
 
 /**
- * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
- * names are valid.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
+  * names are valid.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   final val cpusResourceName = "cpus"
   final val memResourceName = "mem"
@@ -51,35 +51,6 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     builder.build()
   }
 
-  def envs(taskIdStr: String, job: BaseJob, offer: Offer): Environment.Builder = {
-    val (_, start, attempt, _) = TaskUtils.parseTaskId(taskIdStr)
-    val baseEnv = Map(
-      "mesos_task_id"           -> taskIdStr,
-      "CHRONOS_JOB_OWNER"       -> job.owner,
-      "CHRONOS_JOB_NAME"        -> job.name,
-      "HOST"                    -> offer.getHostname,
-      "CHRONOS_RESOURCE_MEM"    -> job.mem.toString,
-      "CHRONOS_RESOURCE_CPU"    -> job.cpus.toString,
-      "CHRONOS_RESOURCE_DISK"   -> job.disk.toString,
-      "CHRONOS_JOB_RUN_TIME"    -> start.toString,
-      "CHRONOS_JOB_RUN_ATTEMPT" -> attempt.toString
-    )
-
-    // If the job defines custom environment variables, add them to the builder
-    // Don't add them if they already exist to prevent overwriting the defaults
-    val finalEnv =
-      if (job.environmentVariables != null && job.environmentVariables.nonEmpty) {
-        job.environmentVariables.foldLeft(baseEnv)((envs, env) =>
-          if (envs.contains(env.name)) envs else envs + (env.name -> env.value)
-        )
-      } else {
-        baseEnv
-      }
-
-   finalEnv.foldLeft(Environment.newBuilder())((builder, env) =>
-      builder.addVariables(Variable.newBuilder().setName(env._1).setValue(env._2)))
-  }
-
   def getMesosTaskInfoBuilder(taskIdStr: String, job: BaseJob, offer: Offer): TaskInfo.Builder = {
     //TODO(FL): Allow adding more fine grained resource controls.
     val taskId = TaskID.newBuilder().setValue(taskIdStr).build()
@@ -88,7 +59,9 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .setTaskId(taskId)
     val environment = envs(taskIdStr, job, offer)
 
-    val fetch = job.fetch ++ job.uris.map { Fetch(_) }
+    val fetch = job.fetch ++ job.uris.map {
+      Fetch(_)
+    }
     val uriCommand = fetch.map { f =>
       CommandInfo.URI.newBuilder()
         .setValue(f.uri)
@@ -137,14 +110,43 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     taskInfo
   }
 
+  def envs(taskIdStr: String, job: BaseJob, offer: Offer): Environment.Builder = {
+    val (_, start, attempt, _) = TaskUtils.parseTaskId(taskIdStr)
+    val baseEnv = Map(
+      "mesos_task_id" -> taskIdStr,
+      "CHRONOS_JOB_OWNER" -> job.owner,
+      "CHRONOS_JOB_NAME" -> job.name,
+      "HOST" -> offer.getHostname,
+      "CHRONOS_RESOURCE_MEM" -> job.mem.toString,
+      "CHRONOS_RESOURCE_CPU" -> job.cpus.toString,
+      "CHRONOS_RESOURCE_DISK" -> job.disk.toString,
+      "CHRONOS_JOB_RUN_TIME" -> start.toString,
+      "CHRONOS_JOB_RUN_ATTEMPT" -> attempt.toString
+    )
+
+    // If the job defines custom environment variables, add them to the builder
+    // Don't add them if they already exist to prevent overwriting the defaults
+    val finalEnv =
+    if (job.environmentVariables != null && job.environmentVariables.nonEmpty) {
+      job.environmentVariables.foldLeft(baseEnv)((envs, env) =>
+        if (envs.contains(env.name)) envs else envs + (env.name -> env.value)
+      )
+    } else {
+      baseEnv
+    }
+
+    finalEnv.foldLeft(Environment.newBuilder())((builder, env) =>
+      builder.addVariables(Variable.newBuilder().setName(env._1).setValue(env._2)))
+  }
+
   def scalarResource(name: String, value: Double, offer: Offer) = {
     // For a given named resource and value,
     // find and return the role that matches the name and exceeds the value.
     // Give preference to reserved offers first (those whose roles do not match "*")
     import scala.collection.JavaConverters._
     val resources = offer.getResourcesList.asScala
-    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*"})
-    val reservedResource = reservedResources.find({ x => x.getName == name && x.getScalar.getValue >= value})
+    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*" })
+    val reservedResource = reservedResources.find({ x => x.getName == name && x.getScalar.getValue >= value })
     val role = reservedResource match {
       case Some(x) =>
         // We found a good candidate earlier, just use that.
@@ -202,7 +204,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     taskInfo.setExecutor(executor).setData(getDataBytes(job))
   }
 
-  private def getDataBytes(job : BaseJob) : ByteString = {
+  private def getDataBytes(job: BaseJob): ByteString = {
     val string = if (job.taskInfoData != "") {
       job.taskInfoData
     } else {

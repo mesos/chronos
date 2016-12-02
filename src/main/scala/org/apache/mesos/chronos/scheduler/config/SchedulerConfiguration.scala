@@ -6,9 +6,10 @@ import org.rogach.scallop.ScallopConf
 
 
 /**
- * Configuration values that may be parsed from a YAML file.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Configuration values that may be parsed from a YAML file.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 trait SchedulerConfiguration extends ScallopConf {
 
   lazy val master = opt[String]("master",

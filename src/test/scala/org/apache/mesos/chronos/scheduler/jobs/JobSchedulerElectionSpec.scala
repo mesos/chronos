@@ -2,14 +2,14 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.concurrent.TimeUnit
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.{InstanceSpec, TestingCluster}
 import org.apache.curator.utils.CloseableUtils
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.junit.Assert.{assertFalse, assertTrue}
 import org.junit.Test
 import org.specs2.mock.Mockito
@@ -62,36 +62,6 @@ class JobSchedulerElectionSpec
     assertTrue("After ZK node failure, one candidate, but not both, must be elected", latch1.hasLeadership ^ latch2.hasLeadership)
 
     CloseableUtils.closeQuietly(latch1)
-    CloseableUtils.closeQuietly(curator1)
-    CloseableUtils.closeQuietly(latch2)
-    CloseableUtils.closeQuietly(curator2)
-    CloseableUtils.closeQuietly(testCluster)
-  }
-
-  @Test
-  def testElectNewLeaderOnMasterFailure() {
-    val testCluster = new TestingCluster(3)
-    testCluster.start()
-
-    val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
-    val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
-
-    startAndWaitForElection(List(curator1, curator2), List(scheduler1, scheduler2), List(latch1, latch2))
-
-    val (leader, follower) = if (latch1.hasLeadership) (scheduler1, scheduler2)
-    else (scheduler2, scheduler1)
-
-    leader.shutDown()
-    awaitElection(List(latch1, latch2))
-
-    assertTrue("Reserve scheduler's latch should become leader on master failure", follower.leaderLatch.hasLeadership)
-
-    assertTrue("Reserve scheduler should become leader on master failure", follower.isLeader)
-    assertFalse("Former master scheduler should not be leader after failure", leader.isLeader)
-
-    assertTrue("Reserve scheduler should start running after master failure", follower.running.get())
-    assertFalse("Former master scheduler should not be running after failure", leader.running.get())
-
     CloseableUtils.closeQuietly(curator1)
     CloseableUtils.closeQuietly(latch2)
     CloseableUtils.closeQuietly(curator2)
@@ -160,5 +130,35 @@ class JobSchedulerElectionSpec
       Thread.sleep(10)
     }
     println(s"Waited ${100 - maxWaits} for election")
+  }
+
+  @Test
+  def testElectNewLeaderOnMasterFailure() {
+    val testCluster = new TestingCluster(3)
+    testCluster.start()
+
+    val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
+    val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
+
+    startAndWaitForElection(List(curator1, curator2), List(scheduler1, scheduler2), List(latch1, latch2))
+
+    val (leader, follower) = if (latch1.hasLeadership) (scheduler1, scheduler2)
+    else (scheduler2, scheduler1)
+
+    leader.shutDown()
+    awaitElection(List(latch1, latch2))
+
+    assertTrue("Reserve scheduler's latch should become leader on master failure", follower.leaderLatch.hasLeadership)
+
+    assertTrue("Reserve scheduler should become leader on master failure", follower.isLeader)
+    assertFalse("Former master scheduler should not be leader after failure", leader.isLeader)
+
+    assertTrue("Reserve scheduler should start running after master failure", follower.running.get())
+    assertFalse("Former master scheduler should not be running after failure", leader.running.get())
+
+    CloseableUtils.closeQuietly(curator1)
+    CloseableUtils.closeQuietly(latch2)
+    CloseableUtils.closeQuietly(curator2)
+    CloseableUtils.closeQuietly(testCluster)
   }
 }

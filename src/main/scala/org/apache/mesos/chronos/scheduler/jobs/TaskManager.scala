@@ -17,11 +17,11 @@ import scala.collection.convert.decorateAsScala._
 import scala.collection.{mutable, _}
 
 
-
 /**
- * Helps manage task state and the queue which is a buffer where tasks are held until offers come in via chronos.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Helps manage task state and the queue which is a buffer where tasks are held until offers come in via chronos.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorService,
                             val persistenceStore: PersistenceStore,
                             val jobGraph: JobGraph,
@@ -44,7 +44,18 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     new java.util.concurrent.LinkedBlockingQueue[String])
   // normal
   val names = Array[String]("High priority", "Normal priority")
-
+  val taskMapping: concurrent.Map[String, mutable.ListBuffer[(String, Future[_])]] =
+    new ConcurrentHashMap[String, mutable.ListBuffer[(String, Future[_])]]().asScala
+  val queueGauge = registry.register(
+    MetricRegistry.name(classOf[TaskManager], "queueSize"),
+    new Gauge[Long] {
+      def getValue = queues(NORMAL_PRIORITY).size
+    })
+  val highQueueGauge = registry.register(
+    MetricRegistry.name(classOf[TaskManager], "highQueueSize"),
+    new Gauge[Long] {
+      def getValue = queues(HIGH_PRIORITY).size
+    })
   private val runningTasks = new mutable.HashMap[String, List[ChronosTask]]
 
   def getRunningTaskCount(jobName: String): Int = {
@@ -129,26 +140,11 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
     }
   }
 
-  val taskMapping: concurrent.Map[String, mutable.ListBuffer[(String, Future[_])]] =
-    new ConcurrentHashMap[String, mutable.ListBuffer[(String, Future[_])]]().asScala
-
-  val queueGauge = registry.register(
-    MetricRegistry.name(classOf[TaskManager], "queueSize"),
-    new Gauge[Long] {
-      def getValue = queues(NORMAL_PRIORITY).size
-    })
-
-  val highQueueGauge = registry.register(
-    MetricRegistry.name(classOf[TaskManager], "highQueueSize"),
-    new Gauge[Long] {
-      def getValue = queues(HIGH_PRIORITY).size
-    })
-
-
   /**
-   * Returns the first task in the job queue
-   * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
-   */
+    * Returns the first task in the job queue
+    *
+    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
+    */
   def getTaskFromQueue: Option[(String, BaseJob)] = {
     getTaskHelper(HIGH_PRIORITY).orElse(getTaskHelper(NORMAL_PRIORITY))
   }
@@ -184,19 +180,21 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   }
 
   /**
-   * Returns the time that is left before the task needs to be handed off to chronos where it is immediately executed.
-   * @param due DateTime when the job should be run
-   * @return the number of milliseconds between current time and when the task is due
-   */
+    * Returns the time that is left before the task needs to be handed off to chronos where it is immediately executed.
+    *
+    * @param due DateTime when the job should be run
+    * @return the number of milliseconds between current time and when the task is due
+    */
   def getMillisUntilExecution(due: DateTime) = {
     scala.math.max(0L, due.getMillis - new DateTime(DateTimeZone.UTC).getMillis)
   }
 
   /**
-   * Removes a future-task mapping thus signaling that a task has been added to the local queue awaiting execution from
-   * chronos.
-   * @param task ScheduledTask to remove
-   */
+    * Removes a future-task mapping thus signaling that a task has been added to the local queue awaiting execution from
+    * chronos.
+    *
+    * @param task ScheduledTask to remove
+    */
   def removeTaskFutureMapping(task: ScheduledTask) {
     log.info("Removing task mapping")
     taskMapping.get(task.job.name) match {
@@ -209,14 +207,14 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   }
 
   /**
-   * Cancels all tasks that are delay scheduled with the underlying executor.
-   */
+    * Cancels all tasks that are delay scheduled with the underlying executor.
+    */
   def flush() {
-    taskMapping.clone().values.foreach (
+    taskMapping.clone().values.foreach(
       _.foreach {
         case (taskId, futureTask) =>
-            log.info("Cancelling task '%s'".format(taskId))
-            futureTask.cancel(true)
+          log.info("Cancelling task '%s'".format(taskId))
+          futureTask.cancel(true)
       }
     )
     taskMapping.clear()
@@ -233,12 +231,12 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
     val jobName = TaskUtils.getJobNameForTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
-     if (jobOption.isEmpty) {
+    if (jobOption.isEmpty) {
       log.warning("JobSchedule '%s' no longer registered.".format(jobName))
     } else {
-        val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
-        val job = jobOption.get
-        jobsObserver.apply(JobQueued(job, taskId, attempt))
+      val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
+      val job = jobOption.get
+      jobsObserver.apply(JobQueued(job, taskId, attempt))
     }
 
     if (config.reviveOffersForNewJobs()) {
@@ -248,7 +246,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
 
   def cancelMesosTasks(job: BaseJob) {
     if (runningTasks.contains(job.name)) {
-      runningTasks(job.name).foreach({task =>
+      runningTasks(job.name).foreach({ task =>
         log.warning(s"Killing taskId=${task.taskId})")
         mesosDriver.get.killTask(TaskID.newBuilder().setValue(task.taskId).build())
       })
@@ -262,4 +260,5 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
       s"slaveId=$slaveId, taskStatus=${taskStatus.getOrElse("none").toString}"
     }
   }
+
 }

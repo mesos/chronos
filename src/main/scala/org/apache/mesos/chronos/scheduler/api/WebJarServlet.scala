@@ -31,6 +31,7 @@ class WebJarServlet extends HttpServlet {
                   continue: => Boolean = true): Unit = {
       try {
         val buffer = new Array[Byte](BufferSize)
+
         @tailrec def read(): Unit = {
           val byteCount = in.read(buffer)
           if (byteCount >= 0 && continue) {
@@ -39,8 +40,11 @@ class WebJarServlet extends HttpServlet {
             read()
           }
         }
+
         read()
-      } finally { if (close) Try(in.close()) }
+      } finally {
+        if (close) Try(in.close())
+      }
     }
 
 
@@ -62,12 +66,17 @@ class WebJarServlet extends HttpServlet {
     }
 
     //extract request data
-    val jar = req.getServletPath // e.g. /ui
+    val jar = req.getServletPath
+    // e.g. /ui
     var resource = req.getPathInfo // e.g. /fonts/icon.gif
-    if (resource.endsWith("/")) resource = resource + "index.html" // welcome file
-    val file = resource.split("/").last //e.g. icon.gif
-    val mediaType = file.split("\\.").lastOption.getOrElse("") //e.g. gif
-    val mime = Option(getServletContext.getMimeType(file)).getOrElse(mimeType(mediaType)) //e.g plain/text
+    if (resource.endsWith("/")) resource = resource + "index.html"
+    // welcome file
+    val file = resource.split("/").last
+    //e.g. icon.gif
+    val mediaType = file.split("\\.").lastOption.getOrElse("")
+    //e.g. gif
+    val mime = Option(getServletContext.getMimeType(file)).getOrElse(mimeType(mediaType))
+    //e.g plain/text
     val resourceURI = s"/assets$jar$resource"
 
     //log request data, since the names are not very intuitive
