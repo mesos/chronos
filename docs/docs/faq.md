@@ -15,7 +15,6 @@ title: Frequently Asked Questions
 * [When running jobs locally I get an error like `Failed to execute 'chown -R'`](#running-jobs-locally)
 * [I found a bug!](#bug)
 
-
 ### <a name="which-node"></a>How do I find which Chronos node to talk to?
 
 Chronos is designed (not required) to run with multiple nodes of which one is elected master.
@@ -55,7 +54,7 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 **Note:** Stick this in your `~/.*rc` to always use 1.7
 3. Find your JNI headers, these should be in `$JAVA_HOME/include` and `$JAVA_HOME/include/darwin`.
 4. Configure mesos with `JAVA_CPPFLAGS` set to the JNI path.
- 
+
 **Example Assumptions:**  
 
 * `$JAVA_HOME` in this example is `/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home`

@@ -8,30 +8,18 @@ title: Setting Up and Running Chronos
 
 The [dcos-vagrant](https://github.com/dcos/dcos-vagrant) provides an easy way to try DC/OS and Chronos within a virtual machine using Vagrant.
 
-
 ## Requirements
 
 These requirements are just to run Chronos. You will need additional packages to build Chronos from source (see the [Building from Source section](#build-from-source) below).
 
-* [Apache Mesos][Mesos] 0.20.0+
+* [Apache Mesos][Mesos] 1.0.0+
 * [Apache ZooKeeper][ZooKeeper]
-* JDK 1.6+
+* JDK 1.8+
 
 
 ## Install from Packages
 
-Mesosphere provides builds for Mesos and Chronos for major Linux distributions and OS X on their [downloads page](http://mesosphere.com/downloads/).
-
-## Install from Tarball
-
-Use the latest tagged Chronos release with Mesos 0.20+ as follows:
-
-```sh
-curl -0 https://github.com/mesos/chronos/archive/2.4.0.tar.gz
-tar xvf 2.4.0.tar.gz
-```
-
-<hr />
+Mesosphere provides Docker images for Chronos, available from Docker hub at <https://hub.docker.com/r/mesosphere/chronos/>.
 
 ## <a name="build-from-source"></a>Building from Source
 
@@ -41,10 +29,11 @@ Follow these steps to build Chronos from source. This configuration assumes you 
 
 These requirements are to build and run Chronos.
 
-* [Apache Mesos][Mesos] 0.20.0+
+* [Apache Mesos][Mesos] 1.0.0+
 * [Apache ZooKeeper][ZooKeeper]
-* JDK 1.6+
+* JDK 1.8+
 * [Maven 3+](https://maven.apache.org/download.cgi)
+* NodeJS 7+
 
 
 ### Build Chronos
@@ -69,21 +58,13 @@ If you're using the installer script this should be setup for you.
 
 ## Running Chronos
 
-We've included some [example run scripts](#example-run-scripts), but the
-basic syntax for launching chronos is:
+The basic syntax for launching chronos is:
 
-    java -cp chronos.jar --master zk://127.0.0.1:2181/mesos --zk_hosts 127.0.0.1:2181
+    java -jar chronos.jar --master zk://127.0.0.1:2181/mesos --zk_hosts 127.0.0.1:2181
 
 Please note that you need to have both Mesos and Zookeeper running for this to work!
 
 For more information on configuration options, please see [Configuration]({{ site.baseurl }}/docs/configuration.html).
-
-### Example Run Scripts
-
-* Example [runit](http://smarden.org/runit/) run script: [bin/run](https://github.com/mesos/chronos/blob/master/bin/run)
-
-* Example local run script: [bin/start-chronos.bash](https://github.com/mesos/chronos/blob/master/bin/start-chronos.bash)
-
 
 [Mesos]: https://mesos.apache.org/ "Apache Mesos"
 [Zookeeper]: https://zookeeper.apache.org/ "Apache ZooKeeper"
