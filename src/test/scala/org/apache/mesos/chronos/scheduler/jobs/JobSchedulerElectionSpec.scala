@@ -54,7 +54,13 @@ class JobSchedulerElectionSpec
     else (scheduler2, scheduler1)
 
     val instance: InstanceSpec = testCluster.findConnectionInstance(firstLeader.curator.getZookeeperClient.getZooKeeper)
-    testCluster.killServer(instance)
+    try {
+      testCluster.killServer(instance)
+      testCluster.restartServer(instance)
+    } catch {
+      case _: Exception =>
+        testCluster.start()
+    }
 
     Thread.sleep(1100)
 
@@ -84,7 +90,12 @@ class JobSchedulerElectionSpec
     else (scheduler2, scheduler1)
 
     val instance: InstanceSpec = testCluster.findConnectionInstance(firstLeader.curator.getZookeeperClient.getZooKeeper)
-    testCluster.restartServer(instance)
+    try {
+      testCluster.restartServer(instance)
+    } catch {
+      case _: Exception =>
+        testCluster.start()
+    }
 
     Thread.sleep(100)
 
@@ -147,7 +158,7 @@ class JobSchedulerElectionSpec
     })
     awaitElection(latches)
 
-    var maxWaits = 1000
+    var maxWaits = 100
     while (!schedulers.exists(_.isLeader) && (maxWaits > 0)) {
       maxWaits -= 1
       Thread.sleep(10)
