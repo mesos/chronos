@@ -7,12 +7,6 @@ title: Fault tolerant job scheduler for Mesos
   <p class="lead">
     A fault tolerant job scheduler for Mesos which handles dependencies and ISO8601 based schedules
   </p>
-  <p>
-    <a href="https://github.com/mesos/chronos/archive/2.4.0.tar.gz"
-        class="btn btn-lg btn-primary">
-      Download Chronos v2.4.0
-    </a>
-  </p>
 </div>
 
 ## Overview
