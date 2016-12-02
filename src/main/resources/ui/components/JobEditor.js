@@ -249,7 +249,7 @@ class ModalComponent extends React.Component {
     const jobForm = this.props.jobForm
     if (jobForm.submitError) {
       return (
-        <div className="alert alert-warning alert-dismissible" role="alert">
+        <div id="job-editor-alert" className="alert alert-warning alert-dismissible" role="alert">
           <button type="button" className="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <strong>Error submitting job</strong>
           <p>{jobForm.submitStatus}</p>
