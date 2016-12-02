@@ -219,7 +219,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     } else {
       val job = jobOption.get
       val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
-      jobsObserver.apply(JobStarted(job, taskStatus, attempt, taskManager.getRunningTaskCount(job.name)))
+      jobsObserver.apply(JobStarted(job, taskStatus, attempt))
 
       job match {
         case j: DependencyBasedJob =>
@@ -255,7 +255,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
       jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
-      jobsObserver.apply(JobFinished(job, taskStatus, attempt, taskManager.getRunningTaskCount(job.name)))
+      jobsObserver.apply(JobFinished(job, taskStatus, attempt))
 
       val newJob = getNewSuccessfulJob(job)
       replaceJob(job, newJob)
@@ -386,7 +386,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) =>
-          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt, taskManager.getRunningTaskCount(job.name)))
+          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt))
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
@@ -474,7 +474,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     val (jobName, start, attempt, _) = TaskUtils.parseTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
 
-    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt, taskManager.getRunningTaskCount(jobName)))
+    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt))
   }
 
   def nanosUntilNextJob(scheduledJobs: List[ScheduleBasedJob]): Long = {
