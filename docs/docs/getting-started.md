@@ -6,7 +6,7 @@ title: Setting Up and Running Chronos
 
 ## Quickstart
 
-The [playa-mesos](https://github.com/mesosphere/playa-mesos) provides an easy way to try Mesos, Marathon and Chronos within a virtual machine using Vagrant.
+The [dcos-vagrant](https://github.com/dcos/dcos-vagrant) provides an easy way to try DC/OS and Chronos within a virtual machine using Vagrant.
 
 
 ## Requirements
