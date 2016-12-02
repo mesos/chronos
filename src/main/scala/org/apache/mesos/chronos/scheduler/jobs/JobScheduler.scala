@@ -216,7 +216,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       jobMetrics.updateJobStat(jobName, timeMs = DateTime.now(DateTimeZone.UTC).getMillis - start)
       jobMetrics.updateJobStatus(jobName, success = true)
       val job = jobOption.get
-      jobsObserver.apply(JobFinished(job, taskStatus, attempt))
+      jobsObserver.apply(JobFinished(job, taskStatus, attempt, taskManager.getRunningTaskCount(job.name)))
 
       val newJob = getNewSuccessfulJob(job)
       replaceJob(job, newJob)
@@ -324,7 +324,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
       val jobOption = jobGraph.lookupVertex(jobName)
       jobOption match {
         case Some(job) =>
-          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt))
+          jobsObserver.apply(JobFailed(Right(job), taskStatus, attempt, taskManager.getRunningTaskCount(job.name)))
 
           val hasAttemptsLeft: Boolean = attempt < job.retries
           val hadRecentSuccess: Boolean = try {
@@ -412,7 +412,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     val (jobName, start, attempt, _) = TaskUtils.parseTaskId(taskId)
     val jobOption = jobGraph.lookupVertex(jobName)
 
-    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt))
+    jobsObserver.apply(JobFailed(jobOption.toRight(jobName), taskStatus, attempt, taskManager.getRunningTaskCount(jobName)))
   }
 
   //Begin Service interface
