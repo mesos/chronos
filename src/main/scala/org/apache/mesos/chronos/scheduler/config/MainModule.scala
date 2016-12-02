@@ -74,7 +74,9 @@ class MainModule(val config: SchedulerConfiguration with HttpConf)
       jobsObserver = jobsObserver,
       failureRetryDelay = config.failureRetryDelayMs(),
       disableAfterFailures = config.disableAfterFailures(),
-      jobMetrics = metrics)
+      jobMetrics = metrics,
+      actorSystem = provideActorSystem()
+    )
   }
 
   @Singleton

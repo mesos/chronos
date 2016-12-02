@@ -38,7 +38,8 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
                              val jobsObserver: JobsObserver.Observer,
                              val failureRetryDelay: Long = 60000,
                              val disableAfterFailures: Long = 0,
-                             val jobMetrics: JobMetrics)
+                             val jobMetrics: JobMetrics,
+                             val actorSystem: ActorSystem = ActorSystem())
 //Allows us to let Chaos manage the lifecycle of this class.
   extends AbstractIdleService {
 
@@ -48,7 +49,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
   val lock = new ReentrantLock
   val condition = lock.newCondition
 
-  implicit val actorSystem = ActorSystem()
   val supervisor = actorSystem.actorOf(Props[Supervisor], "supervisor")
   val akkaScheduler = actorSystem.scheduler
 
@@ -164,7 +164,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     } else {
       val job = jobOption.get
       val (_, _, attempt, _) = TaskUtils.parseTaskId(taskId)
-      jobsObserver.apply(JobStarted(job, taskStatus, attempt))
+      jobsObserver.apply(JobStarted(job, taskStatus, attempt, taskManager.getRunningTaskCount(jobName)))
 
       job match {
         case j: DependencyBasedJob =>

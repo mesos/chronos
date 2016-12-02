@@ -13,7 +13,7 @@ class JobStatsModule(config: CassandraConfiguration) extends AbstractModule {
 
   @Provides
   @Singleton
-  def provideCassandraClusterBuilder() = {
+  def provideCassandraClusterBuilder(): Option[Cluster.Builder] = {
     config.cassandraContactPoints.get match {
       case Some(contactPoints) =>
         Some(
