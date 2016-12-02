@@ -12,7 +12,7 @@ All examples in this section assume that you've found a running leader at `chron
 - [Listing Jobs](#listing-jobs)
 - [Searching for a Job](#searching-for-a-job)
 - [Deleting a Job](#deleting-a-job)
-- [Deleting All Tasks for a Job](#deleting-all-tasks-for-a-job)
+- [Killing All Tasks for a Job](#killing-all-tasks-for-a-job)
 - [Manually Starting a Job](#manually-starting-a-job)
 - [Adding a Scheduled Job](#adding-a-scheduled-job)
 - [Adding a Dependent Job](#adding-a-dependent-job)
@@ -40,9 +40,9 @@ To get the current leader you can hit the following endpoint.
 
 ## Listing Jobs
 
-* Endpoint: __/scheduler/jobs__
+* Endpoint: __/v1/scheduler/jobs__
 * Method: __GET__
-* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs`
+* Example: `curl -L -X GET chronos-node:8080/v1/scheduler/jobs`
 * Response: JSON data
 
 A job listing returns a JSON list containing all of the jobs.
@@ -66,9 +66,9 @@ Get the job definition by searching for the following attributes by using the se
 * `command`: Command to execute.
 * `any`: Search term contained in `name` or `command`.
 *
-* Endpoint: __/scheduler/jobs/search__
+* Endpoint: __/v1/scheduler/jobs/search__
 * Method: __GET__
-* Example: `curl -L -X GET chronos-node:8080/scheduler/jobs/search?name=request_event_counter_hourly`
+* Example: `curl -L -X GET chronos-node:8080/v1/scheduler/jobs/search?name=request_event_counter_hourly`
 * Response: HTTP 204
 
 Search term and the desired job attribute will be converted to lower case. It will then be checked if the job attribute contains the term.
@@ -77,30 +77,30 @@ Search term and the desired job attribute will be converted to lower case. It wi
 
 Get a job name from the job listing above.
 
-* Endpoint: __/scheduler/job/\<jobName\>__
+* Endpoint: __/v1/scheduler/job/\<jobName\>__
 * Method: __DELETE__
-* Example: `curl -L -X DELETE chronos-node:8080/scheduler/job/request_event_counter_hourly`
+* Example: `curl -L -X DELETE chronos-node:8080/v1/scheduler/job/request_event_counter_hourly`
 * Response: HTTP 204
 
-## Deleting All Tasks for a Job
+## Killing All Tasks for a Job
 
-Deleting tasks for a job is useful if a job gets stuck. Get a job name from the job listing above.
+Killing tasks for a job is useful if a job gets stuck. Get a job name from the job listing above.
 
-* Endpoint: __/scheduler/task/kill/\<jobName\>__
+* Endpoint: __/v1/scheduler/task/kill/\<jobName\>__
 * Method: __DELETE__
-* Example: `curl -L -X DELETE chronos-node:8080/scheduler/task/kill/request_event_counter_hourly`
+* Example: `curl -L -X DELETE chronos-node:8080/v1/scheduler/task/kill/request_event_counter_hourly`
 * Response: HTTP 204
 
 ## Manually Starting a Job
 
 You can manually start a job by issuing an HTTP request.
 
-* Endpoint: __/scheduler/job__
+* Endpoint: __/v1/scheduler/job__
 * Method: __PUT__
 * Query string parameters: `arguments` - optional string with a list of command line arguments that is appended to job's `command`
   * If job's `shell` is `true`, `arguments` will be ignored.
-* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/request_event_counter_hourly`
-* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/job_name?arguments=-debug`
+* Example: `curl -L -X PUT chronos-node:8080/v1/scheduler/job/request_event_counter_hourly`
+* Example: `curl -L -X PUT chronos-node:8080/v1/scheduler/job/job_name?arguments=-debug`
 * Response: HTTP 204
 
 ## Marking a job as successful
@@ -110,10 +110,10 @@ of the job is incremented, the latest successful run time is updated, and all do
 the job had completed executing the code in a standard run.
 the job normally runs.
 
-* Endpoint: ___/scheduler/job/success/<jobname>
+* Endpoint: ___/v1/scheduler/job/success/<jobname>
 * Method: __PUT__
 * Query string parameters: `arguments` - jobname to be marked success
-* Example: `curl -L -X PUT chronos-node:8080/scheduler/job/success/request_event_counter_hourly`
+* Example: `curl -L -X PUT chronos-node:8080/v1/scheduler/job/success/request_event_counter_hourly`
 * Response: boolean (true or false depending on success of request)
 
 ## Adding a Scheduled Job
@@ -169,11 +169,11 @@ Here is an example job hash:
 
 Once you've generated the hash, send it to Chronos like so:
 
-* Endpoint: __/scheduler/iso8601__
+* Endpoint: __/v1/scheduler/iso8601__
 * Method: __POST__
 * Example:
 ```bash
-curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/v1/scheduler/iso8601
 ```
 * Response: HTTP 204
 
@@ -183,11 +183,11 @@ A dependent job takes the same JSON format as a scheduled job.
 However, instead of the `schedule` field, it accepts a `parents` field.
 This should be a JSON list of all jobs which must run at least once before this job will run.
 
-* Endpoint: __/scheduler/dependency__
+* Endpoint: __/v1/scheduler/dependency__
 * Method: __POST__
 * Example:
 ```bash
-curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/scheduler/dependency
+curl -L -X POST -H 'Content-Type: application/json' -d '{dependent hash}' chronos-node:8080/v1/scheduler/dependency
 ```
 * Response: HTTP 204
 
@@ -217,11 +217,11 @@ Here is a more elaborate example of a dependent job hash:
 A docker job takes the same format as a scheduled job or a dependency job and runs on a Docker container.
 To configure it, an additional `container` argument is required, which contains a type (required), an image (required), a network mode (optional), mounted volumes (optional), parameters (optional) and whether Mesos should always pull the latest image before executing or not (optional).
 
-* Endpoint: __/scheduler/iso8601__ or __/scheduler/dependency__
+* Endpoint: __/v1/scheduler/iso8601__ or __/v1/scheduler/dependency__
 * Method: __POST__
 * Example:
 ```bash
-curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/iso8601
+curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/v1/scheduler/iso8601
 ```
 
 ```json
@@ -284,11 +284,11 @@ Task progress can be updated by providing the number of additional elements proc
 A job name, task id, and number of additional elements (`numAdditionalElementsProcessed`) is required to update.
 This API endpoint requires Cassandra to be present in the cluster.
 
-* Endpoint: __/scheduler/job/\<jobName\>/task/\<taskId\>/progress__
+* Endpoint: __/v1/scheduler/job/\<jobName\>/task/\<taskId\>/progress__
 * Method: __POST__
 * Example:
 ```bash
-curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/scheduler/job/NewJob/task/ct%3A1428515194358%3A0%3ANewJob%3A/progress
+curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-node:8080/v1/scheduler/job/NewJob/task/ct%3A1428515194358%3A0%3ANewJob%3A/progress
 ```
 
 ```json
@@ -301,9 +301,9 @@ curl -L -H 'Content-Type: application/json' -X POST -d '{json hash}' chronos-nod
 
 Chronos allows describing the dependency graph and has an endpoint to return this graph in the form of a dotfile.
 
-* Endpoint: __/scheduler/graph/dot__
+* Endpoint: __/v1/scheduler/graph/dot__
 * Method: __GET__
-* Example: `curl -L -X GET chronos-node:8080/scheduler/graph/dot`
+* Example: `curl -L -X GET chronos-node:8080/v1/scheduler/graph/dot`
 
 ## Asynchronous Jobs
 
@@ -316,11 +316,11 @@ In this case, you need to do two things:
 If you forget to do (2), your job will never run again because Chronos will think that it is still running.
 Reporting job completion to Chronos is done via another API call:
 
-* Endpoint: __/scheduler/task/\<task id\>__
+* Endpoint: __/v1/scheduler/task/\<task id\>__
 * Method: __PUT__
 * Example:
 ```bash
-curl -L -X PUT -H "Content-Type: application/json" -d '{"statusCode": 0}' chronos-node:8080/scheduler/task/my_job_run_555_882083xkj302
+curl -L -X PUT -H "Content-Type: application/json" -d '{"statusCode": 0}' chronos-node:8080/v1/scheduler/task/my_job_run_555_882083xkj302
 ```
 
 The task id is auto-generated by Chronos. It will be available in your job's environment as `$mesos_task_id`.
