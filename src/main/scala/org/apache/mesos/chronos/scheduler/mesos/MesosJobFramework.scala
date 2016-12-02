@@ -221,7 +221,7 @@ class MesosJobFramework @Inject()(
       case _ =>
         if (runningTasks.contains(jobName)) {
           val remainingTasks = runningTasks(jobName)
-            .filter(task => task.taskStatus.get.getTaskId.getValue != taskStatus.getTaskId.getValue)
+            .filter(task => task.taskId != taskStatus.getTaskId.getValue)
           runningTasks(jobName) = remainingTasks
           if (runningTasks(jobName).isEmpty) {
             runningTasks.remove(jobName)
