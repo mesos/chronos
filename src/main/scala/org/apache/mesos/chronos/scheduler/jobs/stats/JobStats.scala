@@ -5,13 +5,16 @@ import java.util.Date
 import scala.collection._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
+import java.io.{DataOutputStream, StringWriter}
+import java.net.{HttpURLConnection, URL}
 
 import com.datastax.driver.core.exceptions.{DriverException, NoHostAvailableException, QueryExecutionException, QueryValidationException}
 import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
 import com.datastax.driver.core._
+import com.fasterxml.jackson.core.JsonFactory
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskState, TaskStatus}
-import org.apache.mesos.chronos.scheduler.config.CassandraConfiguration
+import org.apache.mesos.chronos.scheduler.config.{StatsPublisherConfiguration, CassandraConfiguration}
 import org.apache.mesos.chronos.scheduler.jobs._
 import org.joda.time.DateTime
 
@@ -22,7 +25,9 @@ object CurrentState extends Enumeration {
   val idle, queued, running = Value
 }
 
-class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: CassandraConfiguration) {
+class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder],
+                         config: CassandraConfiguration with StatsPublisherConfiguration,
+                         jobmetrics: JobMetrics) {
 
   // Cassandra table column names
   private val ATTEMPT: String = "attempt"
@@ -506,6 +511,24 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       attempt: Option[Integer],
       isFailure: Option[Boolean]) = {
     try {
+      config.webhookUrl.get match{
+        case Some(url) => pushNotificationToHook(
+                            url,
+                            config.webhookPort.get.get,
+                            id,
+                            timestamp,
+                            jobName,
+                            jobOwner,
+                            jobSchedule,
+                            jobParents,
+                            taskState,
+                            slaveId,
+                            message,
+                            attempt,
+                            isFailure)
+        case _ => None
+      }
+
       getSession.foreach {
         session =>
           val query:Insert = QueryBuilder.insertInto(config.cassandraTable())
@@ -573,4 +596,99 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       ConsistencyLevel.valueOf(config.cassandraConsistency())
     }
   }
+
+  private def pushNotificationToHook(hookurl: String,
+                                     port: Int,
+                                     id: Option[String],
+                                     timestamp: Option[java.util.Date],
+                                     jobName: Option[String],
+                                     jobOwner: Option[String],
+                                     jobSchedule: Option[String],
+                                     jobParents: Option[java.util.Set[String]],
+                                     taskState: Option[String],
+                                     slaveId: Option[String],
+                                     message: Option[String],
+                                     attempt: Option[Integer],
+                                     isFailure: Option[Boolean]) = {
+    val jsonBuffer = new StringWriter
+    val factory = new JsonFactory()
+    val generator = factory.createGenerator(jsonBuffer)
+
+    // Create the payload
+    generator.writeStartObject()
+
+    generator.writeStringField("taskId", id.get);
+    generator.writeStringField("ts", timestamp.get.toString());
+    generator.writeStringField("job_name", jobName.get);
+
+    jobOwner match {
+      case Some(jo: String) => generator.writeStringField("job_owner", jo)
+      case _ =>
+    }
+    jobSchedule match {
+      case Some(js: String) => generator.writeStringField("job_schedule", js)
+      case _ =>
+    }
+    jobParents match {
+      case Some(jp: java.util.Set[String]) => generator.writeStringField("job_parents", jp.toString())
+      case _ =>
+    }
+    taskState match {
+      case Some(ts: String) => generator.writeStringField("task_state", ts)
+      case _ =>
+    }
+    slaveId match {
+      case Some(s: String) => generator.writeStringField("slave_id", s)
+      case _ =>
+    }
+    message match {
+      case Some(m: String) => generator.writeStringField("message", m)
+      case _ =>
+    }
+    attempt match {
+      case Some(a: Integer) => generator.writeStringField("attempt", a.toString())
+      case _ =>
+    }
+    isFailure match {
+      case Some(f: Boolean) => generator.writeStringField("is_failure", f.toString())
+      case _ =>
+    }
+
+    val histstat = jobmetrics.getJsonStats(jobName.get)
+
+    generator.writeFieldName("histogram")
+    generator.writeRawValue(histstat)
+
+    generator.writeEndObject()
+    generator.flush()
+
+    val payload = jsonBuffer.toString
+
+
+    var connection: HttpURLConnection = null
+    try {
+      val url = new URL(hookurl+':'+port)
+      connection = url.openConnection.asInstanceOf[HttpURLConnection]
+      connection.setDoInput(true)
+      connection.setDoOutput(true)
+      connection.setUseCaches(false)
+      connection.setRequestMethod("POST")
+      connection.setRequestProperty("Content-Type","application/json");
+
+      val outputStream = new DataOutputStream(connection.getOutputStream)
+      outputStream.writeBytes(payload)
+      outputStream.flush()
+      outputStream.close()
+
+      log.info("Sent message to http endpoint. Response code:" +
+        connection.getResponseCode +
+        " - " +
+        connection.getResponseMessage)
+    } finally {
+      if (connection != null) {
+        connection.disconnect()
+      }
+    }
+  }
+
 }

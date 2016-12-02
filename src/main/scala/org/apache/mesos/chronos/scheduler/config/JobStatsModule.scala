@@ -6,7 +6,7 @@ import com.datastax.driver.core.policies.{DowngradingConsistencyRetryPolicy, Lat
 import com.google.inject.{AbstractModule, Provides, Scopes, Singleton}
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 
-class JobStatsModule(config: CassandraConfiguration) extends AbstractModule {
+class JobStatsModule(config: CassandraConfiguration with StatsPublisherConfiguration) extends AbstractModule {
   def configure() {
     bind(classOf[JobStats]).in(Scopes.SINGLETON)
   }
