@@ -16,14 +16,17 @@ class JobStatsModule(config: CassandraConfiguration) extends AbstractModule {
   def provideCassandraClusterBuilder(): Option[Cluster.Builder] = {
     config.cassandraContactPoints.get match {
       case Some(contactPoints) =>
-        Some(
-          Cluster.builder()
-            .addContactPoints(contactPoints.split(","): _*)
-            .withPort(config.cassandraPort())
-            .withCompression(Compression.LZ4)
-            .withRetryPolicy(DowngradingConsistencyRetryPolicy.INSTANCE)
-            .withLoadBalancingPolicy(LatencyAwarePolicy.builder(new RoundRobinPolicy).build)
-        )
+        var builder = Cluster.builder()
+          .addContactPoints(contactPoints.split(","): _*)
+          .withPort(config.cassandraPort())
+          .withCompression(Compression.LZ4)
+          .withRetryPolicy(DowngradingConsistencyRetryPolicy.INSTANCE)
+          .withLoadBalancingPolicy(LatencyAwarePolicy.builder(new RoundRobinPolicy).build)
+
+        if (config.cassandraUser.isDefined && config.cassandraPassword.isDefined) {
+          builder = builder.withCredentials(config.cassandraUser.get.orNull, config.cassandraPassword.get.orNull)
+        }
+        Some(builder)
       case _ =>
         None
     }

@@ -17,6 +17,10 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
                                             points for Cassandra
 --cassandra_keyspace  <arg>                 Keyspace to use for Cassandra
 --cassandra_port  <arg>                     Port for Cassandra
+--cassandra_user  <arg>                     User for Cassandra
+                                            (default = None)
+--cassandra_password  <arg>                 Password for Cassandra
+                                            (default = None)
 --cassandra_stat_count_table  <arg>         Table to track stat counts in
                                             Cassandra
 --cassandra_table  <arg>                    Table to use for Cassandra
