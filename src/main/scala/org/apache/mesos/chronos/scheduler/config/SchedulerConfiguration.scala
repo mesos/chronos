@@ -6,9 +6,10 @@ import org.rogach.scallop.ScallopConf
 
 
 /**
- * Configuration values that may be parsed from a YAML file.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Configuration values that may be parsed from a YAML file.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 trait SchedulerConfiguration extends ScallopConf {
 
   lazy val master = opt[String]("master",
@@ -25,10 +26,6 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val failoverTimeoutSeconds = opt[Int]("failover_timeout",
     descr = "The failover timeout in seconds for Mesos",
     default = Some(604800))
-
-  lazy val scheduleHorizonSeconds = opt[Int]("schedule_horizon",
-    descr = "The look-ahead time for scheduling tasks in seconds",
-    default = Some(60))
 
   lazy val clusterName = opt[String]("cluster_name",
     descr = "The name of the cluster where Chronos is run",
@@ -49,6 +46,9 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val zooKeeperPath = opt[String]("zk_path",
     descr = "Path in ZooKeeper for storing state",
     default = Some("/chronos/state"))
+  lazy val zooKeeperAuth = opt[String]("zk_auth",
+    descr = "Authorization string for ZooKeeper",
+    default = None)
   lazy val mailServer = opt[String]("mail_server",
     descr = "Address of the mailserver in server:port format",
     default = None)
@@ -69,6 +69,9 @@ trait SchedulerConfiguration extends ScallopConf {
     default = None)
   lazy val slackWebhookUrl = opt[String]("slack_url",
     descr = "Webhook URL for posting to Slack",
+    default = None)
+  lazy val mattermostWebhookUrl = opt[String]("mattermost_url",
+    descr = "Webhook URL for posting to Mattermost",
     default = None)
   lazy val httpNotificationUrl = opt[String]("http_notification_url",
     descr = "Http URL for notifying failures",
@@ -105,7 +108,7 @@ trait SchedulerConfiguration extends ScallopConf {
     Option(classOf[SchedulerConfiguration].getPackage.getImplementationVersion).getOrElse("unknown")
   lazy val mesosFrameworkName = opt[String]("mesos_framework_name",
     descr = "The framework name",
-    default = Some("chronos-" + version))
+    default = Some("chronos"))
   lazy val webuiUrl = opt[String]("webui_url",
     descr = "The http(s) url of the web ui, defaulting to the advertised hostname",
     noshort = true,

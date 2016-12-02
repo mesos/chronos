@@ -10,7 +10,7 @@ object ChronosTestHelper {
       // scallop will trigger sys exit
       override protected def onError(e: Throwable): Unit = throw e
     }
-    opts.afterInit()
+    opts.verify()
     opts
   }
 }

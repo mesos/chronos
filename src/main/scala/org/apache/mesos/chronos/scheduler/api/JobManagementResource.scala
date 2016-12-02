@@ -5,24 +5,24 @@ import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
+import com.codahale.metrics.annotation.Timed
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.google.inject.Inject
 import org.apache.mesos.chronos.scheduler.config.{CassandraConfiguration, SchedulerConfiguration}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-
-import com.codahale.metrics.annotation.Timed
-import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.jobs.graph.Exporter
 import org.apache.mesos.chronos.scheduler.jobs.stats.JobStats
 import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.mutable.ListBuffer
 
 /**
- * The REST API for managing jobs.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * The REST API for managing jobs.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 //TODO(FL): Create a case class that removes epsilon from the dependent.
 @Path(PathConstants.jobBasePath)
 @Produces(Array(MediaType.APPLICATION_JSON))
@@ -37,7 +37,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   private[this] val log = Logger.getLogger(getClass.getName)
 
   private val objectMapper = new ObjectMapper
-  private val mod =  new SimpleModule("JobManagementResourceModule")
+  private val mod = new SimpleModule("JobManagementResourceModule")
 
   mod.addSerializer(classOf[JobStatWrapper], new JobStatWrapperSerializer)
   objectMapper.registerModule(mod)
@@ -47,7 +47,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def delete(@PathParam("jobName") jobName: String): Response = {
     try {
-      require(jobGraph.lookupVertex(jobName).nonEmpty, "Job '%s' not found".format(jobName))
+      require(jobGraph.lookupVertex(jobName).nonEmpty, "JobSchedule '%s' not found".format(jobName))
       val job = jobGraph.lookupVertex(jobName).get
       val children = jobGraph.getChildren(jobName)
       if (children.nonEmpty) {
@@ -57,7 +57,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
             children.foreach {
               child =>
                 val childJob = jobGraph.lookupVertex(child).get.asInstanceOf[DependencyBasedJob]
-                val newParents = childJob.parents.filter { name => name != job.name} ++ j.parents
+                val newParents = childJob.parents.filter { name => name != job.name } ++ j.parents
                 val newChild = childJob.copy(parents = newParents)
                 jobScheduler.replaceJob(childJob, newChild)
                 parents.foreach { p =>
@@ -70,12 +70,11 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
               child =>
                 jobGraph.lookupVertex(child).get match {
                   case childJob: DependencyBasedJob =>
-                    val newChild = new ScheduleBasedJob(
+                    val newChild = ScheduleBasedJob(
                       schedule = j.schedule,
                       scheduleTimeZone = j.scheduleTimeZone,
                       name = childJob.name,
                       command = childJob.command,
-                      epsilon = childJob.epsilon,
                       successCount = childJob.successCount,
                       errorCount = childJob.errorCount,
                       executor = childJob.executor,
@@ -85,7 +84,6 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       owner = childJob.owner,
                       lastError = childJob.lastError,
                       lastSuccess = childJob.lastSuccess,
-                      async = childJob.async,
                       cpus = childJob.cpus,
                       disk = childJob.disk,
                       mem = childJob.mem,
@@ -102,7 +100,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         }
       }
       // No need to send notifications here, the jobScheduler.deregisterJob will do it
-      jobScheduler.deregisterJob(job, persist = true)
+      jobScheduler.deregisterJob(job)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException => {
@@ -146,12 +144,13 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def trigger(@PathParam("jobName") jobName: String,
               @QueryParam("arguments") arguments: String
-               ): Response = {
+             ): Response = {
     try {
       require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
       val job = jobGraph.getJobForName(jobName).get
       log.info("Manually triggering job:" + jobName)
-      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0), job.highPriority)
+      jobScheduler.taskManager.enqueue(TaskUtils.getTaskId(job, DateTime.now(DateTimeZone.UTC), 0, Option(arguments).filter(_.trim.nonEmpty))
+        , job.highPriority)
       Response.noContent().build
     } catch {
       case ex: IllegalArgumentException =>
@@ -164,9 +163,28 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     }
   }
 
+  @Path(PathConstants.jobPatternPath)
+  @GET
+  @Timed
+  def trigger(@PathParam("jobName") jobName: String): Response = {
+    try {
+      require(jobGraph.lookupVertex(jobName).isDefined, "Job '%s' not found".format(jobName))
+      val job = jobGraph.getJobForName(jobName).get
+      Response.ok(job).build()
+    } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+          .build()
+      case ex: Exception =>
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        Response.serverError().build
+    }
+  }
+
   /**
-   * Mark Job successful
-   */
+    * Mark JobSchedule successful
+    */
   @Path(PathConstants.jobSuccessPath)
   @PUT
   @Timed
@@ -187,19 +205,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
 
 
   /**
-   * Allows an user to update the elements processed count for a job that
-   * supports data tracking. The processed count has to be non-negative.
-   */
+    * Allows an user to update the elements processed count for a job that
+    * supports data tracking. The processed count has to be non-negative.
+    */
   @POST
   @Path(PathConstants.jobTaskProgressPath)
   def updateTaskProgress(@PathParam("jobName") jobName: String,
-          @PathParam("taskId") taskId: String,
-          taskStat: TaskStat) : Response = {
+                         @PathParam("taskId") taskId: String,
+                         taskStat: TaskStat): Response = {
     try {
       val jobOpt = jobGraph.lookupVertex(jobName)
-      require(jobOpt.nonEmpty, "Job '%s' not found".format(jobName))
+      require(jobOpt.nonEmpty, "JobSchedule '%s' not found".format(jobName))
       require(TaskUtils.isValidVersion(taskId), "Invalid task id format %s".format(taskId))
-      require(jobOpt.get.dataProcessingJobType, "Job '%s' is not enabled to track data".format(jobName))
+      require(jobOpt.get.dataProcessingJobType, "JobSchedule '%s' is not enabled to track data".format(jobName))
 
       taskStat.numAdditionalElementsProcessed.foreach {
         num =>
@@ -227,17 +245,56 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     try {
       import scala.collection.JavaConversions._
       val jobs = jobGraph.dag.vertexSet()
-        .map { jobGraph.getJobForName }
-        .flatten
-        .map { // copies fetch in uris or uris in fetch (only one can be set) __only__ in REST get, for compatibility
-          case j : ScheduleBasedJob  =>
-            if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
-            else                j.copy(uris =  j.fetch.map { _.uri })
-          case j : DependencyBasedJob =>
-            if(j.fetch.isEmpty) j.copy(fetch = j.uris.map { Fetch(_) })
-            else                j.copy(uris =  j.fetch.map { _.uri })
+        .flatMap {
+          jobGraph.getJobForName
+        }
+        .map {
+          // copies fetch in uris or uris in fetch (only one can be set) __only__ in REST get, for compatibility
+          case j: ScheduleBasedJob =>
+            if (j.fetch.isEmpty) j.copy(fetch = j.uris.map {
+              Fetch(_)
+            })
+            else j.copy(uris = j.fetch.map {
+              _.uri
+            })
+          case j: DependencyBasedJob =>
+            if (j.fetch.isEmpty) j.copy(fetch = j.uris.map {
+              Fetch(_)
+            })
+            else j.copy(uris = j.fetch.map {
+              _.uri
+            })
         }
       Response.ok(jobs).build
+    } catch {
+      case ex: Exception =>
+        log.log(Level.WARNING, "Exception while serving request", ex)
+        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  @Path(PathConstants.jobSummaryPath)
+  @GET
+  @Timed
+  def getSummary(): Response = {
+    try {
+      import scala.collection.JavaConversions._
+      val jobs = jobGraph.dag.vertexSet()
+        .flatMap {
+          jobGraph.getJobForName
+        }
+        .map {
+          job =>
+            val state = Exporter.getLastState(job).toString
+            val status = jobStats.getJobState(job.name).toString
+            job match {
+              case s: ScheduleBasedJob =>
+                new JobSummary(job.name, state, status, s.schedule, List(), job.disabled)
+              case d: DependencyBasedJob =>
+                new JobSummary(job.name, state, status, "", d.parents.toList, job.disabled)
+            }
+        }
+      Response.ok(new JobSummaryWrapper(jobs.toList)).build
     } catch {
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
@@ -253,7 +310,7 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
              @QueryParam("any") any: String,
              @QueryParam("limit") limit: Integer,
              @QueryParam("offset") offset: Integer
-              ) = {
+            ) = {
     try {
       val jobs = ListBuffer[BaseJob]()
       import scala.collection.JavaConversions._

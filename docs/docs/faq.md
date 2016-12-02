@@ -15,7 +15,6 @@ title: Frequently Asked Questions
 * [When running jobs locally I get an error like `Failed to execute 'chown -R'`](#running-jobs-locally)
 * [I found a bug!](#bug)
 
-
 ### <a name="which-node"></a>How do I find which Chronos node to talk to?
 
 Chronos is designed (not required) to run with multiple nodes of which one is elected master.
@@ -30,6 +29,16 @@ Chronos registers itself with [ZooKeeper][ZooKeeper] at the location `/chronos/s
 ### <a name="chronos-cassandra"></a>How does Chronos use Cassandra?
 
 Chronos can optionally use [Cassandra] for job history, reporting and statistics. By default, Chronos attempts to connect to the `metrics` keyspace.
+To use this feature, you must at a minimum:
+
+1. Create a keyspace (named `metrics` and configurable with `--cassandra_keyspace`)
+    ```sql
+    CREATE KEYSPACE IF NOT EXISTS metrics
+    WITH REPLICATION = {
+      'class' : 'SimpleStrategy', 'replication_factor' : 3
+    };
+    ```
+1. Pass the `--cassandra_contact_points` flag to Chronos with a comma-separated list of Cassandra contact points
 
 ### <a name="osx-mesos"></a>[osx] Making Mesos fails on deprecated header warning
 
@@ -45,7 +54,7 @@ This error is the result of OSX shipping with an outdated version of the JDK and
 **Note:** Stick this in your `~/.*rc` to always use 1.7
 3. Find your JNI headers, these should be in `$JAVA_HOME/include` and `$JAVA_HOME/include/darwin`.
 4. Configure mesos with `JAVA_CPPFLAGS` set to the JNI path.
- 
+
 **Example Assumptions:**  
 
 * `$JAVA_HOME` in this example is `/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home`

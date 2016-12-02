@@ -2,12 +2,12 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.google.common.base.{Charsets, Joiner}
+import com.google.common.base.Charsets
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
+import org.apache.mesos.chronos.scheduler.state.PersistenceStore
+import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.{DateTime, Period, Seconds}
 
@@ -15,11 +15,11 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 /**
- * @author Florian Leibert (flo@leibert.de)
- */
+  * @author Florian Leibert (flo@leibert.de)
+  */
 object JobUtils {
 
-  val jobNamePattern = """([\w\s\.#_-]+)""".r
+  val jobNamePattern = """([\w\.-]+)""".r
   val stats = new mutable.HashMap[String, DescriptiveStatistics]()
   val maxValues = 100
   //The object mapper, which is, according to the docs, Threadsafe once configured.
@@ -56,75 +56,42 @@ object JobUtils {
     }
   }
 
-  def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty  // when you leave the deprecated one, then it should be empty
+  def isValidURIDefinition(baseJob: BaseJob) = baseJob.uris.isEmpty || baseJob.fetch.isEmpty // when you leave the deprecated one, then it should be empty
 
-  //TODO(FL): Think about moving this back into the JobScheduler, though it might be a bit crowded.
-  def loadJobs(scheduler: JobScheduler, store: PersistenceStore) {
-    //TODO(FL): Create functions that map strings to jobs
-    val scheduledJobs = new ListBuffer[ScheduleBasedJob]
-    val dependencyBasedJobs = new ListBuffer[DependencyBasedJob]
+  def loadJobs(store: PersistenceStore): List[BaseJob] = {
+    val validatedJobs = new ListBuffer[BaseJob]
 
     val jobs = store.getJobs
 
     jobs.foreach {
-      case d: DependencyBasedJob => dependencyBasedJobs += d
-      case s: ScheduleBasedJob => scheduledJobs += s
+      case d: DependencyBasedJob => validatedJobs += d
+      case s: ScheduleBasedJob => validatedJobs += s
       case x: Any =>
         throw new IllegalStateException("Error, job is neither ScheduleBased nor DependencyBased:" + x.toString)
     }
 
-    log.info("Registering jobs:" + scheduledJobs.size)
-    scheduler.registerJob(scheduledJobs.toList)
-
-    //We cannot simply register
-    dependencyBasedJobs.foreach({ x =>
-      log.info("Adding vertex in the vertex map:" + x.name)
-      scheduler.jobGraph.addVertex(x)
-    })
-
-    dependencyBasedJobs.foreach {
-      x =>
-        log.info("mapping:" + x)
-        import scala.collection.JavaConversions._
-        log.info("Adding dependencies for %s -> [%s]".format(x.name, Joiner.on(",").join(x.parents)))
-
-        scheduler.jobGraph.parentJobsOption(x) match {
-          case None =>
-            log.warning(s"Coudn't find all parents of job ${x.name}... dropping it.")
-            scheduler.jobGraph.removeVertex(x)
-          case Some(parentJobs) =>
-            parentJobs.foreach {
-              //Setup all the dependencies
-              y: BaseJob =>
-                scheduler.jobGraph.addDependency(y.name, x.name)
-            }
-        }
-    }
+    validatedJobs.toList
   }
 
-  def makeScheduleStream(job: ScheduleBasedJob, dateTime: DateTime) = {
+  def getScheduledTime(job: ScheduleBasedJob): DateTime = {
     Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((_, scheduledTime, _)) =>
-        if (scheduledTime.plus(job.epsilon).isBefore(dateTime)) {
-          skipForward(job, dateTime)
-        } else {
-          Some(new ScheduleStream(job.schedule, job.name, job.scheduleTimeZone))
-        }
-      case None =>
-        None
+        scheduledTime
+      case _ =>
+        new DateTime
     }
   }
 
-  def skipForward(job: ScheduleBasedJob, dateTime: DateTime): Option[ScheduleStream] = {
+  def skipForward(job: ScheduleBasedJob, currentDateTime: DateTime): Option[JobSchedule] = {
     Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
       case Some((rec, start, per)) =>
-        val skip = calculateSkips(dateTime, start, per)
+        val skip = calculateSkips(currentDateTime, start, per)
         if (rec == -1) {
           val nStart = start.plus(per.multipliedBy(skip))
           log.warning("Skipped forward %d iterations, modified start from '%s' to '%s"
             .format(skip, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(rec, nStart, per), job.name, job.scheduleTimeZone))
+          Some(new JobSchedule(Iso8601Expressions.create(rec, nStart, per), job.name, job.scheduleTimeZone))
         } else if (rec < skip) {
           log.warning("Filtered job as it is no longer valid.")
           None
@@ -134,7 +101,7 @@ object JobUtils {
           log.warning("Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
             .format(skip, nRec, start.toString(DateTimeFormat.fullDate),
               nStart.toString(DateTimeFormat.fullDate)))
-          Some(new ScheduleStream(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
+          Some(new JobSchedule(Iso8601Expressions.create(nRec, nStart, per), job.name, job.scheduleTimeZone))
         }
       case None =>
         None
@@ -142,8 +109,8 @@ object JobUtils {
   }
 
   /**
-   * Calculates the number of skips needed to bring the job start into the future
-   */
+    * Calculates the number of skips needed to bring the job start into the future
+    */
   protected def calculateSkips(dateTime: DateTime, jobStart: DateTime, period: Period): Int = {
     // If the period is at least a month, we have to actually add the period to the date
     // until it's in the future because a month-long period might have different seconds
@@ -156,11 +123,15 @@ object JobUtils {
       }
       skips
     } else {
-      Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds
+      if (jobStart.isBefore(dateTime) && period.toStandardSeconds.getSeconds > 0) {
+        Seconds.secondsBetween(jobStart, dateTime).getSeconds / period.toStandardSeconds.getSeconds + 1
+      } else {
+        0
+      }
     }
   }
 
-  def getJobWithArguments(job : BaseJob, arguments: String): BaseJob = {
+  def getJobWithArguments(job: BaseJob, arguments: String): BaseJob = {
     val commandWithArgs = job.command + " " + arguments
     job match {
       case j: DependencyBasedJob => j.copy(command = commandWithArgs)

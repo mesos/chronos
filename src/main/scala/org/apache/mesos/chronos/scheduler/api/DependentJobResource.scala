@@ -2,19 +2,19 @@ package org.apache.mesos.chronos.scheduler.api
 
 import java.util.logging.{Level, Logger}
 import javax.ws.rs.core.Response
-import javax.ws.rs.{POST, PUT, Path, Produces}
+import javax.ws.rs.{POST, Path, Produces}
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs._
 
 /**
- * The REST API for adding job-dependencies to the scheduler.
- * @author Florian Leibert (flo@leibert.de)
- */
-//TODO(FL): Create a case class that removes epsilon from the dependents.
+  * The REST API for adding job-dependencies to the scheduler.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 @Path(PathConstants.dependentJobPath)
 @Produces(Array("application/json"))
 class DependentJobResource @Inject()(
@@ -39,10 +39,10 @@ class DependentJobResource @Inject()(
           "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
         if (newJob.parents.isEmpty) throw new Exception("Error, parent does not exist")
 
-        jobScheduler.registerJob(List(newJob), persist = true)
+        jobScheduler.loadJob(newJob)
         Response.noContent().build()
       } else {
-        require(oldJobOpt.isDefined, "Job '%s' not found".format(newJob.name))
+        require(oldJobOpt.isDefined, "JobSchedule '%s' not found".format(newJob.name))
 
         val oldJob = oldJobOpt.get
 
@@ -52,7 +52,7 @@ class DependentJobResource @Inject()(
         require(newJob.parents.nonEmpty, "Error, parent does not exist")
 
         log.info("Received replace request for job:" + newJob.toString)
-        require(jobGraph.lookupVertex(newJob.name).isDefined, "Job '%s' not found".format(newJob.name))
+        require(jobGraph.lookupVertex(newJob.name).isDefined, "JobSchedule '%s' not found".format(newJob.name))
         //TODO(FL): Put all the logic for registering, deregistering and replacing dependency based jobs into one place.
         val parents = jobGraph.parentJobs(newJob)
         oldJob match {
@@ -64,16 +64,14 @@ class DependentJobResource @Inject()(
               oldParentNames.foreach(jobGraph.removeDependency(_, oldJob.name))
               newParentNames.foreach(jobGraph.addDependency(_, newJob.name))
             }
-            jobScheduler.removeSchedule(j)
           case j: ScheduleBasedJob =>
             log.info("Removing schedule for job: %s".format(j))
-            jobScheduler.removeSchedule(j)
             parents.foreach(p => jobGraph.addDependency(p.name, newJob.name))
         }
 
         jobScheduler.updateJob(oldJob, newJob)
 
-        log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
+        log.info("JobSchedule parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
         log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
           newJob.name,
           new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
@@ -91,11 +89,4 @@ class DependentJobResource @Inject()(
         Response.serverError().build()
     }
   }
-
-  @PUT
-  @Timed
-  def put(newJob: DependencyBasedJob): Response = {
-    handleRequest(newJob)
-  }
-
 }

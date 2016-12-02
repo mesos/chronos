@@ -5,12 +5,12 @@ import java.util.logging.Logger
 import akka.actor.ActorRef
 import com.google.inject.Inject
 import org.apache.mesos.chronos.scheduler.jobs._
-import org.joda.time.{DateTimeZone, DateTime}
+import org.joda.time.{DateTime, DateTimeZone}
 
 class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] = List(),
-                                      val clusterName: Option[String] = None) {
-  private[this] val log = Logger.getLogger(getClass.getName)
+                                        val clusterName: Option[String] = None) {
   val clusterPrefix = clusterName.map(name => s"[$name]").getOrElse("")
+  private[this] val log = Logger.getLogger(getClass.getName)
 
   def asObserver: JobsObserver.Observer = JobsObserver.withName({
     case JobRemoved(job) => sendNotification(job, "%s [Chronos] Your job '%s' was deleted!".format(clusterPrefix, job.name), None)
@@ -31,7 +31,7 @@ class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] 
       val subowners = job.owner.split("\\s*,\\s*")
       for (subowner <- subowners) {
         log.info("Sending mail notification to:%s for job %s using client: %s".format(subowner, job.name, client))
-        client !(job, subowner, subject, message)
+        client ! (job, subowner, subject, message)
       }
     }
 

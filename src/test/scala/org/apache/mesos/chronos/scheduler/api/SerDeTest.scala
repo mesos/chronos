@@ -1,11 +1,10 @@
 package org.apache.mesos.chronos.scheduler.api
 
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
-import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, DockerContainer, EnvironmentVariable, ScheduleBasedJob, _}
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
-import org.joda.time.Minutes
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.{DependencyBasedJob, DockerContainer, EnvironmentVariable, ScheduleBasedJob, _}
+import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import org.specs2.mutable.SpecificationWithJUnit
 
 class SerDeTest extends SpecificationWithJUnit {
@@ -46,10 +45,11 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val fetch = Seq(Fetch("https://mesos.github.io/chronos/", true, false, true))
 
-      val a = new DependencyBasedJob(Set("B", "C", "D", "E"), "A", "noop", Minutes.minutes(5).toPeriod, 10L,
+      val a = new DependencyBasedJob(Set("B", "C", "D", "E"), "A", "noop", 10L,
         20L, "fooexec", "fooflags", "", 7, "foo@bar.com", "Foo", "Test dependency-based job", "TODAY",
-        "YESTERDAY", true, container = container, environmentVariables = environmentVariables,
-        shell = false, arguments = arguments, softError = true, constraints = constraints, fetch = fetch)
+        "YESTERDAY", container = container, environmentVariables = environmentVariables,
+        shell = false, arguments = arguments, softError = true, constraints = constraints, fetch = fetch,
+        cpus = 1, mem = 100, disk = 1000)
 
       val aStr = objectMapper.writeValueAsString(a)
       val aCopy = objectMapper.readValue(aStr, classOf[DependencyBasedJob])
@@ -91,10 +91,11 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val fetch = Seq(Fetch("https://mesos.github.io/chronos/", true, false, true))
 
-      val a = new ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", Minutes.minutes(5).toPeriod, 10L, 20L,
+      val a = ScheduleBasedJob("FOO/BAR/BAM", "A", "noop", 10L, 20L,
         "fooexec", "fooflags", "", 7, "foo@bar.com", "Foo", "Test schedule-based job", "TODAY",
-        "YESTERDAY", true, container = container, environmentVariables = environmentVariables,
-        shell = true, arguments = arguments, softError = true, constraints = constraints, fetch = fetch)
+        "YESTERDAY", container = container, environmentVariables = environmentVariables,
+        shell = true, arguments = arguments, softError = true, constraints = constraints, fetch = fetch,
+        cpus = 1, mem = 100, disk = 1000)
 
       val aStr = objectMapper.writeValueAsString(a)
       val aCopy = objectMapper.readValue(aStr, classOf[ScheduleBasedJob])

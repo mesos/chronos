@@ -2,18 +2,17 @@ package org.apache.mesos.chronos.scheduler.state
 
 import java.util.logging.{Level, Logger}
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
 import org.apache.mesos.state.{InMemoryState, State}
 
-import scala.collection.mutable
-
 /**
- * Handles storage and retrieval of job and task level data within the cluster.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Handles storage and retrieval of job and task level data within the cluster.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 
 class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
                                            val config: SchedulerConfiguration,
@@ -36,15 +35,16 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   val taskName = (name: String) => "%s%s".format(taskPrefix, name)
 
   /**
-   * Retries a function
-   * @param max the maximum retries
-   * @param attempt the current attempt number
-   * @param i the input
-   * @param fnc the function to wrap
-   * @tparam I the input parameter type
-   * @tparam O the output parameter type
-   * @return either Some(instanceOf[O]) or None if more exceptions occurred than permitted by max.
-   */
+    * Retries a function
+    *
+    * @param max     the maximum retries
+    * @param attempt the current attempt number
+    * @param i       the input
+    * @param fnc     the function to wrap
+    * @tparam I the input parameter type
+    * @tparam O the output parameter type
+    * @return either Some(instanceOf[O]) or None if more exceptions occurred than permitted by max.
+    */
   def retry[I, O](max: Int, attempt: Int, i: I, fnc: (I) => O): Option[O] = {
     try {
       Some(fnc(i))
@@ -62,12 +62,6 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   def persistJob(job: BaseJob): Boolean = {
     log.info("Persisting job '%s' with data '%s'" format(job.name, job.toString))
     persistData(jobName(job.name), JobUtils.toBytes(job))
-  }
-
-  //TODO(FL): Think about caching tasks locally such that we don't have to query zookeeper.
-  def persistTask(name: String, data: Array[Byte]): Boolean = {
-    log.finest("Persisting task: " + name)
-    persistData(taskName(name), data)
   }
 
   private def persistData(name: String, data: Array[Byte]): Boolean = {
@@ -93,11 +87,6 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
     success
   }
 
-  def removeTask(taskId: String): Boolean = {
-    log.fine("Removing task:" + taskId)
-    remove(taskName(taskId))
-  }
-
   def removeJob(job: BaseJob) {
     log.fine("Removing job:" + job.name)
     remove(jobName(job.name))
@@ -114,65 +103,22 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
 
     state.names.get.filter(_.startsWith(jobPrefix))
       .map({
-      x: String => JobUtils.fromBytes(state.fetch(x).get.value)
-    })
-  }
-
-  def purgeTasks() {
-    val tasks = getTaskIds(None)
-    tasks.foreach({
-      x =>
-        log.warning("Removing task node in ZK:" + x)
-        remove(x)
-    })
-  }
-
-  def getTaskIds(filter: Option[String]): List[String] = {
-    val results = new mutable.ListBuffer[String]
-
-    import scala.collection.JavaConversions._
-    for (f: String <- state.names.get) {
-      if (f.startsWith(taskPrefix)) {
-        if (filter.isEmpty || f.contains(filter.get)) {
-          results += f.substring(taskPrefix.length)
-        }
-      }
-    }
-    results.toList
-  }
-
-  def getTasks: Map[String, Array[Byte]] = {
-    lock.synchronized {
-      val results = new mutable.HashMap[String, Array[Byte]]
-
-      import scala.collection.JavaConversions._
-      for (f: String <- state.names.get) {
-        if (f.startsWith(taskPrefix)) {
-          val taskId = f.substring(taskPrefix.length)
-          if (TaskUtils.isValidVersion(f)) {
-            val data = state.fetch(f).get.value
-            results += (taskId -> data)
-          } else {
-            log.warning("Found old incompatible version of task, deleting:" + taskId)
-            // remove(f) is easier but it should not invoke func remove directly
-            removeTask(taskId)
-          }
-        }
-      }
-      return results.toMap
-    }
+        x: String => JobUtils.fromBytes(state.fetch(x).get.value)
+      })
   }
 
   private def remove(name: String): Boolean = {
     try {
       log.info("Purging entry '%s' via: %s".format(name, state.getClass.getName))
       val path = "%s/%s".format(config.zooKeeperStatePath, name)
+
       //Once state supports deletion, we can remove the ZK wiring.
       def fnc(s: String) {
         if (zk.checkExists().forPath(path) != null) {
           zk.delete().forPath(path)
         }
       }
+
       retry[String, Unit](2, 0, path, fnc)
       zk.checkExists().forPath(path) == null
     } catch {

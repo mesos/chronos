@@ -1,14 +1,15 @@
 package org.apache.mesos.chronos.utils
 
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
 
 /**
- * Custom JSON serializer for jobs.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Custom JSON serializer for jobs.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class JobSerializer extends JsonSerializer[BaseJob] {
 
   def serialize(baseJob: BaseJob, json: JsonGenerator, provider: SerializerProvider) {
@@ -21,9 +22,6 @@ class JobSerializer extends JsonSerializer[BaseJob] {
 
     json.writeFieldName("shell")
     json.writeBoolean(baseJob.shell)
-
-    json.writeFieldName("epsilon")
-    json.writeString(baseJob.epsilon.toString)
 
     json.writeFieldName("executor")
     json.writeString(baseJob.executor)
@@ -45,9 +43,6 @@ class JobSerializer extends JsonSerializer[BaseJob] {
 
     json.writeFieldName("description")
     json.writeString(baseJob.description)
-
-    json.writeFieldName("async")
-    json.writeBoolean(baseJob.async)
 
     json.writeFieldName("successCount")
     json.writeNumber(baseJob.successCount)
@@ -125,6 +120,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
 
     json.writeFieldName("runAsUser")
     json.writeString(baseJob.runAsUser)
+
+    json.writeFieldName("concurrent")
+    json.writeBoolean(baseJob.concurrent)
 
     if (baseJob.container != null) {
       json.writeFieldName("container")

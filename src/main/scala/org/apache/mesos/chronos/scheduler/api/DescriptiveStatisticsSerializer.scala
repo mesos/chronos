@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 
 /**
- * Serializes a subset of the fields of DescriptiveStatistics
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Serializes a subset of the fields of DescriptiveStatistics
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 @Deprecated
 class DescriptiveStatisticsSerializer extends JsonSerializer[DescriptiveStatistics] {
 

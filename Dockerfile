@@ -1,23 +1,15 @@
-FROM ubuntu:14.04
+FROM java:8-jre
 
-RUN echo "deb http://repos.mesosphere.io/ubuntu/ trusty main" > /etc/apt/sources.list.d/mesosphere.list && \
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF && \
-    apt-get update && \
-    apt-get install -y maven \
-    npm \
-    default-jdk \
-    mesos \
-    scala \
-    curl && \
-    apt-get clean all && \
-    ln -s /usr/bin/nodejs /usr/bin/node
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
+    && echo "deb http://repos.mesosphere.com/debian jessie-unstable main" | tee /etc/apt/sources.list.d/mesosphere.list \
+    && echo "deb http://repos.mesosphere.com/debian jessie-testing main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
+    && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y --force-yes mesos=1.0.1-2.0.93.debian81 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ADD . /chronos
 
-WORKDIR /chronos
-
-RUN mvn clean package
-
-EXPOSE 8080
-
-ENTRYPOINT ["bin/start-chronos.bash"]
+ADD ./tmp/chronos.jar /chronos/chronos.jar
+ADD bin/start.sh /chronos/bin/start.sh
+ENTRYPOINT ["/chronos/bin/start.sh"]

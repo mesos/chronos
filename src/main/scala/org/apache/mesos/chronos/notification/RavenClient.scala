@@ -2,14 +2,15 @@ package org.apache.mesos.chronos.notification
 
 import java.util.logging.Logger
 
+import com.getsentry.raven.RavenFactory
+import com.getsentry.raven.event.{Event, EventBuilder}
 import org.apache.mesos.chronos.scheduler.jobs.BaseJob
-import net.kencochrane.raven.RavenFactory
-import net.kencochrane.raven.event.{Event, EventBuilder}
 
 /**
- * Notification client that uses sentry / raven to transmit its messages
- * @author Greg Bowyer (gbowyer@fastmail.co.uk)
- */
+  * Notification client that uses sentry / raven to transmit its messages
+  *
+  * @author Greg Bowyer (gbowyer@fastmail.co.uk)
+  */
 class RavenClient(val dsn: String) extends NotificationClient {
 
   private[this] val log = Logger.getLogger(getClass.getName)
@@ -17,27 +18,27 @@ class RavenClient(val dsn: String) extends NotificationClient {
 
   def sendNotification(job: BaseJob, to: String, subject: String, message: Option[String]) {
     val ravenMessage = subject + "\n\n" + message.getOrElse("")
-    val uris = job.fetch.map { _.uri } ++ job.uris
+    val uris = job.fetch.map {
+      _.uri
+    } ++ job.uris
     val event = new EventBuilder()
-      .setMessage(ravenMessage)
-      .setLevel(Event.Level.ERROR)
-      .addTag("owner", to)
-      .addTag("job", job.name)
-      .addTag("command", job.command)
-      .addExtra("cpus", job.cpus)
-      .addExtra("async", job.async)
-      .addExtra("softError", job.softError)
-      .addExtra("epsilon", job.epsilon)
-      .addExtra("errorCount", job.errorCount)
-      .addExtra("errorsSinceLastSuccess", job.errorsSinceLastSuccess)
-      .addExtra("executor", job.executor)
-      .addExtra("executorFlags", job.executorFlags)
-      .addExtra("lastError", job.lastError)
-      .addExtra("lastSuccess", job.lastSuccess)
-      .addExtra("mem", job.mem)
-      .addExtra("retries", job.retries)
-      .addExtra("successCount", job.successCount)
-      .addExtra("uris", uris.mkString(","))
+      .withMessage(ravenMessage)
+      .withLevel(Event.Level.ERROR)
+      .withTag("owner", to)
+      .withTag("job", job.name)
+      .withTag("command", job.command)
+      .withExtra("cpus", job.cpus)
+      .withExtra("softError", job.softError)
+      .withExtra("errorCount", job.errorCount)
+      .withExtra("errorsSinceLastSuccess", job.errorsSinceLastSuccess)
+      .withExtra("executor", job.executor)
+      .withExtra("executorFlags", job.executorFlags)
+      .withExtra("lastError", job.lastError)
+      .withExtra("lastSuccess", job.lastSuccess)
+      .withExtra("mem", job.mem)
+      .withExtra("retries", job.retries)
+      .withExtra("successCount", job.successCount)
+      .withExtra("uris", uris.mkString(","))
       .build()
 
     raven.sendEvent(event)

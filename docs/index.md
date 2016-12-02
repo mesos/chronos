@@ -7,12 +7,6 @@ title: Fault tolerant job scheduler for Mesos
   <p class="lead">
     A fault tolerant job scheduler for Mesos which handles dependencies and ISO8601 based schedules
   </p>
-  <p>
-    <a href="https://github.com/mesos/chronos/archive/2.4.0.tar.gz"
-        class="btn btn-lg btn-primary">
-      Download Chronos v2.4.0
-    </a>
-  </p>
 </div>
 
 ## Overview
@@ -48,7 +42,13 @@ on how to do this.
 
 ## Installation
 
-You can either download an archive of the latest Chronos release using the Download button above or follow the instructions on the [getting started page]({{site.baseurl}}/docs/) to install packages for popular Linux distributions.
+Chronos can be installed on DC/OS using the following command:
+
+    $ dcos package install chronos
+
+Additionally, Mesosphere publishes public Docker images for Chronos. Images are available at <https://hub.docker.com/r/mesosphere/chronos/>. To run Chronos with Docker, you must have 2 ports available: one for the HTTP API, and one for libprocess. You must export these ports as environment variables for Chronos to start. For example:
+
+    $ docker run --net=host -e PORT0=8080 -e PORT1=8081 mesosphere/chronos:v3.0.0 --zk_hosts 192.168.65.90:2181 --master zk://192.168.65.90:2181/mesos
 
 
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"

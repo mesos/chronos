@@ -16,9 +16,9 @@ object ChronosTaskStatus extends Enumeration {
   val Success, Fail, Running, Idle = Value
 }
 
-class TaskStat (@JsonProperty val taskId: String,
-  @JsonProperty val jobName: String,
-  @JsonProperty val taskSlaveId: String) {
+class TaskStat(@JsonProperty val taskId: String,
+               @JsonProperty val jobName: String,
+               @JsonProperty val taskSlaveId: String) {
   /*
    * Cassandra column names
    */
@@ -36,7 +36,8 @@ class TaskStat (@JsonProperty val taskId: String,
   @JsonProperty var taskStatus: ChronosTaskStatus.Value = ChronosTaskStatus.Idle
 
   //move out of object later (this should be a data subclass)
-  @JsonProperty var numElementsProcessed: Option[Long] = None //used only for output (HTTP GET)
+  @JsonProperty var numElementsProcessed: Option[Long] = None
+  //used only for output (HTTP GET)
   @JsonProperty var numAdditionalElementsProcessed: Option[Int] = None //used only for input (HTTP POST)
 
   def getTaskRuntime: Option[Duration] = taskDuration
@@ -44,7 +45,7 @@ class TaskStat (@JsonProperty val taskId: String,
   def setTaskStatus(status: ChronosTaskStatus.Value) = {
     //if already a terminal state, ignore
     if ((taskStatus != ChronosTaskStatus.Success) &&
-        (taskStatus != ChronosTaskStatus.Fail)) {
+      (taskStatus != ChronosTaskStatus.Fail)) {
       taskStatus = status
     }
   }

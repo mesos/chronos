@@ -3,10 +3,10 @@ package org.apache.mesos.chronos.scheduler.jobs
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
-import org.apache.mesos.chronos.scheduler.config.GraphiteConfiguration
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.graphite.{Graphite, GraphiteReporter}
 import com.google.common.util.concurrent.AbstractIdleService
+import org.apache.mesos.chronos.scheduler.config.GraphiteConfiguration
 
 object MetricReporterService {
 

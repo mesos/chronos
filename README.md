@@ -14,7 +14,7 @@ It allows you to schedule your jobs using [ISO8601][ISO8601] repeating interval 
 ## Features
 
 * Web UI
-* 8601 Repeating Interval Notation
+* ISO8601 Repeating Interval Notation
 * Handles dependencies
 * Job Stats (e.g. 50th, 75th, 95th and 99th percentile timing, failure/success)
 * Job History (e.g. job duration, start time, end time, failure/success)
@@ -35,6 +35,10 @@ For questions and discussions around Chronos, please use the Google Group "chron
 Also join us on IRC in #chronos on freenode.
 
 If you'd like to take part in design research and test new features in Chronos before they're released, please add your name to Mesosphere's [UX Research](http://uxresearch.mesosphere.com) list.
+
+## Packaging
+
+Mesosphere publishes Docker images for Chronos to Dockerhub, at <https://hub.docker.com/r/mesosphere/chronos/>.
 
 ## Known Issues
 

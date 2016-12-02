@@ -23,7 +23,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       actualSeconds must_== expectedSeconds
     }
 
-    "Handle None job option in getTask" in {
+    "Handle None job option in getTaskFromQueue" in {
       val mockJobGraph = mock[JobGraph]
       val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
 
@@ -31,16 +31,14 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
         mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], makeConfig(),
         mock[MesosOfferReviver])
 
-      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      val job = ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
 
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
 
       mockJobGraph.getJobForName("test").returns(None)
 
-      taskManager.getTask must_== None
-
-      there was one(mockPersistencStore).removeTask("ct:1420843781398:0:test:")
+      taskManager.getTaskFromQueue must_== None
     }
 
     "Revive offers when adding a new task and --revive_offers_for_new_jobs is set" in {
@@ -52,7 +50,7 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
         mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
 
-      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      val job = ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
 
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
@@ -69,12 +67,41 @@ class TaskManagerSpec extends SpecificationWithJUnit with Mockito {
       val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
         mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
 
-      val job = new ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
+      val job = ScheduleBasedJob("R/2012-01-01T00:00:01.000Z/PT1M", "test", "sample-command")
       mockJobGraph.lookupVertex("test").returns(Some(job)) // so we can enqueue a job.
 
       taskManager.enqueue("ct:1420843781398:0:test:", highPriority = true)
 
       there were noCallsTo(mockMesosOfferReviver)
+    }
+
+    "Add a new task" in {
+      val mockJobGraph = mock[JobGraph]
+      val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val config = makeConfig()
+
+      val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
+
+      taskManager.addTask("job", "slave", "task")
+
+      taskManager.getRunningTaskCount("job") must_== 1
+    }
+
+    "Remove a task" in {
+      val mockJobGraph = mock[JobGraph]
+      val mockPersistencStore: PersistenceStore = mock[PersistenceStore]
+      val mockMesosOfferReviver = mock[MesosOfferReviver]
+      val config = makeConfig()
+
+      val taskManager = new TaskManager(mock[ListeningScheduledExecutorService], mockPersistencStore,
+        mockJobGraph, null, MockJobUtils.mockFullObserver, mock[MetricRegistry], config, mockMesosOfferReviver)
+
+      taskManager.addTask("job", "slave", "ct:1420843781398:0:job:")
+      taskManager.getRunningTaskCount("job") must_== 1
+      taskManager.removeTask("ct:1420843781398:0:job:")
+      taskManager.getRunningTaskCount("job") must_== 0
     }
   }
 }
