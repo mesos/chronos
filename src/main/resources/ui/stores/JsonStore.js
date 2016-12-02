@@ -4,6 +4,9 @@ import JsonModel from '../models/JsonModel'
 export class JsonStore {
   @observable isLoading = false
   @observable job = null
+  @observable submitError = ""
+  @observable submitStatus = ""
+  @observable value = ""
 
   loadJob(jobName) {
     this.isLoading = true

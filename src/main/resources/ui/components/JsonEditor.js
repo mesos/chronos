@@ -41,6 +41,7 @@ export default class JsonEditor extends React.Component {
   }
   saveJson() {
     if (this.refs.ace) {
+      let _this = this
       this.editor = this.refs.ace.editor
       let session = this.editor.getSession()
       let btn = $('#json-editor-submit-button')
@@ -62,13 +63,21 @@ export default class JsonEditor extends React.Component {
         setTimeout(function() {
           $('#json-modal').modal('hide')
           btn.button('reset')
+          jsonStore.submitError = ""
+          jsonStore.submitStatus = ""
         }, 500)
       }).fail(function(resp) {
         setTimeout(function() {
           btn.button('reset')
+          const jsonStore = _this.props.jsonStore
+          jsonStore.submitError = resp.responseText
+          jsonStore.submitStatus = resp.status + ': ' + resp.statusText
         }, 500)
       })
     }
+  }
+  setCurrentValue(value) {
+    this.props.jsonStore.value = value
   }
   getEditor() {
     const jsonStore = this.props.jsonStore
@@ -85,6 +94,8 @@ export default class JsonEditor extends React.Component {
           ref="ace"
           mode="javascript"
           theme="monokai"
+          onChange={(value) => this.setCurrentValue(value)}
+          value={this.props.jsonStore.value}
           defaultValue={this.getValue()}
           name="json-editor-unique-id"
           editorProps={{
@@ -95,6 +106,19 @@ export default class JsonEditor extends React.Component {
             showGutter: true,
           }}
           />
+      )
+    }
+  }
+  alertField() {
+    const jsonStore = this.props.jsonStore
+    if (jsonStore.submitError) {
+      return (
+        <div id="json-editor-alert" className="alert alert-warning alert-dismissible" role="alert">
+          <button type="button" className="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <strong>Error submitting job</strong>
+          <p>{jsonStore.submitStatus}</p>
+          <p>{jsonStore.submitError}</p>
+        </div>
       )
     }
   }
@@ -109,6 +133,7 @@ export default class JsonEditor extends React.Component {
               <h4 className="modal-title" id="json-modal-label">Edit Job</h4>
             </div>
             <div className="modal-body">
+              {this.alertField()}
               <div className="container">
                 {this.getEditor()}
               </div>
