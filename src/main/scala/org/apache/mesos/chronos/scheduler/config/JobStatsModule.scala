@@ -35,9 +35,4 @@ class JobStatsModule(config: CassandraConfiguration) extends AbstractModule {
     config
   }
 
-  @Provides
-  @Singleton
-  def provideGetRunningCount() = {
-
-  }
 }
