@@ -53,19 +53,17 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
   }
 
   def updateJobState(jobName: String, nextState: CurrentState.Value, count: Option[Int] = None) {
-    val shouldUpdate = jobStates.get(jobName).forall {
-      currentState =>
-        !(currentState == CurrentState.running && nextState == CurrentState.queued) && count.getOrElse(0) <= 1
+    val c = count.getOrElse(0)
+    val updatedState = if (c > 0) {
+      s"$c running"
+    } else {
+      nextState.toString
     }
+    val shouldUpdate = !jobStates.get(jobName).contains(updatedState)
 
     if (shouldUpdate) {
       log.info("Updating state for job (%s) to %s".format(jobName, nextState))
-      val state = if (nextState == CurrentState.running) {
-        s"${count.getOrElse(1)} ${nextState.toString}"
-      } else {
-        nextState.toString
-      }
-      jobStates.put(jobName, state)
+      jobStates.put(jobName, updatedState)
     }
   }
 
@@ -412,8 +410,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
     case JobRemoved(job) => removeJobState(job)
     case JobQueued(job, taskId, attempt) => jobQueued(job, taskId, attempt)
     case JobStarted(job, taskStatus, attempt, runningCount) => jobStarted(job, taskStatus, attempt, runningCount)
-    case JobFinished(job, taskStatus, attempt) => jobFinished(job, taskStatus, attempt)
-    case JobFailed(job, taskStatus, attempt) => jobFailed(job, taskStatus, attempt)
+    case JobFinished(job, taskStatus, attempt, runningCount) => jobFinished(job, taskStatus, attempt, runningCount)
+    case JobFailed(job, taskStatus, attempt, runningCount) => jobFailed(job, taskStatus, attempt, runningCount)
   }, getClass.getSimpleName)
 
   private def removeJobState(job: BaseJob) = jobStates.remove(job.name)
@@ -447,8 +445,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       isFailure = None)
   }
 
-  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int) {
-    updateJobState(job.name, CurrentState.idle)
+  private def jobFinished(job: BaseJob, taskStatus: TaskStatus, attempt: Int, runningCount: Int) {
+    updateJobState(job.name, CurrentState.idle, Some(runningCount))
 
     var jobSchedule: Option[String] = None
     var jobParents: Option[java.util.Set[String]] = None
@@ -472,7 +470,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       isFailure = None)
   }
 
-  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int): Unit = {
+  private def jobFailed(jobNameOrJob: Either[String, BaseJob], taskStatus: TaskStatus, attempt: Int, runningCount: Int): Unit = {
     val jobName = jobNameOrJob.fold(name => name, _.name)
     val jobSchedule = jobNameOrJob.fold(_ => None, {
       case job: ScheduleBasedJob => Some(job.schedule)
@@ -483,7 +481,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
       case _ => None
     })
 
-    updateJobState(jobName, CurrentState.idle)
+    updateJobState(jobName, CurrentState.idle, Some(runningCount))
     insertToStatTable(
       id = Some(taskStatus.getTaskId.getValue),
       timestamp = Some(new java.util.Date()),
