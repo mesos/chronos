@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.curator.test.{InstanceSpec, TestingCluster}
+import org.apache.curator.test.{InstanceSpec, TestingCluster, Timing}
 import org.apache.curator.utils.CloseableUtils
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.MesosDriverFactory
@@ -21,7 +21,9 @@ class JobSchedulerElectionSpec
   @Test
   def testJobSchedulerShouldElectOnlyOneLeader() {
     val testCluster = new TestingCluster(3)
+    val timing = new Timing()
     testCluster.start()
+    timing.sleepABit()
 
     val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
     val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
@@ -43,7 +45,9 @@ class JobSchedulerElectionSpec
   @Test
   def testElectLeaderOnZkFailure() {
     val testCluster = new TestingCluster(3)
+    val timing = new Timing()
     testCluster.start()
+    timing.sleepABit()
 
     val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
     val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
@@ -56,13 +60,14 @@ class JobSchedulerElectionSpec
     val instance: InstanceSpec = testCluster.findConnectionInstance(firstLeader.curator.getZookeeperClient.getZooKeeper)
     try {
       testCluster.killServer(instance)
+      timing.sleepABit()
       testCluster.restartServer(instance)
     } catch {
       case _: Exception =>
         testCluster.start()
     }
 
-    Thread.sleep(1100)
+    timing.sleepABit()
 
     awaitElection(List(latch1, latch2))
     assertTrue("A candidate has leadership", latch1.hasLeadership || latch2.hasLeadership)
@@ -79,7 +84,9 @@ class JobSchedulerElectionSpec
   @Test
   def testElectLeaderOnZkRestart() {
     val testCluster = new TestingCluster(3)
+    val timing = new Timing()
     testCluster.start()
+    timing.sleepABit()
 
     val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
     val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
@@ -97,7 +104,7 @@ class JobSchedulerElectionSpec
         testCluster.start()
     }
 
-    Thread.sleep(100)
+    timing.sleepABit()
 
     awaitElection(List(latch1, latch2))
     assertTrue("A candidate has leadership", latch1.hasLeadership || latch2.hasLeadership)
@@ -177,7 +184,9 @@ class JobSchedulerElectionSpec
   @Test
   def testElectNewLeaderOnMasterFailure() {
     val testCluster = new TestingCluster(3)
+    val timing = new Timing()
     testCluster.start()
+    timing.sleepABit()
 
     val (scheduler1: JobScheduler, curator1: CuratorFramework, latch1: LeaderLatch) = scheduler(testCluster.getConnectString)
     val (scheduler2: JobScheduler, curator2: CuratorFramework, latch2: LeaderLatch) = scheduler(testCluster.getConnectString)
