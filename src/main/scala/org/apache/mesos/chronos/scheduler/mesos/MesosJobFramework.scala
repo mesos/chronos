@@ -32,7 +32,6 @@ class MesosJobFramework @Inject()(
   val frameworkName = "chronos"
   private[this] val log = Logger.getLogger(getClass.getName)
   private var lastReconciliation = DateTime.now.plusSeconds(config.reconciliationInterval())
-  private val runningTasks = new mutable.HashMap[String, List[ChronosTask]]
 
   /* Overridden methods from MesosScheduler */
   @Override
@@ -122,10 +121,10 @@ class MesosJobFramework @Inject()(
 
     @tailrec
     def generate() {
-      taskManager.getTask match {
+      taskManager.getTaskFromQueue match {
         case None => log.fine("No tasks scheduled or next task has been disabled.\n")
         case Some((taskId, job)) =>
-          if (runningTasks.contains(job.name) && !job.concurrent) {
+          if (taskManager.jobIsRunning(job.name) && !job.concurrent) {
             log.warning("The head of the task queue appears to already be running and doesn't allow concurrency: " + job.name + "\n")
             generate()
           } else {
@@ -163,10 +162,10 @@ class MesosJobFramework @Inject()(
     if (DateTime.now().isAfter(lastReconciliation.plusSeconds(config.reconciliationInterval()))) {
       lastReconciliation = DateTime.now()
 
-      val taskStatuses = runningTasks.flatMap(tasks => tasks._2)
+      val taskStatuses = taskManager.getAllTaskStatus
 
       log.info("Performing task reconciliation with the Mesos master")
-      schedulerDriver.reconcileTasks(taskStatuses.flatMap(task => task.taskStatus).asJavaCollection)
+      schedulerDriver.reconcileTasks(taskStatuses.asJavaCollection)
     }
   }
 
@@ -184,13 +183,8 @@ class MesosJobFramework @Inject()(
       ))
       for (task <- tasks) {
         val name = task._2.name
-        val newTask = new ChronosTask(task._3.getSlaveId.getValue, task._1)
-        if (runningTasks.contains(name)) {
-          val tasks = runningTasks(name) ++ List(newTask)
-          runningTasks(name) = tasks
-        } else {
-          runningTasks(name) = List(newTask)
-        }
+        taskManager.addTask(name, task._3.getSlaveId.getValue, task._1)
+
         log.info(s"Task '${task._1}' launched")
       }
     })
@@ -202,75 +196,41 @@ class MesosJobFramework @Inject()(
     log.warning("Offer rescinded for offer:" + offerID.getValue)
   }
 
-  def getRunningCount(jobName: String): Int = {
-    runningTasks.getOrElse(jobName, List()).size
-  }
-
   @Override
   def statusUpdate(schedulerDriver: SchedulerDriver, taskStatus: TaskStatus) {
-    taskManager.getTaskCache.put(taskStatus.getTaskId.getValue, taskStatus.getState)
-
-    val (jobName, _, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
+    val taskId = taskStatus.getTaskId.getValue
     taskStatus.getState match {
       case TaskState.TASK_RUNNING =>
-        updateRunningTask(jobName, taskStatus)
-        scheduler.handleStartedTask(taskStatus, getRunningCount(jobName))
+        taskManager.updateRunningTask(taskStatus)
+        scheduler.handleStartedTask(taskStatus)
       case TaskState.TASK_STAGING =>
-        updateRunningTask(jobName, taskStatus)
-        scheduler.handleStartedTask(taskStatus, getRunningCount(jobName))
+        taskManager.updateRunningTask(taskStatus)
+        scheduler.handleStartedTask(taskStatus)
       case _ =>
-        if (runningTasks.contains(jobName)) {
-          val remainingTasks = runningTasks(jobName)
-            .filter(task => task.taskId != taskStatus.getTaskId.getValue)
-          runningTasks(jobName) = remainingTasks
-          if (runningTasks(jobName).isEmpty) {
-            runningTasks.remove(jobName)
-          }
-        }
+        taskManager.removeTask(taskId)
     }
 
     taskStatus.getState match {
       case TaskState.TASK_FINISHED =>
-        log.info("Task with id '%s' FINISHED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFinishedTask(taskStatus, None, getRunningCount(jobName))
+        log.info("Task with id '%s' FINISHED".format(taskId))
+        scheduler.handleFinishedTask(taskStatus, None)
       case TaskState.TASK_FAILED =>
-        log.info("Task with id '%s' FAILED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus, getRunningCount(jobName))
+        log.info("Task with id '%s' FAILED".format(taskId))
+        scheduler.handleFailedTask(taskStatus)
       case TaskState.TASK_LOST =>
-        log.info("Task with id '%s' LOST".format(taskStatus.getTaskId.getValue))
-        scheduler.handleFailedTask(taskStatus, getRunningCount(jobName))
+        log.info("Task with id '%s' LOST".format(taskId))
+        scheduler.handleFailedTask(taskStatus)
       case TaskState.TASK_RUNNING =>
-        log.info("Task with id '%s' RUNNING".format(taskStatus.getTaskId.getValue))
+        log.info("Task with id '%s' RUNNING".format(taskId))
       case TaskState.TASK_KILLED =>
-        log.info("Task with id '%s' KILLED".format(taskStatus.getTaskId.getValue))
-        scheduler.handleKilledTask(taskStatus, getRunningCount(jobName))
+        log.info("Task with id '%s' KILLED".format(taskId))
+        scheduler.handleKilledTask(taskStatus)
       case _ =>
-        log.warning("Unknown TaskState:" + taskStatus.getState + " for task: " + taskStatus.getTaskId.getValue)
+        log.warning("Unknown TaskState:" + taskStatus.getState + " for task: " + taskId)
     }
 
     // Perform a reconciliation, if needed.
     reconcile(schedulerDriver)
-  }
-
-  def updateRunningTask(jobName: String, taskStatus: TaskStatus): Unit = {
-    if (runningTasks.contains(jobName)) {
-      val tasks = runningTasks(jobName)
-      runningTasks(jobName) = tasks.map(task => {
-        if (task.taskId == taskStatus.getTaskId.getValue) {
-          new ChronosTask(taskStatus.getSlaveId.getValue,
-            taskStatus.getTaskId.getValue,
-            Some(taskStatus))
-        } else {
-          task
-        }
-      })
-    } else {
-      log.warning(s"Received status update for untracked jobName=$jobName")
-      runningTasks(jobName) =
-        List(new ChronosTask(taskStatus.getSlaveId.getValue,
-          taskStatus.getTaskId.getValue,
-          Some(taskStatus)))
-    }
   }
 
   @Override
@@ -282,23 +242,7 @@ class MesosJobFramework @Inject()(
   def slaveLost(schedulerDriver: SchedulerDriver, slaveID: SlaveID) {
     log.warning("Slave lost")
 
-    // Remove any running jobs from this slave
-    val jobs = runningTasks.map {
-      case (jobName, tasks) =>
-        val remaining = tasks.filter {
-          task =>
-            slaveID.getValue == task.slaveId
-        }
-        (jobName, remaining)
-    }
-    jobs.foreach {
-      case (jobName, tasks) =>
-        if (tasks.isEmpty) {
-          runningTasks.remove(jobName)
-        } else {
-          runningTasks(jobName) = tasks
-        }
-    }
+    taskManager.removeTasksForSlave(slaveID.getValue)
   }
 
   @Override
@@ -353,13 +297,6 @@ class MesosJobFramework @Inject()(
     }
   }
 
-  private class ChronosTask(val slaveId: String,
-                            val taskId: String,
-                            var taskStatus: Option[TaskStatus] = None) {
-    override def toString: String = {
-      s"slaveId=$slaveId, taskStatus=${taskStatus.getOrElse("none").toString}"
-    }
-  }
 
   object Resources {
     def apply(offer: Offer): Resources = {

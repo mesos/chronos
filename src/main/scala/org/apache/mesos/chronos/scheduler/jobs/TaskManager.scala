@@ -1,13 +1,12 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import java.util.concurrent.{ConcurrentHashMap, Future, TimeUnit}
+import java.util.concurrent.{ConcurrentHashMap, Future}
 import java.util.logging.Logger
 
 import com.codahale.metrics.{Gauge, MetricRegistry}
-import com.google.common.cache.{Cache, CacheBuilder}
 import com.google.common.util.concurrent.ListeningScheduledExecutorService
 import com.google.inject.Inject
-import org.apache.mesos.Protos.{TaskID, TaskState}
+import org.apache.mesos.Protos.{TaskID, TaskState, TaskStatus}
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.mesos.{MesosDriverFactory, MesosOfferReviver}
@@ -16,6 +15,8 @@ import org.joda.time.{DateTime, DateTimeZone}
 
 import scala.collection.convert.decorateAsScala._
 import scala.collection.{mutable, _}
+
+
 
 /**
  * Helps manage task state and the queue which is a buffer where tasks are held until offers come in via chronos.
@@ -44,9 +45,88 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   // normal
   val names = Array[String]("High priority", "Normal priority")
 
-  private val taskCache = CacheBuilder.newBuilder().maximumSize(5000L).build[String, TaskState]()
-  def getTaskCache: Cache[String, TaskState] = {
-    taskCache
+  private val runningTasks = new mutable.HashMap[String, List[ChronosTask]]
+
+  def getRunningTaskCount(jobName: String): Int = {
+    runningTasks.getOrElse(jobName, List()).size
+  }
+
+  def jobIsRunning(jobName: String): Boolean = {
+    runningTasks.contains(jobName)
+  }
+
+  def getAllTaskStatus: List[TaskStatus] = {
+    runningTasks.flatMap(tasks => tasks._2).flatMap(l => l.taskStatus).toList
+  }
+
+  def addTask(jobName: String, slaveId: String, taskId: String) {
+    val newTask = new ChronosTask(slaveId, taskId)
+    if (runningTasks.contains(jobName)) {
+      val tasks = runningTasks(jobName) ++ List(newTask)
+      runningTasks(jobName) = tasks
+    } else {
+      runningTasks(jobName) = List(newTask)
+    }
+  }
+
+  def removeTask(taskId: String) {
+    try {
+      val (jobName, _, _, _) = TaskUtils.parseTaskId(taskId)
+      if (runningTasks.contains(jobName)) {
+        val remainingTasks = runningTasks(jobName)
+          .filter(task => task.taskId != taskId)
+        runningTasks(jobName) = remainingTasks
+        if (runningTasks(jobName).isEmpty) {
+          runningTasks.remove(jobName)
+        }
+      }
+    } catch {
+      case _: scala.MatchError => log.warning(s"Can't remove unknown task $taskId")
+    }
+  }
+
+  def updateRunningTask(taskStatus: TaskStatus): Unit = {
+    val taskId = taskStatus.getTaskId.getValue
+    val slaveId = taskStatus.getSlaveId.getValue
+    val (jobName, _, _, _) = TaskUtils.parseTaskId(taskId)
+    if (runningTasks.contains(jobName)) {
+      val tasks = runningTasks(jobName)
+      runningTasks(jobName) = tasks.map(task => {
+        if (task.taskId == taskId) {
+          new ChronosTask(slaveId,
+            taskId,
+            Some(taskStatus))
+        } else {
+          task
+        }
+      })
+    } else {
+      log.warning(s"Received status update for untracked jobName=$jobName")
+      runningTasks(jobName) =
+        List(new ChronosTask(slaveId,
+          taskId,
+          Some(taskStatus)))
+    }
+  }
+
+  def removeTasksForSlave(slaveId: String): Unit = {
+    // Remove any running jobs from this slave
+    val jobs = runningTasks.map {
+      case (jobName, tasks) =>
+        val remaining = tasks.filter {
+          task =>
+            slaveId == task.slaveId
+        }
+        (jobName, remaining)
+    }
+    jobs.foreach {
+      case (jobName, tasks) =>
+        if (tasks.isEmpty) {
+          runningTasks.remove(jobName)
+        } else {
+          runningTasks(jobName) = tasks
+        }
+    }
   }
 
   val taskMapping: concurrent.Map[String, mutable.ListBuffer[(String, Future[_])]] =
@@ -69,7 +149,7 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
    * Returns the first task in the job queue
    * @return a 2-tuple consisting of taskId (String) and job (BaseJob).
    */
-  def getTask: Option[(String, BaseJob)] = {
+  def getTaskFromQueue: Option[(String, BaseJob)] = {
     getTaskHelper(HIGH_PRIORITY).orElse(getTaskHelper(NORMAL_PRIORITY))
   }
 
@@ -167,14 +247,19 @@ class TaskManager @Inject()(val listeningExecutor: ListeningScheduledExecutorSer
   }
 
   def cancelMesosTasks(job: BaseJob) {
-    import scala.collection.JavaConversions._
-    taskCache.asMap
-      .filterKeys(TaskUtils.getJobNameForTaskId(_) == job.name)
-      .filter(_._2 == TaskState.TASK_RUNNING)
-      .foreach({ x =>
-      log.warning("Killing task '%s'".format(x._1))
-      mesosDriver.get.killTask(TaskID.newBuilder().setValue(x._1).build())
-    })
+    if (runningTasks.contains(job.name)) {
+      runningTasks(job.name).foreach({task =>
+        log.warning(s"Killing taskId=${task.taskId})")
+        mesosDriver.get.killTask(TaskID.newBuilder().setValue(task.taskId).build())
+      })
+    }
   }
 
+  class ChronosTask(val slaveId: String,
+                    val taskId: String,
+                    var taskStatus: Option[TaskStatus] = None) {
+    override def toString: String = {
+      s"slaveId=$slaveId, taskStatus=${taskStatus.getOrElse("none").toString}"
+    }
+  }
 }
