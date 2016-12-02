@@ -2,8 +2,8 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.joda.time.{DateTime, DateTimeZone}
 import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.{DateTime, DateTimeZone}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -13,7 +13,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
   "JobScheduler" should {
     "Run the correct job" in {
       val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
-      val job2 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job2", "CMD", disabled=true)
+      val job2 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job2", "CMD", disabled = true)
       val futureDate = DateTime.now().plusYears(1)
       val job3 = ScheduleBasedJob(s"R5/${ISODateTimeFormat.dateTime().print(futureDate)}/P1D", "job3", "CMD")
 
@@ -99,7 +99,7 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
     "Compute the correct amount of sleep time" in {
       val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
       val job2 = ScheduleBasedJob("R5/2012-02-01T00:00:00.000Z/P1D", "job2", "CMD")
-      val job3 = ScheduleBasedJob("R5/2012-03-01T00:00:00.000Z/P1D", "job3", "CMD", disabled=true)
+      val job3 = ScheduleBasedJob("R5/2012-03-01T00:00:00.000Z/P1D", "job3", "CMD", disabled = true)
       val futureDate1 = DateTime.now(DateTimeZone.UTC).plusHours(1)
       val job4 = ScheduleBasedJob(s"R5/${ISODateTimeFormat.dateTime().print(futureDate1)}/P1D", "job4", "CMD")
       val futureDate2 = DateTime.now(DateTimeZone.UTC).plusHours(2)
@@ -118,19 +118,19 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       nanos must_== 0
 
       nanos = scheduler.nanosUntilNextJob(List(job3, job4, job5))
-      nanos must beCloseTo(60*60*1000000000l, 5000000000l) // within 5s
+      nanos must beCloseTo(60 * 60 * 1000000000l, 5000000000l) // within 5s
 
       nanos = scheduler.nanosUntilNextJob(List(job4, job5))
-      nanos must beCloseTo(60*60*1000000000l, 5000000000l) // within 5s
+      nanos must beCloseTo(60 * 60 * 1000000000l, 5000000000l) // within 5s
 
       nanos = scheduler.nanosUntilNextJob(List(job5))
-      nanos must beCloseTo(2*60*60*1000000000l, 5000000000l) // within 5s
+      nanos must beCloseTo(2 * 60 * 60 * 1000000000l, 5000000000l) // within 5s
     }
 
     "A parent job succeeds and child is enqueued" in {
       val job1 = ScheduleBasedJob("R5/2012-01-01T00:00:00.000Z/P1D", "job1", "CMD")
       val job2 = DependencyBasedJob(Set("job1"), "job2", "CMD")
-      val job3 = DependencyBasedJob(Set("job1"), "job3", "CMD", disabled=true)
+      val job3 = DependencyBasedJob(Set("job1"), "job3", "CMD", disabled = true)
       val job4 = DependencyBasedJob(Set("job2"), "job4", "CMD")
 
       val jobGraph = new JobGraph

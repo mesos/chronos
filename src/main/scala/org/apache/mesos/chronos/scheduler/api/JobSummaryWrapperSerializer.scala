@@ -1,9 +1,8 @@
 package org.apache.mesos.chronos.scheduler.api
 
-import org.apache.mesos.chronos.scheduler.jobs.JobSummaryWrapper
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
+import org.apache.mesos.chronos.scheduler.jobs.JobSummaryWrapper
 
 class JobSummaryWrapperSerializer extends JsonSerializer[JobSummaryWrapper] {
   def serialize(jobSummary: JobSummaryWrapper, json: JsonGenerator, provider: SerializerProvider) {

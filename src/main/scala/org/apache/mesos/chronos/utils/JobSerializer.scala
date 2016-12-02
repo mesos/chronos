@@ -1,14 +1,15 @@
 package org.apache.mesos.chronos.utils
 
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{LikeConstraint, EqualsConstraint, UnlikeConstraint}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
 
 /**
- * Custom JSON serializer for jobs.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Custom JSON serializer for jobs.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class JobSerializer extends JsonSerializer[BaseJob] {
 
   def serialize(baseJob: BaseJob, json: JsonGenerator, provider: SerializerProvider) {

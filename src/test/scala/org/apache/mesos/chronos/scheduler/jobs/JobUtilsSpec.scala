@@ -1,8 +1,8 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
+import org.apache.curator.framework.CuratorFramework
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.state.MesosStatePersistenceStore
-import org.apache.curator.framework.CuratorFramework
 import org.joda.time._
 import org.specs2.mock._
 import org.specs2.mutable._

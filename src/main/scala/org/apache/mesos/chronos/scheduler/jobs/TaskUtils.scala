@@ -3,19 +3,18 @@ package org.apache.mesos.chronos.scheduler.jobs
 import java.util.logging.Logger
 
 import org.apache.mesos.Protos.{TaskID, TaskState, TaskStatus}
-import org.apache.mesos.chronos.scheduler.state.PersistenceStore
-import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.DateTime
 
-import scala.collection.mutable
 import scala.util.matching.Regex
 
 /**
- * This file contains a number of classes and objects for dealing with tasks. Tasks are the actual units of work that
- * get translated into a chronos-task based on a job and it's schedule or as a dependency based on another task. They are
- * serialized to an underlying storage upon submission such that in the case of failed tasks or scheduler failover the
- * task can be retried, double submission during failover is prevented, etc.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * This file contains a number of classes and objects for dealing with tasks. Tasks are the actual units of work that
+  * get translated into a chronos-task based on a job and it's schedule or as a dependency based on another task. They are
+  * serialized to an underlying storage upon submission such that in the case of failed tasks or scheduler failover the
+  * task can be retried, double submission during failover is prevented, etc.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 
 object TaskUtils {
 
@@ -29,6 +28,11 @@ object TaskUtils {
 
   def getTaskStatus(job: BaseJob, due: DateTime, attempt: Int = 0): TaskStatus = {
     TaskStatus.newBuilder.setTaskId(TaskID.newBuilder.setValue(getTaskId(job, due, attempt))).setState(TaskState.TASK_STAGING).build
+  }
+
+  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0, arguments: Option[String] = None): String = {
+    val args: String = arguments.getOrElse(job.arguments.mkString(" ")).filterNot(commandInjectionFilter)
+    taskIdTemplate.format(due.getMillis, attempt, job.name, args)
   }
 
   def isValidVersion(taskIdString: String): Boolean = {
@@ -45,10 +49,11 @@ object TaskUtils {
   }
 
   /**
-   * Parses the task id into the jobname and the tasks creation time.
-   * @param taskId
-   * @return
-   */
+    * Parses the task id into the jobname and the tasks creation time.
+    *
+    * @param taskId
+    * @return
+    */
   def getJobNameForTaskId(taskId: String): String = {
     require(taskId != null, "taskId cannot be null")
     try {
@@ -63,10 +68,11 @@ object TaskUtils {
   }
 
   /**
-   * Parses the task id into job arguments
-   * @param taskId
-   * @return
-   */
+    * Parses the task id into job arguments
+    *
+    * @param taskId
+    * @return
+    */
   def getJobArgumentsForTaskId(taskId: String): String = {
     require(taskId != null, "taskId cannot be null")
     try {
@@ -78,11 +84,6 @@ object TaskUtils {
           "Warning, dependents will not be triggered!")
         ""
     }
-  }
-
-  def getTaskId(job: BaseJob, due: DateTime, attempt: Int = 0, arguments: Option[String] = None): String = {
-    val args: String = arguments.getOrElse(job.arguments.mkString(" ")).filterNot(commandInjectionFilter)
-    taskIdTemplate.format(due.getMillis, attempt, job.name, args)
   }
 
   def parseTaskId(id: String): (String, Long, Int, String) = {

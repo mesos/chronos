@@ -10,13 +10,14 @@ import org.jgrapht.ext.{DOTExporter, IntegerNameProvider, StringNameProvider}
 import org.jgrapht.graph.DefaultEdge
 
 import scala.collection.convert.decorateAsScala._
-import scala.collection.{mutable, _}
 import scala.collection.mutable.ListBuffer
+import scala.collection.{mutable, _}
 
 /**
- * This class provides methods to access dependency structures of jobs.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * This class provides methods to access dependency structures of jobs.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class JobGraph {
   val dag = new DirectedAcyclicGraph[String, DefaultEdge](classOf[DefaultEdge])
   val edgeInvocationCount = mutable.Map[DefaultEdge, Long]()
@@ -71,11 +72,6 @@ class JobGraph {
     log.fine("Current number of vertices:" + dag.vertexSet.size)
   }
 
-  /* TODO(FL): Replace usage of this method with the hashmap */
-  def lookupVertex(vertexName: String): Option[BaseJob] = {
-    jobNameMapping.get(vertexName)
-  }
-
   def removeVertex(vertex: BaseJob) {
     log.info("Removing vertex:" + vertex.name)
     require(lookupVertex(vertex.name).isDefined, "Vertex doesn't exist")
@@ -84,6 +80,11 @@ class JobGraph {
       dag.removeVertex(vertex.name)
     }
     log.info("Current number of vertices:" + dag.vertexSet.size)
+  }
+
+  /* TODO(FL): Replace usage of this method with the hashmap */
+  def lookupVertex(vertexName: String): Option[BaseJob] = {
+    jobNameMapping.get(vertexName)
   }
 
   def addDependency(from: String, to: String) {
@@ -123,10 +124,11 @@ class JobGraph {
   }
 
   /**
-   * Retrieves all the jobs that need to be triggered that depend on the finishedJob.
-   * @param vertex
-   * @return a list.
-   */
+    * Retrieves all the jobs that need to be triggered that depend on the finishedJob.
+    *
+    * @param vertex
+    * @return a list.
+    */
   //TODO(FL): Avoid locking on every lookup.
   //TODO(FL): This method has some pretty serious side-effects. Refactor.
   def getExecutableChildren(vertex: String): List[String] = {

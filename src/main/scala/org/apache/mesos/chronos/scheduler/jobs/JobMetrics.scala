@@ -1,16 +1,16 @@
 package org.apache.mesos.chronos.scheduler.jobs
 
-import org.apache.mesos.chronos.scheduler.api.HistogramSerializer
 import com.codahale.metrics.{Counter, Histogram, MetricRegistry}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.api.HistogramSerializer
 
 import scala.collection.mutable
 
 /**
- * Author: @andykram
- */
+  * Author: @andykram
+  */
 class JobMetrics @Inject()(registry: MetricRegistry) {
 
   protected val stats = new mutable.HashMap[String, Histogram]()
@@ -28,13 +28,13 @@ class JobMetrics @Inject()(registry: MetricRegistry) {
     stat.update(timeMs)
   }
 
-  def getJobHistogramStats(jobName: String): Histogram = {
-    stats.getOrElseUpdate(jobName, mkStat(jobName))
-  }
-
   def getJsonStats(jobName: String): String = {
     val snapshot = getJobHistogramStats(jobName)
     objectMapper.writeValueAsString(snapshot)
+  }
+
+  def getJobHistogramStats(jobName: String): Histogram = {
+    stats.getOrElseUpdate(jobName, mkStat(jobName))
   }
 
   protected def mkStat(jobName: String, name: String = "time") = {

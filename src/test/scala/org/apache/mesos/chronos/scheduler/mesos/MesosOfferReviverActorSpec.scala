@@ -4,15 +4,13 @@ import akka.actor._
 import akka.testkit.TestProbe
 import com.codahale.metrics.{Counter, MetricRegistry}
 import mesosphere.chaos.http.HttpConf
-import mesosphere.mesos.util.FrameworkIdUtil
-import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs.MockJobUtils
+import org.specs2.matcher.ThrownExpectations
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
 import scala.concurrent.duration.FiniteDuration
-import org.specs2.matcher.ThrownExpectations
 
 class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
   "MesosOfferReviverActor" should {

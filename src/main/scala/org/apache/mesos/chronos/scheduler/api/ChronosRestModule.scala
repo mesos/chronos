@@ -3,8 +3,6 @@ package org.apache.mesos.chronos.scheduler.api
 import javax.inject.Named
 import javax.validation.Validation
 
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
-import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import com.codahale.metrics.servlets.MetricsServlet
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -16,10 +14,12 @@ import com.google.inject.{Provides, Scopes, Singleton}
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import mesosphere.chaos.http.{LogConfigServlet, PingServlet}
 import mesosphere.chaos.validation.{ConstraintViolationExceptionMapper, JacksonMessageBodyProvider}
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
+import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 
 /**
- * @author Tobi Knaup
- */
+  * @author Tobi Knaup
+  */
 
 class ChronosRestModule extends ServletModule {
 

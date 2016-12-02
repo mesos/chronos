@@ -67,12 +67,12 @@ class JobGraphSpec extends SpecificationWithJUnit with Mockito {
 
     "A complex graph should be traversable in correct order" in {
       /**
-       * A -> B -> D
-       * \
-       * \-> E
-       * /
-       * C --
-       */
+        * A -> B -> D
+        * \
+        * \-> E
+        * /
+        * C --
+        */
       val a = new DependencyBasedJob(Set(), "A", "noop")
       val b = new DependencyBasedJob(Set(), "B", "noop")
       val c = new DependencyBasedJob(Set(), "C", "noop")

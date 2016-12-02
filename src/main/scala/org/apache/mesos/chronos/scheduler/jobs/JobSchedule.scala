@@ -2,7 +2,7 @@ package org.apache.mesos.chronos.scheduler.jobs
 
 class JobSchedule(val schedule: String, val jobName: String, val scheduleTimeZone: String = "") {
   def getSchedule: Option[JobSchedule] =
-    //TODO(FL) Represent the schedule as a data structure instead of a string.
+  //TODO(FL) Represent the schedule as a data structure instead of a string.
     Iso8601Expressions.parse(schedule, scheduleTimeZone) match {
       case Some((rec, start, per)) =>
         if (rec == -1)

@@ -2,12 +2,12 @@ package org.apache.mesos.chronos.scheduler.mesos
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
-import org.apache.mesos.chronos.utils.JobDeserializer
 import com.google.inject.Inject
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.Protos._
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.utils.JobDeserializer
 import org.apache.mesos.{Scheduler, SchedulerDriver}
 import org.joda.time.DateTime
 
@@ -16,9 +16,10 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 /**
- * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 class MesosJobFramework @Inject()(
                                    val mesosDriver: MesosDriverFactory,
                                    val scheduler: JobScheduler,
@@ -26,9 +27,19 @@ class MesosJobFramework @Inject()(
                                    val config: SchedulerConfiguration,
                                    val frameworkIdUtil: FrameworkIdUtil,
                                    val taskBuilder: MesosTaskBuilder,
-                                   val mesosOfferReviver: MesosOfferReviver)
+                                   val mesosOfferReviver: MesosOfferReviver
+                                 )
   extends Scheduler {
 
+  private[this] lazy val declineOfferFilters: Filters = {
+    config.declineOfferDuration.get match {
+      case Some(durationInMs) =>
+        val declineSeconds = durationInMs / 1000.0
+        Filters.newBuilder().setRefuseSeconds(declineSeconds).build()
+      case None =>
+        Filters.getDefaultInstance
+    }
+  }
   val frameworkName = "chronos"
   private[this] val log = Logger.getLogger(getClass.getName)
   private var lastReconciliation = DateTime.now.plusSeconds(config.reconciliationInterval())
@@ -46,18 +57,13 @@ class MesosJobFramework @Inject()(
     mesosOfferReviver.reviveOffers()
   }
 
+  JobDeserializer.config = config
+
   /* Overridden methods from MesosScheduler */
   @Override
   def reregistered(schedulerDriver: SchedulerDriver, masterInfo: MasterInfo) {
     log.warning("Reregistered")
     mesosOfferReviver.reviveOffers()
-  }
-  JobDeserializer.config = config
-
-  def checkDriver(status: Status): Unit = {
-    if (status != Status.DRIVER_RUNNING) {
-      throw new RuntimeException("Driver is no longer running")
-    }
   }
 
   @Override
@@ -67,7 +73,7 @@ class MesosJobFramework @Inject()(
 
   def getReservedResources(offer: Offer): (Double, Double) = {
     val resources = offer.getResourcesList.asScala
-    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*"})
+    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*" })
     (
       getScalarValueOrElse(reservedResources.find(x => x.getName == "cpus"), 0),
       getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0)
@@ -104,16 +110,6 @@ class MesosJobFramework @Inject()(
 
     // Perform a reconciliation, if needed.
     reconcile(schedulerDriver)
-  }
-
-  private[this] lazy val declineOfferFilters: Filters = {
-    config.declineOfferDuration.get match {
-      case Some(durationInMs) =>
-        val declineSeconds = durationInMs / 1000.0
-        Filters.newBuilder().setRefuseSeconds(declineSeconds).build()
-      case None =>
-        Filters.getDefaultInstance
-    }
   }
 
   def generateLaunchableTasks(offerResources: mutable.HashMap[Offer, Resources]): mutable.Buffer[(String, BaseJob, Offer)] = {
@@ -154,40 +150,37 @@ class MesosJobFramework @Inject()(
           }
       }
     }
+
     generate()
     tasks
-  }
-
-  def reconcile(schedulerDriver: SchedulerDriver): Unit = {
-    if (DateTime.now().isAfter(lastReconciliation.plusSeconds(config.reconciliationInterval()))) {
-      lastReconciliation = DateTime.now()
-
-      val taskStatuses = taskManager.getAllTaskStatus
-
-      log.info("Performing task reconciliation with the Mesos master")
-      schedulerDriver.reconcileTasks(taskStatuses.asJavaCollection)
-    }
   }
 
   def launchTasks(tasks: mutable.Buffer[(String, BaseJob, Offer)]) {
     import scala.collection.JavaConverters._
 
-    tasks.groupBy(_._3).foreach({ case (offer, subTasks) =>
-      val mesosTasks = subTasks.map(task => {
-        taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
-      })
-      log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
-      checkDriver(mesosDriver.get.launchTasks(
-        List(offer.getId).asJava,
-        mesosTasks.asJava
-      ))
-      for (task <- tasks) {
-        val name = task._2.name
-        taskManager.addTask(name, task._3.getSlaveId.getValue, task._1)
+    tasks.groupBy(_._3).foreach({
+      case (offer, subTasks) =>
+        val mesosTasks = subTasks.map(task => {
+          taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
+        })
+        log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
+        checkDriver(mesosDriver.get.launchTasks(
+          List(offer.getId).asJava,
+          mesosTasks.asJava
+        ))
+        for (task <- tasks) {
+          val name = task._2.name
+          taskManager.addTask(name, task._3.getSlaveId.getValue, task._1)
 
-        log.info(s"Task '${task._1}' launched")
-      }
+          log.info(s"Task '${task._1}' launched")
+        }
     })
+  }
+
+  def checkDriver(status: Status): Unit = {
+    if (status != Status.DRIVER_RUNNING) {
+      throw new RuntimeException("Driver is no longer running")
+    }
   }
 
   @Override
@@ -233,6 +226,17 @@ class MesosJobFramework @Inject()(
     reconcile(schedulerDriver)
   }
 
+  def reconcile(schedulerDriver: SchedulerDriver): Unit = {
+    if (DateTime.now().isAfter(lastReconciliation.plusSeconds(config.reconciliationInterval()))) {
+      lastReconciliation = DateTime.now()
+
+      val taskStatuses = taskManager.getAllTaskStatus
+
+      log.info("Performing task reconciliation with the Mesos master")
+      schedulerDriver.reconcileTasks(taskStatuses.asJavaCollection)
+    }
+  }
+
   @Override
   def frameworkMessage(schedulerDriver: SchedulerDriver, executorID: ExecutorID, slaveID: SlaveID, bytes: Array[Byte]) {
     log.info("Framework message received")
@@ -261,7 +265,8 @@ class MesosJobFramework @Inject()(
     import scala.collection.JavaConversions._
     val s = new StringBuilder
     offer.getResourcesList.foreach({
-      x => s.append(f"Name: ${x.getName}")
+      x =>
+        s.append(f"Name: ${x.getName}")
         if (x.hasScalar && x.getScalar.hasValue) {
           s.append(f"Scalar: ${x.getScalar.getValue}")
         }
@@ -269,9 +274,11 @@ class MesosJobFramework @Inject()(
 
   }
 
-  class Resources(var cpus: Double,
-                  var mem: Double,
-                  var disk: Double) {
+  class Resources(
+                   var cpus: Double,
+                   var mem: Double,
+                   var disk: Double
+                 ) {
     def this(job: BaseJob) {
       this(
         if (job.cpus > 0) job.cpus else config.mesosTaskCpu(),
@@ -297,7 +304,6 @@ class MesosJobFramework @Inject()(
     }
   }
 
-
   object Resources {
     def apply(offer: Offer): Resources = {
       val resources = offer.getResourcesList.asScala.filter(r => !r.hasRole || r.getRole == "*" || r.getRole == config.mesosRole())
@@ -308,4 +314,5 @@ class MesosJobFramework @Inject()(
       )
     }
   }
+
 }

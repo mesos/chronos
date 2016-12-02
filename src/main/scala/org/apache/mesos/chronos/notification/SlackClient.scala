@@ -4,8 +4,8 @@ import java.io.{DataOutputStream, StringWriter}
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import com.fasterxml.jackson.core.JsonFactory
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 
 class SlackClient(val webhookUrl: String) extends NotificationClient {
 
@@ -19,7 +19,7 @@ class SlackClient(val webhookUrl: String) extends NotificationClient {
 
     // Create the payload
     generator.writeStartObject()
-    
+
     if (message.nonEmpty && message.get.nonEmpty) {
       if (subject != null && subject.nonEmpty) {
         generator.writeStringField("text", "%s: %s".format(subject, message.get))

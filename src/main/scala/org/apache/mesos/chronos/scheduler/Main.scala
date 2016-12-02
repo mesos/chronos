@@ -4,19 +4,20 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.{Level, Logger}
 
 import com.google.inject.AbstractModule
-import org.apache.mesos.chronos.scheduler.api._
-import org.apache.mesos.chronos.scheduler.config._
-import org.apache.mesos.chronos.scheduler.jobs.{JobScheduler, MetricReporterService, ZookeeperService}
 import mesosphere.chaos.http.{HttpConf, HttpModule, HttpService}
 import mesosphere.chaos.metrics.MetricsModule
 import mesosphere.chaos.{App, AppConfiguration}
+import org.apache.mesos.chronos.scheduler.api._
+import org.apache.mesos.chronos.scheduler.config._
+import org.apache.mesos.chronos.scheduler.jobs.{JobScheduler, MetricReporterService, ZookeeperService}
 import org.rogach.scallop.ScallopConf
 
 
 /**
- * Main entry point to chronos using the Chaos framework.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * Main entry point to chronos using the Chaos framework.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 object Main extends App {
   lazy val conf = new ScallopConf(args)
     with HttpConf with AppConfiguration with SchedulerConfiguration
@@ -49,8 +50,8 @@ object Main extends App {
       classOf[MetricReporterService]
     )
   } catch {
-      case t: Throwable =>
-        log.log(Level.SEVERE, s"Chronos has exited because of an unexpected error: ${t.getMessage}", t)
-        System.exit(1)
+    case t: Throwable =>
+      log.log(Level.SEVERE, s"Chronos has exited because of an unexpected error: ${t.getMessage}", t)
+      System.exit(1)
   }
 }

@@ -1,35 +1,31 @@
 package org.apache.mesos.chronos.scheduler.mesos
 
+import mesosphere.mesos.protos.Implicits._
 import mesosphere.mesos.protos._
-import org.apache.mesos.chronos.scheduler.jobs.constraints.ConstraintSpecHelper
 import org.apache.mesos.Protos
-import java.util.logging.Logger
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{ConstraintSpecHelper, EqualsConstraint, LikeConstraint}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
-import org.apache.mesos.chronos.scheduler.jobs.constraints.LikeConstraint
-import org.apache.mesos.chronos.scheduler.jobs.constraints.EqualsConstraint
-import mesosphere.mesos.protos.Implicits._
-import org.specs2.specification.BeforeEach
 
 class ConstraintCheckerSpec extends SpecificationWithJUnit
-with Mockito
-with ConstraintSpecHelper {
+  with Mockito
+  with ConstraintSpecHelper {
 
   val offer = Protos.Offer.newBuilder()
-  .setId(OfferID("1"))
-  .setFrameworkId(FrameworkID("chronos"))
-  .setSlaveId(SlaveID("slave-1"))
-  .setHostname("slave.one.com")
-  .addAttributes(createTextAttribute("rack", "rack-1"))
-  .build()
+    .setId(OfferID("1"))
+    .setFrameworkId(FrameworkID("chronos"))
+    .setSlaveId(SlaveID("slave-1"))
+    .setHostname("slave.one.com")
+    .addAttributes(createTextAttribute("rack", "rack-1"))
+    .build()
 
-   val offerWithHostname = Protos.Offer.newBuilder()
-  .setId(OfferID("1"))
-  .setFrameworkId(FrameworkID("chronos"))
-  .setSlaveId(SlaveID("slave-1"))
-  .setHostname("slave.one.com")
-  .addAttributes(createTextAttribute("hostname", "slave.explicit.com"))
-  .build()
+  val offerWithHostname = Protos.Offer.newBuilder()
+    .setId(OfferID("1"))
+    .setFrameworkId(FrameworkID("chronos"))
+    .setSlaveId(SlaveID("slave-1"))
+    .setHostname("slave.one.com")
+    .addAttributes(createTextAttribute("hostname", "slave.explicit.com"))
+    .build()
 
   "check constraints" should {
 

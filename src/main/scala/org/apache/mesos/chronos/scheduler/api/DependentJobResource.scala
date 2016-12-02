@@ -2,18 +2,19 @@ package org.apache.mesos.chronos.scheduler.api
 
 import java.util.logging.{Level, Logger}
 import javax.ws.rs.core.Response
-import javax.ws.rs.{POST, PUT, Path, Produces}
+import javax.ws.rs.{POST, Path, Produces}
 
-import org.apache.mesos.chronos.scheduler.graph.JobGraph
-import org.apache.mesos.chronos.scheduler.jobs._
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.mesos.chronos.scheduler.graph.JobGraph
+import org.apache.mesos.chronos.scheduler.jobs._
 
 /**
- * The REST API for adding job-dependencies to the scheduler.
- * @author Florian Leibert (flo@leibert.de)
- */
+  * The REST API for adding job-dependencies to the scheduler.
+  *
+  * @author Florian Leibert (flo@leibert.de)
+  */
 @Path(PathConstants.dependentJobPath)
 @Produces(Array("application/json"))
 class DependentJobResource @Inject()(

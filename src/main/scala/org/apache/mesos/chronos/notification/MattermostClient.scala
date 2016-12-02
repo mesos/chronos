@@ -4,8 +4,8 @@ import java.io.{DataOutputStream, StringWriter}
 import java.net.{HttpURLConnection, URL}
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 import com.fasterxml.jackson.core.JsonFactory
+import org.apache.mesos.chronos.scheduler.jobs.BaseJob
 
 class MattermostClient(val webhookUrl: String) extends NotificationClient {
 
@@ -19,7 +19,7 @@ class MattermostClient(val webhookUrl: String) extends NotificationClient {
 
     // Create the payload
     generator.writeStartObject()
-    
+
     if (message.nonEmpty && message.get.nonEmpty) {
       if (subject != null && subject.nonEmpty) {
         generator.writeStringField("text", "%s: %s".format(subject, message.get))
@@ -41,7 +41,7 @@ class MattermostClient(val webhookUrl: String) extends NotificationClient {
       connection.setDoOutput(true)
       connection.setUseCaches(false)
       connection.setRequestMethod("POST")
-      connection.setRequestProperty("Content-Type","application/json");
+      connection.setRequestProperty("Content-Type", "application/json");
 
       val outputStream = new DataOutputStream(connection.getOutputStream)
       outputStream.writeBytes(payload)
