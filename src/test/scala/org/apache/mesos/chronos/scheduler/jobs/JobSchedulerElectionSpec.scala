@@ -178,6 +178,7 @@ class JobSchedulerElectionSpec
       maxWaits -= 1
       Thread.sleep(10)
     }
+    Thread.sleep(10)
     println(s"Waited ${100 - maxWaits} for election")
   }
 
@@ -197,6 +198,7 @@ class JobSchedulerElectionSpec
     else (scheduler2, scheduler1)
 
     leader.shutDown()
+    timing.sleepABit()
     awaitElection(List(latch1, latch2))
 
     assertTrue("Reserve scheduler's latch should become leader on master failure", follower.leaderLatch.hasLeadership)
