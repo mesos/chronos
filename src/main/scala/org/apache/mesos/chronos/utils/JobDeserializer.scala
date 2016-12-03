@@ -1,5 +1,8 @@
 package org.apache.mesos.chronos.utils
 
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.scheduler.jobs.constraints._
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.{DeserializationContext, JsonDeserializer, JsonNode}
@@ -148,7 +151,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
     }
 
-    var environmentVariables = scala.collection.mutable.ListBuffer[EnvironmentVariable]()
+    val environmentVariables = scala.collection.mutable.ListBuffer[EnvironmentVariable]()
     if (node.has("environmentVariables")) {
       node.get("environmentVariables").elements().map {
         case node: ObjectNode =>
@@ -164,7 +167,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       if (node.has("runAsUser") && node.get("runAsUser") != null) node.get("runAsUser").asText
       else JobDeserializer.config.user()
 
-    var container: DockerContainer = null
+    var container: Container = null
     if (node.has("container") && node.get("container").has("image")) {
       val containerNode = node.get("container")
       val networkMode =
@@ -183,7 +186,29 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
             val mode =
               if (node.has("mode")) Option(VolumeMode.withName(node.get("mode").asText.toUpperCase))
               else None
-            Volume(hostPath, node.get("containerPath").asText, mode)
+
+            val externalVolumeOptions = scala.collection.mutable.ListBuffer[Parameter]()
+            if(node.has("external") && node.get("external").has("options")) {
+              node.get("external").get("options").elements().map {
+                case node: ObjectNode =>
+                  Parameter(node.get("key").asText(), node.get("value").asText)
+              }.foreach(externalVolumeOptions.add)
+            }
+            val external =
+              if (node.has("external")) Option(ExternalVolume(
+                node.get("external").get("name").asText,
+                node.get("external").get("provider").asText,
+                externalVolumeOptions
+              ))
+              else None
+
+            val persistent =
+              if (node.has("persistent")) Option(PersistentVolume(
+                node.get("persistent").get("size").asInt
+              ))
+              else None
+
+            Volume(hostPath, node.get("containerPath").asText, mode, persistent, external)
         }.foreach(volumes.add)
       }
 
@@ -192,7 +217,17 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
           Try(containerNode.get("forcePullImage").asText.toBoolean).getOrElse(false)
         else false
 
-      var parameters = scala.collection.mutable.ListBuffer[Parameter]()
+      val containerType =
+        if (containerNode.has("type") && containerNode.get("type") != null)
+          ContainerType.withName(containerNode.get("type").asText.toUpperCase)
+        else ContainerType.DOCKER
+
+      val networkName =
+        if (containerNode.has("networkName") && containerNode.get("networkName") != null)
+          Option(containerNode.get("networkName").asText)
+        else None
+
+      val parameters = scala.collection.mutable.ListBuffer[Parameter]()
       if (containerNode.has("parameters")) {
         containerNode.get("parameters").elements().map {
           case node: ObjectNode =>
@@ -200,7 +235,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         }.foreach(parameters.add)
       }
 
-      container = DockerContainer(containerNode.get("image").asText, volumes, parameters, networkMode, forcePullImage)
+      container = Container(containerNode.get("image").asText, containerType, volumes, parameters, networkMode, networkName, forcePullImage)
     }
 
     val constraints = scala.collection.mutable.ListBuffer[Constraint]()
