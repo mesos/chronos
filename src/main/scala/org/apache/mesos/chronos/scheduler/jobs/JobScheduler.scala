@@ -88,7 +88,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     notifyCondition()
   }
 
-  def notifyCondition(): Unit = {
+  def notifyCondition() {
     // Notify run() that there may be new work
     lock.lock()
     try {
@@ -150,6 +150,11 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
     }
   }
 
+  def handleLaunchedTask(job: BaseJob) {
+    val newJob = getNewRunningJob(job)
+    replaceJob(job, newJob)
+  }
+
   def handleStartedTask(taskStatus: TaskStatus) {
     val taskId = taskStatus.getTaskId.getValue
     if (!TaskUtils.isValidVersion(taskId)) {
@@ -171,11 +176,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
           jobGraph.resetDependencyInvocations(j.name)
         case _ =>
       }
-
-      val newJob = getNewRunningJob(job)
-      replaceJob(job, newJob)
     }
-    notifyCondition()
   }
 
   def getNewRunningJob(job: BaseJob): BaseJob = {
@@ -520,7 +521,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
           job =>
             jobGraph.lookupVertex(job.name) match {
               case Some(_) =>
-                replaceJob(job, job)
+                jobGraph.replaceVertex(job, job)
               case _ =>
                 jobGraph.addVertex(job)
             }
@@ -534,7 +535,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
         job =>
           jobGraph.lookupVertex(job.name) match {
             case Some(_) =>
-              replaceJob(job, job)
+              jobGraph.replaceVertex(job, job)
             case _ =>
               jobGraph.addVertex(job)
           }
