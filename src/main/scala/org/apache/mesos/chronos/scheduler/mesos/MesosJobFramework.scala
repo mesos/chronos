@@ -171,10 +171,14 @@ class MesosJobFramework @Inject()(
         for (task <- tasks) {
           val name = task._2.name
           taskManager.addTask(name, task._3.getSlaveId.getValue, task._1)
+          scheduler.handleLaunchedTask(task._2)
 
           log.info(s"Task '${task._1}' launched")
         }
     })
+    // After any job schedule may have been updated (after calling `handleLaunchedTask`),
+    // we'll have to re-check for jobs that need to run
+    scheduler.notifyCondition()
   }
 
   def checkDriver(status: Status): Unit = {
