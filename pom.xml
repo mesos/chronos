@@ -410,6 +410,8 @@
         <configuration>
           <argLine>-Xmx1024m -Duser.timezone=UTC</argLine>
           <redirectTestOutputToFile>false</redirectTestOutputToFile>
+          <forkCount>3</forkCount>
+          <reuseForks>true</reuseForks>
           <includes>
             <include>**/Test*.java</include>
             <include>**/*Test.java</include>
