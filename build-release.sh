@@ -38,7 +38,7 @@ docker run -e http_proxy=$http_proxy -v `pwd`:/mnt/build --entrypoint=/bin/sh ma
   "
 
 # build image
-docker build -t mesosphere/chronos:$image_tag .
+docker build --build-arg http_proxy=$http_proxy -t mesosphere/chronos:$image_tag .
 
 if [ ! -z ${DOCKER_HUB_USERNAME+x} -a ! -z ${DOCKER_HUB_PASSWORD+x} ]; then
   # login to dockerhub
