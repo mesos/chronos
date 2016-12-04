@@ -9,6 +9,7 @@ import com.codahale.metrics.annotation.Timed
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.google.inject.Inject
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.mesos.chronos.scheduler.config.{CassandraConfiguration, SchedulerConfiguration}
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
@@ -103,15 +104,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       jobScheduler.deregisterJob(job)
       Response.noContent().build
     } catch {
-      case ex: IllegalArgumentException => {
+      case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
-      }
-      case ex: Exception => {
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
+      case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
-      }
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -131,11 +136,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -155,11 +166,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -174,11 +191,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -195,11 +218,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -231,10 +260,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage).build
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -267,9 +303,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         }
       Response.ok(jobs).build
     } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -296,9 +342,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
         }
       Response.ok(new JobSummaryWrapper(jobs.toList)).build
     } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 
@@ -350,9 +406,19 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
       }.toList.slice(_offset, _offset + _limit)
       Response.ok(filteredJobs).build
     } catch {
+      case ex: IllegalArgumentException =>
+        log.log(Level.INFO, "Bad Request", ex)
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 

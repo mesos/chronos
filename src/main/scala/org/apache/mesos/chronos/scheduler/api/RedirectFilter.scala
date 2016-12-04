@@ -8,6 +8,7 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import com.google.inject.Inject
 import mesosphere.chaos.http.HttpConf
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
 import org.apache.mesos.chronos.scheduler.jobs.JobScheduler
 
@@ -93,8 +94,12 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: Sched
             responseOutputStream.close()
           } catch {
             case t: Exception =>
-              if ((200 to 299) contains proxyStatus) response.sendError(500)
-              log.log(Level.WARNING, "Exception while proxying!", t)
+              if ((200 to 299) contains proxyStatus) {
+                log.log(Level.WARNING, "Exception while proxying!", t)
+                response
+                  .sendError(500,
+                    "Error proxying request to leader (maybe the leadership just changed?) Error: " + ExceptionUtils.getStackTrace(t))
+              }
           }
         }
       case _ =>
