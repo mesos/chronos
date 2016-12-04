@@ -2,11 +2,13 @@ package org.apache.mesos.chronos.scheduler.api
 
 import java.util.logging.{Level, Logger}
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.{POST, Path, Produces}
 
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs._
 
@@ -82,11 +84,17 @@ class DependentJobResource @Inject()(
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
-          .build()
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
+          .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build()
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 }

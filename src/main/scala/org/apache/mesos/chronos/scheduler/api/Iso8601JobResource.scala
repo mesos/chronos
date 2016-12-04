@@ -3,11 +3,13 @@ package org.apache.mesos.chronos.scheduler.api
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.{Level, Logger}
 import javax.ws.rs._
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{MediaType, Response}
 
 import com.codahale.metrics.annotation.Timed
 import com.google.common.base.Charsets
 import com.google.inject.Inject
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.mesos.chronos.scheduler.graph.JobGraph
 import org.apache.mesos.chronos.scheduler.jobs.{ScheduleBasedJob, _}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -37,21 +39,39 @@ class Iso8601JobResource @Inject()(
         require(JobUtils.isValidJobName(newJob.name),
           "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
         if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
-          return Response.status(Response.Status.BAD_REQUEST).entity("Could not parse schedule").build()
+          val message = s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
+          return Response
+            .status(Status.BAD_REQUEST)
+            .entity(new ApiResult(message))
+            .build()
         }
 
         Iso8601Expressions.parse(newJob.schedule, newJob.scheduleTimeZone) match {
           case Some((_, startDate, _)) =>
             if (startDate.isBefore(new DateTime(DateTimeZone.UTC).minusYears(1))) {
-              return Response.status(Response.Status.BAD_REQUEST).entity("Start date is more than 1 year in the past").build()
+              val message = s"Scheduled start date '${startDate.toString}' is more than 1 year in the past!"
+              log.warning(message)
+              return Response
+                .status(Status.BAD_REQUEST)
+                .entity(new ApiResult(message))
+                .build()
             }
           case _ =>
-            return Response.status(Response.Status.BAD_REQUEST).entity("Schedule didn't parse (wtf bro)").build()
+            val message = s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
+            log.warning(message)
+            return Response
+              .status(Status.BAD_REQUEST)
+              .entity(new ApiResult(message))
+              .build()
         }
 
         if (!JobUtils.isValidURIDefinition(newJob)) {
-          log.warning(s"Tried to add both uri (deprecated) and fetch parameters on ${newJob.name}")
-          return Response.status(Response.Status.BAD_REQUEST).build()
+          val message = s"Tried to add both uri (deprecated) and fetch parameters on ${newJob.name}"
+          log.warning(message)
+          return Response
+            .status(Status.BAD_REQUEST)
+            .entity(new ApiResult(message))
+            .build()
         }
 
         //TODO(FL): Create a wrapper class that handles adding & removing jobs!
@@ -63,7 +83,12 @@ class Iso8601JobResource @Inject()(
         val oldJob = oldJobOpt.get
 
         if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
-          return Response.status(Response.Status.BAD_REQUEST).build()
+          val message = s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
+          log.warning(message)
+          return Response
+            .status(Status.BAD_REQUEST)
+            .entity(new ApiResult(message))
+            .build()
         }
 
         oldJob match {
@@ -85,11 +110,17 @@ class Iso8601JobResource @Inject()(
     } catch {
       case ex: IllegalArgumentException =>
         log.log(Level.INFO, "Bad Request", ex)
-        Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage)
+        Response
+          .status(Status.BAD_REQUEST)
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex)))
           .build
       case ex: Exception =>
         log.log(Level.WARNING, "Exception while serving request", ex)
-        Response.serverError().build
+        Response
+          .serverError()
+          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
+            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .build
     }
   }
 

@@ -384,8 +384,14 @@ export default class JobForm {
     }).fail(function(resp) {
       setTimeout(function() {
         btn.button('reset')
-        _this.submitError = resp.responseText
-        _this.submitStatus = resp.status + ': ' + resp.statusText
+        let result = resp.responseJSON
+        if (result instanceof Object) {
+          _this.submitError = result.message
+          _this.submitStatus = resp.status + ': ' + resp.statusText
+        } else {
+          _this.submitError = resp.responseText
+          _this.submitStatus = resp.status + ': ' + resp.statusText
+        }
       }, 500)
     })
   }

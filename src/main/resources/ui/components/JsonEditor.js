@@ -70,8 +70,14 @@ export default class JsonEditor extends React.Component {
         setTimeout(function() {
           btn.button('reset')
           const jsonStore = _this.props.jsonStore
-          jsonStore.submitError = resp.responseText
-          jsonStore.submitStatus = resp.status + ': ' + resp.statusText
+          let result = resp.responseJSON
+          if (result instanceof Object) {
+            jsonStore.submitError = result.message
+            jsonStore.submitStatus = resp.status + ': ' + resp.statusText
+          } else {
+            jsonStore.submitError = resp.responseText
+            jsonStore.submitStatus = resp.status + ': ' + resp.statusText
+          }
         }, 500)
       })
     }
