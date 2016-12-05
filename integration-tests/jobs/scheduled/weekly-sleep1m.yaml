@@ -1,0 +1,9 @@
+---
+name: weekly-sleep1m
+command: sleep 1m
+schedule: R/2016-12-05T22:00:00.000Z/P1W
+owner: nobody
+cpus: 0.01
+mem: 32
+disk: 0
+runAsUser: root
