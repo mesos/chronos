@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Contributor Guidelines</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h1 id="contributor-guidelines">Contributor Guidelines</h1>
+
+<h2 id="submitting-changes-to-chronos">Submitting Changes to Chronos</h2>
+
+<ul>
+<li><p>A GitHub pull request is the preferred way of submitting patch sets.</p></li>
+<li><p>Any changes in the public API or behavior must be reflected in the project
+documentation.</p></li>
+<li><p>Pull requests should include appropriate additions to the unit test suite.</p></li>
+<li><p>If the change is a bugfix, then the added tests must fail without the patch
+as a safeguard against future regressions.</p></li>
+<li><p>Changes should not result in a drop in code coverage.  Coverage may be
+checked by running <code>mvn scoverage:check</code></p></li>
+</ul>
+
+<h2 id="contributing-documentation">Contributing Documentation</h2>
+
+<p>We heartily welcome contributions to Chronos&#39;s documentation. Documentation should be submitted as a pull request againstthe <code>master</code> branch and published to our GitHub pages site by a Chronos committer using the instructions in <a href="https://github.com/mesos/chronos/tree/master/docs">docs/README.md</a>.</p>
+
+<p>For development, you can use <a href="https://github.com/dcos/dcos-vagrant">dcos-vagrant</a> to test Chronos. On macOS, you can install libmesos with <code>brew install mesos</code>, and start Chronos against a DC/OS vagrant installation like so:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">$ java -Djava.library.path=/usr/local/lib -jar target/chronos-3.0.0-SNAPSHOT.jar --zk_hosts 192.168.65.90:2181 --master zk://192.168.65.90:2181/mesos
+</code></pre></div>
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

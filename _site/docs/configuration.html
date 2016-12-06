@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Configuration</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h1 id="configuration">Configuration</h1>
+
+<p>Starting with Chronos v2.0, Chronos uses the <a href="https://github.com/mesosphere/chaos">Chaos Framework</a>, a minimal Jetty, Guice, Jersey &amp; Jackson library, that also handles command line arguments - which in turn uses <a href="https://github.com/scallop/scallop">Scallop</a>.</p>
+
+<p>To get a full list of options, use <code>--help</code>.</p>
+
+<p>If you installed chronos via package, run <code>/usr/bin/chronos run_jar --help</code>.</p>
+
+<h2 id="chronos-v3-0-0-command-line-flags">Chronos v3.0.0 Command Line Flags</h2>
+<div class="highlight"><pre><code class="language-text" data-lang="text">--cassandra_consistency  &lt;arg&gt;              Consistency to use for Cassandra
+-c, --cassandra_contact_points  &lt;arg&gt;           Comma separated list of contact
+                                            points for Cassandra
+--cassandra_keyspace  &lt;arg&gt;                 Keyspace to use for Cassandra
+--cassandra_port  &lt;arg&gt;                     Port for Cassandra
+--cassandra_user  &lt;arg&gt;                     User for Cassandra
+                                            (default = None)
+--cassandra_password  &lt;arg&gt;                 Password for Cassandra
+                                            (default = None)
+--cassandra_stat_count_table  &lt;arg&gt;         Table to track stat counts in
+                                            Cassandra
+--cassandra_table  &lt;arg&gt;                    Table to use for Cassandra
+--cassandra_ttl  &lt;arg&gt;                      TTL for records written to
+                                            Cassandra
+--cluster_name  &lt;arg&gt;                       The name of the cluster where
+                                            Chronos is run
+--decline_offer_duration  &lt;arg&gt;             (Default: Use mesos default of 5
+                                            seconds) The duration
+                                            (milliseconds) for which to
+                                            decline offers by default
+-d, --disable_after_failures  &lt;arg&gt;             Disables a job after this many
+                                            failures have occurred
+--disable_http                              Disable listening for HTTP
+                                            requests completely. HTTPS is
+                                            unaffected.
+-f, --failover_timeout  &lt;arg&gt;                   The failover timeout in seconds
+                                            for Mesos
+--failure_retry  &lt;arg&gt;                      Number of ms between retries
+--graphite_group_prefix  &lt;arg&gt;              Group prefix for Graphite
+-g, --graphite_host_port  &lt;arg&gt;                 Host and port (in the form
+                                            `host:port`) for Graphite
+--graphite_reporting_interval  &lt;arg&gt;        Graphite reporting interval
+                                            (seconds)
+--hostname  &lt;arg&gt;                           The advertised hostname of this
+                                            Chronos instance for network
+                                            communication. This is used by
+                                            otherChronos instances and the
+                                            Mesos master to communicate with
+                                            this instance
+--http_address  &lt;arg&gt;                       The address to listen on for
+                                            HTTP requests
+--http_compression                          (Default) Enable http
+                                            compression.
+--disable_http_compression                  Disable http compression.
+--http_credentials  &lt;arg&gt;                   Credentials for accessing the
+                                            http service. If empty, anyone
+                                            can access the HTTP endpoint. A
+                                            username:password pair is
+                                            expected where the username must
+                                            not contain &#39;:&#39;. May also be
+                                            specified with the
+                                            `MESOSPHERE_HTTP_CREDENTIALS`
+                                            environment variable.
+--http_notification_credentials  &lt;arg&gt;      Http notification URL
+                                            credentials in format
+                                            username:password
+-h, --http_notification_url  &lt;arg&gt;              Http URL for notifying failures
+--http_port  &lt;arg&gt;                          The port to listen on for HTTP
+                                            requests
+--http_realm  &lt;arg&gt;                         The security realm (aka &#39;area&#39;)
+                                            associated with the credentials
+--https_address  &lt;arg&gt;                      The address to listen on for
+                                            HTTPS requests.
+--https_port  &lt;arg&gt;                         The port to listen on for HTTPS
+                                            requests
+-j, --job_history_limit  &lt;arg&gt;                  Number of past job executions to
+                                            show in history view
+-l, --leader_max_idle_time  &lt;arg&gt;               The look-ahead time for
+                                            scheduling tasks in milliseconds
+--mail_from  &lt;arg&gt;                          Mail from field
+--mail_password  &lt;arg&gt;                      Mail password (for auth)
+-m, --mail_server  &lt;arg&gt;                        Address of the mailserver in
+                                            server:port format
+--mail_ssl                                  Mail SSL
+--mail_user  &lt;arg&gt;                          Mail user (for auth)
+--master  &lt;arg&gt;                             The URL of the Mesos master
+--mattermost_url  &lt;arg&gt;                     Webhook URL for posting to
+                                            Mattermost
+--mesos_authentication_principal  &lt;arg&gt;     Mesos Authentication Principal
+--mesos_authentication_secret_file  &lt;arg&gt;   Mesos Authentication Secret
+--mesos_checkpoint                          Enable checkpointing in Mesos
+--mesos_framework_name  &lt;arg&gt;               The framework name
+--mesos_role  &lt;arg&gt;                         The Mesos role to run tasks
+                                            under
+--mesos_task_cpu  &lt;arg&gt;                     Number of CPUs to request from
+                                            Mesos for each task
+--mesos_task_disk  &lt;arg&gt;                    Amount of disk capacity to
+                                            request from Mesos for each task
+                                            (MB)
+--mesos_task_mem  &lt;arg&gt;                     Amount of memory to request from
+                                            Mesos for each task (MB)
+--min_revive_offers_interval  &lt;arg&gt;         Do not ask for all offers (also
+                                            already seen ones) more often
+                                            than this interval (ms).
+                                            (Default: 5000)
+-r, --raven_dsn  &lt;arg&gt;                          Raven DSN for connecting to a
+                                            raven or sentry event service
+--reconciliation_interval  &lt;arg&gt;            Reconciliation interval in
+                                            seconds
+--revive_offers_for_new_jobs                Whether to call reviveOffers for
+                                            new or changed jobs. (Default:
+                                            do not use reviveOffers)
+-s, --slack_url  &lt;arg&gt;                          Webhook URL for posting to Slack
+--ssl_keystore_password  &lt;arg&gt;              Password for the keystore
+                                            supplied with the
+                                            `ssl_keystore_path` option.
+                                            Required if `ssl_keystore_path`
+                                            is supplied. May also be
+                                            specified with the
+                                            `MESOSPHERE_KEYSTORE_PASS`
+                                            environment variable.
+--ssl_keystore_path  &lt;arg&gt;                  Path to the SSL keystore. HTTPS
+                                            (SSL) will be enabled if this
+                                            option is supplied. Requires
+                                            `--ssl_keystore_password`. May
+                                            also be specified with the
+                                            `MESOSPHERE_KEYSTORE_PATH`
+                                            environment variable.
+-t, --task_epsilon  &lt;arg&gt;                       The default epsilon value for
+                                            tasks, in seconds
+-u, --user  &lt;arg&gt;                               The chronos user to run the
+                                            processes under
+--webui_url  &lt;arg&gt;                          The http(s) url of the web ui,
+                                            defaulting to the advertised
+                                            hostname
+--zk_auth  &lt;arg&gt;                            Authorization string for
+                                            ZooKeeper
+-z, --zk_hosts  &lt;arg&gt;                           The list of ZooKeeper servers
+                                            for storing state
+--zk_path  &lt;arg&gt;                            Path in ZooKeeper for storing
+                                            state
+--zk_timeout  &lt;arg&gt;                         The timeout for ZooKeeper in
+                                            milliseconds
+--help                                      Show help message
+</code></pre></div>
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

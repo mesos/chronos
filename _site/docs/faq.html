@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Frequently Asked Questions</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+
+<ul>
+<li><a href="#which-node">How do I find which Chronos node to talk to?</a></li>
+<li><a href="#chronos-zookeeper">How does Chronos use ZooKeeper?</a></li>
+<li><a href="#chronos-cassandra">How does Chronos use Cassandra?</a></li>
+<li><a href="#osx-mesos">[osx] making Mesos fails on <code>warning: &#39;JNI_CreateJavaVM&#39; is deprecated</code></a></li>
+<li><a href="#running-chronos">Running Chronos fails with the error: java.lang.UnsatisfiedLinkError: org.apache.mesos.state.AbstractState.__fetch(Ljava/lang/String;)J</a></li>
+<li><a href="#web-ui">My Web UI is not showing up!</a></li>
+<li><a href="#running-jobs-locally">When running jobs locally I get an error like <code>Failed to execute &#39;chown -R&#39;</code></a></li>
+<li><a href="#bug">I found a bug!</a></li>
+</ul>
+
+<h3 id="how-do-i-find-which-chronos-node-to-talk-to"><a name="which-node"></a>How do I find which Chronos node to talk to?</h3>
+
+<p>Chronos is designed (not required) to run with multiple nodes of which one is elected master.
+If you use the cURL command line tool, you can use the <code>-L</code> flag and hit any Chronos node and you will get a
+307 REDIRECT to the leader.</p>
+
+<h3 id="how-does-chronos-use-zookeeper"><a name="chronos-zookeeper"></a>How does Chronos use ZooKeeper?</h3>
+
+<p>Chronos registers itself with <a href="https://zookeeper.apache.org/">ZooKeeper</a> at the location <code>/chronos/state</code>. This value can be changed via the configuration file.</p>
+
+<h3 id="how-does-chronos-use-cassandra"><a name="chronos-cassandra"></a>How does Chronos use Cassandra?</h3>
+
+<p>Chronos can optionally use <a href="http://cassandra.apache.org">Cassandra</a> for job history, reporting and statistics. By default, Chronos attempts to connect to the <code>metrics</code> keyspace.
+To use this feature, you must at a minimum:</p>
+
+<ol>
+<li>Create a keyspace (named <code>metrics</code> and configurable with <code>--cassandra_keyspace</code>)
+<code>sql
+CREATE KEYSPACE IF NOT EXISTS metrics
+WITH REPLICATION = {
+&#39;class&#39; : &#39;SimpleStrategy&#39;, &#39;replication_factor&#39; : 3
+};
+</code></li>
+<li>Pass the <code>--cassandra_contact_points</code> flag to Chronos with a comma-separated list of Cassandra contact points</li>
+</ol>
+
+<h3 id="osx-making-mesos-fails-on-deprecated-header-warning"><a name="osx-mesos"></a>[osx] Making Mesos fails on deprecated header warning</h3>
+
+<p>Error message such as:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">conftest.cpp:7: warning: &#39;JNI_CreateJavaVM&#39; is deprecated (declared at /System/Library/Frameworks/JavaVM.framework/Headers/jni.h:1937)
+</code></pre></div>
+<p>This error is the result of OSX shipping with an outdated version of the JDK and associated libraries. To resolve this issue, do the following.</p>
+
+<ol>
+<li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Download</a> and install JDK7.</li>
+<li>Set JDK7 as active:<br>
+<code>export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)</code><br>
+<strong>Note:</strong> Stick this in your <code>~/.*rc</code> to always use 1.7</li>
+<li>Find your JNI headers, these should be in <code>$JAVA_HOME/include</code> and <code>$JAVA_HOME/include/darwin</code>.</li>
+<li>Configure mesos with <code>JAVA_CPPFLAGS</code> set to the JNI path.</li>
+</ol>
+
+<p><strong>Example Assumptions:</strong>  </p>
+
+<ul>
+<li><code>$JAVA_HOME</code> in this example is <code>/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home</code></li>
+<li>The current working directory is <code>mesos/build</code> as advised by the <a href="https://github.com/apache/mesos/blob/trunk/README#L13">mesos README</a><br></li>
+</ul>
+
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">JAVA_CPPFLAGS=&#39;-I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/ -I/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home/include/darwin/&#39; ../configure
+</code></pre></div>
+<h3 id="running-chronos-fails-with-the-error-java-lang-unsatisfiedlinkerror-org-apache-mesos-state-abstractstate-__fetch-ljava-lang-string-j"><a name="running-chronos"></a>Running Chronos fails with the error: <code>java.lang.UnsatisfiedLinkError: org.apache.mesos.state.AbstractState.__fetch(Ljava/lang/String;)J</code></h3>
+
+<p>This means you&#39;re using a mesos-jar file that is incompatible with the version of Mesos you&#39;re running.
+If you want to run chronos with a different version of mesos than in the pom.xml file, override the version by issuing <code>mvn package -Dmesos.version=0.14.0-rc4</code>.
+Please note, this must be a jar file version that&#39;s available from one of the repositories listed in the pom.xml file.</p>
+
+<h3 id="my-web-ui-is-not-showing-up"><a name="web-ui"></a>My Web UI is not showing up!</h3>
+
+<p>For asset bundling, you need node installed. If you&#39;re seeing a 403 when trying to access the web-ui, it&#39;s likely that node was not present during the <code>mvn package</code> step.</p>
+
+<p>See <a href="http://mesos.github.io/chronos/docs/webui.html">docs/webui.md</a>.</p>
+
+<h3 id="when-running-jobs-locally-i-get-an-error-like-failed-to-execute-39-chown-r-39"><a name="running-jobs-locally"></a>When running jobs locally I get an error like <code>Failed to execute &#39;chown -R&#39;</code></h3>
+
+<p>If you get an error such as:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">    Failed to execute &#39;chown -R 0:0 &#39;/tmp/mesos/slaves/executors/...&#39; ... Undefined error: 0
+    Failed to launch executor`
+</code></pre></div>
+<p>You can try starting your mesos slaves with switch users disabled. To do this, start your slaves in the following manner:  </p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">    MESOS_SWITCH_USER=0 bin/mesos-slave.sh --master=zk://localhost:2181/mesos --resources=&quot;cpus:8,mem:68551;disk:803394&quot;
+</code></pre></div>
+<h3 id="i-found-a-bug"><a name="bug"></a>I found a bug!</h3>
+
+<p>Please see the <a href="http://mesos.github.io/chronos/support.html">support page</a> for information on how to report bugs.</p>
+
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

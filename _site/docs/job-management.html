@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Job Management</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h2 id="job-management">Job Management</h2>
+
+<p>For larger installations, the web UI may be insufficient for managing jobs.  At
+Airbnb, there are well over 700 production Chronos jobs.  Rather than using the
+web UI for making edits, we created a script called <code>chronos-sync.rb</code> which can
+be used to synchronize configuration from disk to Chronos.  For example, you
+may have a Git repository that contains all of the Chronos job configurations,
+and then you could run an hourly Chronos job that checks out the repository and
+runs <code>chronos-sync.rb</code>.</p>
+
+<p>You can initialize the configuration data by running:
+<code>
+$ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config -c
+</code></p>
+
+<p>After that, you can run the normal sync like this:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">$ bin/chronos-sync.rb -u http://chronos/ -p /path/to/jobs/config
+</code></pre></div>
+<p>You can also forcefully update the configuration in Chronos from disk by
+passing the <code>-f</code> or <code>--force</code> parameter.  In the example above,
+<code>/path/to/jobs/config</code> is the path where you would like the configuration data
+to live.</p>
+
+<p>Note: <code>chronos-sync.rb</code> does not delete jobs by default. You can pass the <code>--delete-missing</code> flag to <code>chronos-sync.rb</code> to remove jobs. Alternatively, you can manually remove it using the API or web UI.</p>
+
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

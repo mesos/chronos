@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Mesos Framework Authentication</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h1 id="mesos-framework-authentication">Mesos Framework Authentication</h1>
+
+<p>To enable framework authentication in Chronos:</p>
+
+<ul>
+<li>Run Chronos with <code>--mesos_authentication_principal</code> set to a Mesos-authorized principal. For Mesos&#39; built-in CRAM-MD5 authentication, you must also provide <code>--mesos_authentication_secret_file</code> pointing to a file containing your authentication secret.</li>
+</ul>
+
+<p>The secret file cannot have a trailing newline. To not add a newline simply run:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span><span class="nb">echo</span> -n <span class="s2">&quot;secret&quot;</span> &gt; /path/to/secret/file
+</code></pre></div>
+<ul>
+<li>If using the built-in CRAM-MD5 authentication mechanism, run <code>mesos-master</code> with the credentials flag and the path to the file with authorized users and their secrets: <code>--credentials=/path/to/credential/file</code></li>
+</ul>
+
+<p>Note that this <code>--credentials</code> file is for all frameworks and slaves registering with Mesos. In enterprise installations, the cluster admin will have already configured credentials in Mesos, so the user launching Chronos just needs to specify the principal+secret given to them by the cluster/security admin.</p>
+
+<p>Each line in the file should be a principal and corresponding secret separated by a single space:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>cat /path/to/credential/file
+principal secret
+principal2 secret2
+</code></pre></div>
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

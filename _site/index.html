@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Fault tolerant job scheduler for Mesos</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li >
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="jumbotron text-center">
+  <h1>Chronos</h1>
+  <p class="lead">
+    A fault tolerant job scheduler for Mesos which handles dependencies and ISO8601 based schedules
+  </p>
+</div>
+
+<h2 id="overview">Overview</h2>
+
+<p>Chronos is a replacement for <code>cron</code>. It is a distributed and fault-tolerant scheduler that runs on top of <a href="https://mesos.apache.org/" title="Apache Mesos">Apache Mesos</a> that can be used for job orchestration.  It supports custom Mesos executors as well
+as the default command executor. Thus by default, Chronos executes <code>sh</code>
+(on most systems bash) scripts.</p>
+
+<p>Chronos can be used to interact with systems such as Hadoop (incl. EMR), even if the Mesos slaves on which execution happens do not have Hadoop installed. Included wrapper scripts allow transfering files and executing them on a remote machine in the background and using asynchronous callbacks to notify Chronos of job completion or failures. Chronos is also natively able to schedule jobs that run inside Docker containers.</p>
+
+<p>Chronos has a number of advantages over regular cron.
+It allows you to schedule your jobs using <a href="http://en.wikipedia.org/wiki/ISO_8601" title="ISO8601 Standard">ISO8601</a> repeating interval notation, which enables more flexibility in job scheduling. Chronos also supports the definition of jobs triggered by the completion of other jobs. It supports arbitrarily long dependency chains.</p>
+
+<h2 id="chronos-how-does-it-work">Chronos: How does it work?</h2>
+
+<p>Chronos is a Mesos scheduler for running schedule and dependency based jobs. Scheduled jobs are configured with ISO8601-based schedules with repeating intervals. Typically, a job is scheduled to run indefinitely, such as once per day or per hour. Dependent jobs may have multiple parents, and will be triggered once all parents have been successfully invoked at least once since the last invocation of the dependent job.</p>
+
+<p>Internally, the Chronos scheduler main loop is quite simple. The pattern is as follows:</p>
+
+<ol>
+<li>Chronos reads all job state from the state store (ZooKeeper)</li>
+<li>Jobs are registered within the scheduler and loaded into the job graph for tracking dependencies.</li>
+<li>Jobs are separated into a list of those which should be run at the current time (based on the clock of the host machine), and those which should not.</li>
+<li>Jobs in the list of jobs to run are queued, and will be launched as soon as a sufficient offer becomes available.</li>
+<li>Chronos will sleep until the next job is scheduled to run, and begin again from step 1.</li>
+</ol>
+
+<p>Furthermore, a dependent job will be queued for execution once all parents have successfully completed at least once since the last time it ran. After the dependent job runs, the cycle resets.</p>
+
+<p>This code lives within the <code>mainLoop()</code> method, and can be found here:</p>
+
+<p>https://github.com/mesos/chronos/blob/35ca3295ed7eef5c0f8bab3f2eda5f8f45a2beb0/src/main/scala/org/apache/mesos/chronos/scheduler/jobs/JobScheduler.scala#L469-L498</p>
+
+<p>Additionally, Chronos has a number of advanced features to help you build whatever it is you may be trying to. It can:</p>
+
+<ul>
+<li>Write job metrics to Cassandra for further analysis, validation, and party favours</li>
+<li>Send notifications to various endpoints such as email, Slack, and others</li>
+<li>Export metrics to graphite and elsewhere</li>
+</ul>
+
+<p>Chronos cannot:</p>
+
+<ul>
+<li>Magically solve all distributed computing problems for you</li>
+<li>Guarantee precise scheduling</li>
+<li>Guarantee clock synchronization</li>
+<li>Guarantee that jobs actually run</li>
+</ul>
+
+<p>For the items listed above, you must figure this out yourself.</p>
+
+<h2 id="sample-architecture">Sample Architecture</h2>
+
+<p><img src="/chronos/img/emr_use_case.png" alt="architecture" title="sample architecture"></p>
+
+<h2 id="chronos-ui">Chronos UI</h2>
+
+<p>Chronos comes with a UI which can be used to add, delete, list, modify and run jobs. It can also show a graph of job dependencies.
+The screenshot should give you a good idea of what Chronos can do.</p>
+
+<p>Additionally, Chronos can show statistics on past job execution. This may include aggregate statistics such as number of
+successful and failed executions. Per job execution statistics (i.e. duration and status) are also available, if a
+<a href="https://github.com/mesosphere/cassandra-mesos/">Cassandra cluster</a> is attached to Chronos. Please see the <a href="/chronos/docs/configuration.html">Configuration
+</a> section
+on how to do this.</p>
+
+<h2 id="installation">Installation</h2>
+
+<p>Chronos can be installed on DC/OS using the following command:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">$ dcos package install chronos
+</code></pre></div>
+<p>Additionally, Mesosphere publishes public Docker images for Chronos. Images are available at <a href="https://hub.docker.com/r/mesosphere/chronos/">https://hub.docker.com/r/mesosphere/chronos/</a>. To run Chronos with Docker, you must have 2 ports available: one for the HTTP API, and one for libprocess. You must export these ports as environment variables for Chronos to start. For example:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">$ docker run --net=host -e PORT0=8080 -e PORT1=8081 mesosphere/chronos:v3.0.0 --zk_hosts 192.168.65.90:2181 --master zk://192.168.65.90:2181/mesos
+</code></pre></div>
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: REST API</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h1 id="rest-api">REST API</h1>
+
+<p>You can communicate with Chronos using a RESTful <a href="http://www.json.org/">JSON</a> API over HTTP.
+Chronos nodes usually listen on port 8080 for API requests.
+All examples in this section assume that you&#39;ve found a running leader at <code>chronos-node:8080</code>.</p>
+
+<ul>
+<li><a href="#leaders">Leaders</a></li>
+<li><a href="#listing-jobs">Listing Jobs</a></li>
+<li><a href="#searching-for-a-job">Searching for a Job</a></li>
+<li><a href="#deleting-a-job">Deleting a Job</a></li>
+<li><a href="#killing-all-tasks-for-a-job">Killing All Tasks for a Job</a></li>
+<li><a href="#manually-starting-a-job">Manually Starting a Job</a></li>
+<li><a href="#adding-a-scheduled-job">Adding a Scheduled Job</a></li>
+<li><a href="#adding-a-dependent-job">Adding a Dependent Job</a></li>
+<li><a href="#adding-a-docker-job">Adding a Docker Job</a></li>
+<li><a href="#updating-task-progress">Updating Task Progress</a></li>
+<li><a href="#describing-the-dependency-graph">Describing the Dependency Graph</a></li>
+<li><a href="#asynchronous-jobs">Asynchronous Jobs</a></li>
+<li><a href="#obtaining-remote-executables">Obtaining Remote Executables</a></li>
+<li><a href="#job-configuration">Job Configuration</a></li>
+<li><a href="#sample-job">Sample Job</a></li>
+<li><a href="#constraints">Constraints</a></li>
+</ul>
+
+<h2 id="leaders">Leaders</h2>
+
+<p>When you have multiple Chronos nodes running, only one of them will be elected as the leader.
+The leader is the only node that responds to API requests, but if you attempt to talk to a non-leader your request will automatically be redirected to a leader.</p>
+
+<p>To get the current leader you can hit the following endpoint.</p>
+
+<ul>
+<li>Endpoint: <strong>/leader</strong></li>
+<li>Method: <strong>GET</strong></li>
+<li>Example: <code>curl -L chronos-node:8080/leader</code></li>
+<li>Response: A JSON dict containing a single <code>leader</code> key.</li>
+</ul>
+
+<h2 id="listing-jobs">Listing Jobs</h2>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/jobs</strong></li>
+<li>Method: <strong>GET</strong></li>
+<li>Example: <code>curl -L -X GET chronos-node:8080/v1/scheduler/jobs</code></li>
+<li>Response: JSON data</li>
+</ul>
+
+<p>A job listing returns a JSON list containing all of the jobs.
+Each job is a JSON hash.
+Interesting fields in the hashes are:</p>
+
+<ul>
+<li><code>successCount</code>: the number of times the job completed successfully</li>
+<li><code>errorCount</code>: the number of times the job failed to complete</li>
+<li><code>lastSuccess</code>: date of the last successful run of the job</li>
+<li><code>lastError</code>: date of the last failed run of the job</li>
+<li><code>executor</code>: auto-determined by Chronos, but will usually be &quot;&quot; for non-async jobs</li>
+<li><code>parents</code>: for dependent jobs, a list of all other jobs that must run before this job will run</li>
+</ul>
+
+<p>If there is a <code>parents</code> field there will be no <code>schedule</code> field, and vice-versa.</p>
+
+<h2 id="searching-for-a-job">Searching for a Job</h2>
+
+<p>Get the job definition by searching for the following attributes by using the search endpoint:</p>
+
+<ul>
+<li><code>name</code>: Name of a job.</li>
+<li><code>command</code>: Command to execute.</li>
+<li><code>any</code>: Search term contained in <code>name</code> or <code>command</code>.
+*</li>
+<li>Endpoint: <strong>/v1/scheduler/jobs/search</strong></li>
+<li>Method: <strong>GET</strong></li>
+<li>Example: <code>curl -L -X GET chronos-node:8080/v1/scheduler/jobs/search?name=request_event_counter_hourly</code></li>
+<li>Response: HTTP 204</li>
+</ul>
+
+<p>Search term and the desired job attribute will be converted to lower case. It will then be checked if the job attribute contains the term.</p>
+
+<h2 id="deleting-a-job">Deleting a Job</h2>
+
+<p>Get a job name from the job listing above.</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/job/&lt;jobName&gt;</strong></li>
+<li>Method: <strong>DELETE</strong></li>
+<li>Example: <code>curl -L -X DELETE chronos-node:8080/v1/scheduler/job/request_event_counter_hourly</code></li>
+<li>Response: HTTP 204</li>
+</ul>
+
+<h2 id="killing-all-tasks-for-a-job">Killing All Tasks for a Job</h2>
+
+<p>Killing tasks for a job is useful if a job gets stuck. Get a job name from the job listing above.</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/task/kill/&lt;jobName&gt;</strong></li>
+<li>Method: <strong>DELETE</strong></li>
+<li>Example: <code>curl -L -X DELETE chronos-node:8080/v1/scheduler/task/kill/request_event_counter_hourly</code></li>
+<li>Response: HTTP 204</li>
+</ul>
+
+<h2 id="manually-starting-a-job">Manually Starting a Job</h2>
+
+<p>You can manually start a job by issuing an HTTP request.</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/job</strong></li>
+<li>Method: <strong>PUT</strong></li>
+<li>Query string parameters: <code>arguments</code> - optional string with a list of command line arguments that is appended to job&#39;s <code>command</code>
+
+<ul>
+<li>If job&#39;s <code>shell</code> is <code>true</code>, <code>arguments</code> will be ignored.</li>
+</ul></li>
+<li>Example: <code>curl -L -X PUT chronos-node:8080/v1/scheduler/job/request_event_counter_hourly</code></li>
+<li>Example: <code>curl -L -X PUT chronos-node:8080/v1/scheduler/job/job_name?arguments=-debug</code></li>
+<li>Response: HTTP 204</li>
+</ul>
+
+<h2 id="marking-a-job-as-successful">Marking a job as successful</h2>
+
+<p>You can manually mark a job as successful by issuing an HTTP request. If a job is marked successful, the success count
+of the job is incremented, the latest successful run time is updated, and all downstream dependencies are handled as if
+the job had completed executing the code in a standard run.
+the job normally runs.</p>
+
+<ul>
+<li>Endpoint: ___/v1/scheduler/job/success/<jobname></li>
+<li>Method: <strong>PUT</strong></li>
+<li>Query string parameters: <code>arguments</code> - jobname to be marked success</li>
+<li>Example: <code>curl -L -X PUT chronos-node:8080/v1/scheduler/job/success/request_event_counter_hourly</code></li>
+<li>Response: boolean (true or false depending on success of request)</li>
+</ul>
+
+<h2 id="adding-a-scheduled-job">Adding a Scheduled Job</h2>
+
+<p>The heart of job scheduling is a JSON POST request.
+The JSON hash you send to Chronos should contain the following fields:</p>
+
+<ul>
+<li><code>name</code>: The job name. Must contain at least one character and may only contain letters (<code>[a-zA-Z]</code>), digits (<code>[0-9]</code>), dashes (<code>-</code>), underscores (<code>_</code>), number signs (<code>#</code>), periods (<code>.</code>), and whitespace (<code>[ \t\n\x0B\f\r]</code>). Must match the following regular expression: <code>([\w\s\.#_-]+)</code></li>
+<li><code>command</code>: The actual command that will be executed by Chronos</li>
+<li><code>schedule</code>: The scheduling for the job, in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> format. Consists of 3 parts separated by <code>/</code>:
+
+<ul>
+<li>The number of times to repeat the job: <code>Rn</code> to repeat <code>n</code> times, or <code>R</code> to repeat forever</li>
+<li>The start time of the job. An empty start time means start immediately. Our format is <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a>: <code>YYYY-MM-DDThh:mm:ss.sTZD</code> (e.g., <code>1997-07-16T19:20:30.45+01:00</code>) where:
+
+<ul>
+<li><code>YYYY</code> = four-digit year</li>
+<li><code>MM</code>   = two-digit month (01 = January, etc.)</li>
+<li><code>DD</code>   = two-digit day of month (01 through 31)</li>
+<li><code>hh</code>   = two-digit hour in 24-hour time (00 through 23)</li>
+<li><code>mm</code>   = two-digit minute (00 through 59)</li>
+<li><code>ss</code>   = two-digit second (00 through 59)</li>
+<li><code>s</code>    = one or more digits representing a decimal fraction of a second</li>
+<li><code>TZD</code>  = time zone designator (<code>Z</code> for UTC or <code>+hh:mm</code> or <code>-hh:mm</code> for UTC offset)</li>
+</ul></li>
+<li>The run interval, defined following the <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">&quot;Duration&quot;</a> component of the ISO 8601 standard. <code>P</code> is required. <code>T</code> is for distinguishing M(inute) and M(onth)––it is required when specifying Hour/Minute/Second. For example:
+
+<ul>
+<li><code>P10M</code>           = 10 months</li>
+<li><code>PT10M</code>          = 10 minutes</li>
+<li><code>P1Y12M12D</code>      = 1 year, 12 months, and 12 days</li>
+<li><code>P12DT12M</code>       = 12 days and 12 minutes</li>
+<li><code>P1Y2M3DT4H5M6S</code> = 1 year, 2 months, 3 days, 4 hours, and 5 minutes</li>
+</ul></li>
+</ul></li>
+<li><code>scheduleTimeZone</code>: The time zone name to use when scheduling the job. Unlike <code>schedule</code>, this is specified in the <a href="https://en.wikipedia.org/wiki/Tz_database">tz database</a> format, not the <a href="https://en.wikipedia.org/wiki/ISO_8601#Time_zone_designators">ISO 8601</a> format.
+
+<ul>
+<li>This field takes precedence over any time zone specified in <code>schedule</code>.</li>
+<li>All system time zones supported by <a href="http://docs.oracle.com/javase/7/docs/api/java/util/TimeZone.html#getAvailableIDs()"><code>java.util.TimeZone#getAvailableIDs()</code></a> can be used.</li>
+<li>See <a href="http://en.wikipedia.org/wiki/List_of_tz_database_time_zones">List of tz database time zones</a>.</li>
+<li>For example, the effective time zone for the following is <code>Pacific Standard Time</code>:
+<code>json
+{
+&quot;schedule&quot;: &quot;R/2014-10-10T18:32:00Z/PT60M&quot;,
+&quot;scheduleTimeZone&quot;: &quot;PST&quot;
+}
+</code></li>
+</ul></li>
+<li><code>epsilon</code>: If Chronos misses the scheduled run time for any reason, it will still run the job if the time is within this interval. Epsilon must be formatted like an <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO 8601 Duration</a>.</li>
+<li><code>owner</code>: The email address of the person responsible for the job</li>
+<li><code>async</code>: Whether the job runs in the background or not</li>
+</ul>
+
+<p>Here is an example job hash:
+<code>json
+{
+  &quot;schedule&quot;: &quot;R10/2012-10-01T05:52:00Z/PT2S&quot;,
+  &quot;name&quot;: &quot;SAMPLE_JOB1&quot;,
+  &quot;epsilon&quot;: &quot;PT15M&quot;,
+  &quot;command&quot;: &quot;echo &#39;FOO&#39; &gt;&gt; /tmp/JOB1_OUT&quot;,
+  &quot;owner&quot;: &quot;bob@airbnb.com&quot;,
+  &quot;async&quot;: false
+}
+</code></p>
+
+<p>Once you&#39;ve generated the hash, send it to Chronos like so:</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/iso8601</strong></li>
+<li>Method: <strong>POST</strong></li>
+<li>Example:
+<code>bash
+curl -L -H &#39;Content-Type: application/json&#39; -X POST -d &#39;{json hash}&#39; chronos-node:8080/v1/scheduler/iso8601
+</code></li>
+<li>Response: HTTP 204</li>
+</ul>
+
+<h2 id="adding-a-dependent-job">Adding a Dependent Job</h2>
+
+<p>A dependent job takes the same JSON format as a scheduled job.
+However, instead of the <code>schedule</code> field, it accepts a <code>parents</code> field.
+This should be a JSON list of all jobs which must run at least once before this job will run.</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/dependency</strong></li>
+<li>Method: <strong>POST</strong></li>
+<li>Example:
+<code>bash
+curl -L -X POST -H &#39;Content-Type: application/json&#39; -d &#39;{dependent hash}&#39; chronos-node:8080/v1/scheduler/dependency
+</code></li>
+<li>Response: HTTP 204</li>
+</ul>
+
+<p>Here is a more elaborate example of a dependent job hash:</p>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&quot;async&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+  <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;bash -x /srv/data-infra/jobs/hive_query.bash run_hive hostings-earnings-summary&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;epsilon&quot;</span><span class="p">:</span> <span class="s2">&quot;PT30M&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;errorCount&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+  <span class="nt">&quot;lastError&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;lastSuccess&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-03-15T13:02:14.243Z&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;hostings_earnings_summary&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;bob@airbnb.com&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;parents&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;db_export-airbed_hostings&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;db_export-airbed_reservation2s&quot;</span>
+  <span class="p">],</span>
+  <span class="nt">&quot;retries&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="nt">&quot;successCount&quot;</span><span class="p">:</span> <span class="mi">100</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="adding-a-docker-job">Adding a Docker Job</h2>
+
+<p>A docker job takes the same format as a scheduled job or a dependency job and runs on a Docker container.
+To configure it, an additional <code>container</code> argument is required, which contains a type (required), an image (required), a network mode (optional), mounted volumes (optional), parameters (optional) and whether Mesos should always pull the latest image before executing or not (optional).</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/iso8601</strong> or <strong>/v1/scheduler/dependency</strong></li>
+<li>Method: <strong>POST</strong></li>
+<li>Example:
+<code>bash
+curl -L -H &#39;Content-Type: application/json&#39; -X POST -d &#39;{json hash}&#39; chronos-node:8080/v1/scheduler/iso8601
+</code></li>
+</ul>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&quot;schedule&quot;</span><span class="p">:</span> <span class="s2">&quot;R/2014-09-25T17:22:00Z/PT2M&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;dockerjob&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;container&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;DOCKER&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;image&quot;</span><span class="p">:</span> <span class="s2">&quot;libmesos/ubuntu&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;network&quot;</span><span class="p">:</span> <span class="s2">&quot;BRIDGE&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;volumes&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+        <span class="nt">&quot;containerPath&quot;</span><span class="p">:</span> <span class="s2">&quot;/var/log/&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;hostPath&quot;</span><span class="p">:</span> <span class="s2">&quot;/logs/&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;RW&quot;</span>
+      <span class="p">}</span>
+    <span class="p">]</span>
+  <span class="p">},</span>
+  <span class="nt">&quot;cpus&quot;</span><span class="p">:</span> <span class="s2">&quot;0.5&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;mem&quot;</span><span class="p">:</span> <span class="s2">&quot;512&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;fetch&quot;</span><span class="p">:</span> <span class="p">[],</span>
+  <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;while sleep 10; do date =u %T; done&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Mesos 0.22.0 added support for forcibly pulling the latest version of your
+Docker image before launching the task, and this behavior can be enabled in
+Chronos by adding the <code>forcePullImage</code> boolean to your <code>container</code> configuration.</p>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&quot;container&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;DOCKER&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;image&quot;</span><span class="p">:</span> <span class="s2">&quot;libmesos/ubuntu&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;forcePullImage&quot;</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Chronos will default to not doing a <code>docker pull</code> if the image is already found on the executing node. The alternative approach is to use versions/tags for
+your images.</p>
+
+<p>There is also support for passing in arbitrary docker config options.</p>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&quot;container&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;DOCKER&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;image&quot;</span><span class="p">:</span> <span class="s2">&quot;libmesos/ubuntu&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;parameters&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span> <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;a-docker-option&quot;</span><span class="p">,</span> <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span> <span class="p">},</span>
+      <span class="p">{</span> <span class="nt">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;b-docker-option&quot;</span><span class="p">,</span> <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;yyy&quot;</span> <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="updating-task-progress">Updating Task Progress</h2>
+
+<p>Task progress can be updated by providing the number of additional elements processed. This will increment the existing count of elements processed.
+A job name, task id, and number of additional elements (<code>numAdditionalElementsProcessed</code>) is required to update.
+This API endpoint requires Cassandra to be present in the cluster.</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/job/&lt;jobName&gt;/task/&lt;taskId&gt;/progress</strong></li>
+<li>Method: <strong>POST</strong></li>
+<li>Example:
+<code>bash
+curl -L -H &#39;Content-Type: application/json&#39; -X POST -d &#39;{json hash}&#39; chronos-node:8080/v1/scheduler/job/NewJob/task/ct%3A1428515194358%3A0%3ANewJob%3A/progress
+</code></li>
+</ul>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&quot;numAdditionalElementsProcessed&quot;</span><span class="p">:</span> <span class="mi">5</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="describing-the-dependency-graph">Describing the Dependency Graph</h2>
+
+<p>Chronos allows describing the dependency graph and has an endpoint to return this graph in the form of a dotfile.</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/graph/dot</strong></li>
+<li>Method: <strong>GET</strong></li>
+<li>Example: <code>curl -L -X GET chronos-node:8080/v1/scheduler/graph/dot</code></li>
+</ul>
+
+<h2 id="asynchronous-jobs">Asynchronous Jobs</h2>
+
+<p>If your job is long-running, you may want to run it asynchronously.
+In this case, you need to do two things:</p>
+
+<ol>
+<li>When adding your job, ensure it is set as asynchronous.</li>
+<li>Your job, when complete, should report its completion status to Chronos.</li>
+</ol>
+
+<p>If you forget to do (2), your job will never run again because Chronos will think that it is still running.
+Reporting job completion to Chronos is done via another API call:</p>
+
+<ul>
+<li>Endpoint: <strong>/v1/scheduler/task/&lt;task id&gt;</strong></li>
+<li>Method: <strong>PUT</strong></li>
+<li>Example:
+<code>bash
+curl -L -X PUT -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;statusCode&quot;: 0}&#39; chronos-node:8080/v1/scheduler/task/my_job_run_555_882083xkj302
+</code></li>
+</ul>
+
+<p>The task id is auto-generated by Chronos. It will be available in your job&#39;s environment as <code>$mesos_task_id</code>.</p>
+
+<p><em>Note</em>: You will probably need to url-encode the Mesos task id in order to submit it as part of the URL.</p>
+
+<h2 id="obtaining-remote-executables">Obtaining Remote Executables</h2>
+
+<p>When specifying the <code>command</code> field in your job hash, use <code>url-runner.bash</code> (make sure it&#39;s deployed on all slaves). Alternatively, you can also use a url in the <code>command</code> field, if your Mesos was compiled with cURL libraries.</p>
+
+<h2 id="job-configuration">Job Configuration</h2>
+
+<table><thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>name</code></td>
+<td>Name of job.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>Description of job.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>Command to execute.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>arguments</code></td>
+<td>Arguments to pass to the command.  Ignored if <code>shell</code> is <code>true</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>shell</code></td>
+<td>If <code>true</code>, Mesos will execute <code>command</code> by running <code>/bin/sh -c &lt;command&gt;</code> and will ignore <code>arguments</code>. If <code>false</code>, <code>command</code> will be treated as the filename of an executable and <code>arguments</code> will be the arguments passed.  If this is a Docker job and <code>shell</code> is <code>true</code>, the entrypoint of the container will be overridden with <code>/bin/sh -c</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>executor</code></td>
+<td>Mesos executor.  By default Chronos uses the Mesos command executor.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>executorFlags</code></td>
+<td>Flags to pass to Mesos executor.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>taskInfoData</code></td>
+<td>Data to pass to the taskInfo data field.  If set, this overrides the default data set by Chronos.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>retries</code></td>
+<td>Number of retries to attempt if a command returns a non-zero status</td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td>Email address(es) to send job failure notifications.  Use comma-separated list for multiple addresses.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>ownerName</code></td>
+<td>Name of the individual responsible for the job.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>successCount</code></td>
+<td>Number of successes since the job was last modified.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>errorCount</code></td>
+<td>Number of errors since the job was last modified.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>lastSuccess</code></td>
+<td>Date of last successful attempt.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>lastError</code></td>
+<td>Date of last failed attempt.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>cpus</code></td>
+<td>Amount of Mesos CPUs for this job.</td>
+<td><code>0.1</code> or <code>--mesos_task_cpu</code></td>
+</tr>
+<tr>
+<td><code>mem</code></td>
+<td>Amount of Mesos Memory (in MB) for this job.</td>
+<td><code>128</code> or <code>--mesos_task_mem</code></td>
+</tr>
+<tr>
+<td><code>disk</code></td>
+<td>Amount of Mesos disk (in MB) for this job.</td>
+<td><code>256</code> or <code>--mesos_task_disk</code></td>
+</tr>
+<tr>
+<td><code>disabled</code></td>
+<td>If set to <code>true</code>, this job will not be run.</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>concurrent</code></td>
+<td>If set to <code>true</code>, this job may execute concurrently (multiple instances).</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>uris</code></td>
+<td>An array of URIs which Mesos will download when the task is started (deprecated).</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>fetch</code></td>
+<td>An array of fetch configurations, one for each file that Mesos Fetcher will download when the task is started).</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>schedule</code></td>
+<td><a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> repeating schedule for this job.  If specified, <code>parents</code> must not be specified.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>scheduleTimeZone</code></td>
+<td>The time zone for the given schedule, specified in the <a href="https://en.wikipedia.org/wiki/Tz_database">tz database</a> format.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>parents</code></td>
+<td>An array of parent jobs for a dependent job.  If specified, <code>schedule</code> must not be specified.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>runAsUser</code></td>
+<td>Mesos will run the job as this user, if specified.</td>
+<td><code>--user</code></td>
+</tr>
+<tr>
+<td><code>container</code></td>
+<td>This contains the subfields for the Docker container: <code>type</code> (required), <code>image</code> (required), <code>forcePullImage</code> (optional), <code>network</code> (optional), and <code>volumes</code> (optional).</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>dataJob</code></td>
+<td>Toggles whether the job tracks data (number of elements processed)</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>environmentVariables</code></td>
+<td>An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the <code>-e</code> flag.</td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>constraints</code></td>
+<td>Control where jobs run. Each constraint is compared against the <a href="http://mesos.apache.org/documentation/attributes-resources/">attributes of a Mesos slave</a>. See <a href="#constraints">Constraints</a>.</td>
+<td>-</td>
+</tr>
+</tbody></table>
+
+<h2 id="sample-job">Sample Job</h2>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;camus_kafka2hdfs&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;/srv/data-infra/kafka/camus/kafka_hdfs_job.bash&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;arguments&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;-verbose&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;-debug&quot;</span>
+  <span class="p">],</span>
+  <span class="nt">&quot;shell&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="nt">&quot;epsilon&quot;</span><span class="p">:</span> <span class="s2">&quot;PT30M&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;executor&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;executorFlags&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;retries&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="nt">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;bofh@your-company.com&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;async&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="nt">&quot;successCount&quot;</span><span class="p">:</span> <span class="mi">190</span><span class="p">,</span>
+  <span class="nt">&quot;errorCount&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+  <span class="nt">&quot;lastSuccess&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-03-08T16:57:17.507Z&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;lastError&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-03-01T00:10:15.957Z&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;cpus&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+  <span class="nt">&quot;disk&quot;</span><span class="p">:</span> <span class="mi">10240</span><span class="p">,</span>
+  <span class="nt">&quot;mem&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+  <span class="nt">&quot;disabled&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="nt">&quot;fetch&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;uri&quot;</span><span class="p">:</span> <span class="s2">&quot;https://url-to-file&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;cache&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+      <span class="nt">&quot;extract&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+      <span class="nt">&quot;executable&quot;</span><span class="p">:</span> <span class="kc">false</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="nt">&quot;schedule&quot;</span><span class="p">:</span> <span class="s2">&quot;R/2014-03-08T20:00:00.000Z/PT2H&quot;</span><span class="p">,</span>
+  <span class="nt">&quot;environmentVariables&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;JVMOPTS&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;-Xmx1000m&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+      <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;JAVA_LIBRARY_PATH&quot;</span><span class="p">,</span>
+      <span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;/usr/local/lib&quot;</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="constraints">Constraints</h2>
+
+<p>These constraints will work against attributes that are specifically set on the Mesos slaves <a href="http://mesos.apache.org/documentation/latest/configuration">as described in the Mesos documentation</a>.</p>
+
+<p>If a <code>hostname</code> attribute is not explicitly specified, one will automatically be created and made available for constraints. It should be noted that calling out specific hostnames is not resilient to slave failure and should be avoided if possible.</p>
+
+<h3 id="equals-constraint">EQUALS constraint</h3>
+
+<p>Schedule a job on nodes that share a common attribute.</p>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="err">...</span>
+  <span class="nt">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;rack&quot;</span><span class="p">,</span> <span class="s2">&quot;EQUALS&quot;</span><span class="p">,</span> <span class="s2">&quot;rack-1&quot;</span><span class="p">]],</span>
+  <span class="err">...</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="like-constraint">LIKE constraint</h3>
+
+<p>Schedule jobs on nodes which attributes match a regular expression.</p>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="err">...</span>
+  <span class="nt">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;rack&quot;</span><span class="p">,</span> <span class="s2">&quot;LIKE&quot;</span><span class="p">,</span> <span class="s2">&quot;rack-[1-3]&quot;</span><span class="p">]],</span>
+  <span class="err">...</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Note:</strong> This constraint applies to attributes of type <code>text</code> and <code>scalar</code> and elements in a <code>set</code>, but not <code>range</code>.</p>
+
+<h3 id="unlike-constraint">UNLIKE constraint</h3>
+
+<p>Schedule jobs on nodes which attributes <em>do not</em> match a regular expression.</p>
+<div class="highlight"><pre><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="err">...</span>
+  <span class="nt">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;rack&quot;</span><span class="p">,</span> <span class="s2">&quot;UNLIKE&quot;</span><span class="p">,</span> <span class="s2">&quot;rack-[1-3]&quot;</span><span class="p">]],</span>
+  <span class="err">...</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Note:</strong> This constraint applies to attributes of type <code>text</code> and <code>scalar</code> and elements in a <code>set</code>, but not <code>range</code>.</p>
+
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>

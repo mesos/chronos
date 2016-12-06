@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chronos: Setting Up and Running Chronos</title>
+    <link rel="icon" type="image/x-icon" href="/chronos/img/marathon-favicon.ico">
+    <link href="//cdn.jsdelivr.net/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/chronos/css/style.css" rel="stylesheet">
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-45222428-4', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-10 col-sm-offset-1">
+          <div class="navbar navbar-default navbar-inverse" role="navigation">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/chronos/">Chronos</a>
+              </div>
+              <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                  <li class="active">
+                    <a href="/chronos/docs/">Docs</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/resources.html">Resources</a>
+                  </li>
+                  <li >
+                    <a href="/chronos/support.html">Support</a>
+                  </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                  <li><a href="https://github.com/mesos/chronos">GitHub</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+  <div class="col-sm-3">
+    <h5>Welcome</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/">
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/getting-started.html">
+          Getting Started
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/contributing.html">
+          Contributing
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Developing</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/webui.html">
+          Web UI
+        </a>
+      </li>
+    </ul>
+    <hr>
+    <h5>Reference</h5>
+    <ul class="list-unstyled">
+      <li>
+        <a href="/chronos/docs/configuration.html">
+            Configuration
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/debugging.html">
+            Debugging
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/authentication.html">
+            Framework Authentication
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/job-management.html">
+            Job Management
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/faq.html">
+            FAQ
+        </a>
+      </li>
+      <li>
+        <a href="/chronos/docs/api.html">
+            REST API
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-sm-9">
+    <h1 id="setting-up-and-running-chronos">Setting up and Running Chronos</h1>
+
+<h2 id="quickstart">Quickstart</h2>
+
+<p>The <a href="https://github.com/dcos/dcos-vagrant">dcos-vagrant</a> provides an easy way to try DC/OS and Chronos within a virtual machine using Vagrant.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<p>These requirements are just to run Chronos. You will need additional packages to build Chronos from source (see the <a href="#build-from-source">Building from Source section</a> below).</p>
+
+<ul>
+<li><a href="https://mesos.apache.org/" title="Apache Mesos">Apache Mesos</a> 1.0.0+</li>
+<li><a href="https://zookeeper.apache.org/" title="Apache ZooKeeper">Apache ZooKeeper</a></li>
+<li>JDK 1.8+</li>
+</ul>
+
+<h2 id="install-from-packages">Install from Packages</h2>
+
+<p>Mesosphere provides Docker images for Chronos, available from Docker hub at <a href="https://hub.docker.com/r/mesosphere/chronos/">https://hub.docker.com/r/mesosphere/chronos/</a>.</p>
+
+<h2 id="building-from-source"><a name="build-from-source"></a>Building from Source</h2>
+
+<p>Follow these steps to build Chronos from source. This configuration assumes you already have Mesos installed on the same host (see Mesosphere link above to get a Mesos package).</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<p>These requirements are to build and run Chronos.</p>
+
+<ul>
+<li><a href="https://mesos.apache.org/" title="Apache Mesos">Apache Mesos</a> 1.0.0+</li>
+<li><a href="https://zookeeper.apache.org/" title="Apache ZooKeeper">Apache ZooKeeper</a></li>
+<li>JDK 1.8+</li>
+<li><a href="https://maven.apache.org/download.cgi">Maven 3+</a></li>
+<li>NodeJS 7+</li>
+</ul>
+
+<h3 id="build-chronos">Build Chronos</h3>
+
+<p>Install <a href="http://nodejs.org/">Node</a> first. On OSX, try <code>brew install node</code>.</p>
+
+<p>Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
+git clone https://github.com/mesos/chronos.git
+cd chronos
+mvn package
+java -cp target/chronos*.jar org.apache.mesos.chronos.scheduler.Main --master zk://localhost:2181/mesos --zk_hosts localhost:2181
+</code></pre></div>
+<h3 id="environment-variables-mesos-looks-for">Environment Variables Mesos Looks For</h3>
+
+<ul>
+<li><code>MESOS_NATIVE_LIBRARY</code>: Absolute path to the native mesos library. This is usually <code>/usr/local/lib/libmesos.so</code> on Linux and <code>/usr/local/lib/libmesos.dylib</code> on OSX.</li>
+</ul>
+
+<p>If you&#39;re using the installer script this should be setup for you.</p>
+
+<p><hr /></p>
+
+<h2 id="running-chronos">Running Chronos</h2>
+
+<p>The basic syntax for launching chronos is:</p>
+<div class="highlight"><pre><code class="language-text" data-lang="text">java -jar chronos.jar --master zk://127.0.0.1:2181/mesos --zk_hosts 127.0.0.1:2181
+</code></pre></div>
+<p>Please note that you need to have both Mesos and Zookeeper running for this to work!</p>
+
+<p>For more information on configuration options, please see <a href="/chronos/docs/configuration.html">Configuration</a>.</p>
+
+  </div>
+</div>
+
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.jsdelivr.net/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//cdn.jsdelivr.net/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+  </body>
+</html>
