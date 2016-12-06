@@ -16,7 +16,7 @@ sass:
   style: :compressed
 
 baseurl: "/chronos"
-highlighter: pygments
+highlighter: rouge
 lsi: false
 markdown: kramdown
 redcarpet:
