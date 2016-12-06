@@ -1,0 +1,10 @@
+---
+name: hourly-dependent-sleep1m
+command: sleep 1m
+parents:
+  - hourly-sleep1m
+owner: nobody
+cpus: 0.01
+mem: 32
+disk: 0
+runAsUser: root
