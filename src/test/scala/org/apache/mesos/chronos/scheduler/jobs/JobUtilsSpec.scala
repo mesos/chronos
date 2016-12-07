@@ -91,8 +91,31 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
   }
 
   "Accepts a job name with periods" in {
-    val jobName = "sample.name"
-
-    JobUtils.isValidJobName(jobName)
+    JobUtils.isValidJobName("sample.name")
   }
+
+  "Accepts a job name with " in {
+    JobUtils.isValidJobName("sample.name")
+  }
+
+  "Accepts a job name with dashes" in {
+    JobUtils.isValidJobName("sample-name")
+  }
+
+  "Accepts a job name with underscores" in {
+    JobUtils.isValidJobName("sample_name")
+  }
+
+  "Accepts a job name with number signs" in {
+    JobUtils.isValidJobName("sample#name")
+  }
+
+  "Accepts a job name with whitespaces" in {
+    JobUtils.isValidJobName("sample name")
+  }
+
+  "Not accepts a job name with spec characters" in {
+    JobUtils.isValidJobName("sample@$&name") must_=== false
+  }
+
 }
