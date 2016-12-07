@@ -121,7 +121,7 @@ the job normally runs.
 The heart of job scheduling is a JSON POST request.
 The JSON hash you send to Chronos should contain the following fields:
 
-* `name`: The job name. Must contain at least one character and may only contain letters (`[a-zA-Z]`), digits (`[0-9]`), dashes (`-`), underscores (`_`), number signs (`#`), periods (`.`), and whitespace (`[ \t\n\x0B\f\r]`). Must match the following regular expression: `([\w\s\.#_-]+)`
+* `name`: The job name. Must match the following regular expression: `([\w\.-]+)`
 * `command`: The actual command that will be executed by Chronos
 * `schedule`: The scheduling for the job, in [ISO 8601][] format. Consists of 3 parts separated by `/`:
   * The number of times to repeat the job: `Rn` to repeat `n` times, or `R` to repeat forever
