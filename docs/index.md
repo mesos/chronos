@@ -34,9 +34,7 @@ Internally, the Chronos scheduler main loop is quite simple. The pattern is as f
 
 Furthermore, a dependent job will be queued for execution once all parents have successfully completed at least once since the last time it ran. After the dependent job runs, the cycle resets.
 
-This code lives within the `mainLoop()` method, and can be found here:
-
-  https://github.com/mesos/chronos/blob/35ca3295ed7eef5c0f8bab3f2eda5f8f45a2beb0/src/main/scala/org/apache/mesos/chronos/scheduler/jobs/JobScheduler.scala#L469-L498
+This code lives within the `mainLoop()` method, (and can be found here)[mainLoop].
 
 Additionally, Chronos has a number of advanced features to help you build whatever it is you may be trying to. It can:
 
@@ -82,3 +80,4 @@ Additionally, Mesosphere publishes public Docker images for Chronos. Images are 
 
 [ISO8601]: http://en.wikipedia.org/wiki/ISO_8601 "ISO8601 Standard"
 [mesos]: https://mesos.apache.org/ "Apache Mesos"
+[mainLoop]: https://github.com/mesos/chronos/blob/be96c4540b331b08d9742442e82c4516b4eaee85/src/main/scala/org/apache/mesos/chronos/scheduler/jobs/JobScheduler.scala#L469-L498
