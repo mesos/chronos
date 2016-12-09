@@ -34,7 +34,7 @@ Internally, the Chronos scheduler main loop is quite simple. The pattern is as f
 
 Furthermore, a dependent job will be queued for execution once all parents have successfully completed at least once since the last time it ran. After the dependent job runs, the cycle resets.
 
-This code lives within the `mainLoop()` method, (and can be found here)[mainLoop].
+This code lives within the `mainLoop()` method, [and can be found here][mainLoop].
 
 Additionally, Chronos has a number of advanced features to help you build whatever it is you may be trying to. It can:
 
