@@ -9,7 +9,7 @@ import org.apache.mesos.Protos.ContainerInfo.DockerInfo
 import org.apache.mesos.Protos.Environment.Variable
 import org.apache.mesos.Protos._
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, Fetch, TaskUtils, Volume}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, ContainerType, Fetch, TaskUtils}
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
