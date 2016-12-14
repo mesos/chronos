@@ -31,7 +31,7 @@ class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
 
     var parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-    val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.HOST, true)
+    val container = DockerContainer("dockerImage", volumes, parameters, "HOST", true)
 
     val constraints = Seq(
       EqualsConstraint("rack", "rack-1"),
@@ -92,6 +92,56 @@ class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
       ))
 
       defaultEnv must_== toMap(target.envs(taskId, testJob, offer).build())
+    }
+  }
+
+  "MesosTaskBuilder" should {
+    "create simple container info with HOST networking" in {
+      val target = new MesosTaskBuilder(mock[SchedulerConfiguration])
+      val schedule = "R/2012-01-01T00:00:01.000Z/PT1M"
+      val containerInfo = target.createContainerInfo(ScheduleBasedJob(schedule, "sample-name", "sample-command",
+        container = DockerContainer("image1", Seq(), Seq(), "host", forcePullImage = false)))
+      containerInfo.toString must_==
+        """|type: DOCKER
+          |docker {
+          |  image: "image1"
+          |  network: HOST
+          |  force_pull_image: false
+          |}
+          |""".stripMargin
+    }
+
+    "create simple container info with BRIDGE networking" in {
+      val target = new MesosTaskBuilder(mock[SchedulerConfiguration])
+      val schedule = "R/2012-01-01T00:00:01.000Z/PT1M"
+      val containerInfo = target.createContainerInfo(ScheduleBasedJob(schedule, "sample-name", "sample-command",
+        container = DockerContainer("image1", Seq(), Seq(), "bridge", forcePullImage = false)))
+      containerInfo.toString must_==
+        """|type: DOCKER
+          |docker {
+          |  image: "image1"
+          |  network: BRIDGE
+          |  force_pull_image: false
+          |}
+          |""".stripMargin
+    }
+
+    "create container info with custom network" in {
+      val target = new MesosTaskBuilder(mock[SchedulerConfiguration])
+      val schedule = "R/2012-01-01T00:00:01.000Z/PT1M"
+      val containerInfo = target.createContainerInfo(ScheduleBasedJob(schedule, "sample-name", "sample-command",
+        container = DockerContainer("image1", Seq(), Seq(), "custom:user:network_1", forcePullImage = false)))
+      containerInfo.toString must_==
+        """|type: DOCKER
+          |docker {
+          |  image: "image1"
+          |  network: USER
+          |  force_pull_image: false
+          |}
+          |network_infos {
+          |  name: "custom:user:network_1"
+          |}
+          |""".stripMargin
     }
   }
 }
