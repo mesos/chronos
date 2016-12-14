@@ -20,13 +20,6 @@
             }
           ]
         }
-      },
-      {
-        "mode": "RW",
-        "containerPath": "test",
-        "persistent": {
-          "size": 100
-        }
       }
     ]
   },

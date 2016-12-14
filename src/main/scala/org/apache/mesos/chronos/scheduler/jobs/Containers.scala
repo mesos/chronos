@@ -32,14 +32,10 @@ case class ExternalVolume(
                            @JsonProperty provider: String,
                            @JsonProperty options: Seq[Parameter])
 
-case class PersistentVolume(
-                           @JsonProperty size: Int)
-
 case class Volume(
                    @JsonProperty hostPath: Option[String],
                    @JsonProperty containerPath: String,
                    @JsonProperty mode: Option[VolumeMode],
-                   @JsonProperty persistent: Option[PersistentVolume],
                    @JsonProperty external: Option[ExternalVolume])
 
 case class Container(

@@ -3,7 +3,7 @@ package org.apache.mesos.chronos.utils
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
 import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, ContainerType, DependencyBasedJob, ScheduleBasedJob}
+import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
 
 /**
   * Custom JSON serializer for jobs.
@@ -151,13 +151,6 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         v.mode.foreach { mode =>
           json.writeFieldName("mode")
           json.writeString(mode.toString)
-        }
-        v.persistent.foreach { persistent =>
-          json.writeFieldName("persistent")
-          json.writeStartObject()
-          json.writeFieldName("size")
-          json.writeNumber(persistent.size)
-          json.writeEndObject()
         }
         v.external.foreach { external =>
           json.writeFieldName("external")

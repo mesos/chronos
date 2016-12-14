@@ -199,13 +199,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
               ))
               else None
 
-            val persistent =
-              if (node.has("persistent")) Option(PersistentVolume(
-                node.get("persistent").get("size").asInt
-              ))
-              else None
-
-            Volume(hostPath, node.get("containerPath").asText, mode, persistent, external)
+            Volume(hostPath, node.get("containerPath").asText, mode, external)
         }.foreach(volumes.add)
       }
 

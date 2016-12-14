@@ -25,13 +25,13 @@ class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
 
   val job = {
     val volumes = Seq(
-      Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW), None, None),
-      Volume(None, "container/dir", None, None, None)
+      Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW), None),
+      Volume(None, "container/dir", None, None)
     )
 
     val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-    val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.HOST, None, true)
+    val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.HOST, None)
 
     val constraints = Seq(
       EqualsConstraint("rack", "rack-1"),

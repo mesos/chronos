@@ -23,8 +23,8 @@ class SerDeTest extends SpecificationWithJUnit {
       )
 
       val volumes = Seq(
-        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RO), None, None),
-        Volume(None, "container/dir", None, None, None)
+        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RO), None),
+        Volume(None, "container/dir", None, None)
       )
 
       val forcePullImage = false
@@ -70,8 +70,8 @@ class SerDeTest extends SpecificationWithJUnit {
       )
 
       val volumes = Seq(
-        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW), None, None),
-        Volume(None, "container/dir", None, None, None)
+        Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW), None),
+        Volume(None, "container/dir", None, None)
       )
 
       val forcePullImage = true
