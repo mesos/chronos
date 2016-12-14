@@ -19,8 +19,8 @@ object NetworkMode extends Enumeration {
 object ContainerType extends Enumeration {
   type ContainerType = Value
 
-  // Docker or Mesos
-  val DOCKER, MESOS = Value
+  // Docker, Mesos and USER
+  val DOCKER, MESOS, USER = Value
 }
 
 import org.apache.mesos.chronos.scheduler.jobs.NetworkMode._
