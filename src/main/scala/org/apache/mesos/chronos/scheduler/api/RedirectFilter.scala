@@ -20,7 +20,10 @@ import scala.language.postfixOps
   *
   * @author Florian Leibert (flo@leibert.de)
   */
-class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: SchedulerConfiguration with HttpConf) extends Filter {
+class RedirectFilter @Inject()(
+    val jobScheduler: JobScheduler,
+    val config: SchedulerConfiguration with HttpConf)
+    extends Filter {
   val log: Logger = Logger.getLogger(getClass.getName)
 
   def init(filterConfig: FilterConfig) {}
@@ -45,8 +48,8 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: Sched
 
             val proxy =
               buildUrl(leaderData, request)
-                .openConnection().asInstanceOf[HttpURLConnection]
-
+                .openConnection()
+                .asInstanceOf[HttpURLConnection]
 
             val names = request.getHeaderNames
             // getHeaderNames() and getHeaders() are known to return null, see:
@@ -96,9 +99,10 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: Sched
             case t: Exception =>
               if ((200 to 299) contains proxyStatus) {
                 log.log(Level.WARNING, "Exception while proxying!", t)
-                response
-                  .sendError(500,
-                    "Error proxying request to leader (maybe the leadership just changed?) Error: " + ExceptionUtils.getStackTrace(t))
+                response.sendError(
+                  500,
+                  "Error proxying request to leader (maybe the leadership just changed?)\n\nError:\n" + ExceptionUtils
+                    .getStackTrace(t))
               }
           }
         }
@@ -116,7 +120,9 @@ class RedirectFilter @Inject()(val jobScheduler: JobScheduler, val config: Sched
 
   def buildUrl(leaderData: String, request: HttpServletRequest) = {
     if (request.getQueryString != null) {
-      new URL("http://%s%s?%s".format(leaderData, request.getRequestURI, request.getQueryString))
+      new URL(
+        "http://%s%s?%s"
+          .format(leaderData, request.getRequestURI, request.getQueryString))
     } else {
       new URL("http://%s%s".format(leaderData, request.getRequestURI))
     }
