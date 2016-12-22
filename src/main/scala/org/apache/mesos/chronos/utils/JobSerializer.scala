@@ -138,6 +138,45 @@ class JobSerializer extends JsonSerializer[BaseJob] {
           json.writeFieldName("networkName")
           json.writeString(networkName)
       }
+      json.writeFieldName("networkInfos")
+      json.writeStartArray()
+      baseJob.container.networkInfos.foreach { n =>
+        json.writeStartObject()
+        json.writeFieldName("name")
+        json.writeString(n.name)
+        n.protocol.foreach { p =>
+          json.writeFieldName("protocol")
+          json.writeString(p.toString)
+        }
+        json.writeFieldName("labels")
+        json.writeStartArray()
+        n.labels.foreach { label =>
+          json.writeStartObject()
+          json.writeFieldName("key")
+          json.writeString(label.key)
+          json.writeFieldName("value")
+          json.writeString(label.value)
+          json.writeEndObject()
+        }
+        json.writeEndArray()
+        json.writeFieldName("portMappings")
+        json.writeStartArray()
+        n.portMappings.foreach{ p =>
+          json.writeStartObject()
+          json.writeFieldName("hostPort")
+          json.writeString(p.hostPort.toString)
+          json.writeFieldName("containerPort")
+          json.writeString(p.containerPort.toString)
+          p.protocol.foreach { protocol =>
+            json.writeFieldName("protocol")
+            json.writeString(protocol)
+          }
+          json.writeEndObject()
+        }
+        json.writeEndArray()
+        json.writeEndObject()
+      }
+      json.writeEndArray()
       json.writeFieldName("volumes")
       json.writeStartArray()
       baseJob.container.volumes.foreach { v =>

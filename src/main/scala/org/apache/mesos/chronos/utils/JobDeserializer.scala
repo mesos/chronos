@@ -218,6 +218,40 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
           Option(containerNode.get("networkName").asText)
         else None
 
+      val networks = scala.collection.mutable.ListBuffer[Network]()
+      if (containerNode.has("networkInfos")) {
+        containerNode.get("networkInfos").elements().map {
+          case node: ObjectNode =>
+            val name = node.get("name").asText()
+            val protocol =
+              if (node.has("protocol") && node.get("protocol") != null)
+                Option(ProtocolType.withName(node.get("protocol").asText))
+              else None
+            val labels = scala.collection.mutable.ListBuffer[Label]()
+            if(node.has("labels")) {
+              node.get("labels").elements().map {
+                case node: ObjectNode =>
+                  Label(node.get("key").asText(), node.get("value").asText)
+              }.foreach(labels.add)
+            }
+            val portMappings = scala.collection.mutable.ListBuffer[PortMapping]()
+            if(node.has("portMappings")) {
+              node.get("portMappings").elements().map {
+                case pm: ObjectNode =>
+                  val hostPort = pm.get("hostPort").asInt()
+                  val containerPort = pm.get("containerPort").asInt()
+                  val protocol =
+                    if(pm.has("protocol") && pm.get("protocol") != null)
+                      Option(pm.get("protocol").asText())
+                    else None
+                  PortMapping(hostPort, containerPort, protocol)
+              }.foreach(portMappings.add)
+            }
+
+            Network(name, protocol, labels, portMappings)
+        }.foreach(networks.add)
+      }
+
       val parameters = scala.collection.mutable.ListBuffer[Parameter]()
       if (containerNode.has("parameters")) {
         containerNode.get("parameters").elements().map {
@@ -226,7 +260,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         }.foreach(parameters.add)
       }
 
-      container = Container(containerNode.get("image").asText, containerType, volumes, parameters, networkMode, networkName, forcePullImage)
+      container = Container(containerNode.get("image").asText, containerType, volumes, parameters, networkMode, networkName, networks, forcePullImage)
     }
 
     val constraints = scala.collection.mutable.ListBuffer[Constraint]()

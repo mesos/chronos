@@ -218,6 +218,18 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
           .setName(n).build()
         )
     }
+
+    job.container.networkInfos.foreach {
+      n => builder.addNetworkInfos(NetworkInfo.newBuilder()
+        .setName(n.name)
+        .setLabels(Labels.newBuilder()
+          .addAllLabels(n.labels.map(_.toProto()).asJava).build()
+        )
+        // TODO add protocol, portMappings, requires mesos >= 1.1.0
+        .build()
+      )
+    }
+
     builder.build
   }
 

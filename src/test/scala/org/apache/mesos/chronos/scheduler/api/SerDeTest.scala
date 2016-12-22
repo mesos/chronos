@@ -27,11 +27,16 @@ class SerDeTest extends SpecificationWithJUnit {
         Volume(None, "container/dir", None, None)
       )
 
+      val networks = Seq(
+        Network("testnet", Option(ProtocolType.IPv4), Seq(), Seq()),
+        Network("testnet2", Option(ProtocolType.IPv4), Seq(Label("testlabel", "testvalue")), Seq())
+      )
+
       val forcePullImage = false
 
       val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-      val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.BRIDGE, None, forcePullImage)
+      val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.BRIDGE, None, networks, forcePullImage)
 
       val arguments = Seq(
         "-testOne"
@@ -74,10 +79,15 @@ class SerDeTest extends SpecificationWithJUnit {
         Volume(None, "container/dir", None, None)
       )
 
+      val networks = Seq(
+        Network("testnet", Option(ProtocolType.IPv4), Seq(), Seq()),
+        Network("testnet2", Option(ProtocolType.IPv4), Seq(Label("testlabel", "testvalue")), Seq())
+      )
+
       val forcePullImage = true
       val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
-      val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.HOST, None, forcePullImage)
+      val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.HOST, None, networks, forcePullImage)
 
       val arguments = Seq(
         "-testOne"

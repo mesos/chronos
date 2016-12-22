@@ -292,7 +292,11 @@ To configure it, an additional `container` argument is required, which contains 
     "type": "MESOS",
     "forcePullImage": true,
     "image": "debian",
-    "networkName": "mynet",
+    "networkInfos": [
+      {
+        "name": "mynet"
+      }
+    ],
     "volumes": [
        {
          "containerPath": "/var/log/",
@@ -335,14 +339,24 @@ Here is a more elaborate example with a Mesos container, a network name, a mount
     "type": "MESOS",
     "forcePullImage": true,
     "image": "debian",
-    "networkName": "mynet",
+    "networkInfos": [
+      {
+        "name": "mynet",
+        "labels": [
+          {
+            "key": "service",
+            "value": "test"
+          }
+        ]
+      }
+    ],
     "volumes": [
-       {
-         "containerPath": "/var/log/",
-         "hostPath": "/logs/",
-         "mode": "RW"
-       },
-       {
+      {
+        "containerPath": "/var/log/",
+        "hostPath": "/logs/",
+        "mode": "RW"
+      },
+      {
         "mode": "RW",
         "containerPath": "/tmp",
         "external": {
