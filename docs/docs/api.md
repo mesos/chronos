@@ -17,6 +17,8 @@ All examples in this section assume that you've found a running leader at `chron
 - [Adding a Scheduled Job](#adding-a-scheduled-job)
 - [Adding a Dependent Job](#adding-a-dependent-job)
 - [Adding a Docker Job](#adding-a-docker-job)
+- [Adding a Containerized Job](#adding-a-containerized-job)
+- [Using External Volumes](#using-external-volumes)
 - [Updating Task Progress](#updating-task-progress)
 - [Describing the Dependency Graph](#describing-the-dependency-graph)
 - [Asynchronous Jobs](#asynchronous-jobs)
@@ -24,6 +26,7 @@ All examples in this section assume that you've found a running leader at `chron
 - [Job Configuration](#job-configuration)
 - [Sample Job](#sample-job)
 - [Constraints](#constraints)
+
 
 
 ## Leaders
@@ -278,6 +281,99 @@ There is also support for passing in arbitrary docker config options.
 }
 ```
 
+## Adding a Containerized Job
+
+A containerized job takes the same format as a scheduled job or a dependency job and runs on a Mesos container.
+To configure it, an additional `container` argument is required, which contains a type (required), an image (required), a network name (optional), mounted volumes (optional) and whether Mesos should always pull the latest image before executing or not (optional).
+
+```json
+{
+  "container": {
+    "type": "MESOS",
+    "forcePullImage": true,
+    "image": "debian",
+    "networkInfos": [
+      {
+        "name": "mynet"
+      }
+    ],
+    "volumes": [
+       {
+         "containerPath": "/var/log/",
+         "hostPath": "/logs/",
+         "mode": "RW"
+       }
+      }
+    ]
+  }
+}
+```
+## Using External Volumes
+
+Docker and Mesos Containerized jobs can use external volumes, typically volumes mounted using docker volume plugins.
+To configure it, do not add a `hostPath` argument, instead add an `external` argument, which contain a `name`, `provider`, and `options` (optional).
+
+```json
+"volumes": [
+   {
+    "mode": "RW",
+    "containerPath": "/tmp",
+    "external": {
+      "name": "test",
+      "provider": "local-persist",
+      "options": [
+        {
+          "key": "mountpoint",
+          "value": "/tmp/test"
+        }
+      ]
+    }
+  }
+]
+```
+
+Here is a more elaborate example with a Mesos container, a network name, a mounted and an external volumes.
+```json
+{
+  "container": {
+    "type": "MESOS",
+    "forcePullImage": true,
+    "image": "debian",
+    "networkInfos": [
+      {
+        "name": "mynet",
+        "labels": [
+          {
+            "key": "service",
+            "value": "test"
+          }
+        ]
+      }
+    ],
+    "volumes": [
+      {
+        "containerPath": "/var/log/",
+        "hostPath": "/logs/",
+        "mode": "RW"
+      },
+      {
+        "mode": "RW",
+        "containerPath": "/tmp",
+        "external": {
+          "name": "test",
+          "provider": "local-persist",
+          "options": [
+            {
+              "key": "mountpoint",
+              "value": "/tmp/test"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+```
 ## Updating Task Progress
 
 Task progress can be updated by providing the number of additional elements processed. This will increment the existing count of elements processed.
