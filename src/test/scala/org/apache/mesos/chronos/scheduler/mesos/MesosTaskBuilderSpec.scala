@@ -2,7 +2,7 @@ package org.apache.mesos.chronos.scheduler.mesos
 
 import org.apache.mesos.Protos._
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{Parameter, Volume, _}
+import org.apache.mesos.chronos.scheduler.jobs.{Label, Parameter, Volume, _}
 import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.SpecificationWithJUnit
@@ -25,13 +25,18 @@ class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
 
   val job = {
     val volumes = Seq(
-      Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW)),
-      Volume(None, "container/dir", None)
+      Volume(Option("/host/dir"), "container/dir", Option(VolumeMode.RW), None),
+      Volume(None, "container/dir", None, None)
     )
 
-    var parameters = scala.collection.mutable.ListBuffer[Parameter]()
+    val networks = Seq(
+      Network("testnet", None, Seq(), Seq()),
+      Network("testnet", None, Seq(Label("testlabel", "testvalue")), Seq())
+    )
 
-    val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.HOST, true)
+    val parameters = scala.collection.mutable.ListBuffer[Parameter]()
+
+    val container = Container("dockerImage", ContainerType.DOCKER, volumes, parameters, NetworkMode.HOST, None, networks, forcePullImage = true)
 
     val constraints = Seq(
       EqualsConstraint("rack", "rack-1"),
