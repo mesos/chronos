@@ -90,6 +90,18 @@ export default class JobForm {
       getOptions: this.getContainerNetworkOptions,
     },
     {
+      name: 'container.networkName',
+      label: 'Container Network Name',
+      description: 'Container network name',
+      sync: this.syncStringField,
+      value: '',
+      defaultValue: '',
+      error: '',
+      valid: true,
+      type: 'textinput',
+      advanced: true,
+    },
+    {
       name: 'container.type',
       label: 'Container Type',
       description: 'Container type',
@@ -218,12 +230,8 @@ export default class JobForm {
     return [
       {label: 'BRIDGE', value: 'BRIDGE'},
       {label: 'HOST', value: 'HOST'},
+      {label: 'USER', value: 'USER'},
     ]
-    var options = []
-    jobSummaryStore.jobNames.forEach(j => {
-      options.push({label: j, value: j})
-    })
-    return options
   }
 
   getContainerTypeOptions(jobSummaryStore) {
