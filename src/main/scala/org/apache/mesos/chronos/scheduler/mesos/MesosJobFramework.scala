@@ -73,7 +73,7 @@ class MesosJobFramework @Inject()(
 
   def getReservedResources(offer: Offer): (Double, Double) = {
     val resources = offer.getResourcesList.asScala
-    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != "*" })
+    val reservedResources = resources.filter({ x => x.hasRole && x.getRole != config.mesosRole()})
     (
       getScalarValueOrElse(reservedResources.find(x => x.getName == "cpus"), 0),
       getScalarValueOrElse(reservedResources.find(x => x.getName == "mem"), 0)
