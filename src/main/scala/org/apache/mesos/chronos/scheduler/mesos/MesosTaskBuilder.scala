@@ -84,7 +84,10 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
           .setValue("\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
           .setEnvironment(environment)
       } else {
-        command.setValue(job.command)
+        val jobHasCmd = !job.command.isEmpty
+        if (jobHasCmd) command.setValue(job.command)
+
+        command
           .setShell(job.shell)
           .setEnvironment(environment)
           .addAllArguments(job.arguments.asJava)

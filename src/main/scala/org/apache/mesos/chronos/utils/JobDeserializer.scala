@@ -33,7 +33,12 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
     val node = codec.readTree[JsonNode](jsonParser)
 
     val name = node.get("name").asText
-    val command = node.get("command").asText
+
+    val command =
+      if (node.has("command") && node.get("command") != null)
+        node.get("command").asText
+      else ""
+
     val shell =
       if (node.has("shell") && node.get("shell") != null)
         node.get("shell").asBoolean
