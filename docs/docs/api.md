@@ -21,7 +21,6 @@ All examples in this section assume that you've found a running leader at `chron
 - [Using External Volumes](#using-external-volumes)
 - [Updating Task Progress](#updating-task-progress)
 - [Describing the Dependency Graph](#describing-the-dependency-graph)
-- [Asynchronous Jobs](#asynchronous-jobs)
 - [Obtaining Remote Executables](#obtaining-remote-executables)
 - [Job Configuration](#job-configuration)
 - [Sample Job](#sample-job)
