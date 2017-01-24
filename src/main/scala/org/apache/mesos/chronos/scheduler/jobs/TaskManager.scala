@@ -173,14 +173,7 @@ class TaskManager @Inject()(
         jobsObserver.apply(JobExpired(jobOption.get, taskId))
         None
       } else {
-        val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId)
-        var job = jobOption.get
-
-        if (jobArguments != null && !jobArguments.isEmpty) {
-          job = JobUtils.getJobWithArguments(job, jobArguments)
-        }
-
-        Some(taskId, job)
+        Some(taskId, jobOption.get)
       }
     }
   }
