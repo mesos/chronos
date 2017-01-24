@@ -9,12 +9,7 @@ import org.apache.mesos.Protos.ContainerInfo.DockerInfo
 import org.apache.mesos.Protos.Environment.Variable
 import org.apache.mesos.Protos._
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs.{
-  BaseJob,
-  ContainerType,
-  Fetch,
-  TaskUtils
-}
+import org.apache.mesos.chronos.scheduler.jobs.{Volume => _, _}
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
@@ -86,22 +81,30 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     if (job.executor.nonEmpty) {
       appendExecutorData(taskInfo, job, environment, uriCommand)
     } else {
+      val jobArguments = TaskUtils.getJobArgumentsForTaskId(taskId.getValue)
+      val jobWithCommand = if (jobArguments != null && !jobArguments.isEmpty) {
+        JobUtils.getJobWithArguments(job, jobArguments)
+      } else {
+        job
+      }
+
       val command = CommandInfo.newBuilder()
-      if (job.command.startsWith("http") || job.command.startsWith("ftp")) {
+      if (jobWithCommand.command.startsWith("http") || jobWithCommand.command
+            .startsWith("ftp")) {
         val uri1 = CommandInfo.URI
           .newBuilder()
-          .setValue(job.command)
+          .setValue(jobWithCommand.command)
           .setExecutable(true)
           .build()
 
         command
           .addUris(uri1)
-          .setValue(
-            "\"." + job.command.substring(job.command.lastIndexOf("/")) + "\"")
+          .setValue("\"." + jobWithCommand.command.substring(
+            jobWithCommand.command.lastIndexOf("/")) + "\"")
           .setEnvironment(environment)
       } else {
-        val jobHasCmd = !job.command.isEmpty
-        if (jobHasCmd) command.setValue(job.command)
+        val jobHasCmd = !jobWithCommand.command.isEmpty
+        if (jobHasCmd) command.setValue(jobWithCommand.command)
 
         command
           .setShell(job.shell)
