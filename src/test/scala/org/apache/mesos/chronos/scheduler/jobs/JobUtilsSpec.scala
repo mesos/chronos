@@ -30,7 +30,10 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     // Get the schedule stream, which should have been skipped forward
     val stream = JobUtils.skipForward(job, now)
-    val scheduledTime = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get._2
+    val scheduledTime = Iso8601Expressions
+      .parse(stream.get.schedule, job.scheduleTimeZone)
+      .get
+      ._2
 
     // Ensure that this job runs today
     scheduledTime.toLocalDate must_== now.toLocalDate
@@ -43,7 +46,10 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     // Get the schedule stream, which should have been skipped forward
     val stream = JobUtils.skipForward(job, now)
-    val scheduledTime = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get._2
+    val scheduledTime = Iso8601Expressions
+      .parse(stream.get.schedule, job.scheduleTimeZone)
+      .get
+      ._2
 
     // Ensure that this job runs on the first of next month
     scheduledTime.isAfter(now) must beTrue
@@ -57,7 +63,10 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     // Get the schedule stream, which should have been skipped forward
     val stream = JobUtils.skipForward(job, now)
-    val scheduledTime = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get._2
+    val scheduledTime = Iso8601Expressions
+      .parse(stream.get.schedule, job.scheduleTimeZone)
+      .get
+      ._2
 
     scheduledTime.toLocalDate must_== now.toLocalDate.plusDays(1)
   }
@@ -69,10 +78,72 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     // Get the schedule stream, which should have been skipped forward
     val stream = JobUtils.skipForward(job, now)
-    val (repeat, scheduledTime, period) = Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
 
+    repeat must_== -1
     period.toStandardSeconds.getSeconds must_== 0
     scheduledTime.toLocalDate must_== now.toLocalDate.minusDays(1)
+  }
+
+  "Skip forward once and stop for job in the past" in {
+    val now = new DateTime()
+    val schedule = s"R1/${now.minusDays(1).toDateTimeISO.toString}/PT0S"
+    val job = ScheduleBasedJob(schedule, "sample-name", "sample-command")
+
+    // Get the schedule stream, which should have been skipped forward
+    val stream = JobUtils.skipForward(job, now)
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+
+    repeat must_== 0
+    period.toStandardSeconds.getSeconds must_== 0
+    scheduledTime.toLocalDate must_== now.toLocalDate.minusDays(1)
+  }
+
+  "Skip forward once and stop for R1 and P1D" in {
+    val now = new DateTime()
+    val schedule = s"R1/${now.toDateTimeISO.toString}/P1D"
+    val job = ScheduleBasedJob(schedule, "sample-name", "sample-command")
+
+    // Get the schedule stream, which should have been skipped forward
+    val stream = JobUtils.skipForward(job, now)
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+
+    repeat must_== 0
+    period.toStandardDays.getDays must_== 1
+    scheduledTime.toLocalDate must_== now.toLocalDate
+  }
+
+  "Skip forward once and stop for R3 and P1D" in {
+    val now = new DateTime()
+    val schedule = s"R3/${now.toDateTimeISO.toString}/P1D"
+    val job = ScheduleBasedJob(schedule, "sample-name", "sample-command")
+
+    // Get the schedule stream, which should have been skipped forward
+    val stream = JobUtils.skipForward(job, now)
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+
+    repeat must_== 2
+    period.toStandardDays.getDays must_== 1
+    scheduledTime.toLocalDate must_== now.toLocalDate
+  }
+
+  "Skip forward once and stop for R1 and PT1S" in {
+    val now = new DateTime()
+    val schedule = s"R1/${now.toDateTimeISO.toString}/PT1S"
+    val job = ScheduleBasedJob(schedule, "sample-name", "sample-command")
+
+    // Get the schedule stream, which should have been skipped forward
+    val stream = JobUtils.skipForward(job, now)
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+
+    repeat must_== 0
+    period.toStandardSeconds.getSeconds must_== 1
+    scheduledTime.toLocalDate must_== now.toLocalDate
   }
 
   "Can get job with arguments" in {
@@ -81,10 +152,15 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
     val command = "sample-command"
     val commandWithArguments = command + " " + arguments
 
-    val scheduledJob = ScheduleBasedJob(schedule, "sample-name", command = command)
-    val dependencyJob = DependencyBasedJob(parents = Set("sample-name"), "sample-name2", command = command)
-    val scheduledJobWithArguments = JobUtils.getJobWithArguments(scheduledJob, arguments)
-    val dependencyJobWithArguments = JobUtils.getJobWithArguments(dependencyJob, arguments)
+    val scheduledJob =
+      ScheduleBasedJob(schedule, "sample-name", command = command)
+    val dependencyJob = DependencyBasedJob(parents = Set("sample-name"),
+                                           "sample-name2",
+                                           command = command)
+    val scheduledJobWithArguments =
+      JobUtils.getJobWithArguments(scheduledJob, arguments)
+    val dependencyJobWithArguments =
+      JobUtils.getJobWithArguments(dependencyJob, arguments)
 
     scheduledJobWithArguments.command.toString must_== commandWithArguments
     dependencyJobWithArguments.command.toString must_== commandWithArguments

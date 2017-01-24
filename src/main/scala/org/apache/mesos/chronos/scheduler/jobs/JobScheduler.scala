@@ -246,11 +246,6 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
 
       log.fine("Cleaning up finished task '%s'".format(taskId))
 
-      /* TODO(FL): Fix.
-         Cleanup potentially exhausted job. Note, if X tasks were fired within a short period of time (~ execution time
-        of the job, the first returning Finished-task may trigger deletion of the job! This is a known limitation and
-        needs some work but should only affect long running frequent finite jobs or short finite jobs with a tiny pause
-        in between */
       job match {
         case job: ScheduleBasedJob =>
           val scheduleBasedJob: ScheduleBasedJob =
@@ -315,7 +310,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
             taskManager.enqueue(TaskUtils.getTaskId(dependentJob, date),
                                 dependentJob.highPriority)
 
-            log.fine("Enqueued depedent job." + x)
+            log.fine("Enqueued dependent job" + x)
           }
       }
     } else {
@@ -619,7 +614,7 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
             jobGraph.removeVertex(job)
           case Some(parentJobs) =>
             parentJobs.foreach {
-              //Setup all the dependencies
+              // Setup all the dependencies
               parentJob: BaseJob =>
                 jobGraph.addDependency(parentJob.name, job.name)
             }
