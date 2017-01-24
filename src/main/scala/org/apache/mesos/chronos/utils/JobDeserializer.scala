@@ -157,21 +157,25 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       }
     }
 
-    var fetch = scala.collection.mutable.ListBuffer[Fetch]()
+    val fetch = scala.collection.mutable.ListBuffer[Fetch]()
     if (node.has("fetch")) {
       node
         .get("fetch")
         .elements()
         .map {
           case node: ObjectNode => {
-            val uri = Option(node.get("uri")).map {
-              _.asText()
-            }.getOrElse("")
+            val uri = Option(node.get("uri"))
+              .map {
+                _.asText()
+              }
+              .getOrElse("")
             val executable =
               Option(node.get("executable")).exists(_.asBoolean())
             val cache = Option(node.get("cache")).exists(_.asBoolean())
             val extract = Option(node.get("extract")).forall(_.asBoolean())
-            Fetch(uri, executable, cache, extract)
+            val output_file =
+              Option(node.get("output_file")).map(_.asText()).getOrElse("")
+            Fetch(uri, output_file, executable, cache, extract)
           }
         }
         .foreach(fetch.add)
@@ -374,73 +378,77 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       for (parent <- node.path("parents")) {
         parentList += parent.asText
       }
-      DependencyBasedJob(parents = parentList.toSet,
-                         name = name,
-                         command = command,
-                         successCount = successCount,
-                         errorCount = errorCount,
-                         executor = executor,
-                         executorFlags = executorFlags,
-                         taskInfoData = taskInfoData,
-                         retries = retries,
-                         owner = owner,
-                         ownerName = ownerName,
-                         description = description,
-                         lastError = lastError,
-                         lastSuccess = lastSuccess,
-                         cpus = cpus,
-                         disk = disk,
-                         mem = mem,
-                         disabled = disabled,
-                         concurrent = concurrent,
-                         errorsSinceLastSuccess = errorsSinceLastSuccess,
-                         fetch = fetch,
-                         uris = uris,
-                         highPriority = highPriority,
-                         runAsUser = runAsUser,
-                         container = container,
-                         environmentVariables = environmentVariables,
-                         shell = shell,
-                         arguments = arguments,
-                         softError = softError,
-                         dataProcessingJobType = dataProcessingJobType,
-                         constraints = constraints)
+      DependencyBasedJob(
+        parents = parentList.toSet,
+        name = name,
+        command = command,
+        successCount = successCount,
+        errorCount = errorCount,
+        executor = executor,
+        executorFlags = executorFlags,
+        taskInfoData = taskInfoData,
+        retries = retries,
+        owner = owner,
+        ownerName = ownerName,
+        description = description,
+        lastError = lastError,
+        lastSuccess = lastSuccess,
+        cpus = cpus,
+        disk = disk,
+        mem = mem,
+        disabled = disabled,
+        concurrent = concurrent,
+        errorsSinceLastSuccess = errorsSinceLastSuccess,
+        fetch = fetch,
+        uris = uris,
+        highPriority = highPriority,
+        runAsUser = runAsUser,
+        container = container,
+        environmentVariables = environmentVariables,
+        shell = shell,
+        arguments = arguments,
+        softError = softError,
+        dataProcessingJobType = dataProcessingJobType,
+        constraints = constraints
+      )
     } else if (node.has("schedule")) {
       val scheduleTimeZone =
         if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText
         else ""
-      ScheduleBasedJob(node.get("schedule").asText,
-                       name = name,
-                       command = command,
-                       successCount = successCount,
-                       errorCount = errorCount,
-                       executor = executor,
-                       executorFlags = executorFlags,
-                       taskInfoData = taskInfoData,
-                       retries = retries,
-                       owner = owner,
-                       ownerName = ownerName,
-                       description = description,
-                       lastError = lastError,
-                       lastSuccess = lastSuccess,
-                       cpus = cpus,
-                       disk = disk,
-                       mem = mem,
-                       disabled = disabled,
-                       concurrent = concurrent,
-                       errorsSinceLastSuccess = errorsSinceLastSuccess,
-                       fetch = fetch,
-                       uris = uris,
-                       highPriority = highPriority,
-                       runAsUser = runAsUser,
-                       container = container,
-                       scheduleTimeZone = scheduleTimeZone,
-                       environmentVariables = environmentVariables,
-                       shell = shell,
-                       arguments = arguments,
-                       softError = softError,
-                       dataProcessingJobType = dataProcessingJobType,
-                       constraints = constraints)
+      ScheduleBasedJob(
+        node.get("schedule").asText,
+        name = name,
+        command = command,
+        successCount = successCount,
+        errorCount = errorCount,
+        executor = executor,
+        executorFlags = executorFlags,
+        taskInfoData = taskInfoData,
+        retries = retries,
+        owner = owner,
+        ownerName = ownerName,
+        description = description,
+        lastError = lastError,
+        lastSuccess = lastSuccess,
+        cpus = cpus,
+        disk = disk,
+        mem = mem,
+        disabled = disabled,
+        concurrent = concurrent,
+        errorsSinceLastSuccess = errorsSinceLastSuccess,
+        fetch = fetch,
+        uris = uris,
+        highPriority = highPriority,
+        runAsUser = runAsUser,
+        container = container,
+        scheduleTimeZone = scheduleTimeZone,
+        environmentVariables = environmentVariables,
+        shell = shell,
+        arguments = arguments,
+        softError = softError,
+        dataProcessingJobType = dataProcessingJobType,
+        constraints = constraints
+      )
     } else {
       /* schedule now */
       ScheduleBasedJob(
@@ -473,7 +481,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         arguments = arguments,
         softError = softError,
         dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints)
+        constraints = constraints
+      )
     }
   }
 }
