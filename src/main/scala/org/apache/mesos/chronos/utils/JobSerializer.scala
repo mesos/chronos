@@ -2,8 +2,16 @@ package org.apache.mesos.chronos.utils
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider}
-import org.apache.mesos.chronos.scheduler.jobs.constraints.{EqualsConstraint, LikeConstraint, UnlikeConstraint}
-import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, ScheduleBasedJob}
+import org.apache.mesos.chronos.scheduler.jobs.constraints.{
+  EqualsConstraint,
+  LikeConstraint,
+  UnlikeConstraint
+}
+import org.apache.mesos.chronos.scheduler.jobs.{
+  BaseJob,
+  DependencyBasedJob,
+  ScheduleBasedJob
+}
 
 /**
   * Custom JSON serializer for jobs.
@@ -12,7 +20,9 @@ import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, DependencyBasedJob, Sch
   */
 class JobSerializer extends JsonSerializer[BaseJob] {
 
-  def serialize(baseJob: BaseJob, json: JsonGenerator, provider: SerializerProvider) {
+  def serialize(baseJob: BaseJob,
+                json: JsonGenerator,
+                provider: SerializerProvider) {
     json.writeStartObject()
     json.writeFieldName("name")
     json.writeString(baseJob.name)
@@ -89,6 +99,10 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeBoolean(f.cache)
       json.writeFieldName("extract")
       json.writeBoolean(f.extract)
+      if (f.output_file.nonEmpty) {
+        json.writeFieldName("output_file")
+        json.writeString(f.output_file)
+      }
       json.writeEndObject()
     }
     json.writeEndArray()
@@ -133,10 +147,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
       json.writeString(baseJob.container.image)
       json.writeFieldName("network")
       json.writeString(baseJob.container.network.toString)
-      baseJob.container.networkName.foreach {
-        networkName =>
-          json.writeFieldName("networkName")
-          json.writeString(networkName)
+      baseJob.container.networkName.foreach { networkName =>
+        json.writeFieldName("networkName")
+        json.writeString(networkName)
       }
       json.writeFieldName("networkInfos")
       json.writeStartArray()
@@ -161,7 +174,7 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeEndArray()
         json.writeFieldName("portMappings")
         json.writeStartArray()
-        n.portMappings.foreach{ p =>
+        n.portMappings.foreach { p =>
           json.writeStartObject()
           json.writeFieldName("hostPort")
           json.writeString(p.hostPort.toString)
@@ -266,7 +279,8 @@ class JobSerializer extends JsonSerializer[BaseJob] {
         json.writeFieldName("scheduleTimeZone")
         json.writeString(schedJob.scheduleTimeZone)
       case _ =>
-        throw new IllegalStateException("The job found was neither schedule based nor dependency based.")
+        throw new IllegalStateException(
+          "The job found was neither schedule based nor dependency based.")
     }
 
     json.writeEndObject()
