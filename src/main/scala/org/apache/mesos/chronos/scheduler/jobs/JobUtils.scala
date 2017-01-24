@@ -101,11 +101,8 @@ object JobUtils {
             new JobSchedule(Iso8601Expressions.create(rec, nStart, per),
                             job.name,
                             job.scheduleTimeZone))
-        } else if (rec < skip) {
-          log.warning("Filtered job as it is no longer valid.")
-          None
         } else {
-          val nRec = rec - (skip + 1)
+          val nRec = rec - 1
           val nStart = start.plus(per.multipliedBy(skip))
           log.warning(
             "Skipped forward %d iterations, iterations is now '%d' , modified start from '%s' to '%s"
