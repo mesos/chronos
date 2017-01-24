@@ -92,9 +92,6 @@
       <version>${scala.version}</version>
     </dependency>
 
-    <!-- Note: this is not yet available in a public maven repo.
-             If you use the installer, the version will be replaced
-             with the compiled version-->
     <dependency>
       <groupId>mesosphere</groupId>
       <artifactId>chaos_2.11</artifactId>
@@ -433,14 +430,6 @@
           </systemProperties>
         </configuration>
       </plugin>
-      <!-- TODO(FL): use this plugin to run a local version directly from maven <plugin>-->
-        <!--<groupId>org.codehaus.mojo</groupId>-->
-        <!--<artifactId>exec-maven-plugin</artifactId>-->
-        <!--<version>1.2.1</version>-->
-        <!--<configuration>-->
-          <!--<mainClass>${mainClass}</mainClass>-->
-          <!--</configuration>-->
-        <!--</plugin>-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -458,7 +447,6 @@
         </executions>
       </plugin>
 
-      <!-- TODO: Add maven/scalastyle-check -->
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <version>${maven-clean-plugin.version}</version>
