@@ -22,9 +22,8 @@ import org.joda.time.{DateTime, DateTimeZone}
 @Path(PathConstants.iso8601JobPath)
 @Produces(Array(MediaType.APPLICATION_JSON))
 @Consumes(Array(MediaType.APPLICATION_JSON))
-class Iso8601JobResource @Inject()(
-                                    val jobScheduler: JobScheduler,
-                                    val jobGraph: JobGraph) {
+class Iso8601JobResource @Inject()(val jobScheduler: JobScheduler,
+                                   val jobGraph: JobGraph) {
 
   val iso8601JobSubmissions = new AtomicLong(0)
   private val log = Logger.getLogger(getClass.getName)
@@ -37,8 +36,10 @@ class Iso8601JobResource @Inject()(
       if (oldJobOpt.isEmpty) {
         log.info("Received request for job:" + newJob.toString)
         require(JobUtils.isValidJobName(newJob.name),
-          "the job's name is invalid. Allowed names: '%s'".format(JobUtils.jobNamePattern.toString()))
-        if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
+                "the job's name is invalid. Allowed names: '%s'".format(
+                  JobUtils.jobNamePattern.toString()))
+        if (!Iso8601Expressions.canParse(newJob.schedule,
+                                         newJob.scheduleTimeZone)) {
           val message = s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
           return Response
             .status(Status.BAD_REQUEST)
@@ -48,8 +49,9 @@ class Iso8601JobResource @Inject()(
 
         Iso8601Expressions.parse(newJob.schedule, newJob.scheduleTimeZone) match {
           case Some((_, startDate, _)) =>
-            if (startDate.isBefore(new DateTime(DateTimeZone.UTC).minusYears(1))) {
-              val message = s"Scheduled start date '${startDate.toString}' is more than 1 year in the past!"
+            if (startDate.isBefore(DateTime.parse("1970-01-01T00:00:01.000Z"))) {
+              val message =
+                s"Scheduled start date '${startDate.toString}' is before 1970!"
               log.warning(message)
               return Response
                 .status(Status.BAD_REQUEST)
@@ -57,7 +59,8 @@ class Iso8601JobResource @Inject()(
                 .build()
             }
           case _ =>
-            val message = s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
+            val message =
+              s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
             log.warning(message)
             return Response
               .status(Status.BAD_REQUEST)
@@ -66,7 +69,8 @@ class Iso8601JobResource @Inject()(
         }
 
         if (!JobUtils.isValidURIDefinition(newJob)) {
-          val message = s"Tried to add both uri (deprecated) and fetch parameters on ${newJob.name}"
+          val message =
+            s"Tried to add both uri (deprecated) and fetch parameters on ${newJob.name}"
           log.warning(message)
           return Response
             .status(Status.BAD_REQUEST)
@@ -82,7 +86,8 @@ class Iso8601JobResource @Inject()(
       } else {
         val oldJob = oldJobOpt.get
 
-        if (!Iso8601Expressions.canParse(newJob.schedule, newJob.scheduleTimeZone)) {
+        if (!Iso8601Expressions.canParse(newJob.schedule,
+                                         newJob.scheduleTimeZone)) {
           val message = s"Cannot parse schedule '${newJob.schedule}' (wtf bro)"
           log.warning(message)
           return Response
@@ -94,16 +99,18 @@ class Iso8601JobResource @Inject()(
         oldJob match {
           case j: DependencyBasedJob =>
             val oldParents = jobGraph.parentJobs(j)
-            oldParents.foreach(x => jobGraph.removeDependency(x.name, oldJob.name))
+            oldParents.foreach(x =>
+              jobGraph.removeDependency(x.name, oldJob.name))
           case j: ScheduleBasedJob =>
         }
 
         jobScheduler.updateJob(oldJob, newJob)
 
-        log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
-          newJob.name,
-          new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
-          new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
+        log.info(
+          "Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
+            newJob.name,
+            new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
+            new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))
 
         Response.noContent().build()
       }
@@ -118,8 +125,9 @@ class Iso8601JobResource @Inject()(
         log.log(Level.WARNING, "Exception while serving request", ex)
         Response
           .serverError()
-          .entity(new ApiResult(ExceptionUtils.getStackTrace(ex),
-            status = Status.INTERNAL_SERVER_ERROR.toString))
+          .entity(
+            new ApiResult(ExceptionUtils.getStackTrace(ex),
+                          status = Status.INTERNAL_SERVER_ERROR.toString))
           .build
     }
   }
