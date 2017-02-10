@@ -402,7 +402,7 @@ Chronos allows describing the dependency graph and has an endpoint to return thi
 
 ## Obtaining Remote Executables
 
-When specifying the `command` field in your job hash, use `url-runner.bash` (make sure it's deployed on all slaves). Alternatively, you can also use a url in the `command` field, if your Mesos was compiled with cURL libraries.
+When specifying the `command` field in your job hash, use `url-runner.bash` (make sure it's deployed on all agents). Alternatively, you can also use a url in the `command` field, if your Mesos was compiled with cURL libraries.
 
 ## Job Configuration
 
@@ -437,7 +437,7 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `container`           | This contains the subfields for the Docker container: `type` (required), `image` (required), `forcePullImage` (optional), `network` (optional), and `volumes` (optional).          | -                              |
 | `dataJob`             | Toggles whether the job tracks data (number of elements processed)                                       | `false`                        |
 | `environmentVariables`| An array of environment variables passed to the Mesos executor. For Docker containers, these are also passed to Docker using the `-e` flag. | -                              |
-| `constraints`         | Control where jobs run. Each constraint is compared against the [attributes of a Mesos slave](http://mesos.apache.org/documentation/attributes-resources/). See [Constraints](#constraints). | -                              |
+| `constraints`         | Control where jobs run. Each constraint is compared against the [attributes of a Mesos agent](http://mesos.apache.org/documentation/attributes-resources/). See [Constraints](#constraints). | -                              |
 
 ## Sample Job
 
@@ -488,9 +488,9 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 
 ## Constraints
 
-These constraints will work against attributes that are specifically set on the Mesos slaves [as described in the Mesos documentation](http://mesos.apache.org/documentation/latest/configuration).
+These constraints will work against attributes that are specifically set on the Mesos agents [as described in the Mesos documentation](http://mesos.apache.org/documentation/latest/configuration).
 
-If a `hostname` attribute is not explicitly specified, one will automatically be created and made available for constraints. It should be noted that calling out specific hostnames is not resilient to slave failure and should be avoided if possible.
+If a `hostname` attribute is not explicitly specified, one will automatically be created and made available for constraints. It should be noted that calling out specific hostnames is not resilient to agent failure and should be avoided if possible.
 
 ### EQUALS constraint
 

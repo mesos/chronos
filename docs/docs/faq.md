@@ -81,12 +81,12 @@ See [docs/webui.md](http://mesos.github.io/chronos/docs/webui.html).
 
 If you get an error such as:
 
-		Failed to execute 'chown -R 0:0 '/tmp/mesos/slaves/executors/...' ... Undefined error: 0
+		Failed to execute 'chown -R 0:0 '/tmp/mesos/agents/executors/...' ... Undefined error: 0
 		Failed to launch executor`
 
-You can try starting your mesos slaves with switch users disabled. To do this, start your slaves in the following manner:  
+You can try starting your mesos agents with switch users disabled. To do this, start your slaves in the following manner:  
 
-		MESOS_SWITCH_USER=0 bin/mesos-slave.sh --master=zk://localhost:2181/mesos --resources="cpus:8,mem:68551;disk:803394"
+		MESOS_SWITCH_USER=0 bin/mesos-agent.sh --master=zk://localhost:2181/mesos --resources="cpus:8,mem:68551;disk:803394"
 
 ### <a name="bug"></a>I found a bug!
 

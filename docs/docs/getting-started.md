@@ -40,7 +40,7 @@ These requirements are to build and run Chronos.
 
 Install [Node](http://nodejs.org/) first. On OSX, try `brew install node`.
 
-Start up Zookeeper, Mesos master, and Mesos slave(s).  Then try
+Start up Zookeeper, Mesos master, and Mesos agent(s).  Then try
 
     export MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
     git clone https://github.com/mesos/chronos.git

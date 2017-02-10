@@ -17,7 +17,7 @@ $ echo -n "secret" > /path/to/secret/file
 
 * If using the built-in CRAM-MD5 authentication mechanism, run `mesos-master` with the credentials flag and the path to the file with authorized users and their secrets: `--credentials=/path/to/credential/file`
 
-Note that this `--credentials` file is for all frameworks and slaves registering with Mesos. In enterprise installations, the cluster admin will have already configured credentials in Mesos, so the user launching Chronos just needs to specify the principal+secret given to them by the cluster/security admin.
+Note that this `--credentials` file is for all frameworks and agents registering with Mesos. In enterprise installations, the cluster admin will have already configured credentials in Mesos, so the user launching Chronos just needs to specify the principal+secret given to them by the cluster/security admin.
 
 Each line in the file should be a principal and corresponding secret separated by a single space:
 
