@@ -9,7 +9,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.apache.mesos.chronos.scheduler.state.PersistenceStore
 import org.apache.mesos.chronos.utils.{JobDeserializer, JobSerializer}
 import org.joda.time.format.DateTimeFormat
-import org.joda.time.{DateTime, Period, Seconds}
+import org.joda.time.{DateTime, Duration, Period, Seconds}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -126,24 +126,19 @@ object JobUtils {
   protected def calculateSkips(dateTime: DateTime,
                                jobStart: DateTime,
                                period: Period): Int = {
-    // If the period is at least a month, we have to actually add the period to the date
-    // until it's in the future because a month-long period might have different seconds
-    if (period.getMonths >= 1) {
-      var skips = 0
-      var newDate = new DateTime(jobStart)
-      while (newDate.isBefore(dateTime)) {
-        newDate = newDate.plus(period)
-        skips += 1
-      }
-      skips
-    } else {
-      if (jobStart.isBefore(dateTime) && period.toStandardSeconds.getSeconds > 0) {
+    if (jobStart.isBefore(dateTime) && !period.equals(Period.ZERO)) {
+      if (period.getMonths == 0 && period.getYears == 0) {
         Seconds
           .secondsBetween(jobStart, dateTime)
           .getSeconds / period.toStandardSeconds.getSeconds + 1
       } else {
-        0
+        val duration = period.toDurationFrom(dateTime)
+        Seconds
+          .secondsBetween(jobStart, dateTime)
+          .getSeconds / duration.toStandardSeconds.getSeconds + 1
       }
+    } else {
+      0
     }
   }
 

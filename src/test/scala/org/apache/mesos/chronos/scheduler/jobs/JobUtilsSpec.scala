@@ -186,4 +186,36 @@ class JobUtilsSpec extends SpecificationWithJUnit with Mockito {
 
     JobUtils.isValidJobName(jobName)
   }
+
+  "Skip forward to current date and stop for P1D" in {
+    val now = new DateTime()
+    val schedule = s"R/${now.minusDays(1).toDateTimeISO.toString}/P1D"
+    val job = ScheduleBasedJob(schedule, "sample-name", "sample-command")
+
+    // Get the schedule stream, which should have been skipped forward
+    val stream = JobUtils.skipForward(job, now)
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+
+    repeat must_== -1
+    period.getDays must_== 1
+    period.getYears must_== 0
+    scheduledTime.toLocalDate must_== now.plusDays(1).toLocalDate
+  }
+
+  "Skip forward to current date and stop for P1Y" in {
+    val now = new DateTime()
+    val schedule = s"R/${now.minusDays(1).toDateTimeISO.toString}/P1Y"
+    val job = ScheduleBasedJob(schedule, "sample-name", "sample-command")
+
+    // Get the schedule stream, which should have been skipped forward
+    val stream = JobUtils.skipForward(job, now)
+    val (repeat, scheduledTime, period) =
+      Iso8601Expressions.parse(stream.get.schedule, job.scheduleTimeZone).get
+
+    repeat must_== -1
+    period.getDays must_== 0
+    period.getYears must_== 1
+    scheduledTime.toLocalDate must_== now.minusDays(1).plusYears(1).toLocalDate
+  }
 }
