@@ -9,7 +9,12 @@ import com.google.protobuf.ByteString
 import mesosphere.chaos.http.HttpConf
 import org.apache.mesos.Protos.{Credential, FrameworkID, FrameworkInfo}
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.{MesosSchedulerDriver, Protos, Scheduler, SchedulerDriver}
+import org.apache.mesos.{
+  MesosSchedulerDriver,
+  Protos,
+  Scheduler,
+  SchedulerDriver
+}
 
 import scala.collection.JavaConverters.asScalaSetConverter
 
@@ -20,28 +25,37 @@ class SchedulerDriverBuilder {
                 frameworkId: Option[FrameworkID],
                 scheduler: Scheduler): SchedulerDriver = {
     def buildCredentials(principal: String, secretFile: String): Credential = {
-      val credentialBuilder = Credential.newBuilder().setPrincipal(principal)
+      val credentialBuilder =
+        Credential
+          .newBuilder()
+          .setPrincipalBytes(ByteString.copyFromUtf8(principal))
 
       try {
         val secretBytes = ByteString.readFrom(new FileInputStream(secretFile))
 
-        val filePermissions = Files.getPosixFilePermissions(Paths.get(secretFile)).asScala
-        if ((filePermissions & Set(PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_WRITE)).nonEmpty)
-          log.warning(s"Secret file $secretFile should not be globally accessible.")
+        val filePermissions =
+          Files.getPosixFilePermissions(Paths.get(secretFile)).asScala
+        if ((filePermissions & Set(PosixFilePermission.OTHERS_READ,
+                                   PosixFilePermission.OTHERS_WRITE)).nonEmpty)
+          log.warning(
+            s"Secret file $secretFile should not be globally accessible.")
 
-        credentialBuilder.setSecret(secretBytes.toString)
-      }
-      catch {
+        credentialBuilder.setSecretBytes(secretBytes)
+      } catch {
         case cause: Throwable =>
-          throw new IOException(s"Error reading authentication secret from file [$secretFile]", cause)
+          throw new IOException(
+            s"Error reading authentication secret from file [$secretFile]",
+            cause)
       }
 
       credentialBuilder.build()
     }
 
-    def buildFrameworkInfo(config: SchedulerConfiguration with HttpConf,
-                           frameworkId: Option[FrameworkID]): Protos.FrameworkInfo = {
-      val frameworkInfoBuilder = FrameworkInfo.newBuilder()
+    def buildFrameworkInfo(
+        config: SchedulerConfiguration with HttpConf,
+        frameworkId: Option[FrameworkID]): Protos.FrameworkInfo = {
+      val frameworkInfoBuilder = FrameworkInfo
+        .newBuilder()
         .setName(config.mesosFrameworkName())
         .setCheckpoint(config.mesosCheckpoint())
         .setRole(config.mesosRole())
@@ -54,33 +68,38 @@ class SchedulerDriverBuilder {
 
       if (config.webuiUrl.isSupplied) {
         frameworkInfoBuilder.setWebuiUrl(config.webuiUrl())
-      }
-      else if (config.sslKeystorePath.isDefined) {
+      } else if (config.sslKeystorePath.isDefined) {
         // ssl enabled, use https
-        frameworkInfoBuilder.setWebuiUrl(s"https://${config.hostname()}:${config.httpsPort()}")
-      }
-      else {
+        frameworkInfoBuilder.setWebuiUrl(
+          s"https://${config.hostname()}:${config.httpsPort()}")
+      } else {
         // ssl disabled, use http
-        frameworkInfoBuilder.setWebuiUrl(s"http://${config.hostname()}:${config.httpPort()}")
+        frameworkInfoBuilder.setWebuiUrl(
+          s"http://${config.hostname()}:${config.httpPort()}")
       }
 
       // set the authentication principal, if provided
-      config.mesosAuthenticationPrincipal.get.foreach(frameworkInfoBuilder.setPrincipal)
+      config.mesosAuthenticationPrincipal.get
+        .foreach(frameworkInfoBuilder.setPrincipal)
 
       frameworkInfoBuilder.build()
     }
 
     val frameworkInfo: FrameworkInfo = buildFrameworkInfo(config, frameworkId)
 
-    val credential: Option[Credential] = config.mesosAuthenticationPrincipal.get.flatMap { principal =>
-      config.mesosAuthenticationSecretFile.get.map { secretFile =>
-        buildCredentials(principal, secretFile)
+    val credential: Option[Credential] =
+      config.mesosAuthenticationPrincipal.get.flatMap { principal =>
+        config.mesosAuthenticationSecretFile.get.map { secretFile =>
+          buildCredentials(principal, secretFile)
+        }
       }
-    }
 
     credential match {
       case Some(cred) =>
-        new MesosSchedulerDriver(scheduler, frameworkInfo, config.master(), cred)
+        new MesosSchedulerDriver(scheduler,
+                                 frameworkInfo,
+                                 config.master(),
+                                 cred)
 
       case None =>
         new MesosSchedulerDriver(scheduler, frameworkInfo, config.master())
