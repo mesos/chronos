@@ -51,6 +51,7 @@ class MesosTaskBuilderSpec extends SpecificationWithJUnit with Mockito {
 
   val defaultEnv = Map(
     "mesos_task_id" -> taskId,
+    "MESOS_TASK_ID" -> taskId,
     "CHRONOS_JOB_OWNER" -> job.owner,
     "CHRONOS_JOB_NAME" -> job.name,
     "HOST" -> offer.getHostname,
