@@ -627,8 +627,8 @@ class JobScheduler @Inject()(val taskManager: TaskManager,
   def nanosUntilNextJob(scheduledJobs: List[ScheduleBasedJob]): Long = {
     scheduledJobs.foreach { job =>
       Iso8601Expressions.parse(job.schedule, job.scheduleTimeZone) match {
-        case Some((_, schedule, _)) =>
-          if (!job.disabled) {
+        case Some((repeat, schedule, _)) =>
+          if (!job.disabled && repeat != 0) {
             val nanos = new Duration(DateTime.now(DateTimeZone.UTC), schedule).getMillis * 1000000
             if (nanos > 0) {
               return nanos

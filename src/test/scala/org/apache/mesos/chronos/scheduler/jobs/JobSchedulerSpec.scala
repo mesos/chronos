@@ -134,6 +134,10 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
         s"R5/${ISODateTimeFormat.dateTime().print(futureDate2)}/P1D",
         "job5",
         "CMD")
+      val jobNoRepititions = ScheduleBasedJob(
+        s"R0/${ISODateTimeFormat.dateTime().print(DateTime.now(DateTimeZone.UTC))}/P1D",
+        "job5",
+        "CMD")
 
       val jobGraph = mock[JobGraph]
       val persistenceStore = mock[PersistenceStore]
@@ -156,6 +160,9 @@ class JobSchedulerSpec extends SpecificationWithJUnit with Mockito {
       nanos must beCloseTo(60 * 60 * 1000000000l, 5000000000l) // within 5s
 
       nanos = scheduler.nanosUntilNextJob(List(job5))
+      nanos must beCloseTo(2 * 60 * 60 * 1000000000l, 5000000000l) // within 5s
+
+      nanos = scheduler.nanosUntilNextJob(List(jobNoRepititions, job5))
       nanos must beCloseTo(2 * 60 * 60 * 1000000000l, 5000000000l) // within 5s
     }
 
