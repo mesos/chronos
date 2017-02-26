@@ -24,6 +24,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
   final val cpusResourceName = "cpus"
   final val memResourceName = "mem"
   final val diskResourceName = "disk"
+  final val gpusResourceName = "gpus"
   val taskNameTemplate = "ChronosTask:%s"
   //args|command.
   //  e.g. args: -av (async job), verbose mode
@@ -124,10 +125,12 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     val mem = if (job.mem > 0) job.mem else conf.mesosTaskMem()
     val cpus = if (job.cpus > 0) job.cpus else conf.mesosTaskCpu()
     val disk = if (job.disk > 0) job.disk else conf.mesosTaskDisk()
+    val gpus : Int = if (job.gpus > 0) job.gpus else conf.mesosTaskGpu()
     taskInfo
       .addResources(scalarResource(cpusResourceName, cpus, offer))
       .addResources(scalarResource(memResourceName, mem, offer))
       .addResources(scalarResource(diskResourceName, disk, offer))
+      .addResources(scalarResource(gpusResourceName, gpus, offer))
 
     taskInfo
   }
@@ -145,6 +148,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       "CHRONOS_RESOURCE_MEM" -> job.mem.toString,
       "CHRONOS_RESOURCE_CPU" -> job.cpus.toString,
       "CHRONOS_RESOURCE_DISK" -> job.disk.toString,
+      "CHRONOS_RESOURCE_GPU" -> job.gpus.toString,
       "CHRONOS_JOB_RUN_TIME" -> start.toString,
       "CHRONOS_JOB_RUN_ATTEMPT" -> attempt.toString
     )

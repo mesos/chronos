@@ -75,6 +75,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("mem")
     json.writeNumber(baseJob.mem)
 
+    json.writeFieldName("gpus")
+    json.writeNumber(baseJob.gpus)
+
     json.writeFieldName("disabled")
     json.writeBoolean(baseJob.disabled)
 

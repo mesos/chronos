@@ -144,6 +144,14 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         JobDeserializer.config.mesosTaskMem()
       else 0
 
+    val gpus =
+      if (node.has("gpus") && node.get("gpus") != null && node
+            .get("gpus")
+            .asInt != 0) node.get("gpus").asInt
+      else if (JobDeserializer.config != null)
+        JobDeserializer.config.mesosTaskGpu()
+      else 0
+
     val errorsSinceLastSuccess =
       if (node.has("errorsSinceLastSuccess") && node.get(
             "errorsSinceLastSuccess") != null)
@@ -396,6 +404,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         cpus = cpus,
         disk = disk,
         mem = mem,
+        gpus = gpus,
         disabled = disabled,
         concurrent = concurrent,
         errorsSinceLastSuccess = errorsSinceLastSuccess,
@@ -433,6 +442,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         cpus = cpus,
         disk = disk,
         mem = mem,
+        gpus = gpus,
         disabled = disabled,
         concurrent = concurrent,
         errorsSinceLastSuccess = errorsSinceLastSuccess,
@@ -469,6 +479,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         cpus = cpus,
         disk = disk,
         mem = mem,
+        gpus = gpus,
         disabled = disabled,
         errorsSinceLastSuccess = errorsSinceLastSuccess,
         fetch = fetch,
