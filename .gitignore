@@ -1,7 +1,6 @@
 .*sw?
 *.iml
 *.log
-.idea/*
 target
 src/main/resources/**/temp
 src/main/resources/**/build
@@ -13,3 +12,4 @@ chronos.tbz
 .classpath.txt
 dependency-reduced-pom.xml
 .arcconfig
+.idea

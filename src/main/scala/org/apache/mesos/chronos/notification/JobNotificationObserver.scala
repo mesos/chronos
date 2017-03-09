@@ -24,6 +24,12 @@ class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] 
         .format(DateTime.now(DateTimeZone.UTC), job.retries, taskStatus.getTaskId.getValue)
       sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
         Some(TaskUtils.appendSchedulerMessage(msg, taskStatus)))
+
+    case JobFinished(job, taskStatus, attempts) =>
+      val msg = "\n'%s'. Retries attempted: %d.\nTask id: %s\n"
+        .format(DateTime.now(DateTimeZone.UTC), job.retries, taskStatus.getTaskId.getValue)
+      sendNotification(job, "%s [Chronos] job '%s' finished!".format(clusterPrefix, job.name),
+        Some(TaskUtils.appendSchedulerMessage(msg, taskStatus)))
   }, getClass.getSimpleName)
 
   def sendNotification(job: BaseJob, subject: String, message: Option[String] = None) {
