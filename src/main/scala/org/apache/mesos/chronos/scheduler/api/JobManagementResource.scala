@@ -92,7 +92,17 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       softError = childJob.softError,
                       uris = childJob.uris,
                       fetch = childJob.fetch,
-                      highPriority = childJob.highPriority
+                      highPriority = childJob.highPriority,
+                      ownerName = childJob.ownerName,
+                      description = childJob.description,
+                      errorsSinceLastSuccess = childJob.errorsSinceLastSuccess,
+                      runAsUser = childJob.runAsUser,
+                      container = childJob.container,
+                      environmentVariables = childJob.environmentVariables,
+                      shell = childJob.shell,
+                      arguments = childJob.arguments,
+                      dataProcessingJobType = childJob.dataProcessingJobType,
+                      constraints = childJob.constraints
                     )
                     jobScheduler.updateJob(childJob, newChild)
                   case _ =>
