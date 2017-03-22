@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Pager Widget - Ajax</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link href="css/jq.css" rel="stylesheet">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+
+	<!-- Tablesorter: required -->
+	<link href="../css/theme.blue.css" rel="stylesheet">
+	<script src="../js/jquery.tablesorter.js"></script>
+	<script src="../js/jquery.tablesorter.widgets.js"></script>
+
+	<!-- Tablesorter: optional -->
+	<link rel="stylesheet" href="../addons/pager/jquery.tablesorter.pager.css">
+	<script src="../js/widgets/widget-pager.js"></script>
+
+	<!-- Tablesorter: optional -->
+	<script src="../js/jquery.tablesorter.widgets.js"></script>
+
+	<script id="js">$(function(){
+
+	// Initialize tablesorter
+	// ***********************
+	$("table")
+		.tablesorter({
+			theme: 'blue',
+			widthFixed: true,
+			sortLocaleCompare: true, // needed for accented characters in the data
+			widgets: ['zebra', 'filter', 'pager'],
+			widgetOptions: {
+
+				// output default: '{page}/{totalPages}'
+				// possible variables: {page}, {totalPages}, {filteredPages}, {startRow}, {endRow}, {filteredRows} and {totalRows}
+				pager_output: '{startRow} - {endRow} / {filteredRows} ({totalRows})', //'{startRow} to {endRow} of {totalRows} rows', // '{page}/{totalPages}'
+
+				// apply disabled classname to the pager arrows when the rows at either extreme is visible
+				pager_updateArrows: true,
+
+				// starting page of the pager (zero based index)
+				pager_startPage: 0,
+
+				// Number of visible rows
+				pager_size: 25,
+
+				// Save pager page & size if the storage script is loaded (requires $.tablesorter.storage in jquery.tablesorter.widgets.js)
+				pager_savePages: true,
+
+				// if true, the table will remain the same height no matter how many records are displayed. The space is made up by an empty
+				// table row set to a height to compensate; default is false
+				pager_fixedHeight: false,
+
+				// remove rows from the table to speed up the sort of large tables.
+				// setting this to false, only hides the non-visible rows; needed if you plan to add/remove rows with the pager enabled.
+				pager_removeRows: false, // removing rows in larger tables speeds up the sort
+
+				// use this format: "http://mydatabase.com?page={page}&size={size}&{sortList:col}&{filterList:fcol}"
+				// where {page} is replaced by the page number, {size} is replaced by the number of records to show,
+				// {sortList:col} adds the sortList to the url into a "col" array, and {filterList:fcol} adds
+				// the filterList to the url into an "fcol" array.
+				// So a sortList = [[2,0],[3,0]] becomes "&col[2]=0&col[3]=0" in the url
+				// and a filterList = [[2,Blue],[3,13]] becomes "&fcol[2]=Blue&fcol[3]=13" in the url
+				pager_ajaxUrl: 'assets/City{page}.json?{filterList:filter}&{sortList:column}',
+
+				// modify the url after all processing has been applied
+				pager_customAjaxUrl:  function(table, url) {
+						// manipulate the url string as you desire
+						// url += '&cPage=' + window.location.pathname;
+						// trigger my custom event
+						$(table).trigger('changingUrl', url);
+						// send the server the current page
+						return url;
+				},
+
+				// modify the $.ajax object to allow complete control over your ajax requests
+				pager_ajaxObject: {
+					dataType: 'json'
+				},
+
+				// process ajax so that the following information is returned:
+				// [ total_rows (number), rows (array of arrays), headers (array; optional) ]
+				// example:
+				// [
+				//   100,  // total rows
+				//   [
+				//     [ "row1cell1", "row1cell2", ... "row1cellN" ],
+				//     [ "row2cell1", "row2cell2", ... "row2cellN" ],
+				//     ...
+				//     [ "rowNcell1", "rowNcell2", ... "rowNcellN" ]
+				//   ],
+				//   [ "header1", "header2", ... "headerN" ] // optional
+				// ]
+				pager_ajaxProcessing: function(data){
+					if (data && data.hasOwnProperty('rows')) {
+						var r, row, c, d = data.rows,
+						// total number of rows (required)
+						total = data.total_rows,
+						// array of header names (optional)
+						headers = data.headers,
+						// all rows: array of arrays; each internal array has the table cell data for that row
+						rows = [],
+						// len should match pager set size (c.size)
+						len = d.length;
+						// this will depend on how the json is set up - see City0.json
+						// rows
+						for ( r=0; r < len; r++ ) {
+							row = []; // new row array
+							// cells
+							for ( c in d[r] ) {
+								if (typeof(c) === "string") {
+									row.push(d[r][c]); // add each table cell data to row array
+								}
+							}
+							rows.push(row); // add new row array to rows array
+						}
+						// in version 2.10, you can optionally return $(rows) a set of table rows within a jQuery object
+						return [ total, rows, headers ];
+					}
+				},
+
+				// css class names of pager arrows
+				pager_css: {
+					container   : 'tablesorter-pager',
+					errorRow    : 'tablesorter-errorRow', // error information row (don't include period at beginning)
+					disabled    : 'disabled'              // class added to arrows @ extremes (i.e. prev/first arrows "disabled" on first page)
+				},
+
+				// jQuery selectors
+				pager_selectors: {
+					container   : '.pager',       // target the pager markup (wrapper)
+					first       : '.first',       // go to first page arrow
+					prev        : '.prev',        // previous page arrow
+					next        : '.next',        // next page arrow
+					last        : '.last',        // go to last page arrow
+					goto        : '.gotoPage',    // go to page selector - select dropdown that sets the current page
+					pageDisplay : '.pagedisplay', // location of where the "output" is displayed
+					pageSize    : '.pagesize'     // page size selector - select dropdown that sets the "size" option
+
+				}
+			}
+
+		});
+});</script>
+
+</head>
+<body id="pager-demo">
+	<div id="banner">
+		<h1>table<em>sorter</em></h1>
+		<h2>Pager Widget - Ajax</h2>
+		<h3>Flexible client-side table sorting</h3>
+		<a href="index.html">Back to documentation</a>
+	</div>
+
+	<div id="main">
+
+	<p class="tip">
+			<em>NOTE!</em>
+			<ul>
+				<li>This pager WIDGET <em>can not</em> be applied to the original tablesorter.</li>
+				<li>Do not use this widget along with the pager plugin.</li>
+				<li>The pager.css file also works with this pager widget.</li>
+				<li>This widget is still in <span class="beta">development</span> as it has not been throughly tested.</li>
+				<li>Extensive documentation has not been included, as all functioning is essentially identical to the pager addon, but here are some important differences:
+					<ul>
+						<li>All of the options are now set within the <code>widgetOptions</code>.</li>
+						<li>Most option names have only been modified by adding <code>pager_</code> as a prefix.</li>
+						<li>Exceptions include moving all applied css class names into a <code>pager_css</code> option and all selectors into <code>pager_selectors</code>, including the original <code>container</code> option.</li>
+						<li>See the Javascript code below for a full example of how to use this widget with <strong>ajax</strong>.</li>
+					</ul>
+				</li>
+			</ul>
+	</p>
+
+
+	<h1>Demo</h1>
+Original Ajax url: <span id="origurl"></span><br>
+Current Ajax url: <span id="url"></span>
+<br>
+<table class="tablesorter">
+	<thead>
+		<tr>
+			<td class="pager sorter-false" colspan="5">
+				<img src="../addons/pager/icons/first.png" class="first" alt="First" />
+				<img src="../addons/pager/icons/prev.png" class="prev" alt="Prev" />
+				<span class="pagedisplay"></span> <!-- this can be any element, including an input -->
+				<img src="../addons/pager/icons/next.png" class="next" alt="Next" />
+				<img src="../addons/pager/icons/last.png" class="last" alt="Last" />
+				<select class="pagesize">
+					<option value="25">25</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>1</th>
+			<th>2</th>
+			<th>3</th>
+			<th>4</th>
+			<th>5</th>
+		</tr>
+	</thead>
+	<tfoot>
+		<tr>
+			<th>1</th>
+			<th>2</th>
+			<th>3</th>
+			<th>4</th>
+			<th>5</th>
+		</tr>
+		<tr>
+			<td class="pager" colspan="5">
+				<img src="../addons/pager/icons/first.png" class="first" alt="First" />
+				<img src="../addons/pager/icons/prev.png" class="prev" alt="Prev" />
+				<span class="pagedisplay"></span> <!-- this can be any element, including an input -->
+				<img src="../addons/pager/icons/next.png" class="next" alt="Next" />
+				<img src="../addons/pager/icons/last.png" class="last" alt="Last" />
+				<select class="pagesize">
+					<option value="25">25</option>
+				</select>
+			</td>
+		</tr>
+	</tfoot>
+	<tbody>
+	</tbody>
+</table>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+
+	<h1>CSS</h1>
+	<div>
+		<pre class="prettyprint lang-css">/* pager wrapper, div */
+.pager {
+  padding: 5px;
+}
+/* pager wrapper, in thead/tfoot */
+td.pager {
+  background-color: #e6eeee;
+}
+/* pager navigation arrows */
+.pager img {
+  vertical-align: middle;
+  margin-right: 2px;
+}
+/* pager output text */
+.pager .pagedisplay {
+  font-size: 11px;
+  padding: 0 5px 0 5px;
+  width: 50px;
+  text-align: center;
+}
+
+/*** loading ajax indeterminate progress indicator ***/
+#tablesorterPagerLoading {
+  background: rgba(255,255,255,0.8) url(icons/loading.gif) center center no-repeat;
+  position: absolute;
+  z-index: 1000;
+}
+
+/*** css used when "updateArrows" option is true ***/
+/* the pager itself gets a disabled class when the number of rows is less than the size */
+.pager.disabled {
+  display: none;
+}
+/* hide or fade out pager arrows when the first or last row is visible */
+.pager img.disabled {
+  /* visibility: hidden */
+  opacity: 0.5;
+  filter: alpha(opacity=50);
+}</pre>
+	</div>
+
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html">&lt;!-- jQuery --&gt;
+&lt;script src=&quot;http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- Tablesorter: required --&gt;
+&lt;link href=&quot;css/theme.blue.css&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script src=&quot;js/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;js/jquery.tablesorter.widgets.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- Tablesorter: pager widget --&gt;
+&lt;link href=&quot;css/jquery.tablesorter.pager.css&quot; rel=&quot;stylesheet&quot;&gt;
+&lt;script src=&quot;js/widget-pager.js&quot;&gt;&lt;/script&gt;
+
+&lt;table class=&quot;tablesorter&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;td class=&quot;pager&quot; colspan=&quot;5&quot;&gt;
+        &lt;img src=&quot;../addons/pager/icons/first.png&quot; class=&quot;first&quot;/&gt;
+        &lt;img src=&quot;../addons/pager/icons/prev.png&quot; class=&quot;prev&quot;/&gt;
+        &lt;span class=&quot;pagedisplay&quot;&gt;&lt;/span&gt; &lt;!-- this can be any element, including an input --&gt;
+        &lt;img src=&quot;../addons/pager/icons/next.png&quot; class=&quot;next&quot;/&gt;
+        &lt;img src=&quot;../addons/pager/icons/last.png&quot; class=&quot;last&quot;/&gt;
+        &lt;select class=&quot;pagesize&quot;&gt;
+          &lt;option value=&quot;25&quot;&gt;25&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th&gt;1&lt;/th&gt; &lt;!-- thead text will be updated from the JSON; make sure the number of columns matches the JSON data --&gt;
+      &lt;th&gt;2&lt;/th&gt;
+      &lt;th&gt;3&lt;/th&gt;
+      &lt;th&gt;4&lt;/th&gt;
+      &lt;th&gt;5&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;
+      &lt;th&gt;1&lt;/th&gt; &lt;!-- tfoot text will be updated at the same time as the thead --&gt;
+      &lt;th&gt;2&lt;/th&gt;
+      &lt;th&gt;3&lt;/th&gt;
+      &lt;th&gt;4&lt;/th&gt;
+      &lt;th&gt;5&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&quot;pager&quot; colspan=&quot;5&quot;&gt;
+        &lt;img src=&quot;../addons/pager/icons/first.png&quot; class=&quot;first&quot;/&gt;
+        &lt;img src=&quot;../addons/pager/icons/prev.png&quot; class=&quot;prev&quot;/&gt;
+        &lt;span class=&quot;pagedisplay&quot;&gt;&lt;/span&gt; &lt;!-- this can be any element, including an input --&gt;
+        &lt;img src=&quot;../addons/pager/icons/next.png&quot; class=&quot;next&quot;/&gt;
+        &lt;img src=&quot;../addons/pager/icons/last.png&quot; class=&quot;last&quot;/&gt;
+        &lt;select class=&quot;pagesize&quot;&gt;
+          &lt;option value=&quot;25&quot;&gt;25&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tfoot&gt;
+  &lt;tbody&gt; &lt;!-- tbody will be loaded via JSON --&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+
+		</div>
+
+<div class="next-up">
+	<hr />
+	Next up: <a href="example-pager-filtered.html">Pager plugin + filter widget &rsaquo;&rsaquo;</a>
+</div>
+
+</div>
+
+<script>
+var $url = $('#url');
+$('table')
+
+	// show current URL for the DEMO ONLY
+	.on('changingUrl', function(e, url){
+		$url.html(url);
+	})
+
+	.on('pagerInitialized', function(){
+		// allow THIS demo to sort the content; this variable is automatically set to true when ajax
+		// is used as there isn't any way to sort the server side data from the client side.
+		this.config.serverSideSorting = false;
+		// show original highlighted URL
+		$('#origurl').html( this.config.widgetOptions.pager_ajaxUrl.replace(/(\{.*?\})/g, '<span class="results">$1</span>') );
+	});
+</script>
+
+</body>
+</html>

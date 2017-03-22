@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% block title %} <title>Chronos</title> {% endblock %}
+    {% block styles %}
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css">
+      <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap-theme.min.css">
+      <link rel="stylesheet" href="{{url_for('static', filename='tablesorter/css/theme.bootstrap.css')}}">
+      <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Raleway+Dots" type='text/css'>
+      <link rel="stylesheet" href="//jquery.bassistance.de/tooltip/jquery.tooltip.css"> 
+    {% endblock %}
+
+    {% block scripts %}
+    <script src="//code.jquery.com/jquery.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.1/js/bootstrap.min.js"></script>
+    <script src="//jquery.bassistance.de/tooltip/jquery.tooltip.js"></script>
+    {% endblock %}
+  </head>
+  <body>
+
+{% block navbar %}
+<nav class="navbar navbar-default" role="navigation">
+  <div class="collapse navbar-collapse navbar-ex1-collapse">
+    <ul class="nav navbar-nav">
+        <li><a href="/"><p class="navbar-text" style="font-size: 64px; font-family: 'Raleway Dots', cursive;">Chronos </p></a></li>
+        <li style="margin-left: 10px; margin-top: 20px;"><button type="button" class="btn btn-success navbar-btn" id="new_job" data-toggle="modal" data-target="#newJobModal">New Job</button></li>
+        <li style="margin-top: 20px;"><button type="button" class="btn btn-danger navbar-btn" id="delete_job">Delete Job</button></li>
+        <li style="margin-top: 20px;"><p class="navbar-text">Total Jobs: <span class="label label-primary" style="font-size:20px">{{ total_jobs }}</span></p></li>
+        <li style="margin-top: 20px;"><p class="navbar-text">Failed Jobs: <span class="label label-danger" style="font-size:20px">{{ failed_jobs }}</span></p></li>
+    </ul>
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+  </body>
+</html>

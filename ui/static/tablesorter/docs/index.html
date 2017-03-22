@@ -1,0 +1,3754 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>jQuery plugin: Tablesorter 2.0</title>
+
+<!-- jQuery -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.js"></script>
+
+<!-- Demo stuff -->
+<link rel="stylesheet" href="css/jq.css">
+<link href="css/prettify.css" rel="stylesheet">
+<script src="js/prettify.js"></script>
+<script src="js/docs.js"></script>
+
+<!-- Tablesorter: required -->
+<link href="../css/theme.blue.css" rel="stylesheet">
+<script src="../js/jquery.tablesorter.js"></script>
+<script src="../js/jquery.tablesorter.widgets.js"></script>
+<script>
+	$(function() {
+		$("#tablesorter-demo").tablesorter({theme:'blue',sortList:[[0,0],[2,1]],widgets:['zebra'],widthFixed:true});
+		$(".compatibility").tablesorter({theme:'blue',sortList:[[0,0]],widthFixed:true});
+		$("table.options").tablesorter({theme:'blue',sortList:[[0,0]],headers:{3:{sorter:false},4:{sorter:false}},widgets:['stickyHeaders'],widthFixed:true});
+		$("#method,#event").tablesorter({theme:'blue',sortList:[[0,0]],headers:{1:{sorter:false},2:{sorter:false}},widgets:['stickyHeaders'],widthFixed:true});
+	});
+</script>
+</head>
+<body id="root">
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Documentation</h2>
+	<h3>Flexible client-side table sorting</h3>
+</div>
+
+<div id="main">
+	<p>
+		<strong>Author:</strong> Christian Bach<br>
+		<strong>Version:</strong> <a class="current-version" href="https://github.com/Mottie/tablesorter/archive/master.zip">2.1+</a> (<a href="https://github.com/Mottie/tablesorter">forked on github</a> from <a href="http://tablesorter.com/docs/">version 2.0.5</a>, <a href="https://github.com/Mottie/tablesorter/wiki/Change">changelog</a>)<br>
+		<strong>Licence:</strong>
+		Dual licensed under <a class="external" href="http://www.opensource.org/licenses/mit-license.php">MIT</a>
+		or <a class="external" href="http://www.opensource.org/licenses/gpl-license.php">GPL</a> licenses.
+	</p>
+
+	<a id="Contents"></a>
+	<h1>Contents</h1>
+	<ol>
+		<li><a href="#Introduction">Introduction</a></li>
+		<li><a href="#Demo">Demo</a></li>
+		<li><a href="#Getting-Started">Getting started</a></li>
+		<li><a href="#Examples">Examples</a></li>
+		<li><a href="#Configuration">Configuration</a></li>
+		<li><a href="#Widget-options">Widget &amp; Pager Options</a> (v2.1)</li>
+		<li><a href="#methods">Methods</a></li>
+		<li><a href="#events">Events</a></li>
+		<li><a href="#Download">Download</a></li>
+		<li><a href="#Compatibility">Compatibility</a></li>
+		<li><a href="#Support">Support</a></li>
+		<li><a href="#Credits">Credits</a></li>
+	</ol>
+
+	<a id="Introduction"></a>
+	<h1>Introduction</h1>
+	<p>
+		tablesorter is a <a class="external" href="http://jquery.com">jQuery</a> plugin for turning a
+		standard HTML table with THEAD and TBODY tags into a sortable table without page refreshes.
+		tablesorter can successfully parse and sort many types of data including linked data in a cell.
+		It has many useful features including:
+	</p>
+
+	<ul>
+		<li>Multi-column sorting</li>
+		<li>Multi-tbody sorting - see the <a href="#options">options</a> table below</li>
+		<li>Parsers for sorting text, URIs, integers, currency, floats, IP addresses, dates (ISO, long and short formats), time.  <a href="example-parsers.html">Add your own easily</a></li>
+		<li>Support secondary &quot;hidden&quot; sorting (e.g., maintain alphabetical sort when sorting on other criteria)</li>
+		<li>Extensibility via <a href="example-widgets.html">widget system</a></li>
+		<li>Cross-browser: IE 6.0+, FF 2+, Safari 2.0+, Opera 9.0+</li>
+		<li>Works with jQuery 1.2.6+ (jQuery 1.4.1+ needed with some widgets).</li>
+		<li>Works with jQuery 1.9+ ($.browser.msie was removed; needed in the original version).</li>
+		<li>Small code size</li>
+	</ul>
+
+	<a id="Demo"></a>
+	<h1>Demo</h1>
+
+	<table id="tablesorter-demo" class="tablesorter">
+		<thead>
+			<tr>
+				<th>Account #</th>
+				<th>First Name</th>
+				<th>Last Name</th>
+				<th>Age</th>
+				<th>Total</th>
+				<th>Discount</th>
+				<th>Difference</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>A42b</td>
+				<td>Peter</td>
+				<td>Parker</td>
+				<td>28</td>
+				<td>$9.99</td>
+				<td>20.9%</td>
+				<td>+12.1</td>
+				<td>Jul 6, 2006 8:14 AM</td>
+			</tr>
+			<tr>
+				<td>A255</td>
+				<td>John</td>
+				<td>Hood</td>
+				<td>33</td>
+				<td>$19.99</td>
+				<td>25%</td>
+				<td>+12</td>
+				<td>Dec 10, 2002 5:14 AM</td>
+			</tr>
+			<tr>
+				<td>A33</td>
+				<td>Clark</td>
+				<td>Kent</td>
+				<td>18</td>
+				<td>$15.89</td>
+				<td>44%</td>
+				<td>-26</td>
+				<td>Jan 12, 2003 11:14 AM</td>
+			</tr>
+			<tr>
+				<td>A1</td>
+				<td>Bruce</td>
+				<td>Almighty</td>
+				<td>45</td>
+				<td>$153.19</td>
+				<td>44.7%</td>
+				<td>+77</td>
+				<td>Jan 18, 2001 9:12 AM</td>
+			</tr>
+			<tr>
+				<td>A102</td>
+				<td>Bruce</td>
+				<td>Evans</td>
+				<td>22</td>
+				<td>$13.19</td>
+				<td>11%</td>
+				<td>-100.9</td>
+				<td>Jan 18, 2007 9:12 AM</td>
+			</tr>
+			<tr>
+				<td>A42a</td>
+				<td>Bruce</td>
+				<td>Evans</td>
+				<td>22</td>
+				<td>$13.19</td>
+				<td>11%</td>
+				<td>0</td>
+				<td>Jan 18, 2007 9:12 AM</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<p class="tip">
+		<em>TIP!</em> Sort multiple columns simultaneously by holding down the shift key and clicking a second, third or even fourth column header!
+	</p>
+
+
+	<a id="Getting-Started"></a>
+	<h1>Getting started</h1>
+	<p>
+		To use the tablesorter plugin, include the <a class="external" href="http://jquery.com">jQuery</a>
+		library and the tablesorter plugin inside the <code>&lt;head&gt;</code> tag
+		of your HTML document:
+	</p>
+
+	<pre class="prettyprint lang-html">&lt;!-- choose a theme file --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/path/to/theme.default.css&quot;&gt;
+&lt;!-- load jQuery and tablesorter scripts --&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/path/to/jquery-latest.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/path/to/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- tablesorter widgets (optional) --&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/path/to/jquery.tablesorter.widgets.js&quot;&gt;&lt;/script&gt;
+</pre>
+
+	<p>tablesorter works on standard HTML tables.  You must include THEAD and TBODY tags:</p>
+
+	<pre class="prettyprint lang-html">&lt;table id="myTable" class="tablesorter"&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Last Name&lt;/th&gt;
+      &lt;th&gt;First Name&lt;/th&gt;
+      &lt;th&gt;Email&lt;/th&gt;
+      &lt;th&gt;Due&lt;/th&gt;
+      &lt;th&gt;Web Site&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Smith&lt;/td&gt;
+      &lt;td&gt;John&lt;/td&gt;
+      &lt;td&gt;jsmith@gmail.com&lt;/td&gt;
+      &lt;td&gt;$50.00&lt;/td&gt;
+      &lt;td&gt;http://www.jsmith.com&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Bach&lt;/td&gt;
+      &lt;td&gt;Frank&lt;/td&gt;
+      &lt;td&gt;fbach@yahoo.com&lt;/td&gt;
+      &lt;td&gt;$50.00&lt;/td&gt;
+      &lt;td&gt;http://www.frank.com&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Doe&lt;/td&gt;
+      &lt;td&gt;Jason&lt;/td&gt;
+      &lt;td&gt;jdoe@hotmail.com&lt;/td&gt;
+      &lt;td&gt;$100.00&lt;/td&gt;
+      &lt;td&gt;http://www.jdoe.com&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Conway&lt;/td&gt;
+      &lt;td&gt;Tim&lt;/td&gt;
+      &lt;td&gt;tconway@earthlink.net&lt;/td&gt;
+      &lt;td&gt;$50.00&lt;/td&gt;
+      &lt;td&gt;http://www.timconway.com&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+
+	<p>Start by telling tablesorter to sort your table when the document is loaded:</p>
+
+	<pre class="prettyprint lang-javascript">$(function(){
+  $("#myTable").tablesorter();
+});</pre>
+
+	<p>
+		Click on the headers and you'll see that your table is now sortable!  You can
+		also pass in configuration options when you initialize the table.  This tells
+		tablesorter to sort on the first and second column in ascending order.
+	</p>
+
+	<pre class="prettyprint lang-javascript">$(function(){
+  $("#myTable").tablesorter({ sortList: [[0,0], [1,0]] });
+});</pre>
+
+	<p class="tip">
+		<em>NOTE!</em> tablesorter will auto-detect most data types including numbers, dates, ip-adresses for more information see <a href="#Examples">Examples</a>
+	</p>
+
+	<a id="Examples"></a>
+	<h1>Examples</h1>
+	<p>
+		These examples will show what's possible with tablesorter.  You need Javascript enabled to
+		run these samples, just like you and your users will need Javascript enabled to use tablesorter.
+	</p>
+
+	<div class="box">
+	<h3>Basic</h3>
+	<h4>Sorting</h4>
+	<ul>
+		<li><a href="example-option-sort-list.html">Set an initial sorting order using options</a></li>
+		<li><a href="example-trigger-sort.html">Sort table using a link outside the table</a></li>
+		<li><a href="example-option-sort-force.html">Force a default sorting order</a></li>
+		<li><a href="example-option-sort-append.html">Append a sort to the selected sorting order</a></li>
+		<li><a href="example-child-rows.html">Child rows; how to add rows that sort with their parent row</a></li>
+		<li><a href="example-child-rows-filtered.html">Child rows + filter widget; how they work together</a></li>
+		<li><a href="example-option-sort-order.html">Direction of initial sort</a></li>
+		<li><a href="example-options-headers.html">Disable sort</a></li>
+		<li><a href="example-options-headers-locked.html">Lock sort order</a></li>
+		<li><a href="example-options-headers-order.html">Set initial sort order</a></li>
+		<li><a href="example-option-sortreset-sortrestart.html">Using sortReset &amp; sortRestart options</a></li>
+		<li><a href="example-method-sortreset.html">Resetting the entire table sort</a> (sortReset method) (v2.4.7)</li>
+		<li><a href="example-option-selectorsort.html">Using selectorSort option</a> (v2.4)</li>
+		<li><a href="example-option-sort-empty.html">Sorting empty cells</a> (v2.1.11)</li>
+		<li><a href="example-option-sort-key.html">Change the default multi-sorting key</a></li>
+		<li><a href="example-option-custom-sort.html">Custom sort script</a> (v2.2; <span class="version updated">v2.12</span>)</li>
+		<li><a href="example-locale-sort.html">Sorting Accented Characters</a> (v2.24; <a href="https://github.com/Mottie/tablesorter/wiki/Language">languages</a>)</li>
+		<li><a href="example-multiple-tbodies.html">Sorting with Multiple Tbodies</a> (v2.2)</li>
+		<li><a href="example-header-column-span.html">Sorting Across Multiple Columns</a> (v2.3)</li>
+		<li><a href="example-option-show-processing.html">Show a processing icon during sorting/filtering</a> (v2.4)</li>
+	</ul>
+
+	<h4>Using Parsers / Extracting Content</h4>
+	<ul>
+		<li><a href="example-option-digits.html">Dealing with digits!</a></li>
+		<li><a href="example-options-headers-digits-strings.html">Dealing with text strings in numerical sorts</a> (v2.0.10)</li>
+		<li><a href="example-parsers-class-name.html">Disable or set the column parser using class names</a> (v2.0.11)</li>
+		<li><a href="example-parsers-jquery-data.html">Disable or set the column parser using jQuery Data</a> (v2.3)</li>
+		<li><a href="example-option-date-format.html">Changing the date format</a> (v2.0.23)</li>
+	</ul>
+
+	<h4 id="extras">Plugins / Custom Widgets / Custom Parsers</h4>
+	<ul>
+		<li>
+			<a href="example-pager.html">Pager plugin</a><br>
+			<br>
+		</li>
+		<li><a href="example-widget-columns.html">Columns widget</a> (v2.0.17)</li>
+		<li><a href="example-widget-editable.html">Content Editable widget</a> (<span class="version">v2.9</span>).</li>
+		<li>Filter Widget:
+			<ul>
+				<li><a href="example-widget-filter.html">basic</a> (v2.0.18; <span class="version updated">v2.10</span>)</li>
+				<li><a href="example-widget-filter-custom.html">custom</a> (v2.3.6; <span class="version updated">v2.10.1</span>)</li>
+				<li>formatter (<a href="example-widget-filter-formatter-1.html">jQuery UI widgets</a> and <a href="example-widget-filter-formatter-2.html">HTML5 Elements</a>) (v2.7.7).</li>
+			</ul>
+		</li>
+		<li><a href="example-widget-build-table.html">Build Table Widget</a> (<span class="version">v2.11</span>).</li>
+		<li><a href="example-widget-grouping.html">Grouping rows Widget</a> (v2.8; <span class="version updated">v2.13</span>).</li>
+		<li><a href="example-widgets.html">Repeat Headers widget</a> (v2.0.5; <span class="version updated">v2.9</span>)</li>
+		<li><a href="example-widget-resizable.html">Resizable Columns widget</a> (v2.0.23.1; <span class="version updated">v2.8.3</span>)</li>
+		<li><a href="example-widget-savesort.html">Save sort widget</a> (v2.0.27)</li>
+		<li><a href="example-widget-scroller.html">Scroller widget</a> (<span class="version">v2.9</span>).</li>
+		<li><a href="example-widget-sticky-header.html">Sticky header widget</a> (v2.0.21.1; <span class="version updated">v2.10</span>)</li>
+		<li>UITheme widget:
+			<ul>
+				<li><a href="example-widget-ui-theme.html">jQuery UI theme</a> (v2.0.9; Modified v2.4)</li>
+				<li><a href="example-widget-bootstrap-theme.html">Bootstrap</a> (v2.4)</li>
+			</ul>
+		</li>
+		<li>
+			<a href="example-widget-zebra.html">Zebra stripe widget</a><br>
+			<br>
+		</li>
+		<li><a href="example-parsers-dates.html">Assorted date parsers</a> (<span class="version">v2.8</span>).</li>
+		<li><a href="example-parsers-ignore-articles.html">Ignore leading articles parser</a> (Ignore &quot;A&quot;, &quot;An&quot; and &quot;The&quot; in titles) (<span class="version">v2.8</span>).</li>
+		<li><a href="example-widget-grouping.html">Input/select parsers</a> (used by Grouping rows widget) (<span class="version">v2.8</span>).</li>
+		<li><a href="example-parsers-metric.html">Metric parser</a> (<span class="version">v2.8</span>).</li>
+		<li><a href="example-parsers-feet-inch-fraction.html">Feet-inch-fraction parser</a> (<span class="version">v2.8</span>).</li>
+		<li><a href="example-parsers-ip-address.html">IPv6 address parser</a> (<span class="version">v2.12</span>).</li>
+		<li><a href="example-parsers-file-type.html">File type parser</a> (<span class="version">v2.13</span>).</li>
+	</ul>
+
+	</div>
+
+	<div class="box">
+	<h3>Advanced</h3>
+
+	<h4>Parsers / Extracting Content</h4>
+	<ul>
+		<li><a href="example-parsers.html">Parser, writing your own</a></li>
+		<li><a href="example-parsers-advanced.html">Parser, writing your own, advanced use</a> (v2.1)</li>
+		<li><a href="example-option-text-extraction.html">Dealing with markup inside cells (textExtraction function)</a></li>
+	</ul>
+
+	<h4>Widgets / Plugins</h4>
+	<ul>
+		<li><a href="example-apply-widget.html">Applying widgets</a></li>
+		<li><a href="example-widgets.html">Widgets, writing your own</a></li>
+		<li><a href="example-pager-ajax.html">Pager plugin - ajax</a> (v2.1; <span class="version updated">v2.10</span>)</li>
+		<li><a href="example-pager-filtered.html">Pager plugin + filter widget</a> (v2.4)</li>
+	</ul>
+
+	<h4>Adding / Removing Content</h4>
+	<ul>
+		<li><a href="example-empty-table.html">Initializing tablesorter on a empty table</a></li>
+		<li><a href="example-ajax.html">Appending table data with ajax</a></li>
+		<li><a href="example-add-rows.html">Adding a table row</a> (v2.0.16)</li>
+		<li><a href="example-update-all.html">Update an entire table column (<code>thead</code> and <code>tbody</code>)</a> (<span class="version">v2.8</span>).</li>
+		<li><a href="example-update-cell.html">Update the table after cell content has changed</a></li>
+		<li><a href="example-pager.html">Pager plugin</a> - examples of how to add and remove rows</li>
+	</ul>
+
+	<h4>Change Header Style</h4>
+	<ul>
+		<li><a href="example-widget-ui-theme.html">UITheme widget</a> (v2.0.9)</li>
+		<li><a href="example-option-render-header.html">Modifying the Header during rendering.</a></li>
+		<li><a href="example-option-render-template.html">Modifying the Header using a template</a> (v2.7)</li>
+	</ul>
+
+	<br/>
+
+	<h3>Other</h3>
+	<h4>Options &amp; Events</h4>
+	<ul>
+		<li><a href="example-triggers.html">Triggers sortEnd and sortStart (Displaying sorting progress)</a></li>
+		<li><a href="example-extending-defaults.html">Extending default options</a></li>
+		<li><a href="example-option-debug.html">Enabling debug mode</a></li>
+	</ul>
+
+	<h4>Playgrounds & Other demos</h4>
+	<ul>
+		<li><a href="http://jsfiddle.net/Mottie/4mVfu/">tablesorter basic demo</a> (includes widgets)</li>
+		<li><a href="http://jsfiddle.net/Mottie/abkNM/325/">tablesorter basic demo using jQuery UI theme</a></li>
+		<li><a href="http://jsfiddle.net/Mottie/4mVfu/1/">tablesorter basic demo with pager plugin</a></li>
+		<li><a href="http://codepen.io/Mottie/pen/eqBbn">tableSorter LESS theme; modify the colors dynamically in this LESS theme demo!</a></li>
+		<li class="beta"> pager widget (<a href="example-widget-pager.html">basic</a> &amp; <a href="example-widget-pager-ajax.html">ajax</a> demos) (<span class="version">v2.12</span>).</li>
+		<li class="beta"> <a href="../beta-testing/example-pager-custom-controls.html">Custom pager control script</a></li>
+		<li class="beta"> <a href="../beta-testing/example-external-filters-using-select2.html">External filters using Select2 plugin</a></li>
+		<li class="beta"> <a href="../beta-testing/example-widget-column-reorder.html">Column reorder widget</a> - not working 100% with sticky headers</li>
+		<li class="beta"> <a href="../beta-testing/example-widget-sum-columns.html">Column sum widget</a> - still needs LOTS of work!</li>
+		<li>Check out the <a href="https://github.com/Mottie/tablesorter/wiki">home wiki page</a> <span class="tip"><em>more demos</em></span>!</li>
+	</ul>
+
+	<h4 id="metadata">Metadata - setting inline options</h4>
+	<ul>
+		<li>*Note* you can use class names (version 2.0.11+, <a href="example-parsers-class-name.html">demo</a>), or jQuery data (version 2.3+, <a href="example-parsers-jquery-data.html">demo</a>) instead of meta data</li>
+		<li><a href="example-meta-sort-list.html">Set a initial sorting order using metadata.</a></li>
+		<li><a href="example-meta-headers.html">Disable header using metadata</a></li>
+		<li><a href="example-meta-parsers.html">Setting column parser using metadata</a></li>
+	</ul>
+	</div>
+	<br class="clear">
+
+	<a id="Configuration"></a>
+	<h1>Configuration</h1>
+
+	<div class="tip">
+		<p></p>
+		tablesorter has many options you can pass in at initialization to achieve different effects<br>
+		<em>TIP!</em> Click on the link in the property column to reveal full details (or <a href="#" class="toggleAll">toggle</a>|<a href="#" class="showAll">show</a>|<a href="#" class="hideAll">hide</a> all) or double click to update the browser location.
+	</div>
+
+	<table id="options" class="tablesorter options">
+		<thead>
+			<tr>
+				<th class="property">Property</th>
+				<th class="type">Type</th>
+				<th class="defaults">Default</th>
+				<th class="descrip">Description</th>
+				<th class="examples">Link</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<th class="property">Property</th>
+				<th class="type">Type</th>
+				<th class="defaults">Default</th>
+				<th class="descrip">Description</th>
+				<th class="examples">Link</th>
+			</tr>
+		</tfoot>
+		<tbody>
+
+			<tr id="cancelselection">
+				<td><span class="permalink">cancelSelection</span></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>Indicates if tablesorter should disable selection of text in the table header (TH).  Makes header behave more like a button.</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssasc">
+				<td><a href="#" class="toggle2">cssAsc</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to style the header with a ascending sort - <span class="version updated">v2.11</span>.
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-headerAsc&quot;</code> class will always be added to a header cell with an ascending sort; this option now contains any additional class names to add. Previous default value changed v2.5.
+						<p>Example from the blue theme:</p>
+						<pre class="prettyprint lang-css">.tablesorter-blue .tablesorter-headerAsc {
+  background-color: #9fbfdf;
+  background-image: url(black-asc.gif);
+}</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="csschildrow">
+				<td><a class="toggle" href="#">cssChildRow</a></td>
+				<td>String</td>
+				<td>&quot;tablesorter-childRow&quot;</td>
+				<td>Add this css class to a child row that should always be attached to its parent. Click on the &quot;cssChildRow&quot; link to toggle the view on the attached child row. Previous default was &quot;expand-child&quot; (Changed in v2.4).</td>
+				<td>Ex:<a href="example-child-rows.html">1</a> <a href="example-child-rows-filtered.html">2</a></td>
+			</tr>
+			<tr class="tablesorter-childRow">
+				<td></td>
+				<td></td>
+				<td></td>
+				<td>This is an entirely new row, but attached to the row above while sorting<br>
+					cssChildRow Example HTML:
+					<pre class="prettyprint lang-html">
+&lt;table width=&quot;100%&quot; border=&quot;1&quot;&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Item #&lt;/th&gt;
+      &lt;th&gt;Name&lt;/th&gt;
+      &lt;th&gt;Available&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;12345&lt;/td&gt;
+      &lt;td&gt;Toy Car&lt;/td&gt;
+      &lt;td&gt;5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&quot;tablesorter-childRow&quot;&gt; &lt;!-- this row will remain attached to the above row, and not sort separately --&gt;
+      &lt;td colspan=&quot;3&quot;&gt;
+        It&#39;s a toy car!
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;23456&lt;/td&gt;
+      &lt;td&gt;Toy Plane&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&quot;tablesorter-childRow&quot;&gt; &lt;!-- this row will remain attached to the above row, and not sort separately --&gt;
+      &lt;td colspan=&quot;3&quot;&gt;
+        It&#39;s a toy plane!
+      &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr class=&quot;tablesorter-childRow&quot;&gt; &lt;!-- this row will remain attached to the above two rows, and not sort separately --&gt;
+      &lt;td colspan=&quot;3&quot;&gt;
+        and it flies!
+      &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+					</pre>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssdesc">
+				<td><a href="#" class="toggle2">cssDesc</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to style the header with a descending sort - <span class="version updated">v2.11</span>.
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-headerDesc&quot;</code> class will always be added to a header cell with a descending sort; this option now contains any additional class names to add. Previous default value changed v2.5.
+						<p>Example from the blue theme:</p>
+						<pre class="prettyprint lang-css">.tablesorter-blue .tablesorter-headerDesc {
+  background-color: #8cb3d9;
+  background-image: url(black-desc.gif);
+}</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssheader">
+				<td><a href="#" class="toggle2">cssHeader</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to style the headers - <span class="version updated">v2.11</span>
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-header&quot;</code> class will always be added to the table headers; this option now contains any additional class names to add.
+						<p>Example from the blue theme:</p>
+						<pre class="prettyprint lang-css">.tablesorter-blue .tablesorter-header {
+  background-color: #99bfe6;
+  background-repeat: no-repeat;
+  background-position: center right;
+  padding: 4px 20px 4px 4px;
+  white-space: normal;
+  cursor: pointer;
+}</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssheaderrow">
+				<td><a href="#" class="toggle2">cssHeaderRow</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to style the header row - <span class="version updated">v2.11</span>
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-headerRow&quot;</code> class will always be added to a table header row; this option now contains any additional class names to add.<br>
+						<p>This CSS style was added in v2.4, prior to that the row would get the same class as the header cells. This class was added to make it easier to determine what element was being targetted in the plugin.</p>
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssicon">
+				<td><a href="#" class="toggle2">cssIcon</a></td>
+				<td>String</td>
+				<td>&quot;tablesorter-icon&quot;</td>
+				<td>The CSS style used to style the header cell icon (modified v2.7).
+					<div class="collapsible"><br>
+						As of v2.4, an <code>&lt;i&gt;</code> element, with this class name, is automatically appended to the header cells. To prevent the plugin from adding an <code>&lt;i&gt;</code> element to the headers, set the <code>cssIcon</code> option to an empty string.<br>
+						<br>
+						In v2.7, the icon will only be added to the header if <strong>both</strong> the <code>cssIcon</code> option is set AND the <code>headerTemplate</code> option includes the icon tag (<code>{icon}</code>).
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssprocessing">
+				<td><a href="#" class="toggle2">cssProcessing</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to style the header cell while it is being sorted or filtered - <span class="version updated">v2.11</span>
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-processing&quot;</code> class will always be added to a table cells during processing; this option now contains any additional class names to add.<br>
+						<p>This class name is added to the header cell that is currently being sorted or filted. To prevent this class name from being added, set the <a href="#showprocessing"><code>showProcessing</code></a> option to <code>false</code> (v2.4).</p>
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="cssinfoblock">
+				<td><a href="#" class="toggle2">cssInfoBlock</a></td>
+				<td>String</td>
+				<td>&quot;tablesorter-infoOnly&quot;</td>
+				<td>All tbodies with this class name will not have its contents sorted. (v2.2).
+					<div class="collapsible">
+					<br>
+					With the addition of multiple tbody sorting in v2.2, you can now insert a non-sorting tbody within the table by adding this class to the tbody.
+					<pre class="prettyprint lang-html">&lt;tbody class=&quot;tablesorter-infoOnly&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;The contents of this tbody&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;will not be sorted&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;</pre>
+					As an example, I've split up this options table into three (3) tbodies. The first contains the active options, the second is the info block with a row that only contains the text "Deprecated Options", and the last tbody contains the deprecated options. Sort the table to see how each tbody sorts separately.
+					<br>
+					<p class="tip">
+						<em>NOTE!</em> The pager plugin will only be applied to the first tbody, as always. I may work on modifying this behavior in the future, if I can figure out the best implementation.
+					</p>
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="data">
+				<td><span class="permalink">data</span></td>
+				<td>Object, Array</td>
+				<td>undefined</td>
+				<td>Storage for processed table build widget data (array, object, string) (<span class="version">v2.11</span>).</td>
+				<td><a href="widget-build-table.html">Example</a></td>
+			</tr>
+
+			<tr id="dateformat">
+				<td><a href="#" class="toggle2">dateFormat</a></td>
+				<td>String</td>
+				<td>&quot;mmddyyyy&quot;</td>
+				<td>Set the date format. Here are the available options. (Modified v2.0.23).
+					<div class="collapsible">
+						<ul>
+							<li><code>&quot;mmddyyyy&quot;</code> (default)</li>
+							<li><code>&quot;ddmmyyyy&quot;</code></li>
+							<li><code>&quot;yyyymmdd&quot;</code></li>
+						</ul>
+						In previous versions, this option was set as &quot;us&quot;, &quot;uk&quot; or &quot;dd/mm/yy&quot;. This option was modified to better fit needed date formats. It will only work with four digit years!<br>
+						<br>
+						The sorter should be set to &quot;shortDate&quot; and the date format can be set in the &quot;dateFormat&quot; option or set for a specific columns within the &quot;headers&quot; option.
+						See <a href="example-option-date-format.html">the demo page</a> to see it working.
+						<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+
+    dateFormat : "mmddyyyy", // default date format
+
+    // or to change the format for specific columns,
+    // add the dateFormat to the headers option:
+    headers: {
+      0: { sorter: "shortDate" }, // "shortDate" with the default dateFormat above
+      1: { sorter: "shortDate", dateFormat: "ddmmyyyy" }, // day first format
+      2: { sorter: "shortDate", dateFormat: "yyyymmdd" }  // year first format
+    }
+
+  });
+});</pre>
+					Individual columns can be modified by adding the following (they all do the same thing), set in order of priority (Modified v2.3.1):
+					<ul>
+						<li>jQuery data <code>data-dateFormat=&quot;mmddyyyy&quot;</code>.</li>
+						<li>metadata <code>class=&quot;{ dateFormat: 'mmddyyyy'}&quot;</code>. This requires the metadata plugin.</li>
+						<li>headers option <code>headers : { 0 : { dateFormat : 'mmddyyyy' } }</code>.</li>
+						<li>header class name <code>class=&quot;dateFormat-mmddyyyy&quot;</code>.</li>
+						<li>Overall <code>dateFormat</code> option.</li>
+					</ul>
+					</div>
+				</td>
+				<td><a href="example-option-date-format.html">Example</a></td>
+			</tr>
+
+			<tr id="debug">
+				<td><span class="permalink">debug</span></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Boolean flag indicating if tablesorter should display debuging information useful for development.
+				</td>
+				<td><a href="example-option-debug.html">Example</a></td>
+			</tr>
+
+			<tr id="delayinit">
+				<td><span class="permalink">delayInit</span></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Setting this option to true will delay parsing of all table cell data until the user initializes a sort. This speeds up the initialization process of very large tables, but the data still needs to be parsed, so the delay is still present upon initial sort.
+				</td>
+				<td><a href="example-option-debug.html">Example</a></td>
+			</tr>
+
+			<tr id="emptyto">
+				<td><a href="#" class="toggle2">emptyTo</a></td>
+				<td>String</td>
+				<td>&quot;bottom&quot;</td>
+				<td>
+					Boolean flag indicating how tablesorter should deal with empty table cells. (Modified v2.1.16).
+					<div class="collapsible">
+					<ul>
+						<li><code>bottom</code> - sort empty table cells to the bottom.</li>
+						<li><code>top</code> - sort empty table cells to the top.</li>
+						<li><code>none</code> or <code>zero</code> - sort empty table cells as if the cell has the value equal to zero.</li>
+					</ul>
+					Individual columns can be modified by adding the following (they all do the same thing), set in order of priority:
+					<ul>
+						<li>jQuery data <code>data-empty=&quot;top&quot;</code>.</li>
+						<li>metadata <code>class=&quot;{ empty: 'top'}&quot;</code>. This requires the metadata plugin.</li>
+						<li>headers option <code>headers : { 0 : { empty : 'top' } }</code>.</li>
+						<li>header class name <code>class=&quot;empty-top&quot;</code>.</li>
+						<li>Overall <code>emptyTo</code> option.</li>
+					</ul>
+					<code>emptyToBottom</code> option was added in v2.1.11, then replaced by the <code>emptyTo</code> option in v2.1.16.
+					</div>
+				</td>
+				<td><a href="example-option-sort-empty.html">Example</a></td>
+			</tr>
+
+			<tr id="fixedurl">
+				<td><a href="#" class="toggle2">fixedUrl</a></td>
+				<td>String</td>
+				<td>Undefined</td>
+				<td>
+					This option was added to set a specific page when storing data using the <code>$.tablesorter.storage</code> code. <span class="version">v2.12</span>.
+					<div class="collapsible"><br>
+						More specifically, when the storage function is used, it attempts to give every table a unique identifier using both the page <strong>url</strong> and table <strong>ID</strong> (or index on the page if no id exists). This option allows you to override the current page url (<em>it doesn't need to be a url, just some constant value</em>) and save data for multiple tables across a domain.<br>
+						<br>
+						The table url &amp; id can also be overridden by setting table data attributes <code>data-table-page</code> (url) and <code>data-table-group</code> (id)<br>(e.g. <code>&lt;table class=&quot;tablesorter&quot; data-table-page=&quot;mydomain&quot; data-table-group=&quot;financial&quot;&gt;...&lt;/table&gt;</code>)<br>
+						<br>
+						For a bit more detail, specifically on how to use the new storage function options for a custom widget, please refer to <a href="https://github.com/Mottie/tablesorter/issues/389#issuecomment-26594259">issue #389</a>.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="headerlist">
+				<td><span class="permalink">headerList</span></td>
+				<td>Array</td>
+				<td>[ ] (empty array)</td>
+				<td>Internal list of each header element as selected using jQuery selectors in the <a href="#selectorheaders"><code>selectorHeaders</code></a> option. Not really useful for normal usage.</td>
+				<td></td>
+			</tr>
+
+			<tr id="headers">
+				<td><a href="#" class="toggle2">headers</a></td>
+				<td>Object</td>
+				<td>null</td>
+				<td>
+					An object of instructions for per-column controls in the format: <code>headers: { 0: { option: setting }, ... }</code>
+					<div class="collapsible">
+					<br>
+					For example, to disable sorting on the first two columns of a table: <code>headers: { 0: { sorter: false}, 1: {sorter: false} }</code>.<br>
+					<br>
+					The plugin attempts to detect the type of data that is contained in a column, but if it can't figure it out then it defaults to alphanumeric. You can easily override this by setting the header argument (or column parser).
+					See the full list of <a href="#parsers">default parsers</a> here or <a href="example-parsers.html">write your own</a>.
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    headers: {
+
+      // See example - Disable first column
+      0: { sorter: false },
+
+      // See example 2: Sort column numerically &amp; treat any text as if its value is:
+      1: { sorter: "digit", empty:  "top" }, // zero; sort empty cells to the top
+      2: { sorter: "digit", string: "max" }, // maximum positive value
+      3: { sorter: "digit", string: "min" }, // maximum negative value
+
+      // Sort the fifth column by date &amp; set the format
+      4: { sorter: "shortDate", dateFormat: "yyyymmdd" }, // year first format
+
+      // See example 3: lock the sort order
+      // this option will not work if added as metadata
+      5: { lockedOrder: "asc" },
+
+      // See Example 4: Initial sort order direction of seventh column
+      6: { sortInitialOrder: "desc" },
+
+      // Set filter widget options for this column
+      // See the "Applying the filter widget" demo
+      7: { filter: false },    // disable filter widget for this column
+      8: { filter: "parsed" }, // use parsed data for this column in the filter search
+
+      // Set resizable widget options for this column
+      9: { resizable: false } // prevent resizing of column 9
+
+    }
+  });
+});</pre></div>
+				</td>
+				<td>
+					Ex:<a href="example-options-headers.html">1</a>
+					<a href="example-options-headers-digits-strings.html">2</a>
+					<a href="example-options-headers-locked.html">3</a>
+					<a href="example-options-headers-order.html">4</a>
+				</td>
+			</tr>
+
+			<tr id="headertemplate">
+				<td><a href="#" class="toggle2">headerTemplate</a></td>
+				<td>String</td>
+				<td>&quot;{content}&quot;</td>
+				<td>This is a template string which allows adding additional content to the header while it is being built (v2.7).
+					<div class="collapsible"><br>
+						This template string has two modifying tags: <code>{content}</code> and <code>{icon}</code>.<br>
+						<code>{content}</code> will be replaced by the current header HTML content.<br>
+						<code>{icon}</code> will be replaced by <code>&lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;</code>, but only if a class name is defined in the <code>cssIcon</code> option.<br>
+						<br>
+						This template string may also contain HTML, e.g (<code>'&lt;em&gt;{content}&lt;/em&gt; {icon}'</code>)<br>
+						<br>
+						After the template string is built, the <code>onRenderTemplate</code> function is called to allow further manipulation. Please read more about this <a href="#onrendertemplate"><code>onRenderTemplate</code> function</a> and/or check out the example (link to the right).
+					</div>
+				</td>
+				<td><a href="example-option-render-template.html">Example</a></td>
+			</tr>
+
+			<tr id="ignorecase">
+				<td><span class="permalink">ignoreCase</span></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>When true, text sorting will ignore the character case. If false, upper case characters will sort before lower case. (v2.2).</td>
+				<td></td>
+			</tr>
+
+			<tr id="initwidgets">
+				<td><a href="#" class="toggle2">initWidgets</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>Apply widgets after table initializes (v2.3.5).
+					<div class="collapsible">
+					When true, all widgets set by the <code>widgets</code> option will apply after tablesorter has initialized, this is the normal behavior.<br>
+					<br>
+					If false, the each widget set by the <code>widgets</code> option will be initialized, meaning the "init" function is run, but the format function will not be run. This is useful when running the pager plugin after the table is set up. The pager plugin will initialize, then apply all set widgets.<br>
+					<br>
+					Why you ask? Well, lets say you have a table with 1000 rows that will have the pager plugin applied to it. Before this option, the table would finish its setup, all widgets would be applied to the 1000 rows, pager plugin initializes and reapplies the widgets on the say 20 rows showing; making the widget application to 100 rows unnecessary and a waste of time. So, when this option is false, widgets will only be applied to the table after the pager is set up.
+					</div>
+					</td>
+				<td></td>
+			</tr>
+
+			<tr id="onrenderheader">
+				<td><a href="#" class="toggle2">onRenderHeader</a></td>
+				<td>Function</td>
+				<td>null</td>
+				<td>
+					This function is called after content is to the TH tags (after the template is procressed and added). You can use this to modify the HTML in each header tag for additional styling.
+					<div class="collapsible">
+					<br>
+					In versions 2.0.6+, all TH text is wrapped in a div with a class name of "tablesorter-inner" by default. In the example below, the header cell (TH) div is given a class name (<a href="http://www.pengoworks.com/workshop/jquery/tablesorter/tablesorter.htm">source</a>).
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    headerTemplate: '{content}',
+    onRenderHeader: function (){
+      $(this).find('div').addClass('roundedCorners');
+    }
+  });
+});</pre>and you'll end up with this HTML (only the thead is shown)<pre class="prettyprint lang-html">&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners&quot;&gt;Column 1&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner roundedCorners&quot;&gt;Column 2&lt;/div&gt;&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;</pre>
+						<small>* Note: this function adds additional rendering time to the table if any DOM manipulation is done. Because this time will be on top of the processing time already added by the template.</small>
+					</div>
+				</td>
+				<td><a href="example-option-render-header.html">Example</a></td>
+			</tr>
+
+			<tr id="onrendertemplate">
+				<td><a href="#" class="toggle2">onRenderTemplate</a></td>
+				<td>Function</td>
+				<td>null</td>
+				<td>
+					This function is called after the template string has been built, but before the template string is applied to the header and before the <code>onRenderHeader</code> function is called (v2.7).
+					<div class="collapsible">
+					<br>
+					The <code>onRenderTemplate</code> function receives a column index and template string parameters. The template string, from the <a href="#headertemplate"><code>headerTemplate</code> option</a>, will already have the <code>{icon}</code> and <code>{content}</code> tags replaced; it's just a string of formatted HTML. When done manipulating this string, return it. Here is an example:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    headerTemplate: '{icon}{content}',
+    onRenderTemplate: function (index, template){
+      return '&lt;em&gt;' + (index + 1) + ':&lt;/em&gt; ' + template;
+    }
+  });
+});</pre>The <code>template</code> parameter can be manipulated as a string, or if you prefer, turn it into a jQuery object (<code>var $t = $(template)</code>) to find and replace content as desired. Just make sure you return a string (<code>return $t.html()</code>)<br>
+<br>
+From the example function above, you'll end up with something similar to this HTML (only the thead is shown)<pre class="prettyprint lang-html">&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner&quot;&gt;&lt;em&gt;1:&lt;/em&gt; &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;First Name&lt;/div&gt;&lt;/th&gt;
+    &lt;th class=&quot;tablesorter-header&quot;&gt;&lt;div class=&quot;tablesorter-header-inner&quot;&gt;&lt;em&gt;2:&lt;/em&gt; &lt;i class=&quot;tablesorter-icon&quot;&gt;&lt;/i&gt;Last Name&lt;/div&gt;&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;</pre>
+						<small>* Note: If the <code>cssIcon</code> option is an empty string, the <code>{icon}</code> tag will also become an empty string.</small>
+					</div>
+				</td>
+				<td><a href="example-option-render-template.html">Example</a></td>
+			</tr>
+
+			<tr id="parsers">
+				<td><a href="#" class="toggle2">parsers</a></td>
+				<td>Object</td>
+				<td>{ }</td>
+				<td>Internal list of all of the parsers. Here is a complete list of default parsers:
+					<div class="collapsible">
+					<br>
+					<table class="info"><tbody>
+						<tr><th><code>sorter: false</code></th><td>disable sort for this column.</td></tr>
+						<tr><th><code>sorter: &quot;text&quot;</code></th><td>Sort alpha-numerically.</td></tr>
+						<tr><th><code>sorter: &quot;digit&quot;</code></th><td>Sort numerically.</td></tr>
+						<tr><th><code>sorter: &quot;currency&quot;</code></th><td>Sort by currency value (supports "&#163;$&#8364;&#x00a4;&#x00a5;&#x00a2;").</td></tr>
+						<tr><th><code>sorter: &quot;ipAddress&quot;</code></th><td>Sort by IP Address.</td></tr>
+						<tr><th><code>sorter: &quot;url&quot;</code></th><td>Sort by url.</td></tr>
+						<tr><th><code>sorter: &quot;isoDate&quot;</code></th><td>Sort by ISO date (YYYY-MM-DD or YYYY/MM/DD; these formats can be followed by a time).</td></tr>
+						<tr><th><code>sorter: &quot;percent&quot;</code></th><td>Sort by percent.</td></tr>
+						<tr><th><code>sorter: &quot;usLongDate&quot;</code></th><td>Sort by date (U.S. Standard, e.g. Jan 18, 2001 9:12 AM or 18 Jan 2001 9:12 AM (new in v2.7.4)).</td></tr>
+						<tr><th><code>sorter: &quot;shortDate&quot;</code></th><td>Sort by a shortened date (see <a href="#dateformat"><code>dateFormat</code></a>; these formats can also be followed by a time).</td></tr>
+						<tr><th><code>sorter: &quot;time&quot;</code></th><td>Sort by time (23:59 or 12:59 pm).</td></tr>
+						<tr><th><code>sorter: &quot;metadata&quot;</code></th><td>Sort by the sorter value in the metadata - requires the metadata plugin.</td></tr>
+					</tbody></table><br>
+					Check out the <a href="#headers"><code>headers</code></a> option to see how to use these parsers in your table (example #1).<br>Or add a header class name using "sorter-" plus the parser name (example #2), this includes custom parsers (example #3).
+					</div>
+				</td>
+				<td>
+					Ex:<a href="example-options-headers-digits-strings.html">1</a>
+					<a href="example-parsers-class-name.html">2</a>
+					<a href="example-parsers.html">3</a>
+				</td>
+			</tr>
+
+			<tr id="selectorheaders">
+				<td><a href="#" class="toggle2">selectorHeaders</a></td>
+				<td>String</td>
+				<td>&quot;&gt; thead th, &gt; thead td&quot;</td>
+				<td>jQuery selectors used to find cells in the header.
+					<div class="collapsible">
+					You can change this, but the table will still need the required thead and tbody before this plugin will work properly.
+					<br>Added <code>&gt;</code> to the selector in v2.3 to prevent targetting nested table headers. It was modified again in v2.4 to include <code>td</code> cells within the thead.
+					</div>
+					</td>
+				<td></td>
+			</tr>
+
+			<tr id="selectorremove">
+				<td><a href="#" class="toggle2">selectorRemove</a></td>
+				<td>String</td>
+				<td>&quot;tr.remove-me&quot;</td>
+				<td>This CSS class name can be applied to all rows that are to be removed prior to triggering a table update. (v2.1).
+					<div class="collapsible">
+					<br>
+					It was necessary to add this option because some widgets add table rows for styling (see the <a href="example-widgets.html">writing custom widgets demo</a>) and if a table update is triggered (<code>$('table').trigger('update');</code>) those added rows will automatically become incorporated into the table.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="selectorsort">
+				<td><span class="permalink">selectorSort</span></td>
+				<td>String</td>
+				<td>&quot;th, td&quot;</td>
+				<td>jQuery selector of content within <a href="#selectorheaders"><code>selectorHeaders</code></a> that is clickable to trigger a sort (v2.4).</td>
+				<td><a href="example-option-selectorsort.html">Example</a></td>
+			</tr>
+
+			<tr id="serversidesorting">
+				<td><span class="permalink">serverSideSorting</span></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>Set to <code>true</code> if the server is performing the sorting. The ui and events will still be used (v2.5.3).</td>
+				<td></td>
+			</tr>
+
+			<tr id="showprocessing">
+				<td><span class="permalink">showProcessing</span></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>Show an indeterminate timer icon in the header when the table is sorted or filtered. Please note that due to javascript processing, the icon may not show as being animated. I'm looking into this further and would appreciate any feedback or suggestions with the coding (v2.4).</td>
+				<td><a href="example-option-show-processing.html">Example</a></td>
+			</tr>
+
+			<tr id="sortforce">
+				<td><a href="#" class="toggle2">sortForce</a></td>
+				<td>Array</td>
+				<td>null</td>
+				<td>Use to add an additional forced sort that is <strong>prepended</strong> to <a href="#sortlist"><code>sortList</code></a>.
+					<div class="collapsible">
+					<br>
+					For example, <code>sortForce: [[0,0]]</code> will sort the first column in ascending order. After the forced sort, the user selected column(s), or during initialzation, the sorting order defined in the sortList will follow. And lastly, the sort defined in the <a href="#sortappend"><code>sortAppend</code></a> option will be applied. More explicitly:<br>
+					<br>
+					There are three options to determine the sort order and this is the order of priority:
+					<ol>
+						<li><a href="#sortforce"><code>sortForce</code></a> forces the user to have this/these column(s) sorted first (null by default).</li>
+						<li><a href="#sortlist"><code>SortList</code></a> is the initial sort order of the columns.</li>
+						<li><a href="#sortappend"><code>SortAppend</code></a> is the default sort that is added to the end of the users sort selection (null by default).</li>
+					</ol>
+					The value of these sort options is an array of arrays and can include one or more columns. The format is an array of instructions for per-column sorting and direction in the format: <code>[[columnIndex, sortDirection], ... ]</code> where <code>columnIndex</code> is a zero-based index for your columns left-to-right and <code>sortDirection</code> is 0 for Ascending and 1 for Descending.  A valid argument that sorts ascending first by column 1 and then column 2 looks like: <code>[[0,0],[1,0]]</code>.
+				<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    sortForce  : [[0,0]],        // Always sort first column first
+    sortList   : [[1,0], [2,0]], // initial sort columns (2nd and 3rd)
+    sortAppend : [[3,0]]         // Always add this sort on the end (4th column)
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-option-sort-force.html">Example</a></td>
+			</tr>
+
+			<tr id="sortlist">
+				<td><a href="#" class="toggle2">sortList</a></td>
+				<td>Array</td>
+				<td>null</td>
+				<td>Use to add an initial sort to the table.
+					<div class="collapsible">
+					<br>
+					The value contains an array of instructions for per-column sorting and direction in the format: <code>[[columnIndex, sortDirection], ... ]</code> where columnIndex is a zero-based index for your columns left-to-right and sortDirection is 0 for Ascending and 1 for Descending.  A valid argument that sorts ascending first by column 1 and then column 2 looks like: <code>[[0,0],[1,0]]</code>. Please see <a href="#sortforce"><code>sortForce</code></a> for more details on other sort order options.<br>
+					<br>
+					This option can also be set using jQuery data (v2.3.1) or metadata on the table:
+					<table class="info">
+						<tfoot>
+							<tr><td colspan="2"><strong>** Note</strong>: <code>data-sortlist</code> data is not supported in jQuery versions older than 1.4.</td></tr>
+						</tfoot>
+						<tbody>
+							<tr><th>jQuery data</th><td><code>&lt;table data-sortlist="[[0,0],[4,0]]"&gt;</code> <strong>**</strong></td></tr>
+							<tr><th>Meta data</th><td><code>&lt;table class="tablesorter {sortlist: [[0,0],[4,0]]}"&gt;</code></td></tr>
+						</tbody>
+					</table>
+					</div>
+				</td>
+				<td><a href="example-option-sort-list.html">Example</a></td>
+			</tr>
+
+			<tr id="sortappend">
+				<td><a href="#" class="toggle2">sortAppend</a></td>
+				<td>Array</td>
+				<td>null</td>
+				<td>Use to add an additional forced sort that will be appended to the dynamic selections by the user.
+					<div class="collapsible">
+					<br>
+					For example, can be used to sort people alphabetically after some other user-selected sort that results in rows with the same value like dates or money due. It can help prevent data from appearing as though it has a random secondary sort.<br>
+				<br>
+				The value contains an array of instructions for per-column sorting and direction in the format: <code>[[columnIndex, sortDirection], ... ]</code> where <code>columnIndex</code> is a zero-based index for your columns left-to-right and sortDirection is 0 for Ascending and 1 for Descending.  A valid argument that sorts ascending first by column 1 and then column 2 looks like: <code>[[0,0],[1,0]]</code>. Please see <a href="#sortforce"><code>sortForce</code></a> for more details on other sort order options.
+				</div>
+				</td>
+				<td><a href="example-option-sort-append.html">Example</a></td>
+			</tr>
+
+			<tr id="sortinitialorder">
+				<td><a href="#" class="toggle2">sortInitialOrder</a></td>
+				<td>String</td>
+				<td>&quot;asc&quot;</td>
+				<td>
+					This sets the direction a column will sort when clicking on the header for the first time. Valid arguments are <code>&quot;asc&quot;</code> for Ascending or <code>&quot;desc&quot;</code> for Descending.<br>
+					<div class="collapsible">
+					<br>
+					This order can also be set by desired column using the <a href="#headers"><code>headers</code></a> option (Added in v2.0.8).<br>
+					<br>
+					Individual columns can be modified by adding the following (they all do the same thing), set in order of priority (Modified v2.3.1):
+					<ul>
+						<li>jQuery data <code>data-sortInitialOrder=&quot;asc&quot;</code>.</li>
+						<li>metadata <code>class=&quot;{ sortInitialOrder: 'asc'}&quot;</code>. This requires the metadata plugin.</li>
+						<li>headers option <code>headers : { 0 : { sortInitialOrder : 'asc' } }</code>.</li>
+						<li>header class name <code>class=&quot;sortInitialOrder-asc&quot;</code>.</li>
+						<li>Overall <code>sortInitialOrder</code> option.</li>
+					</ul>
+					</div>
+				</td>
+				<td>Ex:<a href="example-option-sort-order.html">1</a> <a href="example-options-headers-order.html">2</a></td>
+			</tr>
+
+			<tr id="sortlocalecompare">
+				<td><a href="#" class="toggle2">sortLocaleCompare</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Boolean flag indicating if certain accented characters within the table will be replaced with their equivalent characters. (Modified v2.2).
+					<div class="collapsible">
+					<ul>
+						<li>This option no longer switches the sort to use the <code>String.localeCompare</code> method.</li>
+						<li>When this option is <code>true</code>, the text parsed from table cells will convert accented characters to their equivalent to allow the alphanumeric sort to properly sort.</li>
+						<li>If <code>false</code> (default), any accented characters are treated as their value in the standard unicode order.</li>
+						<li>The following characters are replaced for both upper and lower case (information obtained from <a href="http://sugarjs.com/sorting">sugar.js sorting equivalents</a> table):
+							<ul>
+								<li><code>&#x00e1;&#x00e0;&#x00e2;&#x00e3;&#x00e4;</code> replaced with <code>a</code></li>
+								<li><code>&#x00e7;</code> replaced with <code>c</code></li>
+								<li><code>&#x00e9;&#x00e8;&#x00ea;&#x00eb;</code> replaced with <code>e</code></li>
+								<li><code>&#x00ed;&#x00ec;&#x0130;&#x00ee;&#x00ef;</code> replaced with <code>i</code></li>
+								<li><code>&#x00f3;&#x00f2;&#x00f4;&#x00f5;&#x00f6;</code> replaced with <code>o</code></li>
+								<li><code>&#x00fa;&#x00f9;&#x00fb;&#x00fc;</code> replaced with <code>u</code></li>
+								<li><code>&#x00df;</code> replaced with <code>S</code></li>
+							</ul>
+						</li>
+						<li>Please see the example page for instrcutions on how to modify the above equivalency table.</li>
+						<li>If you would like to continuing using the <code>String.localeCompare</code> method, then set the <code>sortLocaleCompare</code> option to <code>false</code> and use the new <a href="#textsorter"><code>textSorter</code></a> option as follows:
+							<pre class="prettyprint lang-javascript">$('table').tablesorter({
+  textSorter: function(a,b) {
+    return a.localeCompare(b);
+  }
+});</pre></li>
+					</ul>
+					<p class="tip">
+						<em>NOTE:</em> See the <a href="https://github.com/Mottie/tablesorter/wiki/Language">Language</a> wiki page for language specific examples and how to extend the character equivalent tables seen in the <a href="example-locale-sort.html">sortLocaleCompare demo</a>.
+					</p>
+					<del>Boolean flag indicating whenever to use javascript <code>String.localeCompare</code> method or not.<br>
+				This is only used when comparing text with international character strings. A sort using localeCompare will sort accented characters the same as their unaccented counterparts.</del>
+					</div>
+				</td>
+				<td><a href="example-locale-sort.html">Example</a></td>
+			</tr>
+
+			<tr id="sortreset">
+				<td><a href="#" class="toggle2">sortReset</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Setting this option to <code>true</code> will allow you to click on the table header a third time to reset the sort direction. (v2.0.27).
+					<div class="collapsible">
+						<br>Don't confuse this option with the <a href="#sortreset-method"><code>sortReset</code> method</a>. This option only resets the column sort after a third click, while the method immediately resets the entire table sort.
+					</div>
+				</td>
+				<td><a href="example-option-sortreset-sortrestart.html">Example</a></td>
+			</tr>
+
+			<tr id="sortResetKey">
+				<td>sortResetKey</td>
+				<td>String</td>
+				<td>&quot;ctrlKey&quot;</td>
+				<td>The key used to reset sorting on the entire table. Defaults to the control key. The other options are <code>&quot;shiftKey&quot;</code> or <code>&quot;altKey&quot;</code>. Reference: <a class="external" href="https://developer.mozilla.org/en/DOM/MouseEvent">https://developer.mozilla.org/en/DOM/MouseEvent</a></td>
+				<td></td>
+			</tr>
+
+			<tr id="sortrestart">
+				<td><span class="permalink">sortRestart</span></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Setting this option to <code>true</code> will start the sort with the <a href="#sortinitialorder"><code>sortInitialOrder</code></a> when clicking on a previously unsorted column. (v2.0.31).
+				</td>
+				<td><a href="example-option-sortreset-sortrestart.html">Example</a></td>
+			</tr>
+
+			<tr id="sortmultisortkey">
+				<td><span class="permalink">sortMultiSortKey</span></td>
+				<td>String</td>
+				<td>&quot;shiftKey&quot;</td>
+				<td>The key used to select more than one column for multi-column sorting.  Defaults to the shift key.  The other options are <code>&quot;ctrlKey&quot;</code> or <code>&quot;altKey&quot;</code>. Reference: <a class="external" href="https://developer.mozilla.org/en/DOM/MouseEvent">https://developer.mozilla.org/en/DOM/MouseEvent</a></td>
+				<td><a href="example-option-sort-key.html">Example</a></td>
+			</tr>
+
+			<tr id="stringto">
+				<td><a href="#" class="toggle2">stringTo</a></td>
+				<td>String</td>
+				<td>&quot;max&quot;</td>
+				<td>
+					A key word indicating how tablesorter should deal with text inside of numerically sorted columns. (v2.1.16).
+					<div class="collapsible"><br>
+					String options was initially set in the header options only. Overall option added and values changed in version 2.1.16; setting the value to:
+					<ul>
+						<li><code>&quot;max&quot;</code> will treat any text in that column as a value greater than the <em>max</em> (more positive) value. Renamed from "max+".</li>
+						<li><code>&quot;min&quot;</code> will treat any text in that column as a value greater than the <em>min</em> (more negative) value. Renamed from "max-".</li>
+						<li><code>&quot;top&quot;</code> will always sort the text to the top of the column.</li>
+						<li><code>&quot;bottom&quot;</code> will always sort the text to the bottom of the column.</li>
+						<li><code>&quot;none&quot;</code> or <code>&quot;zero&quot;</code> will treat the text as if it has a value of zero.</li>
+					</ul>
+					Individual columns can be modified by adding the following (they all do the same thing), set in order of priority:
+					<ul>
+						<li>jQuery data <code>data-string=&quot;top&quot;</code>.</li>
+						<li>metadata <code>class=&quot;{ string: 'top'}&quot;</code>. This requires the metadata plugin.</li>
+						<li>headers option <code>headers : { 0 : { string : 'top' } }</code>.</li>
+						<li>header class name <code>class=&quot;string-top&quot;</code>.</li>
+						<li>Overall <code>stringTo</code> option.</li>
+					</ul>
+					</div>
+				</td>
+				<td><a href="example-options-headers-digits-strings.html">Example</a></td>
+			</tr>
+
+			<tr id="tableClass">
+				<td><a href="#" class="toggle2">tableClass</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to style the table - <span class="version updated">v2.11</span>
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter&quot;</code> class will always be added to the table; this option now contains any additional class names to add.
+						<p>This class was required in the default markup in version 2.0.5. But in version 2.0.6, it was added as an option.</p>
+						Modify this option if you are not using the default css, or if you are using a completely custom stylesheet.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="theme">
+				<td><a href="#" class="toggle2">theme</a></td>
+				<td>String</td>
+				<td>&quot;default&quot;</td>
+				<td>This option will add a theme css class name to the table <code>&quot;tablesorter-{theme}&quot;</code> for styling (v2.4).
+					<div class="collapsible">
+						<br>When changing this theme option, make sure that the appropriate css theme file has also been loaded. Included theme files include:
+						<a href="themes.html" target="_blank" title="open themes in a new window">see all themes</a><br>
+						<iframe style="width:100%;height:300px;" src="themes.html"></iframe>
+					</div>
+				</td>
+				<td><a href="themes.html">Example</a></td>
+			</tr>
+
+			<tr id="textextraction">
+				<td><a href="#" class="toggle2">textExtraction</a></td>
+				<td>String Or Function</td>
+				<td>&quot;simple&quot;</td>
+				<td>Defines which method is used to extract data from a table cell for sorting.
+					The built-in option is <code>&quot;simple&quot;</code> which is the equivalent of doing this inside of the textExtraction function: <code>$(node).text();</code>.
+					<div class="collapsible">
+					<br>
+					You can customize the text extraction by writing your own text extraction function "myTextExtraction" which you define like:
+					<pre class="prettyprint lang-javascript">var myTextExtraction = function(node, table, cellIndex){
+  // extract data from markup and return it
+  // originally: return node.childNodes[0].childNodes[0].innerHTML;
+  return $(node).find('selector').text();
+}
+$(function(){
+  $("#myTable").tableSorter( { textExtraction: myTextExtraction } );
+});</pre>
+					tablesorter will pass the current table cell object for you to parse and return.  Thanks to Josh Nathanson for the examples. Updated to a jQuery example by Rob G (Mottie).
+					<p>Now if the text you are finding in the script above is say a number, then just include the <a href="#headers"><code>headers</code></a> sorter option to specify how to sort it. Also in this example, we will specify that the special textExtraction code is only needed for the second column ("1" because we are using a zero-based index). All other columns will ignore this textExtraction function.</p>
+					<p>Added <code>table</code> and <code>cellIndex</code> variables to the <code>textExtraction</code> function in version 2.1.2.</p>
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    textExtraction: {
+      1: function(node, table, cellIndex) {
+           return $(node).find("span:last").text();
+      }
+    },
+    headers: {
+      1: { sorter : "digit" }
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-option-text-extraction.html">Example</a></td>
+			</tr>
+
+			<tr id="numbersorter">
+				<td><a href="#" class="toggle2">numberSorter</a></td>
+				<td>Function</td>
+				<td>null</td>
+				<td>
+					Replace the default number sorting algorithm with a custom one using this option <span class="version">v2.12</span>.
+					<div class="collapsible">
+					<br>
+					Here is an example:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    numberSorter : function(a, b, direction, maxColumnValue){
+      // direction; true = ascending; false = descending
+      // maxColumnValue = the maximum value of that column (ignoring its sign)
+      return a - b;
+    }
+  });
+});</pre>The direction parameter (boolean) is merely for informational purposes as the plugin automatically switches `a` and `b` depending on the sort direction ( i.e. there's no need to worry about reverse sorting, it's taken care of by the plugin ).
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="textsorter">
+				<td><a href="#" class="toggle2">textSorter</a></td>
+				<td>Function</td>
+				<td>null</td>
+				<td>
+					Replace the default sorting algorithm with a custom one using this option (<span class="version updated">v2.12</span>) - <span class="alert">*NOTE*</span> The parameters have changed!!.
+					<div class="collapsible">
+					<br>
+					Include a script like <a href="https://github.com/overset/javascript-natural-sort">naturalSort.js</a> as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    textSorter : naturalSort
+  });
+});</pre>
+					or use the localeCompare sort
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    // replace the OVERALL text sorter function
+    textSorter: function(a, b, direction, columnIndex, table){
+      // direction: true = ascending; false = descending
+      // columnIndex: zero-based index of the current table column being sorted
+      // table: table DOM element (access options by using table.config)
+      return a.localeCompare(b);
+    }
+  });
+});</pre>In <span class="version updated">v2.12</span>, the <code>textSorter</code> option will now accept a text sorter per column:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    textSorter : {
+      // replace INDIVIDUAL COLUMN text sorter functions
+      0 : function(a, b, direction, columnIndex, table){
+        // same as $.tablesorter.sortText
+        // direction: true = ascending; false = descending
+        // columnIndex: zero-based index of the current table column being sorted
+        // table: table DOM element (access options by using table.config)
+        return a > b ? 1 : (a < b ? -1 : 0);
+      },
+      1 : $.tablesorter.sortText,    // same as the function in column 0 above (modified in v2.12)
+      2 : $.tablesorter.sortNatural, // renamed v2.12 from $.tablesorter.sortText - performs natural sort
+      3 : Array.AlphanumericSort     // alphanumeric sort from sugar (http://sugarjs.com/arrays#sorting)
+    }
+  });
+});</pre>The direction parameter (boolean) is merely for informational purposes as the plugin automatically switches `a` and `b` depending on the sort direction ( i.e. there's no need to worry about reverse sorting, it's taken care of by the plugin ).
+
+					</div>
+				</td>
+				<td><a href="example-option-custom-sort.html">Example</a></td>
+			</tr>
+
+			<tr id="usnumberformat">
+				<td><a href="#" class="toggle2">usNumberFormat</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Indicates how tablesorter should deal with a numerical format: (v2.1.3).
+					<div class="collapsible">
+						<table class="info"><tbody>
+							<tr>
+								<th><code>true</code></th>
+								<td class="right">U.S.</td>
+								<td><code>1,234,567.89</code></td>
+							</tr>
+							<tr>
+								<th><code>false</code></th>
+								<td class="right">German:<br>French:</td>
+								<td><code>1.234.567,89</code><br><code>1 234 567,89</code></td>
+							</tr>
+						</tbody></table>
+					</div>
+				</td>
+				<td><a href="../index.html">Example</a></td>
+			</tr>
+
+			<tr id="widgets">
+				<td><span class="permalink">widgets</span></td>
+				<td>Array</td>
+				<td>[ ] (empty array)</td>
+				<td>
+					Initialize widgets using this option ( e.g. <code>widgets : ['zebra']</code>, or custom widgets <code>widgets: ['zebra', 'myCustomWidget'];</code>, see <a href="example-widgets.html">this demo</a> on how to write your own custom widget ).
+				</td>
+				<td><a href="example-widget-zebra.html">Example</a></td>
+			</tr>
+
+			<tr id="widthfixed">
+				<td><a href="#" class="toggle2">widthFixed</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Indicates if tablesorter should apply fixed percentage-based widths to the table columns (modified v2.4).
+					<div class="collapsible">
+					Prior to v2.4, this option set pixel widths to added colgroups to fix the column widths. This is useful for the Pager companion.
+					<br>
+					<del>Requires the <a href="#Download-Addons">jQuery dimension plugin</a> to work.</del> This is now part of the jQuery core.
+					</div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="widgetoptions">
+				<td><a href="#" class="toggle2">widgetOptions</a></td>
+				<td>Object</td>
+				<td>{ }</td>
+				<td>
+					In version 2.1, all widget options have been moved into this option. This is a move to store all widget specific options in one place so as not to polute the main table options. All current widgets have been modified to use this new option. (v2.1).
+					<div class="collapsible">
+					<br>
+					Previously documented widget options <a href="#widgetzebra"><code>widgetZebra</code></a>, <a href="#widgetcolumns"><code>widgetColumns</code></a> and <a href="#widgetuitheme"><code>widgetUitheme</code></a> will be retained for backwards compatibility.<br>
+					<br>
+					Use the <a href="#widgetoptions"><code>widgetOptions</code></a> option as follows, please note that each option is followed by a comma (except the last one):
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+
+    // initialize a bunch of widgets
+    widgets: ["zebra", "uitheme", "columns", "filter", "resizable", "stickyHeaders"],
+
+    widgetOptions: {
+
+      // *** columns widget ***
+      // change the default column class names
+      columns : [ "primary", "secondary", "tertiary" ],
+      // include thead when adding class names
+      columns_thead : true,
+      // include tfoot when adding class names
+      columns_tfoot : true,
+
+      // *** filter widget ***
+      // Include child rows content in the search
+      filter_childRows     : false,
+      // show column filters
+      filter_columnFilters : true,
+      // css class applied to the filter row inputs/select
+      filter_cssFilter     : '',
+      // data attribute in the header cell that contains the default filter value
+      filter_defaultAttrib : 'data-value',
+      // class added to filtered rows; needed by pager plugin
+      filter_filteredRow   : 'filtered',
+      // add custom filter elements to the filter row
+      filter_formatter     : null,
+      // add custom filter functions using this option.
+      filter_functions     : null,
+      // if true, the filter row is hidden initially until hovered/focused.
+      filter_hideFilters   : false,
+      // if true, make all searches case-insensitive.
+      filter_ignoreCase    : true,
+      // if true, search column content while the user types (with a delay)
+      filter_liveSearch    : true,
+      // a selector in a header with this class name will only show selected options in the drop down
+      filter_onlyAvail     : 'filter-onlyAvail',
+      // jQuery selector string of an element used to reset the filters.
+      filter_reset         : null,
+      // typing delay in milliseconds before starting a search.
+      filter_searchDelay   : 300,
+      // if true, filter start from the beginning of the cell contents.
+      filter_startsWith    : false,
+      // filter all data using parsed content.
+      filter_useParsedData : false,
+      // Set to true for server-side filtering
+      filter_serversideFiltering :  false,
+
+      // *** stickyHeaders widget ***
+      // extra class name added to the sticky header row
+      stickyHeaders : '',
+      // number or jquery selector targeting the position:fixed element
+      stickyHeaders_offset : 0,
+      // added to table ID, if it exists
+      stickyHeaders_cloneId : '-sticky',
+      // trigger "resize" event on headers
+      stickyHeaders_addResizeEvent : true,
+      // if false and a caption exist, it won't be included in the sticky header
+      stickyHeaders_includeCaption : true,
+      // The zIndex of the stickyHeaders, allows the user to adjust this to their needs
+      stickyHeaders_zIndex : 2
+
+      // *** resizable widget ***
+      // if false, resized columns are not saved for next page reload
+      resizable : true,
+      // if true, the last column will be resizable (use in non-full width tables)
+      resizable_addLastColumn: false,
+
+      // *** savesort widget ***
+      // if false, the sort will not be saved for next page reload
+      saveSort : true,
+
+      // *** uitheme widget ***
+      // include the name of the theme to use current options are
+      // "jui" (default) and "bootstrap"
+      uitheme : "jui",
+
+      // *** zebra widget ***
+      // class names to add, default is [ "even", "odd" ]
+      zebra : ["ui-widget-content even", "ui-state-default odd"]
+
+    }
+
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-zebra.html">Example</a></td>
+			</tr>
+		</tbody>
+
+		<!-- non-sorting tbody -->
+		<tbody id="deprecated" class="tablesorter-infoOnly">
+			<tr><th colspan="5">Deprecated Options</th></tr>
+		</tbody>
+
+		<tbody>
+			<tr id="widgetcolumns">
+				<td><a href="#" class="toggle2 deprecated">widgetColumns</a></td>
+				<td>Object with Array</td>
+				<td>{ css:[ "primary", "secondary", "tertiary" ] }</td>
+				<td>
+					This option is being <span class="deprecated">deprecated</span>!
+					It has been replaced by <a href="#widget-columns"><code>widgetOptions.columns</code></a>; but is still available for backwards compatibility.
+					<div class="collapsible">
+					<br>
+					When the column styling widget is initialized, it automatically applied the default class names of <code>&quot;primary&quot;</code> for the primary sort, <code>&quot;secondary&quot;</code> for the next sort, <code>&quot;tertiary&quot;</code> for the next sort, and so on (add more as needed)... (v2.0.17).
+					Use the <a href="#widgetcolumns"><code>widgetColumns</code></a> option to change the css class name as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["columns"], // initialize column styling of the table
+    widgetColumns: { css: ["primary", "secondary", "tertiary" ] }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widgetuitheme">
+				<td><a href="#" class="toggle2 deprecated">widgetUitheme</a></td>
+				<td>Object with Array</td>
+				<td>{ css: [ "ui-icon-arrowthick-2-n-s", "ui-icon-arrowthick-1-s", "ui-icon-arrowthick-1-n" ] }</td>
+				<td>
+					This option is being <span class="deprecated">deprecated</span>!
+					It has been replaced by <a href="#widget-uitheme"><code>widgetOptions.uitheme</code></a>; but is still available for backwards compatibility.
+					<div class="collapsible">
+					<br>
+					Used when the ui theme styling widget is initialized. It automatically applies the default class names of <code>&quot;ui-icon-arrowthick-2-n-s&quot;</code> for the unsorted column, <code>&quot;ui-icon-arrowthick-1-s&quot;</code> for the descending sort and <code>&quot;ui-icon-arrowthick-1-n&quot;</code> for the ascending sort. (v2.0.9).
+					Find more jQuery UI class names by hovering over the Framework icons on this page: <a class="external" href="http://jqueryui.com/themeroller/">http://jqueryui.com/themeroller/</a><br>
+					<br>
+					Use the <a href="#widgetuitheme"><code>widgetUitheme</code></a> option to change the css class name as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["uitheme"], // initialize ui theme styling widget of the table
+    widgetUitheme: {
+      css: [
+        "ui-icon-carat-2-n-s", // Unsorted icon
+        "ui-icon-carat-1-s",   // Sort up (down arrow)
+        "ui-icon-carat-1-n"    // Sort down (up arrow)
+      ]
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widgetzebra">
+				<td><a href="#" class="toggle2 deprecated">widgetZebra</a></td>
+				<td>Object with Array</td>
+				<td>{ css: [ &quot;even&quot;, &quot;odd&quot; ] }</td>
+				<td>
+					This option is being <span class="deprecated">deprecated</span>!
+					It has been replaced by <a href="#widget-zebra"><code>widgetOptions.zebra</code></a>; but is still available for backwards compatibility.
+					<div class="collapsible">
+					<br>
+					When the zebra striping widget is initialized, it automatically applied the default class names of <code>&quot;even&quot;</code> and <code>&quot;odd&quot;</code>.
+					Use the <a href="#widgetzebra"><code>widgetZebra</code></a> option to change the css class name as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["zebra"], // initialize zebra striping of the table
+    widgetZebra: { css: [ "normal-row", "alt-row" ] }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+		</tbody>
+	</table>
+
+	<a id="Widget-options"></a>
+	<h1>Widget &amp; Pager Options</h1>
+
+	<table class="tablesorter compatibility">
+		<thead>
+			<tr><th>Widget Priority</th><th>Name</th><th>Requires jQuery</th><th>Limiting function</th></tr>
+		</thead>
+		<tbody>
+			<tr><td>30</td><td>columns</td><td>v1.2.6</td><td></td></tr>
+			<tr><td>50</td><td>filter</td><td>v1.4.3</td><td>1.4.3 (nextUntil &amp; delegate)</td></tr>
+			<tr><td>Last</td><td>pager</td><td>v1.2.6</td><td></td></tr>
+			<tr><td>40</td><td>resizable</td><td>v1.4.1*</td><td>1.4 (isEmptyObject); 1.4.1 (parseJSON)*</td></tr>
+			<tr><td>20</td><td>saveSort</td><td>v1.4.1</td><td>1.4.1 (parseJSON)*</td></tr>
+			<tr><td>60</td><td>stickyHeaders</td><td>v1.2.6</td><td></td></tr>
+			<tr><td>10</td><td>uitheme</td><td>v1.2.6</td><td></td></tr>
+			<tr><td>90</td><td>zebra</td><td>v1.2.6</td><td></td></tr>
+		</tbody>
+	</table>
+
+	<div class="tip">
+		<p></p>
+		tablesorter widgets have many options, and to better organize them, they now are grouped together inside of the <code>widgetOptions</code>. Thanks to thezoggy for putting together this jQuery-widget compatibility table, but please note:
+		<ul>
+			<li>The applied order of widget is dependent of the widget priority, from low to high.</li>
+			<li>Widget priority values do not need to be unique. Any new widget without a defined priority will automatically have a priority of <code>10</code>.</li>
+			<li>The pager, being a plugin, is actually initialized after tablesorter has initialized and all selected widgets applied.</li>
+			<li>* The <code>saveSort</code> and <code>resizable</code> widgets use the <code>$.tablesorter.storage</code> function by default and thus need the <code>parseJSON</code> function which is available in jQuery 1.4.1+.</li>
+		</ul>
+
+		<br class="clear">
+		<em>TIP!</em> Click on the link in the property column to reveal full details (or <a href="#" class="toggleAll">toggle</a>|<a href="#" class="showAll">show</a>|<a href="#" class="hideAll">hide</a> all) or double click to update the browser location.
+	</div>
+
+	<table id="widget-options" class="tablesorter options">
+		<thead>
+			<tr>
+				<th class="property">Property</th>
+				<th class="type">Type</th>
+				<th class="defaults">Default</th>
+				<th class="descrip">Description</th>
+				<th class="examples">Link</th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<th class="property">Property</th>
+				<th class="type">Type</th>
+				<th class="defaults">Default</th>
+				<th class="descrip">Description</th>
+				<th class="examples">Link</th>
+			</tr>
+		</tfoot>
+		<tbody>
+
+			<tr id="widget-columns">
+				<td><a href="#" class="toggle2">columns</a></td>
+				<td>Array</td>
+				<td>[ "primary", "secondary", "tertiary" ]</td>
+				<td>
+					Columns widget: When the column styling widget is initialized, it automatically applied the default class names of <code>&quot;primary&quot;</code> for the primary sort, <code>&quot;secondary&quot;</code> for the next sort, <code>&quot;tertiary&quot;</code> for the next sort, and so on (add more as needed)... (Modified v2.1).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-columns"><code>&quot;columns&quot;</code></a> option to change the css class name as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["columns"], // initialize column styling of the table
+    widgetOptions : {
+      columns: [ "primary", "secondary", "tertiary" ]
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-columns.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-columns-thead">
+				<td><a href="#" class="toggle2">columns_thead</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Columns widget: If true, the class names from the <code>columns</code> option will also be added to the table thead (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-columns-thead"><code>&quot;columns_thead&quot;</code></a> option to add the column class names to the thead as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["columns"], // initialize column styling of the table
+    widgetOptions : {
+      columns_thead: true
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-columns.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-columns-tfoot">
+				<td><a href="#" class="toggle2">columns_tfoot</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Columns widget: If true, the class names from the <code>columns</code> option will also be added to the table tfoot (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-columns-tfoot"><code>&quot;columns_tfoot&quot;</code></a> option to add the column class names to the tfoot as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["columns"], // initialize column styling of the table
+    widgetOptions : {
+      columns_tfoot: true
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-columns.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-childrows">
+				<td><a href="#" class="toggle2">filter_childRows</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Filter widget: If there are child rows in the table (rows with class name from <a href="#csschildrow"><code>&quot;cssChildRow&quot;</code></a> option) and this option is <code>true</code> and a match is found anywhere in the child row, then it will make that row visible.
+					(Modified v2.1).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-childrows"><code>filter_childRows</code></a> option include child row text as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_childRows : true
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-columnFilters">
+				<td><a href="#" class="toggle2">filter_columnFilters</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Filter widget: If <code>true</code>, a filter will be added to the top of each table column (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-columnFilters"><code>filter_columnFilters</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_columnFilters : true
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-cssfilter">
+				<td><a href="#" class="toggle2">filter_cssFilter</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Additional CSS class applied to each filter - <span class="version updated">v2.11</span>
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-filter&quot;</code> class will always be added to the filter; this option now contains any additional class names to add.
+						<p>Use the <a href="#widget-filter-cssfilter"><code>&quot;tablesorter-filter&quot;</code></a> option to add an extra css class name as follows:</p>
+						<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      // css class applied to the table row containing the filters & the inputs within that row
+      filter_cssFilter : "tablesorter-filter"
+    }
+  });
+});</pre>
+					</div>
+				</td>
+				<td><a href="example-widget-filter.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-filteredrow">
+				<td><span class="permalink">filter_filteredRow</span></td>
+				<td>String</td>
+				<td>&quot;filtered&quot;</td>
+				<td>
+					Filter widget: This is the class name applied to all rows that match the filter; used by pager plugin (<span class="version">v2.10</span>).
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-formatter">
+				<td><a href="#" class="toggle2">filter_formatter</a></td>
+				<td>Object</td>
+				<td>null</td>
+				<td>
+					Filter widget: This option allows you to add custom controls within the filter widget row (v2.7.7).<br>
+					<div class="collapsible">
+					<br>
+					A new file has been included named "jquery.tablesorter.widgets-filter-formatter.js". It includes code to add jQuery UI and HTML5 controls via the <a href="#widget-filter-formatter"><code>filter_formatter</code></a> option.<br>
+					<br>
+					Most of the formatter functions have an option named <code>valueToHeader</code> which, when <code>true</code> adds a span to the header cell above the filter row and updates it with the current control's value (see <a href="example-widget-filter-formatter-2.html">example 2</a>). If the option exists and is set to <code>false</code>, then the current value is added to the control's handle and css can be used to create a popup to show the current value (see <a href="example-widget-filter-formatter-1.html">example 1</a>).<br>
+					<br>
+					Another custom option named <code>addToggle</code> is included with the "uiSpinner", "html5Color" and "html5Number" code. This allows the user to disable the control to show all table rows. For the single sliders, "uiSlider" and "html5Range", the minimum value is used to clear the filter (show all rows).<br>
+					<br>
+					The options included for each jQuery UI control only show basic options, but any or all of the jQuery UI options for that control can be included.<br>
+					<ul>
+						<li>
+							To add the jQuery UI slider, follow this example:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_formatter : {
+        0 : function($cell, indx){
+          return $.tablesorter.filterFormatter.<strong>uiSpinner</strong>( $cell, indx, {
+            value : 0,  // starting value
+            min   : 0,  // minimum value
+            max   : 50, // maximum value
+            step  : 1,  // increment value by
+            addToggle: true, // Add a toggle to enable/disable the control
+            valueToHeader: false // add current slider value to the header cell
+          });
+        }
+      }
+    }
+  });
+});</pre>Any of the other <a href="http://api.jqueryui.com/spinner/">jQuery UI spinner widget options</a> can also be included.<br>
+							<br>
+						</li>
+						<li>Filter formatter functions include: "uiSpinner", "uiSlider", "uiRange" (uiSlider ranged), "uiDatepicker" (range only), "html5Number", "html5Range" and "html5Color".</li>
+						<li>
+							For other examples, please refer to the example pages. Formatter part 1 (example 1) adds jQuery UI controls to the filter row, while formatter part 2 (example 2) adds HTML5 controls, if supported, to the filter row.
+						</li>
+					</ul>
+					</div>
+				</td>
+				<td>Ex: <a href="example-widget-filter-formatter-1.html">1</a> <a href="example-widget-filter-formatter-2.html">2</a> </td>
+			</tr>
+
+			<tr id="widget-filter-functions">
+				<td><a href="#" class="toggle2">filter_functions</a></td>
+				<td>Object</td>
+				<td>null</td>
+				<td>
+					Filter widget: Customize the filter widget by adding a select dropdown with content, custom options or custom filter functions (v2.3.6).
+					<div class="collapsible">
+					Use the <a href="#widget-filter-functions"><code>&quot;filter_functions&quot;</code></a> option in three different ways:
+					<br>
+					<ul>
+						<li>
+							Make a sorted select dropdown list of all column contents. Repeated content will be combined.
+							<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions: {
+      filter_functions: {
+        // Add select menu to this column
+        // set the column value to true, and/or add "filter-select" class name to header
+        0 : true
+      }
+    }
+  });
+});</pre>
+							Alternately, instead of setting the column filter funtion to true, give the column header a class name of "filter-select". See the <a href="example-widget-filter-custom.html">demo</a>.<br><br>
+						</li>
+						<li>
+							Make a select dropdown list with custom option settings. Each option must have a corresponding function which returns a boolean value; return true if there is a match, or false with no match.
+
+							<h4>Regex example</h4>
+							<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions: {
+      // function variables:
+      // e = exact text from cell
+      // n = normalized value returned by the column parser
+      // f = search filter input value
+      // i = column index
+      filter_functions: {
+        // Add these options to the select dropdown (regex example)
+        2 : {
+          "A - D" : function(e, n, f, i) { return /^[A-D]/.test(e); },
+          "E - H" : function(e, n, f, i) { return /^[E-H]/.test(e); },
+          "I - L" : function(e, n, f, i) { return /^[I-L]/.test(e); },
+          "M - P" : function(e, n, f, i) { return /^[M-P]/.test(e); },
+          "Q - T" : function(e, n, f, i) { return /^[Q-T]/.test(e); },
+          "U - X" : function(e, n, f, i) { return /^[U-X]/.test(e); },
+          "Y - Z" : function(e, n, f, i) { return /^[Y-Z]/.test(e); }
+        }
+      }
+    }
+  });
+});</pre>
+							<h4>Comparison example</h4>
+							<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions: {
+      // function variables:
+      // e = exact text from cell
+      // n = normalized value returned by the column parser
+      // f = search filter input value
+      // i = column index
+      filter_functions: {
+        // Add these options to the select dropdown (numerical comparison example)
+        // Note that only the normalized (n) value will contain numerical data
+        // If you use the exact text, you'll need to parse it (parseFloat or parseInt)
+        4 : {
+          "&lt; $10"      : function(e, n, f, i) { return n &lt; 10; },
+          "$10 - $100" : function(e, n, f, i) { return n &gt;= 10 && n &lt;=100; },
+          "&gt; $100"     : function(e, n, f, i) { return n &gt; 100; }
+        }
+      }
+    }
+  });
+});</pre>
+						Note: if the <code>filter_ignoreCase</code> option is <code>true</code>, it DOES alter the normalized value (n) by making it all lower case.<br><br>
+						</li>
+						<li>
+							Make a custom filter for the column.
+							<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions: {
+      // function variables:
+      // e = exact text from cell
+      // n = normalized value returned by the column parser
+      // f = search filter input value
+      // i = column index
+      filter_functions: {
+        // Exact match only
+        1 : function(e, n, f, i) {
+          return e === f;
+        }
+      }
+    }
+  });
+});</pre>
+						Note: if the <code>filter_ignoreCase</code> option is <code>true</code>, it DOES alter the normalized value (n) by making it all lower case.<br><br>
+						</li>
+					</ul>
+					</div>
+				</td>
+				<td><a href="example-widget-filter-custom.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-hidefilters">
+				<td><a href="#" class="toggle2">filter_hideFilters</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Filter widget: Set this option to <code>true</code> to hide the filter row initially. The row is revealed by hovering over the visible portion of the filter row or by giving any filter input/select focus (tab key) (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-hidefilters"><code>filter_hideFilters</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_hideFilters : true
+    }
+  });
+});</pre>You can change the style (thickness) of the hidden filter row in the tablesorter theme css. Look for <code>.tablesorter-filter-row</code> (revealed row) and <code>.tablesorter-filter-row.hideme</code> (for the hidden row) css definitions.</div>
+				</td>
+				<td><a href="example-widget-filter.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-ignorecase">
+				<td><a href="#" class="toggle2">filter_ignoreCase</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Filter widget: Set this option to <code>false</code> to make the column content search case-insensitive, so typing in &quot;a&quot; will not find &quot;Albert&quot;. (v2.3.4)
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-ignorecase"><code>filter_ignorecase</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_ignoreCase : false
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-filter.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-livesearch">
+				<td><a href="#" class="toggle2">filter_liveSearch</a></td>
+				<td>Boolean, or Number</td>
+				<td>true</td>
+				<td>
+					Filter widget: If <code>true</code>, a search of the column content will occur as the user types, with the delay set in the <code>filter_searchDelay</code> option (v2.9; <span class="version updated">v2.10</span>).
+					<div class="collapsible">
+					<br>
+					This option, when <code>false</code> allows you to disable the live search behavior, so that a filter is only applied when the user presses enter (or uses escape to clear and cancel the search).<br>
+					<br>
+					If this option is set to a number, e.g. <code>4</code>, a search of the column content will not initiate until this minimum number of characters are entered into the input.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-onlyAvail">
+				<td><a href="#" class="toggle2">filter_onlyAvail</a></td>
+				<td>String</td>
+				<td>'filter-onlyAvail'</td>
+				<td>
+					Filter widget: If a header contains a select dropdown and this class name, only the available (visible) options in the column will show (<span class="version">v2.10.1</span>).
+					<div class="collapsible">
+					<br>
+					This option is useful after one or more columns have been filtered, then the column select filter with this class applied will only show the contents of the column within the dropdown that are currently visible. See the <a href="example-widget-filter-custom.html">custom filter widget</a> demo &quot;Discount&quot; column for an example (sort the &quot;First Name&quot; column first).<br>
+					<br>
+					<span class="alert">Caution:</span> The main issue with this functionality is with keyboard accessibility. If the keyboard is used to select an option, only the first and default options will be available for chosing. The only way to select other options is with the mouse.
+					</div>
+				</td>
+				<td><a href="example-widget-filter-custom.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-reset">
+				<td><a href="#" class="toggle2">filter_reset</a></td>
+				<td>String</td>
+				<td>null</td>
+				<td>
+					Filter widget: jQuery selector string of an element used to reset the filters (v2.4).
+					<div class="collapsible">
+					<p>
+					To use this option, point to a reset button or link using a jQuery selector. For example, add this button (<code>&lt;button class="reset"&gt;Reset&lt;/button&gt;</code>) to the table header, or anywhere else on the page. That element will be used as a reset for all column and quick search filters (clears all fields):
+					</p>
+					Use the <a href="#widget-filter-reset"><code>filter_reset</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_reset : '.reset'
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-filter-custom.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-searchdelay">
+				<td><a href="#" class="toggle2">filter_searchDelay</a></td>
+				<td>Numeric</td>
+				<td>300</td>
+				<td>
+					Filter widget: Set this option to the number of milliseconds to delay the search. (v2.3.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-searchdelay"><code>filter_searchDelay</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_searchDelay : 500
+    }
+  });
+});</pre>
+
+					If you want to want to initialize the filter without user input, target any one of the filters and trigger a "search".
+
+					<pre class="prettyprint lang-javascript">// target the first filter input
+// this method will begin the search after the searchDelay time
+$('input.tablesorter-filter:eq(0)').trigger('search');
+
+// this method will begin the search immediately
+$('input.tablesorter-filter:eq(0)').trigger('search', false);</pre>
+
+					In tablesorter v2.4+, the trigger can be applied directly to the table:
+					<pre class="prettyprint lang-javascript">// refresh the widget filter; no delay
+$('table').trigger('search', false);</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-serversidefiltering">
+				<td><a href="#" class="toggle2">filter_serversideFiltering</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Filter widget: Set this option to <code>true</code> if filtering is performed on the server-side (v2.5.3).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-serversidefiltering"><code>filter_serversideFiltering</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_serversideFiltering : true
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-startswith">
+				<td><a href="#" class="toggle2">filter_startsWith</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Filter widget: Set this option to <code>true</code> to use the filter to find text from the start of the column, so typing in &quot;a&quot; will find &quot;albert&quot; but not &quot;frank&quot;, both have a's. (v2.1).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-startswith"><code>filter_startsWith</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_startsWith : true
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-filter.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-filter-useParsedData">
+				<td><a href="#" class="toggle2">filter_useParsedData</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Filter widget: If <code>true</code>, ALL filter searches will only use parsed data (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-useParsedData"><code>filter_useParsedData</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_useParsedData : false
+    }
+  });
+});</pre>
+					<ul>
+						<li>To only use parsed data in specific columns, set this option to <code>false</code> and use any of the following (they all do the same thing), set in order of priority:
+							<ul>
+								<li>jQuery data <code>data-filter=&quot;parsed&quot;</code>.</li>
+								<li>metadata <code>class=&quot;{ filter: 'parsed'}&quot;</code>. This requires the metadata plugin.</li>
+								<li>headers option <code>headers : { 0 : { filter : 'parsed' } }</code>.</li>
+								<li>header class name <code>class=&quot;filter-parsed&quot;</code>.</li>
+							</ul>
+						</li>
+						<li>Remember that parsed data most likely doesn't match the actual table cell text, <code>20%</code> becomes <code>20</code> and <code>Jan 1, 2013 12:01 AM</code> becomes <code>1357020060000</code>.</li>
+					</ul>
+				</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-filter-defaultattrib">
+				<td><a href="#" class="toggle2">filter_defaultAttrib</a></td>
+				<td>String</td>
+				<td>'data-value'</td>
+				<td>
+					Filter widget: This option contains the name of the data-attribute which contains the default (starting) filter value (<span class="version">v2.10.8</span>).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-filter-defaultattrib"><code>filter_defaultAttrib</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["filter"],
+    widgetOptions : {
+      filter_defaultAttrib : 'data-value'
+    }
+  });
+});</pre>Then add the default filter value to the table header as follows:<pre class="prettyprint lang-html">&lt;th data-value=&quot;&lt;30&quot;&gt;Age&lt;/th&gt;</pre></div>
+				</td>
+				<td><a href="example-widget-filter-custom.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-sticky-headers">
+				<td><a href="#" class="toggle2">stickyHeaders</a></td>
+				<td>String</td>
+				<td>&quot;&quot;</td>
+				<td>Sticky Headers widget: This additional CSS class applied to the sticky header row - <span class="version updated">v2.11</span>
+					<div class="collapsible"><br>
+						Changed to empty string in v2.11, as the <code>&quot;tablesorter-stickyHeader&quot;</code> class will always be added to the sticky header row; this option now contains any additional class names to add.
+						<p>Previously, this option contained the class name to be applied to the sticky header row (tr) (v2.1).<p>
+						Use the <a href="#widget-sticky-headers"><code>&quot;stickyHeaders&quot;</code></a> option to add an extra css class name as follows:
+						<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["stickyHeaders"],
+    widgetOptions : {
+      // css class name applied to the sticky header
+      stickyHeaders : "tablesorter-stickyHeader"
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-sticky-header.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-sticky-headers-cloneid">
+				<td><a href="#" class="toggle2">stickyHeaders_cloneId</a></td>
+				<td>String</td>
+				<td>&quot;-sticky&quot;</td>
+				<td>
+					Sticky Headers widget: If the table has an ID defined, the suffix from this option will be added to the ID in the cloned sticky table (<span class="version">v2.9</span>).
+					<div class="collapsible">
+					<br>
+					So if your table ID is <code>&quot;gummy&quot;</code>, then the cloned sticky table id becomes <code>&quot;gummy-sticky&quot;</code><br>
+					<br>
+					Use the <a href="#widget-sticky-headers-cloneid"><code>&quot;stickyHeaders_cloneId&quot;</code></a> option to change the cloned table id as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["stickyHeaders"],
+    widgetOptions : {
+      // cloned table id suffix
+      stickyHeaders_cloneId : "-clone"
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-sticky-headers-include-caption">
+				<td><a href="#" class="toggle2">stickyHeaders_includeCaption</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Sticky Headers widget: If this option is <code>false</code> and a caption exists, it will not be included in the sticky header (<span class="version">v2.10.8</span>).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-sticky-headers-include-caption"><code>stickyHeaders_includeCaption</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["stickyHeaders"],
+    widgetOptions : {
+      // cloned table id suffix
+      stickyHeaders_includeCaption : false
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-sticky-headers-offset">
+				<td><a href="#" class="toggle2">stickyHeaders_offset</a></td>
+				<td>Multiple</td>
+				<td>0</td>
+				<td>
+					Sticky Headers widget: Set the sticky header offset from the top as a <em>Number</em> or jQuery selector <em>string</em> or <em>object</em> (<span class="version">v2.10</span>).
+					<div class="collapsible">
+					<br>
+					If the page includes a fixed navigation bar at the top, like Bootstrap, set <a href="#widget-sticky-headers-offset"><code>&quot;stickyHeaders_offset&quot;</code></a> option to offset the sticky table header to be below the fixed navigation by setting this option using any of the following examples:<br>
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["stickyHeaders"],
+    widgetOptions : {
+      // apply sticky header top 30px below the top of the browser window
+      stickyHeaders_offset : 30
+    }
+  });
+});</pre>or
+					<pre class="prettyprint lang-javascript">stickyHeaders_offset : '.navbar-fixed-top' // jQuery selector string</pre>or
+					<pre class="prettyprint lang-javascript">stickyHeaders_offset : $('.navbar-fixed-top') // jQuery object</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-sticky-headers-addresizeevent">
+				<td><a href="#" class="toggle2">stickyHeaders_addResizeEvent</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Sticky Headers widget: If <code>true</code>, sticky table headers will resize automatically when content is added to or removed from the table headers (<span class="version">v2.10</span>).
+					<div class="collapsible">
+					<br>
+					While this option is <code>true</code>, a timer is initialized to check the width of every header cell every 1/4 second. If this causes lag, or any other problems, set this option to <code>false</code>.
+					When this option is <code>false</code>, sticky table headers are unable to detect and match the width of the original table headers when content is added or removed.<br>
+					<br>
+					Use the <a href="#widget-sticky-headers-addresizeevent"><code>&quot;stickyHeaders_addResizeEvent&quot;</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["resizable"],
+    widgetOptions : {
+      // add header resize detection
+      stickyHeaders_addResizeEvent : true
+    }
+  });
+});</pre>When the browser window is resized, the headers (original and sticky) will resize automatically no matter the value of this option.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-sticky-headers-zindex">
+				<td><a href="#" class="toggle2">stickyHeaders_zIndex</a></td>
+				<td>Numeric</td>
+				<td>2</td>
+				<td>
+					Sticky Headers widget: The zIndex added to the stickyHeaders. This option allows the user to adjust the value to their needs (<span class="version">v2.11</span>).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-sticky-headers-zindex"><code>stickyHeaders_zIndex</code></a> option as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["stickyHeaders"],
+    widgetOptions : {
+      // The zIndex of the stickyHeaders, allows the user to adjust this to their needs
+      stickyHeaders_zIndex : 100
+    }
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="widget-resizable">
+				<td><a href="#" class="toggle2">resizable</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					Resizable widget: If this option is set to <code>false</code>, resized column widths will not be saved. Previous saved values will be restored on page reload (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-resizable"><code>&quot;resizable&quot;</code></a> option to not save the resized widths:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["resizable"],
+    widgetOptions : {
+      // css class name applied to the sticky header
+      resizable : false
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-resizable.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-resizable-addlastcolumn">
+				<td><a href="#" class="toggle2">resizable_addLastColumn</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					Resizable widget: If this option is set to <code>true</code>, a resizing anchor will be included in the last column of the table (<span class="version">v2.8.3</span>).
+					<div class="collapsible">
+					<br>
+					If an anchor was included and the table is full width, the column would resize in the opposite direction which my not be intuitive to the user. So set this option as desired, but please be mindful of the user experience.<br>
+					<br>
+					Use the <a href="#widget-resizable-addlastcolumn"><code>&quot;resizable_addLastColumn&quot;</code></a> option to include the last column resizer as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["resizable"],
+    widgetOptions : {
+      // css class name applied to the sticky header
+      resizable_addlastcolumn : true
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-resizable.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-savesort">
+				<td><a href="#" class="toggle2">saveSort</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					saveSort widget: If this option is set to <code>false</code>, new sorts will not be saved. Any previous saved sort will be restored on page reload (v2.4).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-savesort"><code>&quot;saveSort&quot;</code></a> option to not save the current sort:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["saveSort"],
+    widgetOptions : {
+      // if false, the sort will not be saved for next page reload
+      saveSort : false
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-savesort.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-uitheme">
+				<td><a href="#" class="toggle2">uitheme</a></td>
+				<td>String</td>
+				<td>&quot;jui&quot;</td>
+				<td>
+					This option contains the name of the theme. Currently jQuery UI (&quot;jui&quot;) and Bootstrap (&quot;bootstrap&quot;) themes are supported. To modify the class names used, extend from the theme (updated v2.4)
+					<div class="collapsible">
+					<p></p>
+					<pre class="prettyprint lang-javascript">// Extend the themes to change any of the default class names ** NEW **
+$.extend($.tablesorter.themes.jui, {
+  // change default jQuery uitheme icons - find the full list of icons
+  // here: http://jqueryui.com/themeroller/ (hover over them for their name)
+  table      : 'ui-widget ui-widget-content ui-corner-all', // table classes
+  header     : 'ui-widget-header ui-corner-all ui-state-default', // header classes
+  footerRow  : '',
+  footerCells: '',
+  icons      : 'ui-icon', // icon class added to the &lt;i&gt; in the header
+  sortNone   : 'ui-icon-carat-2-n-s',
+  sortAsc    : 'ui-icon-carat-1-n',
+  sortDesc   : 'ui-icon-carat-1-s',
+  active     : 'ui-state-active', // applied when column is sorted
+  hover      : 'ui-state-hover',  // hover class
+  filterRow  : '',
+  even       : 'ui-widget-content', // even row zebra striping
+  odd        : 'ui-state-default'   // odd row zebra striping
+});</pre>
+
+					This widget option replaces the previous <a href="#widgetuitheme">widgetUitheme</a>. All theme css names are now contained within the <code>$.tablesorter.themes</code> variable. Extend the default theme as seen above.<br>
+					<br>
+
+					The class names from the <code>$.tablesorter.themes.{name}</code> variable are applied to the table as indicated.<br>
+					<br>
+
+					As before the jQuery UI theme applies the default class names of <code>&quot;ui-icon-arrowthick-2-n-s&quot;</code> for the unsorted column, <code>&quot;ui-icon-arrowthick-1-s&quot;</code> for the descending sort and <code>&quot;ui-icon-arrowthick-1-n&quot;</code> for the ascending sort. (Modified v2.1; Updated in v2.4). Find more jQuery UI class names by hovering over the Framework icons on this page: <a class="external" href="http://jqueryui.com/themeroller/">http://jqueryui.com/themeroller/</a><br>
+					<br>
+					Use the <a href="#widget-uitheme"><code>&quot;uitheme&quot;</code></a> option to change the css class name as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    theme     : 'jui',       // set theme name from $.tablesorter.themes here
+    widgets   : ["uitheme"], // initialize ui theme styling widget of the table
+    widgetOptions: {
+      uitheme : "jui"        // this is now optional in v2.7, it is overridden by the theme option
+    }
+  });
+});</pre>
+
+					To add a new theme, define it as follows; replace "custom" with the name of your theme:
+					<pre class="prettyprint lang-javascript">$.tablesorter.themes.custom = {
+  table      : 'table',       // table classes
+  header     : 'header',      // header classes
+  footerRow  : '',
+  footerCells: '',
+  icons      : 'icon',        // icon class added to the &lt;i&gt; in the header
+  sortNone   : 'sort-none',   // unsorted header
+  sortAsc    : 'sort-asc',    // ascending sorted header
+  sortDesc   : 'sort-desc',   // descending sorted header
+  active     : 'sort-active', // applied when column is sorted
+  hover      : 'hover',       // hover class
+  filterRow  : 'filters',     // class added to the filter row
+  even       : 'even',        // even row zebra striping
+  odd        : 'odd'          // odd row zebra striping
+}</pre></div>
+				</td>
+				<td><a href="example-widget-ui-theme.html">Example</a></td>
+			</tr>
+
+			<tr id="widget-zebra">
+				<td><a href="#" class="toggle2">zebra</a></td>
+				<td>Array</td>
+				<td>[ &quot;even&quot;, &quot;odd&quot; ]</td>
+				<td>
+					zebra widget: When the zebra striping widget is initialized, it automatically applied the default class names of <code>&quot;even&quot;</code> and <code>&quot;odd&quot;</code>. (Modified v2.1).
+					<div class="collapsible">
+					<br>
+					Use the <a href="#widget-zebra"><code>&quot;zebra&quot;</code></a> option to change the theme as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table").tablesorter({
+    widgets: ["zebra"], // initialize zebra striping of the table
+    widgetOptions: {
+      zebra: [ "normal-row", "alt-row" ]
+    }
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-widget-zebra.html">Example</a></td>
+			</tr>
+
+		</tbody>
+
+		<!-- non-sorting tbody -->
+		<tbody id="pager" class="tablesorter-infoOnly">
+			<tr><th colspan="5">Pager</th></tr>
+		</tbody>
+
+		<tbody>
+			<tr id="pager-container">
+				<td><a href="#" class="toggle2">container</a></td>
+				<td>Object</td>
+				<td>null</td>
+				<td>
+					Target your one or more pager markup blocks by setting this option with a jQuery selector.
+					<div class="collapsible">
+						<br>
+						This is some example pager markup. It <em>should</em> contain all of the controls set by the multiple css-named options:<pre class="prettyprint lang-html">
+&lt;div class=&quot;pager&quot;&gt;
+  &lt;form&gt;
+    &lt;img src=&quot;first.png&quot; class=&quot;first&quot;/&gt;
+    &lt;img src=&quot;prev.png&quot; class=&quot;prev&quot;/&gt;
+    &lt;span class=&quot;pagedisplay&quot;&gt;&lt;/span&gt; &lt;!-- this can be any element, including an input --&gt;
+    &lt;img src=&quot;next.png&quot; class=&quot;next&quot;/&gt;
+    &lt;img src=&quot;last.png&quot; class=&quot;last&quot;/&gt;
+    &lt;select class=&quot;pagesize&quot;&gt;
+      &lt;option selected=&quot;selected&quot; value=&quot;10&quot;&gt;10&lt;/option&gt;
+      &lt;option value=&quot;20&quot;&gt;20&lt;/option&gt;
+      &lt;option value=&quot;30&quot;&gt;30&lt;/option&gt;
+      &lt;option value=&quot;40&quot;&gt;40&lt;/option&gt;
+    &lt;/select&gt;
+    &lt;select class="gotoPage" title="Select page number"&gt;&lt;/select&gt;
+  &lt;/form&gt;
+&lt;/div&gt;</pre>Add this option as follows:<pre class="prettyprint lang-javascript">$(function(){
+  $("table")
+    .tablesorter()
+    .tablesorterPager({
+      container: $(".pager")
+    });
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-ajaxurl">
+				<td><a href="#" class="toggle2">ajaxUrl</a></td>
+				<td>String</td>
+				<td>null</td>
+				<td>
+					Set this option to include a url template to use so that the pager plugin can interact with your database (Added v2.1; <span class="version updated">v2.9</span>).
+					<div class="collapsible">
+					<br>
+					Here is an example of how to include the option, it should <em>always</em> be paired with an <code>ajaxProcessing</code> function:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table")
+    .tablesorter()
+    .tablesorterPager({
+      ajaxUrl: "http://mydatabase.com?page={page}&amp;size={size}&amp;{sortList:col}&amp;{filterList:fcol}",
+      ajaxProcessing: function(ajax){
+        // do something with the ajax
+        return [ formatted_data, total_rows ];
+      }
+    });
+  });
+});</pre>The <code>ajaxUrl</code> template replaces the following tags with values from the tablesorter plugin and pager addon:
+<br>
+<table class="info">
+	<thead>
+		<tr><td>Tag</td><td>Replaced with</td></tr>
+	</thead>
+	<tbody>
+		<tr><td><code>{page}</code></td><td>Zero-based index of the current pager page</td></tr>
+		<tr><td><code>{page+1}</code></td><td>One-based index of the current pager page (replace &quot;+1&quot; with any number) (e.g. <code>{page+3}</code>) (<span class="version">v2.9</span>).</td></tr>
+		<tr><td><code>{size}</code></td><td>Number of rows showing, or number of rows to get from the server</td></tr>
+		<tr>
+			<td><code>{sortList:col}</code> or <code>{sort:col}</code></td>
+			<td>Adds the current sort to the ajax url string into a "col" array, so your server-side code knows how to sort the data (v2.4.5).<br>
+				The <code>col</code> portion of the <code>{sortList:col}</code> tag can be any name string (no spaces) to indicate the name of the variable to apply. So if your current sortList is <code>[[2,0],[3,0]]</code>, it becomes <code>&quot;&amp;sort[2]=0&amp;sort[3]=0&quot;</code> in the url. <code>{sort:col}</code> shortened tag also works (<span class="version">v2.9</span>).
+			</td>
+		</tr>
+		<tr>
+			<td><code>{filterList:fcol}</code> or <code>{filter:fcol}</code></td>
+			<td>Adds the value of the current filters to the ajax url string into a "fcol" array, so your server-side code knows how to filter the data (v2.6).<br>
+				The <code>fcol</code> portion of the <code>{filterList:fcol}</code> tag can be any name string (no spaces) to indicate the name of the variable to apply. So if your current filters are <code>['','Blue',13]</code>, it becomes <code>&quot;&amp;fcol[2]=Blue&amp;fcol[3]=13&quot;</code> in the url. <code>{filter:col}</code> shortened tag also works (<span class="version updated">v2.9</span>).
+			</td>
+		</tr>
+	</tbody>
+</table></div>
+				</td>
+				<td><a href="example-pager-ajax.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-customajaxurl">
+				<td><a href="#" class="toggle2">customAjaxUrl</a></td>
+				<td>Function</td>
+				<td>function(table, url) { return url; }</td>
+				<td>
+					This callback function allows you to modify the processed URL as desired (<span class="version">v2.8.1</span>).
+					<div class="collapsible">
+					<br>
+					The <code>customAjaxUrl</code> function has two parameters, the table DOM element and the processed url string (all tags within the <code>ajaxUrl</code> have been replaced with their appropriate values).
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table")
+    .tablesorter()
+    .tablesorterPager({
+      ajaxUrl: "http://mydatabase.com?page={page}&amp;size={size}&amp;{sortList:col}&amp;{filterList:fcol}",
+      ajaxProcessing: function(ajax){
+        // do something with the ajax
+        return [ formatted_data, total_rows ];
+      },
+      // modify the url after all processing has been applied
+      customAjaxUrl: function(table, url) {
+        // trigger my custom event
+        $(table).trigger('changingUrl');
+        // send the server the current page
+        return url += '&amp;currntUrl=' + window.location.href;
+      }
+    });
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-pager-ajax.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-ajaxobject">
+				<td><a href="#" class="toggle2">ajaxObject</a></td>
+				<td>Object</td>
+				<td>{ dataType: 'json' }</td>
+				<td>
+					This option contains the ajax settings for the pager interaction with your database (<span class="version">v2.10</span>).
+					<div class="collapsible">
+					<br>
+					The <code>ajaxObject</code> is completely customizable, except for the `url` setting which is processed using the pager's `ajaxUrl` and `customAjaxUrl` options.<br>
+					<br>
+					See all possible settings in the <a href="http://api.jquery.com/jQuery.ajax/#jQuery-ajax-settings">jQuery.ajax documentation</a>
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table")
+    .tablesorter()
+    .tablesorterPager({
+      ajaxUrl: "http://mydatabase.com?page={page}&amp;size={size}&amp;{sortList:col}&amp;{filterList:fcol}",
+      ajaxObject: {
+        // add more ajax settings here
+        // see http://api.jquery.com/jQuery.ajax/#jQuery-ajax-settings
+        dataType: 'json'
+      },
+      ajaxProcessing: function(ajax){
+        // do something with the ajax;
+        return [ total_rows ];
+      }
+    });
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-pager-ajax.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-ajaxprocessing">
+				<td><a href="#" class="toggle2">ajaxProcessing</a></td>
+				<td>Function</td>
+				<td>null</td>
+				<td>
+					This function is required to return the ajax data obtained from your server into a useable format for tablesorter to apply to the table (v2.1, <span class="version updated">v2.10</span>).
+					<div class="collapsible">
+					<br>
+					In <span class="version">v2.10</span>, the returned rows is now optional. And it can either be an array of arrays or a jQuery object (not attached to the table)
+					<br>
+					Process your ajax data so that the following information is returned:
+					<pre class="prettyprint lang-javascript">// [ total_rows (number), rows (array of arrays), headers (array; optional) ]
+// or [ rows, total_rows, headers ]
+// or [ total_rows, $(rows) ]
+// or [ total_rows ]
+[
+  100, // total rows
+  [
+    [ "row1cell1", "row1cell2", ... "row1cellN" ],
+    [ "row2cell1", "row2cell2", ... "row2cellN" ],
+    ...
+    [ "rowNcell1", "rowNcell2", ... "rowNcellN" ]
+  ],
+  [ "header1", "header2", ... "headerN" ] // optional
+]</pre>Here is some example JSON (comments added, but not allowed in JSON) which is contained in the <a href="https://github.com/Mottie/tablesorter/blob/master/docs/assets/City0.json">City0.json</a> file:
+<pre class="prettyprint lang-javascript">{
+  // total rows
+  "total_rows": 80,
+  // headers
+  "cols" : [
+    "ID", "Name", "Country Code", "District", "Population"
+  ],
+  // row data...
+  "rows" : [{
+    "ID": 1,
+    "Name": "Kabul",
+    "CountryCode": "AFG",
+    "District": "Kabol",
+    "Population": 1780000
+  }, {
+    // row 2, etc...
+  }]
+}</pre>The above JSON is processed by the following code (this returns an array of array of table rows):
+<pre class="prettyprint lang-javascript">$(function(){
+  $("table")
+    .tablesorter()
+    .tablesorterPager({
+      ajaxUrl: "http://mydatabase.com?page={page}&amp;size={size}",
+      ajaxProcessing: function(data){
+        if (data && data.hasOwnProperty('rows')) {
+          var r, row, c, d = data.rows,
+          // total number of rows (required)
+          total = data.total_rows,
+          // array of header names (optional)
+          headers = data.cols,
+          // all rows: array of arrays; each internal array has the table cell data for that row
+          rows = [],
+          // len should match pager set size (c.size)
+          len = d.length;
+          // this will depend on how the json is set up - see City0.json
+          // rows
+          for ( r = 0; r &lt; len; r++ ) {
+            row = []; // new row array
+            // cells
+            for ( c in d[r] ) {
+              if (typeof(c) === "string") {
+                row.push(d[r][c]); // add each table cell data to row array
+              }
+            }
+            rows.push(row); // add new row array to rows array
+          }
+          return [ total, rows, headers ]; // or return [ rows, total, headers ] in v2.9+
+        }
+      }
+    });
+});</pre>Or, in tablesorter <span class="version">v2.10</span>, return a jQuery object
+<pre class="prettyprint lang-javascript">ajaxProcessing: function(data, table){
+  if (data && data.hasOwnProperty('rows')) {
+    var r, row, c, d = data.rows,
+    // total number of rows (required)
+    total = data.total_rows,
+    // array of header names (optional)
+    headers = data.headers,
+    // all rows: array of arrays; each internal array has the table cell data for that row
+    rows = '',
+    // len should match pager set size (c.size)
+    len = d.length;
+    // this will depend on how the json is set up - see City0.json
+    // rows
+    for ( r=0; r &lt; len; r++ ) {
+      rows += '&lt;tr class="ajax-row"&gt;'; // new row
+      // cells
+      for ( c in d[r] ) {
+        if (typeof(c) === "string") {
+          rows += '&lt;td&gt;' + d[r][c] + '&lt;/td&gt;'; // add each table cell data to row
+        }
+      }
+      rows += '&lt;/tr&gt;'; // end new row
+    }
+    // don't attach the $(rows) because it's difficult to tell old from new data
+    // and no need to trigger an update method, it's done internally
+    return [ total, $(rows), headers ];
+  }
+}</pre>Or, also in tablesorter <span class="version">v2.10</span>, just build the table yourself and return the total number of rows:
+<pre class="prettyprint lang-javascript">ajaxProcessing: function(data, table){
+  if (data && data.hasOwnProperty('rows')) {
+    var r, row, c, d = data.rows,
+    // total number of rows (required)
+    total = data.total_rows,
+    // all rows: array of arrays; each internal array has the table cell data for that row
+    rows = '',
+    // len should match pager set size (c.size)
+    len = d.length;
+    // this will depend on how the json is set up - see City0.json
+    // rows
+    for ( r=0; r &lt; len; r++ ) {
+      rows += '&lt;tr class="ajax-row"&gt;'; // new row
+      // cells
+      for ( c in d[r] ) {
+        if (typeof(c) === "string") {
+          rows += '&lt;td&gt;' + d[r][c] + '&lt;/td&gt;'; // add each table cell data to row
+        }
+      }
+      rows += '&lt;/tr&gt;'; // end new row
+    }
+    // find first sortable tbody, then add new rows
+    table.config.$tbodies.eq(0).html(rows);
+    // no need to trigger an update method, it's done internally
+    return [ total ];
+  }
+}</pre></div>
+				</td>
+				<td><a href="example-pager-ajax.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-output">
+				<td><a href="#" class="toggle2">output</a></td>
+				<td>String</td>
+				<td>&quot;{page}/{totalPages}&quot;</td>
+				<td>This option allows you to format the output display which can show the current page, total pages, filtered pages, current start and end rows, total rows and filtered rows (v2.0.9).<div class="collapsible">
+					<br>
+					This option replaced the original <code>separator</code> option, which only separated the page number from the total number of pages. The formatted output from this option is placed inside the information block targeted by the <code>cssPageDisplay</code> option.<br>
+					<br>
+					Use it as follows:
+					<pre class="prettyprint lang-javascript">$(function(){
+  $("table")
+    .tablesorter()
+    .tablesorterPager({
+      output: '{startRow} to {endRow} of {totalRows} rows'
+    });
+  });
+});</pre>The following tags are replaced within the output string:
+<table class="info">
+	<thead>
+		<tr><td>Tag</td><td>Replaced with</td></tr>
+	</thead>
+	<tbody>
+		<tr><td><code>{page}</code></td><td>The current pager page</td></tr>
+		<tr><td><code>{totalPages}</code></td><td>Total number of pager pages</td></tr>
+		<tr><td><code>{filteredPages}</code></td><td>Total number of pages left after being filtered</td></tr>
+		<tr><td><code>{startRow}</code></td><td>Starting row number currently displayed</td></tr>
+		<tr><td><code>{endRow}</code></td><td>Ending row number currently displayed</td></tr>
+		<tr><td><code>{filteredRows}</code></td><td>Total number of rows left after being filtered</td></tr>
+		<tr><td><code>{totalRows}</code></td><td>Total number of rows</td></tr>
+	</tbody>
+</table></div>
+				</td>
+				<td>Ex: <a href="example-pager.html">1</a> <a href="example-pager-ajax.html">2</a> <a href="example-pager-filtered.html">3</a> <a href="example-widget-bootstrap-theme.html">4</a></td>
+			</tr>
+
+			<tr id="pager-updatearrows">
+				<td><a href="#" class="toggle2">updateArrows</a></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>
+					If <code>true</code>, the addon hides the left pager arrow on the first page and right pager arrow on the last page.
+					<div class="collapsible">
+					<br>
+					If <code>true</code> the classname from the <code>cssDisabled</code> option is applied to the arrows when at either page extreme.</div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-page">
+				<td><span class="permalink">page</span></td>
+				<td>Numeric</td>
+				<td>0</td>
+				<td>Set the starting page of the pager (zero-based index).</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-size">
+				<td><span class="permalink">size</span></td>
+				<td>Numeric</td>
+				<td>10</td>
+				<td>Set initial number of visible rows. This value is changed by the dropdown selector targeted by the <code>cssPageSize</code> option.</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="save-pages">
+				<td><span class="permalink">savePages</span></td>
+				<td>Boolean</td>
+				<td>true</td>
+				<td>Saves the current pager page size and number. This option requires the <code>$.tablesorter.storage</code> script in the <code>jquery.tablesorter.widgets.js</code> file (<span class="version">v2.11</span>).</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-fixedheight">
+				<td><a href="#" class="toggle2">fixedHeight</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>Maintain the height of the table even when fewer than the set number of records is shown (v2.1; updated 2.7.1).
+					<div class="collapsible">
+					<br>
+					This option replaced the original <code>positionFixed</code> and <code>offset</code> options which set the absolute position of the pager block.<br>
+					<br>
+					If <code>true</code>, it should maintain the height of the table, even when viewing fewer than the set number of records (go to the last page of any demo to see this in action). It works by adding an empty row to make up the differences in height.
+					</div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-countchildrows">
+				<td><a href="#" class="toggle2">countChildRows</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					If <code>true</code>, child rows will be counted towards the pager set size (<span class="version">v2.13</span>).
+					<div class="collapsible">
+					<br>
+					Caution: when <code>true</code>, child row(s) may not appear to be attached to its parent row, may be split across pages or
+					may distort the table if rowspan or cellspans are included within the child row.<br>
+					<br>
+					If this option is <code>false</code>, child row(s) will always appear on the same page as its parent.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="pager-removerows">
+				<td><a href="#" class="toggle2">removeRows</a></td>
+				<td>Boolean</td>
+				<td>false</td>
+				<td>
+					If <code>true</code>, rows are removed from the table to speed up the sort of large tables (v2.0.21).
+					<div class="collapsible">
+					<br>
+					The original tablesorter plugin (v2.0.5) removed rows automatically, without providing an option. It really does speed up sorting of very large tables, but also breaks updating and modifying table content dynamically.<br>
+					<br>
+					If this option is <code>false</code>, the addon only hides the non-visible rows; this is useful if you plan to add/remove rows with the pager enabled.
+					</div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-cssfirst">
+				<td><span class="permalink">cssFirst</span></td>
+				<td>String</td>
+				<td>&quot;.first&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the go to first page arrow. See <a href="#pager-container">container</a> for full HTML.</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-cssprev">
+				<td><span class="permalink">cssPrev</span></td>
+				<td>String</td>
+				<td>&quot;.prev&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the go to previous page arrow. See <a href="#pager-container">container</a> for full HTML.</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-cssnext">
+				<td><span class="permalink">cssNext</span></td>
+				<td>String</td>
+				<td>&quot;.next&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the go to next page arrow. See <a href="#pager-container">container</a> for full HTML.</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-csslast">
+				<td><span class="permalink">cssLast</span></td>
+				<td>String</td>
+				<td>&quot;.last&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the go to last page arrow. See <a href="#pager-container">container</a> for full HTML.</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-cssgoto">
+				<td><a href="#" class="toggle2">cssGoto</a></td>
+				<td>String</td>
+				<td>&quot;.gotoPage&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the page select dropdown. See <a href="#pager-container">container</a> for full HTML (v2.4)
+					<div class="collapsible">
+					<br>
+					Please note that this select dropdown is initially empty and automatically updated by the plugin with the correct number of pages, which depends on the <code>size</code> setting.
+					</div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-csspagedisplay">
+				<td><a href="#" class="toggle2">cssPageDisplay</a></td>
+				<td>String</td>
+				<td>&quot;.pagedisplay&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the output element (v2.0.9)
+					<div class="collapsible">
+					<br>
+					In the original tablesorter (v2.0.5) this option could only target an input, it was updated (v2.0.9) to display the formatted output from the <code>output</code> option inside of any element (span, div or input).
+					</div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-csspagesize">
+				<td><span class="permalink">cssPageSize</span></td>
+				<td>String</td>
+				<td>&quot;.pagesize&quot;</td>
+				<td>This option contains a jQuery selector string pointing to the page size selector. See <a href="#pager-container">container</a> for full HTML.</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pager-csserrorrow">
+				<td><a href="#" class="toggle2">cssErrorRow</a></td>
+				<td>String</td>
+				<td>&quot;tablesorter-errorRow&quot;</td>
+				<td>This option contains the class name that is applied to the error information row that is added inside the pager with any ajax exceptions.
+					<div class="collapsible">
+					<br>
+					Note there is no period "." in front of this class name (it is not a selector).
+					</div></td>
+				<td></td>
+			</tr>
+
+			<tr id="pager-cssdisabled">
+				<td><a href="#" class="toggle2">cssDisabled</a></td>
+				<td>String</td>
+				<td>&quot;disabled&quot;</td>
+				<td>This option contains the class name that is applied to disabled pager controls.
+					<div class="collapsible">
+					<br>
+					More explicitly, this class is applied to the pager arrows when they are at either extreme of pages and the <code>updateArrows</code> option is <code>true</code>. When the pager has been disabled, this class is applied to all controls.<br>
+					<br>
+					Note there is no period &quot;.&quot; in front of this class name (it is not a selector).
+					</div></td>
+				<td></td>
+			</tr>
+
+		</tbody>
+
+	</table>
+
+	<a id="methods"></a>
+	<h1>Methods</h1>
+
+	<div class="tip">
+		<p></p>
+		tablesorter has some methods available to allow updating, resorting or applying widgets to a table after it has been initialized.
+		<br>
+		<em>TIP!</em> Click on the link in the method column to reveal full details (or <a href="#" class="toggleAll">toggle</a>|<a href="#" class="showAll">show</a>|<a href="#" class="hideAll">hide</a> all) or double click to update the browser location.
+	</div>
+
+	<table id="method" class="tablesorter">
+		<thead>
+			<tr>
+				<th>Method</th>
+				<th>Description</th>
+				<th>Link</th>
+			</tr>
+		</thead>
+		<tbody>
+
+			<tr id="addrows">
+				<td><a href="#" class="toggle2">addRows</a></td>
+				<td>Use this method to add table rows. (v2.0.16).
+					<div class="collapsible">
+						It does not work the same as &quot;update&quot; in that it only adds rows, it does not remove them.<br>
+						Also, use this method to add table rows while using the pager plugin. If the &quot;update&quot; method is used, only the visible table rows continue to exist.
+						<pre class="prettyprint lang-javascript">// Add multiple rows to the table
+  var row = '&lt;tr&gt;&lt;td&gt;Inigo&lt;/td&gt;&lt;td&gt;Montoya&lt;/td&gt;&lt;td&gt;34&lt;/td&gt;' +
+    '&lt;td&gt;$19.99&lt;/td&gt;&lt;td&gt;15%&lt;/td&gt;&lt;td&gt;Sep 25, 1987 12:00PM&lt;/td&gt;&lt;/tr&gt;',
+    $row = $(row),
+    // resort table using the current sort; set to false to prevent resort, otherwise
+    // any other value in resort will automatically trigger the table resort.
+    // A callback method was added in 2.3.9.
+    resort = true,
+    callback = function(table){
+      alert('rows have been added!');
+    };
+  $('table')
+    .find('tbody').append($row)
+    .trigger('addRows', [$row, resort, callback]);</pre></div>
+				</td>
+				<td><a href="example-add-rows.html">Example</a></td>
+			</tr>
+
+			<tr id="sort">
+				<td><a href="#" class="toggle2">sort</a></td>
+				<td>Use this method to initialize a sort while targeting a specific column header (<span class="version">v2.9</span>).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// Target a specific header
+$('table').find('th:eq(2)').trigger('sort');</pre>Using this method will maintain the sorting order; so, if the column is already sorted in ascending order, this method will act as if you manually clicked on the header. Whatever sort order is applied is dependent on other option settings such as <code>initialSortOrder</code>, <code>lockedOrder</code> (set within the <code>headers</code>), <code>sortReset</code> option, <code>sortRestart</code> and will be ignored if the column sort is disabled (<code>sorter: false</code>).<br>
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="sorton">
+				<td><a href="#" class="toggle2">sorton</a></td>
+				<td>Use this method to sort an initialized table in the desired order.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// Choose a new sort order
+var sort = [[0,0],[2,0]],
+    callback = function(table){
+        alert('new sort applied to ' + table.id);
+    };
+// Note that the sort value below is inside of another array (inside another set of square brackets)
+// A callback method was added in 2.3.9.
+$("table").trigger("sorton", [sort, callback]);</pre></div>
+				</td>
+				<td><a href="example-trigger-sort.html">Example</a></td>
+			</tr>
+
+			<tr id="sortreset-method">
+				<td><a href="#" class="toggle2">sortReset</a></td>
+				<td>Use this method to reset the table to it's initial unsorted state (v2.4.7).
+					<div class="collapsible">
+						Don't confuse this method with the <a href="#sortreset"><code>sortReset</code> option</a>. This method immediately resets the entire table sort, while the option only resets the column sort after a third click.
+						<pre class="prettyprint lang-javascript">// Reset the table (make it unsorted)
+$("table").trigger("sortReset");</pre></div>
+				</td>
+				<td><a href="example-method-sortreset.html">Example</a></td>
+			</tr>
+
+			<tr id="update">
+				<td><a href="#" class="toggle2">update</a> / <a href="#" class="toggle2">updateRow</a></td>
+				<td>Update the <code>tbody</code>'s stored data (<code>update</code> &amp; <code>updateRow</code> do exactly the same thing)
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// Add new content
+$("table tbody").append(html);
+
+// let the plugin know that we made a update
+// the resort flag set to anything BUT false (no quotes) will trigger an automatic
+// table resort using the current sort
+// A callback method was added in 2.3.9.
+var resort = true,
+    callback = function(table){
+        alert('new sort applied');
+    };
+$("table").trigger("update", [resort, callback]);
+
+// As of version 2.0.14, the table will automatically resort after the update (if the "resort" flag is true
+// &amp; will use the current sort selection), so include the following if you want to specify a different sort
+
+// set sorting column and direction, this will sort on the first and third column
+var sorting = [[2,1],[0,0]];
+$("table")
+	.trigger("update", [ false ])
+	.trigger("sorton", [sorting]);</pre></div>
+				</td>
+				<td><a href="example-ajax.html">Example</a></td>
+			</tr>
+
+			<tr id="updateall">
+				<td><a href="#" class="toggle2">updateAll</a></td>
+				<td>Update a column of cells (<code>thead</code> and <code>tbody</code>) (<span class="version">v2.8</span>).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// Change thead & tbody column of cells
+// remember, "eq()" is zero based & "nth-child()" is 1 based
+$("table thead th:eq(2)").html("Number");
+// add some random numbers to the table cell
+$("table tbody").find('td:nth-child(3)').html(function(i,h){
+  return Math.floor(Math.random()*10) + 1; // random number from 0 to 10
+});
+
+var resort = true, // re-apply the current sort
+  callback = function(table){
+    alert('table updated!');
+  };
+
+// let the plugin know that we made a update, then the plugin will
+// automatically sort the table based on the header settings
+$("table").trigger("updateAll", [ resort, callback ]);</pre></div>
+				</td>
+				<td><a href="example-update-all.html">Example</a></td>
+			</tr>
+
+			<tr id="appendcache">
+				<td><a href="#" class="toggle2">appendCache</a></td>
+				<td>Update a table that has had its data dynamically changed; used in conjunction with &quot;update&quot;.<br>
+					<div class="collapsible">
+					Use this method when more than just one cell like in the &quot;updateCell&quot; method, but you may possibly have to trigger two events: both &quot;update&quot; and &quot;appendCache&quot;.<br>
+					<br>
+					Note: This is the only method the pager widget uses - the entire table is stored in the cache, but only the visible portion is actually exists in the table.
+						<pre class="prettyprint lang-javascript">// Table data was just dynamically changed (more than one cell)
+$("table")
+  .trigger("update")
+  .trigger("appendCache");</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="updatecell">
+				<td><a href="#" class="toggle2">updateCell</a></td>
+				<td>Update a table cell in the tablesorter data.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function() {
+  $("table").tablesorter();
+
+  $("td.discount").click(function(){
+
+        // Do we want to reapply the current sort on the column?
+    var resort = false,
+        // Do something after the cell update in this callback function
+        callback = function(table){
+          /* do something */
+        },
+        // randomize a number & add it to the cell
+        discount = '$' + Math.round(Math.random() * Math.random() * 100) + '.' +
+          ('0' + Math.round(Math.random() * Math.random() * 100)).slice(-2);
+
+    // add new table cell text
+    $(this).text(discount);
+
+    // update the table, so the tablesorter plugin can update its value
+    // set resort flag to false to prevent automatic resort (since we're using a different sort below)
+    // leave the resort flag as undefined, or with any other value, to automatically resort the table
+    // $("table").trigger("updateCell", [this]); &lt; - resort is undefined so the table WILL resort
+    $("table").trigger("updateCell", [this, resort, callback]);
+
+    // As of version 2.0.14, the table will automatically resort (using the current sort selection)
+    // after the update, so include the following if you want to specify a different sort
+
+    // set sorting column and direction, this will sort on the first and third column
+    var sorting = [[3,1]];
+    $("table").trigger("sorton", [sorting]);
+
+    return false;
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-update-cell.html">Example</a></td>
+			</tr>
+
+			<tr id="applywidgetid">
+				<td><a href="#" class="toggle2">applyWidgetId</a></td>
+				<td>Apply the selected widget to the table, but the widget will not continue to be applied after each sort. See the example, it's easier than describing it.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+  // initialize tablesorter without the widget
+  $("table").tablesorter();
+
+  // click a button to apply the zebra striping
+  $("button").click(function(){
+    $('table').trigger('applyWidgetId', ['zebra']);
+    return false;
+  });
+
+});</pre></div>
+				</td>
+				<td><a href="example-apply-widget.html">Example</a></td>
+			</tr>
+
+			<tr id="applywidgets">
+				<td><a href="#" class="toggle2">applyWidgets</a></td>
+				<td>Apply the set widgets to the table. This method can be used after a table has been initialized, but it won't work unless you update the configuration settings. See the example, it's easier than describing it.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// Update the list of widgets to apply to the table (add or remove)
+// $("table").data("tablesorter").widgets = ["zebra"]; // works the same as
+$("table")[0].config.widgets = ["zebra"];
+
+// This method applies the widget - no need to keep updating
+$('table').trigger('applyWidgets');
+</pre></div>
+				</td>
+				<td><a href="example-apply-widget.html">Example</a></td>
+			</tr>
+
+			<tr id="destroy">
+				<td><a href="#" class="toggle2">destroy</a></td>
+				<td>Use this method to remove tablesorter from the table.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// Remove tablesorter and all classes
+$("table").trigger("destroy");
+
+// Remove tablesorter and all classes but the "tablesorter" class on the table
+// callback is a function
+$("table").trigger("destroy", [false, callback]);</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="refreshwidgets">
+				<td><a href="#" class="toggle2">refreshWidgets</a></td>
+				<td>Refresh the currently applied widgets. Depending on the options, it will completely remove all widgets, then re-initialize the current widgets or just remove all non-current widgets (v2.4).
+					<div class="collapsible"><br>
+						Trigger this method using either of the following methods (they are equivalent):
+						<pre class="prettyprint lang-javascript">// trigger a refresh widget event
+$('table').trigger('refreshWidgets', [doAll, dontapply]);
+
+// Use the API directly
+$.tablesorter.refreshWidgets(table, doAll, dontapply)</pre>
+					<ul>
+						<li>If <code>doAll</code> is <code>true</code> it removes all widgets from the table. If <code>false</code> only non-current widgets (from the <code>widgets</code> option) are removed.</li>
+						<li>When done removing widgets, the widget re-initializes the currently selected widgets, unless the <code>dontapply</code> parameter is <code>true</code> leaving the table widget-less.</li>
+						<li>Note that if the <code>widgets</code> option has any named widgets, they will be re-applied to the table when it gets resorted. So if you want to completely remove all widgets from the table, also clear out the widgets option <code>$('table')[0].config.widgets = [];</code></li>
+					</ul>
+					</div>
+				</td>
+				<td><a href="example-apply-widget.html">Example</a></td>
+			</tr>
+		</tbody>
+
+		<!-- non-sorting tbody -->
+		<tbody id="methods-widgets" class="tablesorter-infoOnly">
+			<tr><th colspan="3">Widget Methods</th></tr>
+		</tbody>
+
+		<tbody>
+			<tr id="search">
+				<td><a href="#" class="toggle2">search</a></td>
+				<td>filter: Trigger the filter widget to update the search from current inputs and/or selections (v2.4).
+					<div class="collapsible">
+					This first method sends an array with the search strings to the filter widget.<pre class="prettyprint lang-javascript">$(function(){
+  // apply "2?%" filter to the fifth column (zero-based index)
+  var columns = [];
+  columns[4] = '2?%'; // or define the array this way [ '', '', '', '', '2?%' ]
+  $('table').trigger('search', [columns]);
+});</pre>
+or, directly add the search string to the filter input as follows:<pre class="prettyprint lang-javascript">$(function(){
+  // apply "2?%" filter to the fifth column (zero-based index)
+  $('table').find('input.tablesorter-filter').eq(4).val('2?%');
+  $('table').trigger('search', false); // add a false flag to skip the search delay
+});</pre></div>
+				</td>
+			<td></td>
+			</tr>
+
+			<tr id="getfilters">
+				<td><a href="#" class="toggle2">getFilters</a></td>
+				<td>filter: Get the currently applied filters in an array (<span class="version">v2.9</span>):
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$.tablesorter.getFilters( $('table') ); // or use $('table.hasFilters') to make sure the table has a filter row</pre>
+						This method returns an array of filter values (e.g. <code>[ '', '', '', '', '', '2?%' ]</code>) or <code>false</code> if the selected table does not have a filter row.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="setfilters">
+				<td><a href="#" class="toggle2">setFilters</a></td>
+				<td>filter: Set the filters using this method; include a <code>true</code> boolean to actually apply the search (<span class="version">v2.9</span>):
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">// update filters, but don't apply the search
+$.tablesorter.setFilters( $('table'), [ '', '', '', '', '', '2?%' ] );
+
+// update filters, AND apply the search
+$.tablesorter.setFilters( $('table'), [ '', '', '', '', '', '2?%' ], true ); // this will now use the search method</pre>
+						This method returns <code>true</code> if the filters were sucessfully applied, or <code>false</code> if the table does not have a filter row.
+					</div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="filterreset">
+				<td><a href="#" class="toggle2">filterReset</a></td>
+				<td>filter: Trigger the filter widget to reset the search criteria (v2.7.7).
+					<div class="collapsible"><br>
+						If you are using the <code>filter_formatter</code> option to add custom input elements, this function may not work on those columns. Please refer to the <code>filter_formatter</code> section for more details.
+						<pre class="prettyprint lang-javascript">$(function(){
+  // this is the same code that the <code>filter_reset</code> element runs to clear out the filters.
+  $('button').click(function(){
+    $('table').trigger('filterReset');
+    return false;
+});</pre></div>
+				</td>
+				<td><a href="example-widget-filter.html">Example</a></td>
+			</tr>
+
+			<tr id="resizeevent">
+				<td><a href="#" class="toggle2">addHeaderResizeEvent</a></td>
+				<td>Added a <code>resize</code> event to the table headers - used by the stickyHeaders widget, but this is a public function available to any widget (<span class="version">v2.10</span>).
+					<div class="collapsible"><br>
+						There is no built-in resize event for non-window elements, so when this function is active it triggers a <code>resize</code> event when the header cell changes size. So, if you are writing your own widget and need a header <code>resize</code> event, just include the <code>jquery.tablesorter.widgets.js</code> file, or just the extract the function from that file. Enable these triggered events as follows:
+							<pre class="prettyprint lang-javascript">// Enable the triggering of header cell resize events as follows:
+var table = $('table')[0],
+    disable = false,
+    options = {
+      timer : 250 // header cell size is checked every 250 milliseconds (1/4 of a second)
+    };
+$.tablesorter.addHeaderResizeEvent( table, disable, options );</pre>Then use it in your custom widget as follows:
+<pre class="prettyprint lang-javascript">$(table).on('resize', function(event, columns){
+  // columns contains an array of header cells that were resized
+  // this seemed like a better idea than firing off a resize event for every
+  // column when the table adjusts itself to fit within its container
+  event.stopPropagation(); // optional
+  // do something
+  console.log( columns );
+});</pre>To disable these resize events, use this code:<pre class="prettyprint lang-javascript">// Disable resize event triggering:
+var table = $('table')[0];
+$.tablesorter.addHeaderResizeEvent( table, true );</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="savesortreset">
+				<td><a href="#" class="toggle2">saveSortReset</a></td>
+				<td>Trigger the saveSort widget to clear any saved sorts for that specific table (v2.7.11).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('button').click(function(){
+    $('table').trigger('saveSortReset');
+    return false;
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+		</tbody>
+
+		<!-- non-sorting tbody -->
+		<tbody id="methods-pager" class="tablesorter-infoOnly">
+			<tr><th colspan="3">Pager Methods</th></tr>
+		</tbody>
+
+		<tbody>
+			<tr id="pagesize">
+				<td><a href="#" class="toggle2">pageSize</a></td>
+				<td>Trigger the pager to change the page size (v2.7.4).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('table').trigger('pageSize', 15);
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+			<tr id="pageset">
+				<td><a href="#" class="toggle2">pageSet</a></td>
+				<td>Trigger the pager to change the current page (v2.7.7).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('table').trigger('pageSet', 3);
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="destroypager">
+				<td><a href="#" class="toggle2">destroy.pager</a></td>
+				<td>Calling this method will reveal the entire table, remove the pager functionality, and hide the actual pager (v2.0.16).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('table').trigger('destroy.pager');
+});</pre>
+						The only way to restore the pager is to re-initialize the pager addon
+						<br>
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('table').tablesorterPager(pagerOptions);
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="disablepager">
+				<td><a href="#" class="toggle2">disable.pager</a></td>
+				<td>This method will put the pager into a disabled state (v2.0.21.2).
+					<div class="collapsible">
+					<br>
+					The disabled state will reveal all table rows and disable, but not hide, pager controls.
+					<br>
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('table').trigger('disable.pager');
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="enablepager">
+				<td><a href="#" class="toggle2">enable.pager</a></td>
+				<td>This method will re-enable the pager, but only from the disabled state (v2.0.21.2).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+  $('table').trigger('enable.pager');
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+
+		</tbody>
+
+	</table>
+
+	<a id="events"></a>
+	<h1>Events</h1>
+
+	<div class="tip">
+		<p></p>
+		tablesorter has some methods available to allow updating, resorting or applying widgets to a table after it has been initialized.
+		<br>
+		<em>TIP!</em> Click on the link in the event column to reveal full details (or <a href="#" class="toggleAll">toggle</a>|<a href="#" class="showAll">show</a>|<a href="#" class="hideAll">hide</a> all) or double click to update the browser location.
+	</div>
+
+	<table id="event" class="tablesorter">
+		<thead>
+			<tr>
+				<th>Event</th>
+				<th>Description</th>
+				<th>Link</th>
+			</tr>
+		</thead>
+		<tbody>
+
+			<tr id="initialized">
+				<td><a href="#" class="toggle2">initialized</a></td>
+				<td>This event fires when tablesorter has completed initialization. (v2.2).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // bind to initialized event BEFORE initializing tablesorter
+  $("table")
+    .bind("tablesorter-initialized",function(e, table) {
+      // do something after tablesorter has initialized
+    });
+
+  // initialize the tablesorter plugin
+  $("table").tablesorter({
+    // this is equivalent to the above bind method
+    initialized : function(table){
+      // do something after tablesorter has initialized
+    }
+  });
+
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="sortbegin">
+				<td><a href="#" class="toggle2">sortBegin</a></td>
+				<td>This event fires immediately before tablesorter begins resorting the table.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the tablesorter plugin
+  $("table").tablesorter();
+
+  // bind to sort events
+  $("table").bind("sortBegin",function(e, table) {
+    // do something crazy!
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="sortstart">
+				<td><a href="#" class="toggle2">sortStart</a></td>
+				<td>This event fires immediately after the tablesorter header has been clicked, initializing a resort.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the tablesorter plugin
+  $("table").tablesorter();
+
+  // bind to sort events
+  $("table")
+    .bind("sortStart",function(e, table) {
+      $("#overlay").show();
+    })
+    .bind("sortEnd",function(e, table) {
+      $("#overlay").hide();
+    });
+});</pre></div>
+				</td>
+				<td><a href="example-triggers.html">Example</a></td>
+			</tr>
+
+			<tr id="sortend">
+				<td><a href="#" class="toggle2">sortEnd</a></td>
+				<td>This event fires when tablesorter has completed resorting the table.
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the tablesorter plugin
+  $("table").tablesorter();
+
+  // bind to sort events
+  $("table")
+    .bind("sortStart",function(e, table) {
+      $("#overlay").show();
+    })
+    .bind("sortEnd",function(e, table) {
+      $("#overlay").hide();
+    });
+});</pre></div>
+				</td>
+				<td><a href="example-triggers.html">Example</a></td>
+			</tr>
+
+			<tr id="updatecomplete">
+				<td><a href="#" class="toggle2">updateComplete</a></td>
+				<td>This event fires after tablesorter has completed updating. (v.2.3.9)
+					<div class="collapsible">
+						This occurs after an "update", "updateAll", "updateCell" or "addRows" method was called, but before any callback functions are executed.
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the tablesorter plugin
+  $("table").tablesorter();
+
+  // bind to sort events
+  $("table")
+    .bind("updateComplete",function(e, table) {
+      // do something after the table has been altered;
+    });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+		</tbody>
+
+		<!-- non-sorting tbody -->
+		<tbody id="events-widgets" class="tablesorter-infoOnly">
+			<tr><th colspan="3">Widget Events</th></tr>
+		</tbody>
+
+		<!-- widget events -->
+		<tbody>
+
+			<tr id="filterinit">
+				<td><a href="#" class="toggle2">filterInit</a></td>
+				<td>Event triggered when the filter widget has finished initializing (v2.4).
+					<div class="collapsible"><br>
+						You can use this event to modify the filter elements (row, inputs and/or selects) as desired. Use it as follows:<pre class="prettyprint lang-javascript">$(function(){
+  $('table').bind('filterInit', function(){
+    $(this).find('tr.tablesorter-filter-row').addClass('fred');
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-option-show-processing.html">Example</a></td>
+			</tr>
+
+			<tr id="filterstart">
+				<td><a href="#" class="toggle2">filterStart</a></td>
+				<td>Event triggered when the filter widget has started processing the search (v2.4).
+					<div class="collapsible"><br>
+						You can use this event to do something like add a class to the filter row. Use it as follows:<pre class="prettyprint lang-javascript">$(function(){
+  $('table').bind('filterStart', function(){
+    $(this).find('tr.tablesorter-filter-row').addClass('filtering');
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-option-show-processing.html">Example</a></td>
+			</tr>
+
+			<tr id="filterend">
+				<td><a href="#" class="toggle2">filterEnd</a></td>
+				<td>Event triggered when the filter widget has finished processing the search (v2.4).
+					<div class="collapsible"><br>
+						You can use this event to do something like remove the class added to the filter row when the filtering started. Use it as follows:<pre class="prettyprint lang-javascript">$(function(){
+  $('table').bind('filterEnd', function(){
+    $(this).find('tr.tablesorter-filter-row').removeClass('filtering');
+  });
+});</pre></div>
+				</td>
+				<td><a href="example-option-show-processing.html">Example</a></td>
+			</tr>
+
+			<tr id="stickyheadersinit">
+				<td><a href="#" class="toggle2">stickyHeadersInit</a></td>
+				<td>Event triggered when the stickyHeader widget has finished initializing (<span class="version">v2.10.4</span>).
+					<div class="collapsible"><br>
+						You can use this event to do something like modify content within the sticky header:<pre class="prettyprint lang-javascript">$(function(){
+  $('table').bind('stickyHeadersInit', function(){
+    // this.config.widgetOptions.$sticky contains the entire sticky header table
+    this.config.widgetOptions.$sticky.find('tr.tablesorter-headerRow').addClass('sticky-styling');
+  });
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+		</tbody>
+
+		<!-- non-sorting tbody -->
+		<tbody id="events-pager" class="tablesorter-infoOnly">
+			<tr><th colspan="3">Pager Events</th></tr>
+		</tbody>
+
+		<!-- Pager addon events -->
+		<tbody>
+			<tr id="pagerchange">
+				<td><a href="#" class="toggle2">pagerChange</a></td>
+				<td>This event fires when the pager plugin begins to render the table on the currently selected page. (v2.0.7).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the sorter
+  $("table")
+    .tablesorter()
+
+    // initialize the pager plugin
+    .tablesorterPager({
+      container: $("#pager")
+    })
+
+    // bind to pager events
+    .bind('pagerChange pagerComplete', function(e,c){
+      // c.totalPages contains the total number of pages
+      $('#display').html( e.type + " event triggered, now on page " + (c.page + 1) );
+    });
+
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pagercomplete">
+				<td><a href="#" class="toggle2">pagerComplete</a></td>
+				<td>This event fires when the pager plugin has completed its render of the table on the currently selected page. (v2.0.7).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the sorter
+  $("table")
+    .tablesorter()
+
+    // initialize the pager plugin
+    .tablesorterPager({
+      container: $("#pager")
+    })
+
+    // bind to pager events
+    .bind('pagerChange pagerComplete', function(e,c){
+      // c.totalPages contains the total number of pages
+      $('#display').html( e.type + " event triggered, now on page " + (c.page + 1) );
+    });
+
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pagerbeforeinitialized">
+				<td><a href="#" class="toggle2">pagerBeforeInitialized</a></td>
+				<td>This event fires after all pager controls have been bound and set up but before the pager formats the table or loads any ajax data (v2.4.4).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  $("table")
+
+    // initialize the sorter
+    .tablesorter()
+
+    // bind to pager initialized event BEFORE calling the addon
+    .bind('pagerBeforeInitialized', function(e, c){
+      // e = event object; c = pager options
+    })
+
+    // initialize the pager plugin
+    .tablesorterPager({
+      container: $("#pager")
+    });
+
+});</pre></div>
+				</td>
+				<td></td>
+			</tr>
+
+			<tr id="pagerinitialized">
+				<td><a href="#" class="toggle2">pagerInitialized</a></td>
+				<td>This event fires when the pager plugin has completed initialization (v2.4.4).
+					<div class="collapsible">
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  $("table")
+
+    // initialize the sorter
+    .tablesorter()
+
+    // bind to pager initialized event BEFORE calling the addon
+    .bind('pagerInitialized', function(e, c){
+      // c.totalPages contains the total number of pages
+      $('#display').html( e.type + " event triggered, now on page " + (c.page + 1) );
+    })
+
+    // initialize the pager plugin
+    .tablesorterPager({
+      container: $("#pager")
+    });
+
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+			<tr id="pagemoved">
+				<td><a href="#" class="toggle2">pageMoved</a></td>
+				<td>This event fires when the pager plugin begins to change to the selected page (v2.4.4).
+					<div class="collapsible">
+						This event may fire before the <code>pagerComplete</code> event when ajax processing is involved, or after the <code>pagerComplete</code> on normal use.
+						See <a href="https://github.com/Mottie/tablesorter/pull/153">issue #153</a>.
+						<pre class="prettyprint lang-javascript">$(function(){
+
+  // initialize the sorter
+  $("table")
+    .tablesorter()
+
+    // initialize the pager plugin
+    .tablesorterPager({
+      container: $("#pager")
+    })
+
+    // bind to pager events
+    .bind('pageMoved', function(e, c){
+      // c.totalPages contains the total number of pages
+      $('#display').html( e.type + " event triggered, now on page " + (c.page + 1) );
+    });
+
+});</pre></div>
+				</td>
+				<td><a href="example-pager.html">Example</a></td>
+			</tr>
+
+		</tbody>
+	</table>
+
+	<a id="Download"></a>
+	<h1>Download</h1>
+
+	<p><strong>Full release</strong> - Plugin, Documentation, Add-ons, Themes. Download: <a class="download zip" href="https://github.com/Mottie/tablesorter/archive/master.zip">zip</a> or <a class="download tar" href="https://github.com/Mottie/tablesorter/archive/master.tar.gz">tar.gz</a></p>
+
+	<p><strong>Pick n choose</strong> - Place at least the required files in a directory on your webserver that is accessible to a web browser.  Record this location.</p>
+
+	<strong id="Download-Required">Required:</strong>
+	<ul>
+		<li><a class="external" href="http://jquery.com/download/">jQuery</a> (1.2.6 or higher; some demos & <a class="external" href="http://api.jquery.com/data/#data-html5">HTML5 data-attributes</a> need jQuery 1.4.3+)</li>
+		<li><a href="../js/jquery.tablesorter.min.js">jquery.tablesorter.min.js</a> (19kb, minified for production - please put the file on your server)</li>
+	</ul>
+
+	<strong id="Download-Addons">Optional / Add-Ons:</strong>
+	<ul>
+		<li><a class="external" href="https://github.com/jquery-orphans/jquery-metadata">jQuery Metadata 2.1</a> (4kb, required for setting <a href="#metadata">inline options</a>)</li>
+		<li><a href="../js/jquery.tablesorter.js">jquery.tablesorter.js</a> (47kb/<a href="../js/jquery.tablesorter.min.js">23kb min</a>)</li>
+		<li><a href="../addons/pager/jquery.tablesorter.pager.js">jquery.tablesorter.pager.js</a> (16kb/<a href="../addons/pager/jquery.tablesorter.pager.min.js">8kb min</a>, <a href="example-pager.html">demo</a>)</li>
+		<li><a href="../js/jquery.tablesorter.widgets.js">jquery.tablesorter.widgets.js</a> (36kb/<a href="../js/jquery.tablesorter.widgets.min.js">17kb min</a>, includes the jQuery UI theme, columns styling, resizable columns, filter, sticky header and save sort widgets.</li>
+	</ul>
+
+	<strong id="Download-Themes">Themes:</strong>
+	<p>Theme zip files have been removed. There are now numerous themes available which <a href="themes.html">can be seen here</a></p>
+
+	<a id="Compatibility"></a>
+	<h1>Browser Compatibility</h1>
+
+	<p>tablesorter has been tested successfully in the following browsers with Javascript enabled:</p>
+	<ul>
+		<li>Firefox 2+</li>
+		<li>Internet Explorer 6+</li>
+		<li>Safari 2+</li>
+		<li>Opera 9+</li>
+		<li>Konqueror</li>
+	</ul>
+
+	<p><a class="external" href="http://jquery.com/browser-support/">jQuery Browser Compatibility</a></p>
+
+	<a id="Support"></a>
+	<h1>Support</h1>
+
+	<p>If you are having a problem with the plugin or you want to submit a feature request, please <a class="external" href="https://github.com/Mottie/tablesorter/issues">submit an issue</a>.</p>
+
+	<p>If you would like to contribute, <a class="external" href="https://github.com/Mottie/tablesorter">fork a copy on github</a>.</p>
+
+	<p>Some basic <a href="../test.html">unit testing</a> has been added. If you would like to add more or report a problem, please use the appropriate link above (v2.6).</p>
+
+	<p>Support is also available from <a class="external" href="http://stackoverflow.com/questions/tagged/tablesorter">stackoverflow</a>.</p>
+
+	<p>For questions about jQuery, try <a class="external" href="http://irc.jquery.org/">irc</a>, <a class="external" href="http://stackoverflow.com/tags/jquery/info">stackoverflow</a>, or the <a class="external" href="http://forum.jquery.com/">jQuery forums</a>.</p>
+
+	<a id="Credits"></a>
+	<h1>Credits</h1>
+	<p>Written by Christian Bach.</p>
+	<p>
+		Documentation written by <a class="external" href="http://www.ghidinelli.com">Brian Ghidinelli</a>,
+		based on <a class="external" href="http://malsup.com/jquery/">Mike Alsup's</a> great documention.<br>
+		Additional &amp; Missing documentation, alphanumeric sort, numerous widgets, unit testing and other changes added by <a class="external" href="https://github.com/Mottie/tablesorter">Mottie</a>.
+	</p>
+	<p>
+		<a class="external" href="http://ejohn.org">John Resig</a> for the fantastic <a class="external" href="http://jquery.com">jQuery</a>
+	</p>
+</div>
+
+</body>
+</html>

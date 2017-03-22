@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>jQuery plugin: Tablesorter 2.0 - Feet-inch-fraction parser</title>
+
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+	<style>
+	th { width: 50%; }
+	</style>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+	<script src="../js/jquery.tablesorter.widgets.js"></script>
+
+	<script src="../js/parsers/parser-feet-inch-fraction.js"></script>
+
+	<script id="js">$(function() {
+
+	$('table').tablesorter({
+		theme: 'blue',
+		headers: {
+			0: { sorter: 'distance' },
+			1: { sorter: 'distance' }
+		},
+		widgets: ['zebra']
+	});
+
+});</script>
+
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Feet-inch-fraction parser</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+
+	<h1>Demo</h1>
+	<button type="button" class="toggleparsedvalue">toggle</button> parsed values within the column
+	<div id="demo">
+	<table class="tablesorter">
+		<thead>
+			<tr>
+				<th>Distance (feet &amp; inches)</th>
+				<th>Fractions</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr><td>3'</td><td>1&frac12;</td></tr>
+			<tr><td>11"</td><td>22/12</td></tr>
+			<tr><td>5'</td><td>3&frac14;</td></tr>
+			<tr><td>3"</td><td>5 &frac12;</td></tr>
+			<tr><td>&frac12;"</td><td>2&frac34;</td></tr>
+	
+			<tr><td>5' 11"</td><td>&frac34;</td></tr>
+			<tr><td>10' 11"</td><td>&#x215b;</td></tr>
+			<tr><td>10' 1"</td><td>5/6</td></tr>
+			<tr><td>10' 4"</td><td>11/16</td></tr>
+			<tr><td>5' 9"</td><td>&#x215c;</td></tr>
+			<tr><td>5 1/2'</td><td>2</td></tr>
+
+			<tr><td>5' 3/4"</td><td>2&#x215e;</td></tr>
+			<tr><td>5' 5/8"</td><td>3 &frac34;</td></tr>
+			<tr><td>5' 3 1/2"</td><td>3 &#x215b;</td></tr>
+	
+			<tr><td>10' 3&#8539;"</td><td>3/7</td></tr>
+	
+			<tr><td>10' 2&#8540;"</td><td>3&#x215c;</td></tr>
+			<tr><td>10' 3&#8541;"</td><td>3 &frac12;</td></tr>
+			<tr><td>10' 2&#8542;"</td><td>3 &#x215d;</td></tr>
+			<tr><td>5' 3&frac14;"</td><td>2&#x215d;</td></tr>
+			<tr><td>5    '   2   &frac12;        "</td><td>2/3</td></tr>
+			<tr><td>10' 2&frac34;"</td><td>5 &#x215d;</td></tr>
+	
+			<tr><td>5' 2 &frac12;"</td><td>5 &#x215c;</td></tr>
+			<tr><td>5' 2.5"</td><td>5/16</td></tr>
+	
+			<tr><td>5' 2 1/2"</td><td>2 3/5</td></tr>
+	
+			<tr><td> 10  ' 1   "</td><td>3</td></tr>
+		</tbody>
+	</table>
+</div>
+
+	<h1>Page Header</h1>
+	<div>
+		<pre class="prettyprint lang-html">&lt;!-- blue theme stylesheet --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;../css/theme.blue.css&quot;&gt;
+&lt;!-- tablesorter plugin --&gt;
+&lt;script src=&quot;../js/jquery.tablesorter.js&quot;&gt;&lt;/script&gt;
+
+&lt;!-- load feet-inch-fraction parser --&gt;
+&lt;script src=&quot;../js/parsers/parser-feet-inch-fraction.js&quot;&gt;&lt;/script&gt;</pre>
+	</div>
+
+	<h1>Javascript</h1>
+	<div id="javascript">
+		<pre class="prettyprint lang-javascript"></pre>
+	</div>
+
+	<h1>HTML</h1>
+	<div id="html">
+		<pre class="prettyprint lang-html"></pre>
+	</div>
+
+</div>
+
+<script>
+$(function(){
+	// add parsed values to columns [0,1]
+	addParsedValues($('table'), [0,1], function(num){ return Math.round(num * 100)/100; });
+});
+</script>
+
+</body>
+</html>
+

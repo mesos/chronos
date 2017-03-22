@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>jQuery plugin: Tablesorter 2.0 - Build Table Widget</title>
+	<!-- jQuery -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+	<!-- Demo stuff -->
+	<link class="ui-theme" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/themes/cupertino/jquery-ui.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.0/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="css/jq.css">
+	<link href="css/prettify.css" rel="stylesheet">
+	<script src="js/prettify.js"></script>
+	<script src="js/docs.js"></script>
+	<script src="js/demo-build-table.js"></script>
+	<style>
+		.csv { display: none; }
+		.tablesorter-blue td.info { background: #eee; }
+	</style>
+
+	<!-- Tablesorter: required -->
+	<link rel="stylesheet" href="../css/theme.blue.css">
+	<script src="../js/jquery.tablesorter.js"></script>
+
+	<!-- build table widget -->
+	<script type="text/javascript" src="../js/widgets/widget-build-table.js"></script>
+
+</head>
+<body>
+<div id="banner">
+	<h1>table<em>sorter</em></h1>
+	<h2>Build Table Widget</h2>
+	<h3>Flexible client-side table sorting</h3>
+	<a href="index.html">Back to documentation</a>
+</div>
+<div id="main">
+<br>
+	<div class="accordion">
+
+		<h3><a href="#">Notes</a></h3>
+		<div>
+			<ul>
+				<li>Build a table starting with an assortment of data types ( array, text (CSV, HTML) or object (json) ).</li>
+				<li>This widget isn't really a widget because it is run and does it's processing before tablesorter has initialized; but the options for it are contained within the tablesorter <code>widgetOptions</code>.</li>
+				<li>Using the core build options:
+					<ul>
+						<li>The <code>build_type</code> tells the widget which type of data processing to use on the data.</li>
+						<li>The <code>build_source</code> points the widget to the data source.</li>
+						<li>Once the data is obtained from the <code>build_source</code>, you can do whatever processing that needs to be done on it using the <code>build_processing</code> option.
+							<ul>
+								<li>For example, if the table data is within a larger JSON, you can just return that portion of the JSON to the widget: <code>build_processing : function(data, wo) { return data.all_info_tables.table_of_contents; }</code></li>
+								<li>Anoter example is to use the processing option to split a string into an array (see the "Array (from string w/processing)" section below)</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				<li>An extra option named <code>build_numbers</code> has been included:
+					<ul>
+						<li>This option only applies to array and csv source table builds.</li>
+						<li>Set the <code>build_numbers.addColumn</code> option to <code>true</code> (or a string with the column name <code>"#"</code>) to add a row number column on the far left of the table.</li>
+						<li>Set the <code>build_numbers.sortable</code> option to <code>true</code> to make the added number column sortable. This option only applies if the <code>addColumn</code> option is <code>true</code>.</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<h3><a href="#">Options</a></h3>
+		<div>
+			<table class="tablesorter-blue">
+				<colgroup>
+					<col style="width:10%">
+					<col style="width:10%">
+					<col style="width:15%">
+					<col style="width:65%">
+				</colgroup>
+				<thead>
+					<tr>
+						<th>widgetOption</th>
+						<th>Type</th>
+						<th>Default</th>
+						<th>Description</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					<tr>
+						<td colspan="4" class="info">Core Options</td>
+					</tr>
+
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_type</code></a></td>
+						<td>String</td>
+						<td><code>""</code></td>
+						<td>
+							Indicate the data result type that needs to be processed
+							<div class="collapsible"><br>
+							Options include: <code>"array"</code>, <code>"csv"</code>, <code>"object"</code>, <code>"json"</code> or <code>"html"</code>.<br>
+							Default is <code>""</code> (an empty string).
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_source</code></a></td>
+						<td>String</td>
+						<td><code>""</code></td>
+						<td>
+							Contains the data stored as an array, object, jQuery object or <a href="http://api.jquery.com/jQuery.ajax/#jQuery-ajax-settings">ajax settings</a> used to obtain ajax data (include any desired ajax options).
+							<div class="collapsible"><br>
+							Options include: an array, object, jQuery Object (<code>$('.csv')</code>) or ajax settings( <code>{ url: 'mysite.com/data.json', dataType: 'json' }</code> ).
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_processing</code></a></td>
+						<td>Function</td>
+						<td><code>null</code></td>
+						<td>
+							Add a function that returns a useable build_type. (e.g. string to array)
+							<div class="collapsible"><br>
+								The function receives two parameters: <code>data</code> which contains the obtained data and <code>wo</code> which is the widget options (<code>table.config.widgetOptions</code>).<br>
+								Example: <code>build_processing: function(data, wo){ return data.split(';'); }</code>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_complete</code></span></td>
+						<td>String</td>
+						<td><code>"tablesorter-build-complete"</code></td>
+						<td>Contains the name of the event to trigger when a table build has completed.</td>
+					</tr>
+
+					<tr>
+						<td colspan="4" class="info">CSV & Array Options</td>
+					</tr>
+
+					<tr>
+						<td><span class="permalink"><code>build_headers.rows</code></span></td>
+						<td>Numeric</td>
+						<td><code>1</code></td>
+						<td>Number of header rows contained within the csv</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_headers.classes</code></span></td>
+						<td>Array</td>
+						<td><code>[]</code></td>
+						<td>Array of header class names to add while building the table header.</td>
+					</tr>
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_headers.text</code></a></td>
+						<td>Array</td>
+						<td><code>[]</code></td>
+						<td>Array of header cell names to add while building the table header.
+							<div class="collapsible"><br>
+								Any value contained within this option will override any header text obtained from the CSV data.
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_headers.widths</code></span></td>
+						<td>Array</td>
+						<td><code>[]</code></td>
+						<td>Array of header cell widths which are added to a <code>&lt;col&gt;</code> within a <code>&lt;colgroup&gt;</code>.</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_footers.rows</code></span></td>
+						<td>Numeric</td>
+						<td><code>1</code></td>
+						<td>Number of footer rows contained within the csv</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_footers.classes</code></span></td>
+						<td>Array</td>
+						<td><code>[]</code></td>
+						<td>Array of footer class names to add while building the table footer.</td>
+					</tr>
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_footers.text</code></a></td>
+						<td>Array</td>
+						<td><code>[]</code></td>
+						<td>Array of footer cell names to add while building the table footer.
+							<div class="collapsible"><br>
+								Any value contained within this option will override any footer text obtained from the CSV data.
+							</div>
+						</td>
+					</tr>
+
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_numbers.addColumn</code></a></td>
+						<td>Boolean</td>
+						<td><code>false</code></td>
+						<td>Include a row numbering column.
+							<div class="collapsible"><br>
+								Only works with csv or array data.
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td><a href="#" class="toggle2"><code>build_numbers.sortable</code></a></td>
+						<td>Boolean</td>
+						<td><code>false</code></td>
+						<td>Make the included row number column sortable.
+							<div class="collapsible"><br>
+								Only works when the <code>build_numbers.addColumn</code> is <code>true</code> and when csv or array data is used.
+							</div>
+						</td>
+					</tr>
+
+					<tr>
+						<td colspan="4" class="info">CSV Only Options</td>
+					</tr>
+
+					<tr>
+						<td><span class="permalink"><code>build_csvStartLine</code></span></td>
+						<td>Numeric</td>
+						<td><code>0</code></td>
+						<td>The line within the csv data to start building the table</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_csvSeparator</code></span></td>
+						<td>String</td>
+						<td><code>","</code> (comma)</td>
+						<td>The separator used within the text file (comma or tab)</td>
+					</tr>
+
+					<tr>
+						<td colspan="4" class="info">Object Only Options</td>
+					</tr>
+
+					<tr>
+						<td><span class="permalink"><code>build_objectRowKey</code></span></td>
+						<td>String</td>
+						<td><code>"rows"</code></td>
+						<td>Object key which contains row data</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_objectCellKey</code></span></td>
+						<td>String</td>
+						<td><code>"cells"</code></td>
+						<td>Object key which contains the table cells, within the row data</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_objectHeaderKey</code></span></td>
+						<td>String</td>
+						<td><code>"headers"</code></td>
+						<td>Object key which contains the table headers data</td>
+					</tr>
+					<tr>
+						<td><span class="permalink"><code>build_objectFooterKey</code></span></td>
+						<td>String</td>
+						<td><code>"footers"</code></td>
+						<td>Object key which contains the table footers data</td>
+					</tr>
+
+				</tbody>
+			</table>
+
+		</div> <!-- end options -->
+
+		<h3><a href="#">Setup - Array (javascript variable)</a></h3>
+		<div>
+
+			<h3>Notes</h3>
+			<ul>
+				<li>The array is set up such that it is an array of arrays. The outer array contains each row array, and within each row array is the cell text.</li>
+				<li>Using an array is limiting, so addtional options have been added:
+					<ul>
+						<li>(<code>build_headers</code> &amp; <code>build_footers</code>) have been added allowing customizing the headers and/or footers.</li>
+						<li>The <code>rows</code> option sets the number of headers rows to include from the data source. <strong>Zero is not an option</strong> since tablesorter requires a thead in place before it will initialize.</li>
+						<li>The <code>classes</code> array sets each header cell (<code>th</code>) class name.</li> 
+						<li>The <code>text</code> array within these options will override any text obtained from the data source.</li>
+						<li>The <code>widths</code> array, only in the <code>build_headers</code> option, sets column widths by building <code>&lt;col&gt;</code> elements within a <code>&lt;colgroup</code>.</li>
+						<li>Adding class names to the tbody rows or cells isn't easily accomplished, but you can bind to the build complete event (<code>'tablesorter-build-complete'</code>) and add them yourself.</li>
+					</ul>
+				</li>
+			</ul>
+
+			<h3>HTML</h3>
+			<pre class="prettyprint lang-html">&lt;div id=&quot;array2Table&quot;&gt;&lt;/div&gt;</pre>
+			<h3>Javascript</h3>
+			<pre class="prettyprint lang-js">$(function() {
+	var arry = [
+		[ 'ID', 'Name', 'Age', 'Date' ], // header
+		[ 'A42b', 'Parker', 28, 'Jul 6, 2006 8:14 AM' ],  // row 1
+		[ 'A255', 'Hood', 33, 'Dec 10, 2002 5:14 AM' ],   // row 2
+		[ 'A33', 'Kent', 18, 'Jan 12, 2003 11:14 AM' ],   // row 3
+		[ 'A1', 'Franklin', 45, 'Jan 18, 2001 9:12 AM' ], // row 4
+		[ 'A102', 'Evans', 22, 'Jan 18, 2007 9:12 AM' ],  // row 5
+		[ 'A42a', 'Everet', 22, 'Jan 18, 2007 9:12 AM' ], // row 6
+		[ 'ID', 'Name', 'Age', 'Date' ]  // footer
+	];
+
+	$('#array2Table').tablesorter({
+		theme: 'blue',
+		widgetOptions : {
+			// build_type   : 'array', // can sometimes be detected if undefined
+			build_source : arry,
+			build_headers : {
+				rows    : 1,  // Number of header rows from the csv
+				classes : [], // Header classes to apply to cells
+				text    : [], // Header cell text
+				widths  : [ '15%', '30%', '15%', '40%' ] // set header cell widths
+			},
+			build_footers : {
+				rows    : 1,   // Number of header rows from the csv
+				classes : [],  // Footer classes to apply to cells
+				text    : [ 'ID (a###)', 'Last Name', 'Age (joined)', 'Date (joined)' ] // Footer cell text
+			}
+		}
+	});
+});</pre>
+			<h3>Result</h3>
+			<div id="array2Table" class="container"></div>
+		</div>
+
+		<h3><a href="#">Setup - Array (from string w/processing)</a></h3>
+		<div>
+
+			<h3>Notes</h3>
+			<ul>
+				<li>We start out with a string and split it into a useable array of arrays.</li>
+				<li>The settings are similair to the Array (javascript variable) code above with the exception of using the <code>build_processing</code> function to create the array.
+					<ul>
+						<li>The string is set up to separate each row by a semi-colon, then each cell by a comma.</li>
+						<li>The first split is needed to create an array of rows <code>.split(';')</code></li>
+						<li>The second split can be accomplished using <code>.split(',')</code> on each row of the array, but instead we use the build table widget function <code>$.tablesorter.buildTable.splitCSV(cells, ',');</code> to ensure that the split doesn't occur if the separator is within double quotes (note the footer text).</li>
+						<li>Then just return this newly built array back to the build table widget (see the full code below).</li>
+					</ul>
+				</li>
+			</ul>
+
+			<h3>HTML</h3>
+			<pre class="prettyprint lang-html">&lt;div id=&quot;string2Table&quot;&gt;&lt;/div&gt;</pre>
+			<h3>Javascript</h3>
+			<pre class="prettyprint lang-js">$(function() {
+	$('#string2Table').tablesorter({
+		theme: 'blue',
+		widgetOptions: {
+			build_type   : 'array',
+			build_source : 'header 1,header 2,header 3;r1c1,r1c2,r1c3;r2c1,r2c2,r2c3;r3c1,r3c2,r3c3;"footer, 1","footer, 2","footer, 3"',
+			build_processing : function(data, wo) {
+				var rows = data.split(';');
+				return $.each(rows, function(i,cells) {
+					// similar to using rows[i] = cells.split(',') but the splitCSV script
+					// doesn't split the cell if the separator (comma) is within double quotes
+					rows[i] = $.tablesorter.buildTable.splitCSV(cells, ',');
+				});
+			}
+		}
+	});
+});</pre>
+			<h3>Result</h3>
+			<div id="string2Table" class="container"></div>
+		</div>
+
+		<h3><a href="#">Setup - CSV (txt within DOM element)</a></h3>
+		<div>
+
+			<h3>Notes</h3>
+			<ul>
+				<li>A jQuery object targeting the CSV text can be passed to the <code>build_source</code> option.</li>
+				<li>The widget detects that a jQuery object was passed to it, and grabs the HTML (not text) of the element.
+					<ul>
+						<li>Make sure not include HTML tags, or at least use the <code>build_processing</code> function to reformat the data.</li>
+						<li>The row of csv data is trimmed of extra tabs and spaces (only from the beginning &amp; end of each row).</li>
+						<li>Building a table from CSV or array use the same script, so the same addtional options are available:
+							<ul>
+								<li>(<code>build_headers</code> &amp; <code>build_footers</code>) have been added allowing customizing the headers and/or footers.</li>
+								<li>The <code>rows</code> option sets the number of headers rows to include from the data source. <strong>Zero is not an option</strong> since tablesorter requires a thead in place before it will initialize.</li>
+								<li>The <code>classes</code> array sets each header cell (<code>th</code>) class name.</li> 
+								<li>The <code>text</code> array within these options will override any text obtained from the data source.</li>
+								<li>The <code>widths</code> array, only in the <code>build_headers</code> option, sets column widths by building <code>&lt;col&gt;</code> elements within a <code>&lt;colgroup</code>.</li>
+								<li>Adding class names to the tbody rows or cells isn't easily accomplished, but you can bind to the build complete event (<code>'tablesorter-build-complete'</code>) and add them yourself.</li>
+							</ul>
+						</li>
+						<li>CSV data has two additional options used during data processing:
+							<ul>
+								<li><code>build_csvStartLine</code> (default is <code>0</code>) tells the csv build script which line in the csv data to start using to build the table. This is added in case comments or other data is above the table data.</li>
+								<li><code>build_csvSeparator</code> (default is <code>","</code>)
+									<ul>
+										<li>This sets the separator used within the csv data to separate each cell.</li>
+										<li>The <a href="https://code.google.com/p/jquerycsvtotable/">original jquerycsvtotable plugin</a> shows an <a href="http://honestbleeps.com/csvtotable/demo.html#TSVSource">example to process tab separated values (TSV)</a> by setting this option to <code>"\t"</code>.</li>
+										<li>Rows are determined by placing the data on a new line.</li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+						<li>In this demo, the <code>build_numbers</code> sub-options <code>addColumn</code> and <code>sortable</code> are set to add a numeric column on the left side.
+							<ul>
+								<li>The <code>addColumn</code> option contains the name of the numeric column to be added to the header. Otherwise, set this option to <code>false</code> to not build this numeric column.</li>
+								<li>The <code>sortable</code> option makes that numeric column sortable.</li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+			</ul>
+
+			<h3>HTML</h3>
+			<pre class="prettyprint lang-html">&lt;!--
+ Note: if the csv data contains commas ("10,000 days") wrap it in quotes
+--&gt;
+&lt;div class="csv" style="display:none;"&gt;
+	Album,Artist,Price (USD)
+	Lateralus,Tool,$13.00
+	Aenima,Tool,$12.00
+	"10,000 days",Tool,$14.00
+	Down In It,Nine Inch Nails,$3.00
+	Broken,Nine Inch Nails,$6.00
+	Muse,Black Holes and Revelations,$7.00
+	Anon,"fake album, with comma", $1.00
+	Album,Artist,Price (USD)
+&lt;/div&gt;
+
+&lt;div id=&quot;csv2Table&quot;&gt;&lt;/div&gt;</pre>
+			<h3>Javascript</h3>
+			<pre class="prettyprint lang-js">$(function() {
+	$('#csv2Table').tablesorter({
+		theme: 'blue',
+		widgetOptions: {
+			// *** build widget core ***
+			build_type      : 'csv',
+			build_source    : $('.csv'),
+			build_complete  : 'tablesorter-build-complete', // triggered event when build completes
+
+			// *** CSV & array ***
+			build_headers   : {
+				rows    : 1,   // Number of header rows from the csv
+				classes : [],  // Header classes to apply to cells
+				text    : [],  // Header cell text
+				widths  : ['3%', '27%', '50%', '20%'] // set header cell widths
+			},
+			build_footers : {
+				rows    : 1,   // Number of header rows from the csv
+				classes : [],  // Footer classes to apply to cells
+				text    : []   // Footer cell text
+			},
+			build_numbers : {
+				addColumn : "#", // include row numbering column?
+				sortable  : true // make column sortable?
+			},
+
+			// *** CSV options ***
+			build_csvStartLine : 0,  // line within the csv to start adding to table
+			build_csvSeparator : "," // csv separator
+		}
+	});
+});</pre>
+			<h3>Result</h3>
+			<div id="csv2Table" class="container"></div>
+
+		</div>
+
+		<h3><a href="#">Setup - CSV (txt file via ajax)</a></h3>
+		<div>
+
+			<h3>Notes</h3>
+			<ul>
+				<li>If the csv data is obtained via ajax instead of from a DOM element, only the <code>build_source</code> option needs to change, everything else stays the same.
+					<ul>
+						<li>Set the <code>build_source</code> to contain any <a href="http://api.jquery.com/jQuery.ajax/#jQuery-ajax-settings">ajax settings</a> required to load the data.</li>
+						<li>In this case the csv file is contained within a text file (<code>build.txt</code>), so a <code>url</code> option is set to point to the file and the <code>dataType</code> option (set to <code>html</code>) is set so that ajax knows the type of file to access.</li>
+						<li>The remaining default settings were left out of the example below.</li>
+					</ul>
+				</li>
+				<li>Please note that browsers like Chrome will not allow you to access locally hosted (desktop) files. Test it with Firefox instead.</li>
+			</ul>
+
+			<h3>Build.txt file</h3>
+			<pre class="prettyprint lang-html">Album,Artist,Price ($)
+Lateralus,Tool,$13.00
+Aenima,Tool,$12.00
+"10,000 days",Tool,$14.00
+Down In It,Nine Inch Nails,$3.00
+Broken,Nine Inch Nails,$6.00
+Muse,Black Holes and Revelations,$7.00
+Anon,"fake album, with comma", $1.00
+Album,Artist,Price ($)</pre>
+			<h3>HTML</h3>
+			<pre class="prettyprint lang-html">&lt;div id=&quot;csv2Table2&quot;&gt;&lt;/div&gt;</pre>
+			<h3>Javascript</h3>
+			<pre class="prettyprint lang-js">$(function() {
+	$('#csv2Table2').tablesorter({
+		theme: 'blue',
+		widgetOptions: {
+			// *** build widget core ***
+			build_type      : 'csv',
+			build_source    : { url: 'assets/csv.txt', dataType: 'html' },
+			build_headers   : {
+				widths  : ['30%', '50%', '20%'] // set header cell widths
+			}
+		}
+	});
+});</pre>
+			<h3>Result</h3>
+			<div id="csv2Table2" class="container"></div>
+
+		</div>
+
+		<h3><a href="#">Setup - Object (javascript variable)</a></h3>
+		<div>
+			<h3>Notes</h3>
+			<div class="accordion">
+				<h3><a href="#">Definitions - General:</a></h3>
+				<div>
+					These are definitions to words as used within this documentation.
+					<ul>
+						<li>A <strong>key-value pair</strong> (or <strong>attribute</strong>): Within an object, the way to assign a value is by using a key-value pair (<code>"name" : "Fred"</code>; which is like saying <code>name = "Fred"</code> or <code>x = 1</code> outside of an object).</li>
+						<li>A <strong>block</strong> is essentially the "value" portion of a key-value pair; specifically when referring to the value of the header, footer, row and cell blocks.</li>
+						<li>An <strong>array</strong> is a list or group of values (i.e. <code>['x','y','z']</code>).</li>
+						<li>An <strong>array of arrays</strong> is an array that contains more arrays (i.e. <code>[ ['a','b','c'], ['d','e','f' ] ]</code>). This applies to the header, row and footer blocks.</li>
+						<li>Any build table widget object:
+							<ul>
+								<li>These objects are a grouping of key-value pairs used to define a tbody, row or cell.</li>
+								<li>These objects contains all of the attributes which are to be added to a table element while building the table.</li>
+								<li>The keys used in these attributes will look familiar - <code>class</code> (see row 7 below), <code>colspan</code> (see row 4 below), <code>data-</code>attributes (see row 7 cell 3 below), etc.</li>
+								<li>Depending on where an object is located (tbody, row or cell), it will have a special key word or words which are significant (see the Objects section below).</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+
+				<h3><a href="#">Blocks:</a></h3>
+				<div>
+					(row #), or (row # cell #) in these descriptions refer to the demo object code below
+					<ul>
+						<li><code>header</code> block:
+							<ul>
+								<li>This block will contain an array of rows. The rows can be defined as another array of cell text (row 1-3,5-6), or row objects (row 0, 4 &amp; 7).</li>
+								<li>The <code>header</code> object key name can be modified by changing the widget <code>build_objectHeaderKey</code> option.</li>
+							</ul>
+						</li>
+						<li><code>footers</code> block:
+							<ul>
+								<li>This block can contain all of the same data as the header block.</li>
+								<li>This block has one additional setting, it can also contain a very specific string: <code>"clone"</code>. When this setting is used, the footer will be created by making a clone of the header.</li>
+								<li>The <code>footers</code> object key name can be modified by changing the widget <code>build_objectFooterKey</code> option.</li>
+							</ul>
+						</li>
+						<li><code>rows</code> block:
+							<ul>
+								<li>This block will contain an array of rows. The rows can be defined as another array of cell text, or as a row object (same as the header &amp; footer blocks).</li>
+								<li>In addition, this block can contain a tbody object (tbody 2 &amp; tbody 3; see the tbody object section below for more details).</li>
+								<li>The <code>rows</code> object key name can be modified by changing the widget <code>build_objectRowKey</code> option.</li>
+							</ul>
+						</li>
+						<li><code>cells</code> block:
+							<ul>
+								<li>This block will contain an array of cells. The cells can be defined as cell text (string), or cell objects.</li>
+								<li>The <code>cells</code> object key name can be modified by changing the widget <code>build_objectCellKey</code> option.</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+
+				<h3><a href="#">Object Content</a></h3>
+				<div>
+					<ul>
+						<li>tbody object
+							<ul>
+								<li>The tbody object contains all of the attributes that are to be applied to a particular table tbody (<code>tbody</code>).</li>
+								<li>The tbody object <strong>requires</strong> a <code>newTbody</code> key set to <code>true</code>. It is the ONLY way the build widget can differeniate a row object from a "new" tbody object.</li>
+								<li>If the <code>newTbody</code> attribute is <code>true</code>, the build widget will place all remaining rows into a new tbody; or all rows, until it encounters another valid tbody object, into a new tbody.</li>
+								<li>If the <code>newTbody</code> attribute is <code>false</code>, the build widget will assume the object is for a row and add it as a row.</li>
+								<li>See "TBODY 2" and "TBODY 3" tbody objects in the code example below.</li>
+							</ul>
+						</li>
+						<li>row object
+							<ul>
+								<li>The row object contains all of the attributes that are to be applied to a particular table row (<code>tr</code>).</li>
+								<li>The row object requires a <code>cells</code> attribute.</li>
+								<li>The cells attribute will contain all table cell data for the cells within that table row.</li>
+								<li>This attribute can be changed by modifying the build table widget's <code>build_objectCellKey</code> (default is <code>"cells"</code>).</li>
+								<li>See row 4 and row 7 in the demo code below.</li>
+							</ul>
+						</li>
+						<li>row array
+							<ul>
+								<li>A row array can contain either the text for a table cell (row 0 cell 2 &amp; 4), or a cell object (row 0 cell 1,3,5,6) contains.</li>
+								<li>It can also contain all cell text (row 1-3,5-6) or all cell objects (almost row 7)  for cells within that row.</li>
+								<li>This method does not allow adding any row (<code>tr</code>) attributes, (i.e. class or data-attributes).</li>
+							</ul>
+						</li>
+
+						<li>cell object
+							<ul>
+								<li>The cell object contains all of the attributes that are to be applied to a particular table cell (<code>th</code> (thead or tfoot) or <code>td</code> (tbody).</li>
+								<li>This object requires either a <code>text</code> (row 0 &amp; row 7) or <code>html</code> (row 4) attribute to add content into the cell.</li>
+								<li>Within the first header row only, if a <code>width</code> attribute is defined, it will be applied to a <code>&lt;col&gt;</code> element and placed within a <code>&lt;colgroup&gt;</code> before the header.</li>
+								<li>See row 0 (header), row 4 and row 7 (rows) in the demo code below.</li>
+							</ul>
+						</li>
+						<li>cell text
+							<ul>
+								<li>Within a row array or object, only the cell text can be included (row 0 cell 2,4; row 1-3,5-6; row 7 cell 5).</li>
+								<li>Within the header only, whenever cell content is added as a string, the widget will check the <code>widgetOptions.build_headers.classes</code> &amp; <code>wo.build_headers.widths</code> (first row only) and apply any values it finds for that column to those cells.</li>
+							</ul>
+						</li>
+
+					</ul>
+				</div>
+			</div>
+
+			<h3>HTML</h3>
+			<pre class="prettyprint lang-html">&lt;div id=&quot;object2Table&quot;&gt;&lt;/div&gt;</pre>
+			<h3>Javascript</h3>
+			<pre class="prettyprint lang-js">$(function() {
+	// object or JSON
+	var dataObject = {
+		headers : [
+			[
+				// each object/string is a cell
+				{ text: 'First Name', class: 'fname', width: '10%' }, // row 0 cell 1
+				'Last Name',                                          // row 0 cell 2
+				{ text: 'Age', class: 'age', 'data-sorter' : false }, // row 0 cell 3
+				'Total',                                              // row 0 cell 4
+				{ text: 'Discount', class : 'sorter-false' },         // row 0 cell 5
+				{ text: 'Date', class : 'date' }                      // row 0 cell 6
+			]
+		],
+		footers : 'clone', // clone headers or assign array like headers
+		rows : [
+			// TBODY 1
+			[ 'Peter', 'Parker',   28, '$9.99',   '20%', 'Jul 6, 2006 8:14 AM'   ], // row 1
+			[ 'John',  'Hood',     33, '$19.99',  '25%', 'Dec 10, 2002 5:14 AM'  ], // row 2
+			[ 'Clark', 'Kent',     18, '$15.89',  '44%', 'Jan 12, 2003 11:14 AM' ], // row 3
+
+			// TBODY 2
+			{ newTbody: true, class: 'tablesorter-infoOnly' },
+			{ cells : [ { html: '<strong>Info Row</strong>', colSpan: 6 } ] },      // row 4
+
+			// TBODY 3
+			{ newTbody: true },
+			[ 'Bruce', 'Evans',    22, '$13.19',  '11%', 'Jan 18, 2007 9:12 AM'  ], // row 5
+			[ 'Bruce', 'Almighty', 45, '$153.19', '44%', 'Jan 18, 2001 9:12 AM'  ], // row 6
+
+			{ class: 'specialRow',                                                  // row 7
+				cells: [
+					// each object/string is a cell
+					{ text: 'Fred', class: 'fname' },                                   // row 7 cell 1
+					{ text: 'Smith', class: 'lname' },                                  // row 7 cell 2
+					{ text: 18, class: 'age', 'data-info': "fake ID!, he's only 16" },  // row 7 cell 3
+					{ text: '$22.44', class: 'total' },                                 // row 7 cell 4
+					'8%',                                                               // row 7 cell 5
+					{ text: 'Aug 20, 2012 10:15 AM', class: 'date' }                    // row 7 cell 6
+				],
+				'data-info' : 'This row likes turtles'
+			}
+		]
+	};
+
+	$('#object2Table').tablesorter({
+		theme: 'blue',
+		data : dataObject, // same as using build_source (build_source would override this)
+		widgetOptions : {
+			// *** build object options ***
+			build_objectRowKey    : 'rows',    // object key containing table rows
+			build_objectCellKey   : 'cells',   // object key containing table cells (within the rows object)
+			build_objectHeaderKey : 'headers', // object key containing table headers
+			build_objectFooterKey : 'footers'  // object key containing table footers
+		}
+	});
+
+});</pre>
+			<h3>Result</h3>
+			<div id="object2Table" class="container"></div>
+		</div>
+
+		<h3><a href="#">Setup - Object (json file via ajax)</a></h3>
+		<div>
+
+			<h3>Notes</h3>
+			<ul>
+				<li>The important difference between this demo and the javascript variable demo above is that this one retrieves a JSON file:
+					<ul>
+						<li>Set the <code>build_source</code> option to contain any <a href="">ajax settings</a> to load the json.</li>
+						<li>To load the json file, set the <code>url</code> option to point to the json file and the <code>dataType</code> set to <code>"json"</code>.</li>
+						<li>The remaining default settings were left out of the example below.</li>
+					</ul>
+				</li>
+				<li>Please see the "Object (javascript variable)" section above for more details on how to set up the JSON for this demo.</li>
+				<li>Note that JSON formatting is very specific - only double quotes (<code>"</code>) can be used to wrap attributes, all keys must be wrapped in quotes, no comments, etc.</li>
+				<li>Always verify that the JSON is valid (use <a href="http://jsonlint.com/">JSONLint</a>) and realize that browsers like Chrome will not allow you to access locally hosted (desktop) JSON files. Test it with Firefox instead.</li>
+			</ul>
+
+			<h3>Build.json file</h3>
+			<pre class="prettyprint lang-js">{
+	"headers" : [
+		[
+			{ "text": "First Name", "class": "fname", "width": "20%" },
+			"Last Name",
+			{ "text": "Age", "class": "age", "data-sorter" : false },
+			"Total",
+			{ "text": "Discount", "class" : "sorter-false" },
+			{ "text": "Date", "class" : "date" }
+		]
+	],
+	"footers" : "clone",
+	"rows" : [
+		[ "Peter", "Parker", 28, "$9.99",  "20%", "Jul 6, 2006 8:14 AM"   ],
+		[ "John",  "Hood",   33, "$19.99", "25%", "Dec 10, 2002 5:14 AM"  ],
+		[ "Clark", "Kent",   18, "$15.89", "44%", "Jan 12, 2003 11:14 AM" ],
+
+		{ "newTbody": true, "class": "tablesorter-infoOnly" },
+		{ "cells" : [ { "html": "<strong>JSON Info Row</strong>", "colspan": 6 } ] },
+
+		{ "newTbody" : true },
+		[ "Bruce", "Evans",    22, "$13.19",  "11%", "Jan 18, 2007 9:12 AM"  ],
+		[ "Bruce", "Almighty", 45, "$153.19", "44%", "Jan 18, 2001 9:12 AM"  ],
+
+		{ "class": "specialRow",
+			"cells" : [
+				{ "text": "Fred", "class": "fname" },
+				{ "text": "Smith", "class": "lname" },
+				{ "text": 18, "class": "age", "data-info": "fake ID!, he's only 16" },
+				{ "text": "$22.44", "class": "total" },
+				"8%",
+				{ "text": "Aug 20, 2012 10:15 AM", "class": "date" }
+			],
+			"data-info" : "This row likes turtles"
+		}
+	]
+}</pre>
+			<h3>HTML</h3>
+			<pre class="prettyprint lang-html">&lt;div id=&quot;object2Table2&quot;&gt;&lt;/div&gt;</pre>
+			<h3>Javascript</h3>
+			<pre class="prettyprint lang-js">$(function() {
+	$('#object2Table2').tablesorter({
+		theme: 'blue',
+		widgetOptions: {
+			build_type   : 'json',
+			build_source : { url: 'assets/build.json', dataType: 'json' }
+		}
+	});
+});</pre>
+			<h3>Result</h3>
+			<div id="object2Table2" class="container"></div>
+
+		</div>
+
+	</div> <!-- end accordion -->
+
+</div> <!-- end #main -->
+
+<div class="csv hidden">
+	Album,Artist,Price
+	Lateralus,Tool,$13.00
+	Aenima,Tool,$12.00
+	"10,000 days",Tool,$14.00
+	Down In It,Nine Inch Nails,$3.00
+	Broken,Nine Inch Nails,$6.00
+	Muse,Black Holes and Revelations,$7.00
+	Anon,"fake album, with comma", $1.00
+	Album,Artist,Price (USD)
+</div>
+
+</body>
+</html>

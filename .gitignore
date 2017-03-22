@@ -2,6 +2,8 @@
 *.iml
 *.log
 .idea/*
+*.pyc
+venv/
 target
 src/main/resources/**/temp
 src/main/resources/**/build
