@@ -1,4 +1,4 @@
-import {observable, computed, autorun} from 'mobx';
+import {observable, computed, runInAction} from 'mobx';
 import JobSummaryModel from '../models/JobSummaryModel'
 import $ from 'jquery'
 
@@ -81,18 +81,20 @@ export class JobSummaryStore {
     this.isLoading = true;
     var otherThis = this;
     $.getJSON('v1/scheduler/jobs/summary').done(function(resp) {
-      var serverJobNames = new Set();
-      resp.jobs.forEach(json => {
-        serverJobNames.add(json.name)
-        otherThis.updateJobSummaryFromServer(json)
+      runInAction("update job summaries", () => {
+        var serverJobNames = new Set();
+        resp.jobs.forEach(json => {
+          serverJobNames.add(json.name)
+          otherThis.updateJobSummaryFromServer(json)
+        });
+
+        // Check for jobs which exist here, but not on the server
+        otherThis.jobSummarys.filter(function(j) {
+          return !serverJobNames.has(j.name)
+         }).forEach(j => j.destroy())
+
+        otherThis.isLoading = false;
       });
-
-      // Check for jobs which exist here, but not on the server
-      otherThis.jobSummarys.filter(function(j) {
-        return !serverJobNames.has(j.name)
-       }).forEach(j => j.destroy())
-
-      otherThis.isLoading = false;
     }).fail(function() {
       otherThis.isLoading = false;
     });
