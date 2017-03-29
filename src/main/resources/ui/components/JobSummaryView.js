@@ -120,6 +120,12 @@ class JobSummaryView extends React.Component {
     return ''
   }
 
+  confirmAction(event, job) {
+      var btn = event.currentTarget
+      var msg = btn.title + ' the job "' + job.name + '"?'
+      return window.confirm(msg)
+  }
+
   getStateClass(job) {
     if (job.state.match(/\d+ running/)) {
       return 'success'
@@ -153,31 +159,37 @@ class JobSummaryView extends React.Component {
   }
 
   runJob(event, job) {
-    this.doRequest(
-      event.currentTarget,
-      'PUT',
-      'v1/scheduler/job/' + encodeURIComponent(job.name)
-    )
+    if (this.confirmAction(event, job)) {
+      this.doRequest(
+        event.currentTarget,
+        'PUT',
+        'v1/scheduler/job/' + encodeURIComponent(job.name)
+      )
+    }
   }
 
   stopJob(event, job) {
-    this.doRequest(
-      event.currentTarget,
-      'DELETE',
-      'v1/scheduler/task/kill/' + encodeURIComponent(job.name)
-    )
+    if (this.confirmAction(event, job)) {
+      this.doRequest(
+        event.currentTarget,
+        'DELETE',
+        'v1/scheduler/task/kill/' + encodeURIComponent(job.name)
+      )
+    }
   }
 
   deleteJob(event, job) {
     let _job = job
-    this.doRequest(
-      event.currentTarget,
-      'DELETE',
-      'v1/scheduler/job/' + encodeURIComponent(job.name),
-      function(resp) {
-        _job.destroy()
-      }
-    )
+    if (this.confirmAction(event, job)) {
+      this.doRequest(
+        event.currentTarget,
+        'DELETE',
+        'v1/scheduler/job/' + encodeURIComponent(job.name),
+        function(resp) {
+          _job.destroy()
+        }
+      )
+    }
   }
 
   editJob(job) {
