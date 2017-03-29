@@ -76,7 +76,7 @@ class JobSummaryView extends React.Component {
               className="btn btn-danger"
               aria-label="Delete"
               data-loading-text='<i class="fa fa-spinner fa-pulse fa-fw"></i>'
-              onClick={(event) => this.deleteJob(this, job)}
+              onClick={(event) => this.deleteJob(event, job)}
               title="Delete">
               <i className="fa fa-times" aria-hidden="true"></i>
             </button>
