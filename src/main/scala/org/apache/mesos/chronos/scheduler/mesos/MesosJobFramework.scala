@@ -168,7 +168,7 @@ class MesosJobFramework @Inject()(
           List(offer.getId).asJava,
           mesosTasks.asJava
         ))
-        for (task <- tasks) {
+        for (task <- subTasks) {
           val name = task._2.name
           taskManager.addTask(name, task._3.getSlaveId.getValue, task._1)
           scheduler.handleLaunchedTask(task._2)
