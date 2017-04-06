@@ -1,9 +1,10 @@
 package org.apache.mesos.chronos.scheduler.config
 
 import java.net.InetSocketAddress
+import java.util.logging.Logger
 
+import org.apache.mesos.chronos.notification.NotificationLevel
 import org.rogach.scallop.ScallopConf
-
 
 /**
   * Configuration values that may be parsed from a YAML file.
@@ -11,6 +12,7 @@ import org.rogach.scallop.ScallopConf
   * @author Florian Leibert (flo@leibert.de)
   */
 trait SchedulerConfiguration extends ScallopConf {
+  private[this] val log = Logger.getLogger(getClass.getName)
 
   lazy val master = opt[String]("master",
     descr = "The URL of the Mesos master",
@@ -49,6 +51,9 @@ trait SchedulerConfiguration extends ScallopConf {
   lazy val zooKeeperAuth = opt[String]("zk_auth",
     descr = "Authorization string for ZooKeeper",
     default = None)
+  lazy val notificationLevelString = opt[String]("notification_level",
+    descr = "The notification level to use (DISABLED | FAILURES | ALL)",
+    default = Some("ALL"))
   lazy val mailServer = opt[String]("mail_server",
     descr = "Address of the mailserver in server:port format",
     default = None)
@@ -151,4 +156,12 @@ trait SchedulerConfiguration extends ScallopConf {
   def zooKeeperStatePath = "%s/state".format(zooKeeperPath())
 
   def zooKeeperCandidatePath = "%s/candidate".format(zooKeeperPath())
+
+  def notificationLevel = {
+    val s = notificationLevelString()
+    NotificationLevel(s.toLowerCase).getOrElse {
+      log.warning("Unknown notification level '%s' provided, setting notification level to ALL".format(s))
+      NotificationLevel.All
+    }
+  }
 }
