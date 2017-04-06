@@ -130,7 +130,7 @@ class TaskManager @Inject()(
     val jobs = runningTasks.map {
       case (jobName, tasks) =>
         val remaining = tasks.filter { task =>
-          slaveId == task.slaveId
+          slaveId != task.slaveId
         }
         (jobName, remaining)
     }
