@@ -51,6 +51,8 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
                                             otherChronos instances and the
                                             Mesos master to communicate with
                                             this instance
+--notification_level  <arg>                 The notification level to use
+                                            (DISABLED | FAILURES | ALL)
 --http_address  <arg>                       The address to listen on for
                                             HTTP requests
 --http_compression                          (Default) Enable http
