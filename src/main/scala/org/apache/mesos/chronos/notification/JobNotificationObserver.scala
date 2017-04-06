@@ -8,18 +8,17 @@ import org.apache.mesos.chronos.scheduler.jobs._
 import org.joda.time.{DateTime, DateTimeZone}
 
 class JobNotificationObserver @Inject()(val notificationClients: List[ActorRef] = List(),
-                                        val clusterName: Option[String] = None) {
+                                        val clusterName: Option[String] = None,
+                                        val notificationLevel: NotificationLevel) {
   val clusterPrefix = clusterName.map(name => s"[$name]").getOrElse("")
   private[this] val log = Logger.getLogger(getClass.getName)
 
   def asObserver: JobsObserver.Observer = JobsObserver.withName({
-    case JobRemoved(job) => sendNotification(job, "%s [Chronos] Your job '%s' was deleted!".format(clusterPrefix, job.name), None)
-    case JobDisabled(job, cause) => sendNotification(
-      job,
-      "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name),
-      Some(cause))
-
-    case JobRetriesExhausted(job, taskStatus, attempts) =>
+    case JobRemoved(job) if notificationLevel == NotificationLevel.All =>
+      sendNotification(job, "%s [Chronos] Your job '%s' was deleted!".format(clusterPrefix, job.name), None)
+    case JobDisabled(job, cause) if notificationLevel == NotificationLevel.All =>
+      sendNotification(job, "%s [Chronos] job '%s' disabled".format(clusterPrefix, job.name), Some(cause))
+    case JobRetriesExhausted(job, taskStatus, attempts) if notificationLevel >= NotificationLevel.Failures =>
       val msg = "\n'%s'. Retries attempted: %d.\nTask id: %s\n"
         .format(DateTime.now(DateTimeZone.UTC), job.retries, taskStatus.getTaskId.getValue)
       sendNotification(job, "%s [Chronos] job '%s' failed!".format(clusterPrefix, job.name),
