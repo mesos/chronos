@@ -1,0 +1,38 @@
+# chronos.conf
+
+description "Chronos scheduler for Mesos"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+respawn limit 10 5
+
+setuid chronos
+
+# Note that you can add this line to your rsyslog conf
+# to get a /var/log/chronos.log
+# :programname, isequal, "chronos"                       /var/log/chronos.log
+
+# Custom local
+script
+  [ ! -f /etc/default/chronos ]    || . /etc/default/chronos
+  set -e
+  mkfifo /tmp/chronos-log-stdout-fifo
+  mkfifo /tmp/chronos-log-stderr-fifo
+  ( logger -p user.info -t chronos </tmp/chronos-log-stdout-fifo & )
+  ( logger -p user.err  -t chronos </tmp/chronos-log-stderr-fifo & )
+  exec 1>/tmp/chronos-log-stdout-fifo
+  exec 2>/tmp/chronos-log-stderr-fifo
+  rm /tmp/chronos-log-stdout-fifo
+  rm /tmp/chronos-log-stderr-fifo
+  exec java \
+    ${MEM_OPTS:+$MEM_OPTS} \
+    ${LIB_PATH:+-Djava.library.path=$LIB_PATH} \
+    ${CHRONOS_JAR:+-cp $CHRONOS_JAR com.airbnb.scheduler.Main} \
+    ${ZK_HOSTS:+--zk_hosts "$ZK_HOSTS"} \
+    ${MASTER:+--master $MASTER} \
+    ${HTTP_PORT:+--http_port $HTTP_PORT} \
+    ${HTTPS_PORT:+--https_port $HTTPS_PORT} \
+    ${OPTS:+$OPTS}
+end script
