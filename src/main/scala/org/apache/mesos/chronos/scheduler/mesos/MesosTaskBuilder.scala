@@ -55,6 +55,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
     val (_, start, attempt, _) = TaskUtils.parseTaskId(taskIdStr)
     val baseEnv = Map(
       "mesos_task_id"           -> taskIdStr,
+      "MESOS_TASK_ID"           -> taskIdStr,
       "CHRONOS_JOB_OWNER"       -> job.owner,
       "CHRONOS_JOB_NAME"        -> job.name,
       "HOST"                    -> offer.getHostname,
