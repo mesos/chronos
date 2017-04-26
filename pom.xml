@@ -21,22 +21,22 @@
     <scala.abi>2.11.2</scala.abi>
 
     <!-- runtime deps versions -->
-    <akka.version>2.3.6</akka.version>
-    <cassandra-driver-core.version>2.1.0</cassandra-driver-core.version>
-    <chaos.version>0.6.3</chaos.version>
+    <akka.version>2.3.16</akka.version>
+    <cassandra-driver-core.version>3.1.2</cassandra-driver-core.version>
+    <chaos.version>0.6.7</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
-    <curator-framework.version>2.6.0</curator-framework.version>
+    <curator-framework.version>2.11.0</curator-framework.version>
     <guava.version>16.0.1</guava.version>
     <jgrapht.version>0.9.1</jgrapht.version>
-    <joda-convert.version>1.7</joda-convert.version>
-    <joda-time.version>2.3</joda-time.version>
-    <lz4.version>1.2.0</lz4.version>
-    <mesos-utils.version>0.23.0</mesos-utils.version>
+    <joda-convert.version>1.8</joda-convert.version>
+    <joda-time.version>2.9.6</joda-time.version>
+    <lz4.version>1.3.0</lz4.version>
+    <mesos-utils.version>1.3.0</mesos-utils.version>
     <metrics.version>3.1.0</metrics.version>
-    <raven.version>4.1.2</raven.version>
+    <raven.version>7.8.0</raven.version>
 
     <!-- test deps versions -->
-    <akka-testkit.version>2.3.6</akka-testkit.version>
+    <akka-testkit.version>2.3.16</akka-testkit.version>
     <junit.version>4.11</junit.version>
     <mockito.version>1.9.5</mockito.version>
     <specs2.version>3.6.4-20150927082714-7cac887</specs2.version>
@@ -186,14 +186,8 @@
     </dependency>
 
     <dependency>
-      <groupId>net.kencochrane.raven</groupId>
+      <groupId>com.getsentry.raven</groupId>
       <artifactId>raven</artifactId>
-      <version>${raven.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>net.kencochrane.raven</groupId>
-      <artifactId>raven-getsentry</artifactId>
       <version>${raven.version}</version>
     </dependency>
 
