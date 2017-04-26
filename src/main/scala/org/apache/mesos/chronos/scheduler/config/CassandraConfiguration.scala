@@ -12,6 +12,14 @@ trait CassandraConfiguration extends ScallopConf {
     descr = "Port for Cassandra",
     default = Some(9042))
 
+  lazy val cassandraUser = opt[String]("cassandra_user",
+    descr = "User for Cassandra",
+    default = None)
+
+  lazy val cassandraPassword = opt[String]("cassandra_password",
+    descr = "Password for Cassandra",
+    default = None)
+
   lazy val cassandraKeyspace = opt[String]("cassandra_keyspace",
     descr = "Keyspace to use for Cassandra",
     default = Some("metrics"))

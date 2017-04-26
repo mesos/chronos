@@ -22,6 +22,7 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
                                                   points for Cassandra
       --cassandra_keyspace  <arg>                 Keyspace to use for Cassandra
                                                   (default = metrics)
+      --cassandra_password  <arg>                 Password for Cassandra
       --cassandra_port  <arg>                     Port for Cassandra
                                                   (default = 9042)
       --cassandra_stat_count_table  <arg>         Table to track stat counts in
@@ -31,6 +32,7 @@ If you installed chronos via package, run `/usr/bin/chronos run_jar --help`.
                                                   (default = chronos)
       --cassandra_ttl  <arg>                      TTL for records written to
                                                   Cassandra (default = 31536000)
+      --cassandra_user  <arg>                     User for Cassandra
       --cluster_name  <arg>                       The name of the cluster where
                                                   Chronos is run
   -d, --decline_offer_duration  <arg>             (Default: Use mesos default of 5
