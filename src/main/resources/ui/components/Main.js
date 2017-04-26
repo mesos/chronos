@@ -8,13 +8,37 @@ export default class Main extends React.Component {
   derp(event) {
     console.log(event)
   }
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      filterString: '',
+    };
+    this.handleFilterChange = this.handleFilterChange.bind(this);
+  }
+
+  handleFilterChange(event) {
+    this.setState({filterString: event.target.value});
+  }
+
   render() {
     const jobSummaryStore = this.props.jobSummaryStore
     return (
       <div className="container">
         <div className="panel panel-default">
-          <div className="panel-heading">
-            <JobEditor jobSummaryStore={jobSummaryStore} />
+          <div className="container-fluid panel-heading">
+            <div className="pull-left">
+              <JobEditor jobSummaryStore={jobSummaryStore}/>
+            </div>
+            <div className="pull-right">
+              <label>
+                Filter Jobs:
+                <input
+                  type="text"
+                  value={ this.state.filterString }
+                  onChange={this.handleFilterChange}/>
+              </label>
+            </div>
           </div>
           <div className="panel-body">
             <div className="row">
@@ -32,7 +56,7 @@ export default class Main extends React.Component {
               <div className="col-md-1 bg-success">{jobSummaryStore.idleCount}</div>
             </div>
           </div>
-          <JobSummaryView jobs={this.getVisibleJobs()} />
+          <JobSummaryView jobs={this.getVisibleJobs().filter(e => e.name.includes(this.state.filterString))}/>
         </div>
       </div>
     )
