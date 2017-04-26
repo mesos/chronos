@@ -12,6 +12,8 @@ class SerDeTest extends SpecificationWithJUnit {
 
   "SerializerAndDeserializer" should {
     "serialize and deserialize a DependencyBasedJob correctly" in {
+      JobDeserializer.config = null
+
       val objectMapper = new ObjectMapper
       val mod = new SimpleModule("JobModule")
       mod.addSerializer(classOf[BaseJob], new JobSerializer)
@@ -30,7 +32,7 @@ class SerDeTest extends SpecificationWithJUnit {
 
       val forcePullImage = false
 
-      var parameters = scala.collection.mutable.ListBuffer[Parameter]()
+      val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
       val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.BRIDGE, forcePullImage)
 
@@ -58,6 +60,8 @@ class SerDeTest extends SpecificationWithJUnit {
     }
 
     "serialize and deserialize a ScheduleBasedJob correctly" in {
+      JobDeserializer.config = null
+
       val objectMapper = new ObjectMapper
       val mod = new SimpleModule("JobModule")
       mod.addSerializer(classOf[BaseJob], new JobSerializer)
@@ -75,7 +79,7 @@ class SerDeTest extends SpecificationWithJUnit {
       )
 
       val forcePullImage = true
-      var parameters = scala.collection.mutable.ListBuffer[Parameter]()
+      val parameters = scala.collection.mutable.ListBuffer[Parameter]()
 
       val container = DockerContainer("dockerImage", volumes, parameters, NetworkMode.HOST, forcePullImage)
 
