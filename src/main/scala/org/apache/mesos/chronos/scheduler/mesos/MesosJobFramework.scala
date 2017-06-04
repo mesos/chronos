@@ -134,7 +134,7 @@ class MesosJobFramework @Inject()(
               case None =>
                 val neededResources = new Resources(job)
                 offerResources.toIterator.find { ors =>
-                  ors._2.canSatisfy(neededResources) && ConstraintChecker.checkConstraints(ors._1, job.constraints)
+                  ors._2.canSatisfy(neededResources) && ConstraintChecker.checkConstraints(ors._1, job.constraints) && AvailabilityChecker.checkAvailability(ors._1)
                 } match {
                   case Some((offer, resources)) =>
                     // Subtract this job's resource requirements from the remaining available resources in this offer.
