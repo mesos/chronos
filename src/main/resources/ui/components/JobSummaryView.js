@@ -4,8 +4,9 @@ import $ from 'jquery'
 import 'bootstrap'
 import {JsonStore} from '../stores/JsonStore'
 import JsonEditor from './JsonEditor'
+import JobDetails from './JobDetails';
 
-$(document).ready(function(){
+$(document).ready(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })
 
@@ -24,22 +25,32 @@ class JobSummaryView extends React.Component {
       )
     }
   }
+
   getNameTd(job) {
     if (job.disabled) {
       return (
-        <td data-container="body" data-toggle="tooltip" data-placement="top" title="Job is disabled"><s>{job.name}</s></td>
+        <td data-container="body" data-toggle="tooltip" data-placement="top" title="Job is disabled"><s>{job.name}</s>
+        </td>
       )
     } else {
       return (
-        <td>{job.name}</td>
+        <td>
+          <span onClick={() => {
+            this.showJobDetails(job);
+          }} className="jobName">
+            {job.name}
+          </span>
+        </td>
       )
     }
   }
+
   renderJob(job) {
     return (
       <tr key={job.name}>
         {this.getNameTd(job)}
-        <td className={job.nextExpected === 'OVERDUE' ? 'danger' : null} data-container="body" data-toggle="tooltip" data-placement="top" title={job.schedule}>{job.nextExpected}</td>
+        <td className={job.nextExpected === 'OVERDUE' ? 'danger' : null} data-container="body" data-toggle="tooltip"
+            data-placement="top" title={job.schedule}>{job.nextExpected}</td>
         <td className={this.getStatusClass(job)}>{job.status}</td>
         <td className={this.getStateClass(job)}>{job.state}</td>
         <td className="text-right">
@@ -85,6 +96,7 @@ class JobSummaryView extends React.Component {
       </tr>
     )
   }
+
   render() {
     const jobs = this.props.jobs
     return (
@@ -92,20 +104,21 @@ class JobSummaryView extends React.Component {
         <div className="table-responsive">
           <table className="table table-striped table-hover table-condensed">
             <thead>
-              <tr>
-                <th>JOB</th>
-                <th>NEXT RUN</th>
-                <th>STATUS</th>
-                <th>STATE</th>
-                <th className="text-right">ACTIONS</th>
-              </tr>
+            <tr>
+              <th>JOB</th>
+              <th>NEXT RUN</th>
+              <th>STATUS</th>
+              <th>STATE</th>
+              <th className="text-right">ACTIONS</th>
+            </tr>
             </thead>
             <tbody>
-              {jobs.map(job => this.renderJob(job))}
+            {jobs.map(job => this.renderJob(job))}
             </tbody>
           </table>
         </div>
-        <JsonEditor jsonStore={this.jsonStore} />
+        <JsonEditor jsonStore={this.jsonStore}/>
+        <JobDetails jsonStore={this.jsonStore}/>
       </div>
     )
   }
@@ -135,15 +148,15 @@ class JobSummaryView extends React.Component {
     $.ajax({
       type: method,
       url: url,
-    }).done(function(resp) {
-      setTimeout(function() {
+    }).done(function (resp) {
+      setTimeout(function () {
         btn.button('reset')
         if (success) {
           success()
         }
       }, 500)
-    }).fail(function(resp) {
-      setTimeout(function() {
+    }).fail(function (resp) {
+      setTimeout(function () {
         btn.button('reset')
         if (fail) {
           fail(resp)
@@ -174,7 +187,7 @@ class JobSummaryView extends React.Component {
       event.currentTarget,
       'DELETE',
       'v1/scheduler/job/' + encodeURIComponent(job.name),
-      function(resp) {
+      function (resp) {
         _job.destroy()
       }
     )
@@ -183,6 +196,11 @@ class JobSummaryView extends React.Component {
   editJob(job) {
     this.jsonStore.loadJob(job.name)
     $('#json-modal').modal('show')
+  }
+
+  showJobDetails(job) {
+    this.jsonStore.loadJob(job.name, false)
+    $('#job-details-modal').modal('show')
   }
 }
 
