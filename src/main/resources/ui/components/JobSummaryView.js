@@ -23,6 +23,12 @@ class JobSummaryView extends React.Component {
     };
   }
 
+  componentWillReceiveProps(props){
+    if(props.jobs.length !== this.state.jobs.length){
+      this.setState({jobs: props.jobs});
+    }
+  }
+
   disabledWrap(job, value) {
     if (job.disabled) {
       return (
