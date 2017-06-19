@@ -1,0 +1,16 @@
+.jobSummaryView th {
+  cursor: pointer;
+}
+
+.jobSummaryView th:after{
+  font-size: 20px;
+  margin-left: 5px;
+}
+
+.jobSummaryView th.filter:after{
+  content: "\25BE";
+}
+
+.jobSummaryView th.filterReverse:after{
+  content: "\25B4";
+}

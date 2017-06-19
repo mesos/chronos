@@ -5,13 +5,23 @@ import 'bootstrap'
 import {JsonStore} from '../stores/JsonStore'
 import JsonEditor from './JsonEditor'
 
-$(document).ready(function(){
+$(document).ready(function () {
   $('[data-toggle="tooltip"]').tooltip()
 })
 
 @observer
 class JobSummaryView extends React.Component {
   jsonStore = new JsonStore()
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      jobs: this.props.jobs,
+      currentFilter: null,
+      reverseFilterOrder: null
+    };
+  }
 
   disabledWrap(job, value) {
     if (job.disabled) {
@@ -24,10 +34,12 @@ class JobSummaryView extends React.Component {
       )
     }
   }
+
   getNameTd(job) {
     if (job.disabled) {
       return (
-        <td data-container="body" data-toggle="tooltip" data-placement="top" title="Job is disabled"><s>{job.name}</s></td>
+        <td data-container="body" data-toggle="tooltip" data-placement="top" title="Job is disabled"><s>{job.name}</s>
+        </td>
       )
     } else {
       return (
@@ -35,11 +47,13 @@ class JobSummaryView extends React.Component {
       )
     }
   }
+
   renderJob(job) {
     return (
       <tr key={job.name}>
         {this.getNameTd(job)}
-        <td className={job.nextExpected === 'OVERDUE' ? 'danger' : null} data-container="body" data-toggle="tooltip" data-placement="top" title={job.schedule}>{job.nextExpected}</td>
+        <td className={job.nextExpected === 'OVERDUE' ? 'danger' : null} data-container="body" data-toggle="tooltip"
+            data-placement="top" title={job.schedule}>{job.nextExpected}</td>
         <td className={this.getStatusClass(job)}>{job.status}</td>
         <td className={this.getStateClass(job)}>{job.state}</td>
         <td className="text-right">
@@ -85,29 +99,50 @@ class JobSummaryView extends React.Component {
       </tr>
     )
   }
+
   render() {
-    const jobs = this.props.jobs
+    const jobs = this.state.jobs
     return (
-      <div>
+      <div className="jobSummaryView">
         <div className="table-responsive">
           <table className="table table-striped table-hover table-condensed">
             <thead>
-              <tr>
-                <th>JOB</th>
-                <th>NEXT RUN</th>
-                <th>STATUS</th>
-                <th>STATE</th>
-                <th className="text-right">ACTIONS</th>
-              </tr>
+            <tr>
+              <th onClick={() => {this.filterColumn('name')}}
+                  className={this.getFilterClassName('name')}>
+                JOB
+              </th>
+              <th onClick={() => {this.filterColumn('schedule')}}
+                  className={this.getFilterClassName('schedule')}>
+                NEXT RUN
+              </th>
+              <th onClick={() => {this.filterColumn('status')}}
+                  className={this.getFilterClassName('status')}>
+                STATUS
+              </th>
+              <th onClick={() => {this.filterColumn('state')}}
+                  className={this.getFilterClassName('state')}>
+                STATE
+              </th>
+              <th className="text-right">ACTIONS</th>
+            </tr>
             </thead>
             <tbody>
-              {jobs.map(job => this.renderJob(job))}
+            {jobs.map(job => this.renderJob(job))}
             </tbody>
           </table>
         </div>
-        <JsonEditor jsonStore={this.jsonStore} />
+        <JsonEditor jsonStore={this.jsonStore}/>
       </div>
     )
+  }
+
+  getFilterClassName(column) {
+    if (this.state.currentFilter === column && !this.state.reverseFilterOrder) {
+      return "filter"
+    } else if (this.state.currentFilter === column) {
+      return "filterReverse"
+    }
   }
 
   getStatusClass(job) {
@@ -135,15 +170,15 @@ class JobSummaryView extends React.Component {
     $.ajax({
       type: method,
       url: url,
-    }).done(function(resp) {
-      setTimeout(function() {
+    }).done(function (resp) {
+      setTimeout(function () {
         btn.button('reset')
         if (success) {
           success()
         }
       }, 500)
-    }).fail(function(resp) {
-      setTimeout(function() {
+    }).fail(function (resp) {
+      setTimeout(function () {
         btn.button('reset')
         if (fail) {
           fail(resp)
@@ -174,7 +209,7 @@ class JobSummaryView extends React.Component {
       event.currentTarget,
       'DELETE',
       'v1/scheduler/job/' + encodeURIComponent(job.name),
-      function(resp) {
+      function (resp) {
         _job.destroy()
       }
     )
@@ -183,6 +218,25 @@ class JobSummaryView extends React.Component {
   editJob(job) {
     this.jsonStore.loadJob(job.name)
     $('#json-modal').modal('show')
+  }
+
+  filterColumn(column) {
+    let reverseFilterOrder = false;
+    let filteredJobs = this.state.jobs.sort((a, b) => {
+      return a[column] < b[column] ? -1 : 1;
+    });
+
+    //sort in reverse order in case of second click on the same column
+    if (this.state.currentFilter === column && !this.state.reverseFilterOrder) {
+      filteredJobs = filteredJobs.reverse();
+      reverseFilterOrder = !this.state.reverseFilterOrder;
+    }
+
+    this.setState({
+      jobs: filteredJobs,
+      currentFilter: column,
+      reverseFilterOrder: reverseFilterOrder
+    })
   }
 }
 
