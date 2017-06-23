@@ -4,6 +4,7 @@ import $ from 'jquery'
 import 'bootstrap'
 import {JsonStore} from '../stores/JsonStore'
 import JsonEditor from './JsonEditor'
+import JobConfirmDeletion from './JobConfirmDeletion'
 
 $(document).ready(function(){
   $('[data-toggle="tooltip"]').tooltip()
@@ -105,7 +106,8 @@ class JobSummaryView extends React.Component {
             </tbody>
           </table>
         </div>
-        <JsonEditor jsonStore={this.jsonStore} />
+        <JsonEditor jsonStore={this.jsonStore}/>
+        <JobConfirmDeletion jobToDelete={this.state.jobToDelete} callback={this.deleteJobCallback.bind(this)} doRequest={this.doRequest}/>
       </div>
     )
   }
@@ -169,20 +171,29 @@ class JobSummaryView extends React.Component {
   }
 
   deleteJob(event, job) {
-    let _job = job
-    this.doRequest(
-      event.currentTarget,
-      'DELETE',
-      'v1/scheduler/job/' + encodeURIComponent(job.name),
-      function(resp) {
-        _job.destroy()
+    this.setState({
+      jobToDelete: {
+        event,
+        job
       }
-    )
+    });
+    $('#job-confirm-deletion-modal').modal('show');
+  }
+
+  deleteJobCallback(job){
+    console.log("deleted job " + job)
   }
 
   editJob(job) {
     this.jsonStore.loadJob(job.name)
     $('#json-modal').modal('show')
+  }
+
+  constructor(props){
+    super(props);
+    this.state = {
+      jobToDelete: {}
+    }
   }
 }
 
