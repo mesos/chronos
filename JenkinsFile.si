@@ -1,0 +1,55 @@
+#!/usr/bin/env groovy
+
+timeout(90) {
+node('shakedown') {
+  wrap([$class: 'MesosSingleUseSlave']) {
+  wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+    def timeout=360000
+
+    properties([
+      parameters([
+        string(name: 'dcos_url',
+          defaultValue: '',
+          description: 'URL to DC/OS Enterprise Cluster'
+        )]
+      )
+    ])
+
+    stage('Checkout Repo') {
+      checkout scm
+    }
+
+    stage('Installing Dependencies') {
+      sh "pip3 install retrying"
+    }
+
+    stage('Run System Integration Tests'){
+      withCredentials(
+        [ [$class: 'FileBinding',
+          credentialsId: '11fcc957-5156-4470-ae34-d433da88248a',
+          variable: 'DOT_SHAKEDOWN'],
+          [$class: 'FileBinding',
+          credentialsId: '23743034-1ac4-49f7-b2e6-a661aee2d11b',
+          variable: 'CLI_TEST_SSH_KEY']
+        ]) {
+          try {
+            sh "cp -f \"${DOT_SHAKEDOWN}\" ~/.shakedown"
+            sh "dcos config set core.ssl_verify False"
+            sh """
+              TERM=velocity shakedown \
+                --stdout all \
+                --stdout-inline \
+                --timeout ${timeout} \
+                --pytest-option "--junitxml=shakedown.xml" \
+                --ssh-key-file \"${CLI_TEST_SSH_KEY}\" \
+                --dcos-url $params.dcos_url tests/system/
+               """
+          } finally {
+            junit allowEmptyResults: true, testResults: 'shakedown.xml'
+          }
+        }
+    }
+  }
+  }
+}
+}
