@@ -12,6 +12,7 @@ import org.jgrapht.graph.DefaultEdge
 import scala.collection.convert.decorateAsScala._
 import scala.collection.mutable.ListBuffer
 import scala.collection.{mutable, _}
+import scala.collection.JavaConverters._
 
 /**
   * This class provides methods to access dependency structures of jobs.
@@ -51,6 +52,14 @@ class JobGraph {
     else
       Some(parents)
   }
+
+
+  def transformVertextSet[T](f: String => Option[T]): Set[T] = {
+    lock.synchronized {
+      dag.vertexSet().asScala.flatMap(vertex => f(vertex))
+    }
+  }
+
 
   def getJobForName(name: String): Option[BaseJob] = {
     jobNameMapping.get(name)
