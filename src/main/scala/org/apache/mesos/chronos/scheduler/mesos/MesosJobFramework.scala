@@ -205,10 +205,7 @@ class MesosJobFramework @Inject()(
 
     val (jobName, _, _, _) = TaskUtils.parseTaskId(taskStatus.getTaskId.getValue)
     taskStatus.getState match {
-      case TaskState.TASK_RUNNING =>
-        scheduler.handleStartedTask(taskStatus)
-        updateRunningTask(jobName, taskStatus)
-      case TaskState.TASK_STAGING =>
+      case TaskState.TASK_RUNNING | TaskState.TASK_STAGING | TaskState.TASK_STARTING =>
         scheduler.handleStartedTask(taskStatus)
         updateRunningTask(jobName, taskStatus)
       case _ =>
