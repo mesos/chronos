@@ -53,13 +53,6 @@ By using this software in any fashion, you are agreeing to be bound by
 the terms of this license.
 You must not remove this notice, or any other, from this software.
 
-## Contributors
-
-* Florian Leibert ([@flo](http://twitter.com/flo))
-* Andy Kramolisch ([@andykram](https://github.com/andykram))
-* Harry Shoff ([@hshoff](https://twitter.com/hshoff))
-* Elizabeth Lingg
-
 ## Reporting Bugs
 
 Please see the [support page](http://mesos.github.io/chronos/support.html) for information on how to report bugs.
