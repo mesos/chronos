@@ -47,13 +47,14 @@ If you'd like to take part in design research and test new features in Chronos b
 * Update `pom.xml` with a future version, major or minor, appending `-SNAPSHOT` to it.
 * Push or create a PR.
 
-#### Branch off updated `stable` to `releasing-X.Y.Z`, do:
+#### On `releasing-X.Y` branch, do:
+* [if doing a patch release] Cherry-pick targeted critical bugfixes from `stable`.
 * Update `pom.xml` with the currently released version and commit.
 * Tag appropriately.
 * Push or create a PR.
 
 #### Test the release or the RC and do:
-* Fix code on `stable` and cherry-pick to `releasing-X.Y.Z`.
+* Fix code on `stable` and cherry-pick to `releasing-X.Y`.
 * Update the changelog on both branches.
 * Retag and retest.
 
