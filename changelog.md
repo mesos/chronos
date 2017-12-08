@@ -1,3 +1,8 @@
+## Changes from 2.5.0 to 2.5.1
+
+### Correctly handle `TASK_STARTING` status updates.
+
+
 ## Changes from 2.4.0 to 2.5.0
 
 ### Highlights of this Release
@@ -24,7 +29,7 @@ Check the [REST API documentation](https://mesos.github.io/chronos/docs/api.html
 #### Changed the default framework name
 The framework name doesn't include the version number anymore.
 
-#### New API endpoints 
+#### New API endpoints
 The new `/scheduler/leader` endpoint makes it possible to get the current leader.
 
 It is now possible to mark a job as successful via the `/scheduler/job/success` API endpoint.
