@@ -36,6 +36,31 @@ Also join us on IRC in #chronos on freenode.
 
 If you'd like to take part in design research and test new features in Chronos before they're released, please add your name to Mesosphere's [UX Research](http://uxresearch.mesosphere.com) list.
 
+## Releasing
+
+#### Checkout the Chronos `stable` branch.
+
+#### On `stable` branch, do:
+* [if necessary] Bump libmesos and commit.
+* [if necessary] Bump other dependencies and commit.
+* Update the changelog.
+* Update `pom.xml` with a future version, major or minor, appending `-SNAPSHOT` to it.
+* Push or create a PR.
+
+#### Branch off updated `stable` to `releasing-X.Y.Z`, do:
+* Update `pom.xml` with the currently released version and commit.
+* Tag appropriately.
+* Push or create a PR.
+
+#### Test the release or the RC and do:
+* Fix code on `stable` and cherry-pick to `releasing-X.Y.Z`.
+* Update the changelog on both branches.
+* Retag and retest.
+
+#### When a release is ready, do:
+* Update the repository's [releases page](https://github.com/mesos/chronos/releases).
+* Send an announcement to the Chronos Google group.
+
 ## Known Issues
 
 The GUI will often drop defined fields (e.g., uri, mem, cpu) when saving a job. We strongly recommend to update jobs *only* through the REST API until issue #426 is fixed.
