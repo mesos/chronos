@@ -147,7 +147,7 @@ object JobUtils {
   protected def calculateSkips(dateTime: DateTime, jobStart: DateTime, period: Period): Int = {
     // If the period is at least a month, we have to actually add the period to the date
     // until it's in the future because a month-long period might have different seconds
-    if (period.getMonths >= 1) {
+    if (period.getMonths >= 1 || period.getYears >= 1) {
       var skips = 0
       var newDate = new DateTime(jobStart)
       while (newDate.isBefore(dateTime)) {
