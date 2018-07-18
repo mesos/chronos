@@ -417,7 +417,7 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `executorFlags`       | Flags to pass to Mesos executor.                                                                         | -                              |
 | `taskInfoData`        | Data to pass to the taskInfo data field.  If set, this overrides the default data set by Chronos.   | -                              |
 | `retries`             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
-| `owner`               | Email address(es) to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
+| `owner`               | Email address(es) to send job failure notifications.  Use comma-separated list for multiple addresses. e.g., "abc@test.com, def@test.com"    | -                              |
 | `ownerName`           | Name of the individual responsible for the job.                                                          | -                              |
 | `successCount`        | Number of successes since the job was last modified.                                                     | -                              |
 | `errorCount`          | Number of errors since the job was last modified.                                                        | -                              |
