@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
 
 import com.datastax.driver.core._
-import com.datastax.driver.core.exceptions.{DriverException, NoHostAvailableException, QueryExecutionException, QueryValidationException}
+import com.datastax.driver.core.exceptions.{DriverException, NoHostAvailableException, QueryExecutionException, QueryValidationException, InvalidQueryException}
 import com.datastax.driver.core.querybuilder.{Insert, QueryBuilder}
 import com.google.inject.Inject
 import org.apache.mesos.Protos.{TaskState, TaskStatus}
@@ -221,6 +221,8 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
                   createIndexStatement
                 ))
               } catch {
+                case e: InvalidQueryException =>
+                  log.log(Level.WARNING, "Caught InvalidQueryException when creating Cassandra JobStats session (%s), probably not fatal".format(createIndexStatement), e)
                 case e: Exception =>
                   log.log(Level.WARNING, "Caught exception when creating Cassandra JobStats session (%s)".format(createIndexStatement))
                   throw e
