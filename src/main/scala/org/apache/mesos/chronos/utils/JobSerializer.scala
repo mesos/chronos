@@ -138,6 +138,9 @@ class JobSerializer extends JsonSerializer[BaseJob] {
     json.writeFieldName("concurrent")
     json.writeBoolean(baseJob.concurrent)
 
+    json.writeFieldName("maxCompletionTime")
+    json.writeNumber(baseJob.maxCompletionTime)
+
     if (baseJob.container != null) {
       json.writeFieldName("container")
       json.writeStartObject()
