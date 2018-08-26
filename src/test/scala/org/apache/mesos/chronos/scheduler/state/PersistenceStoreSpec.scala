@@ -8,7 +8,7 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
 
   "MesosStatePersistenceStore" should {
 
-    "Writing and reading ScheduledBasedJob a job works" in {
+    "Writing and reading a ScheduledBasedJob works" in {
       val store = new MesosStatePersistenceStore(null, null)
       val startTime = "R1/2012-01-01T00:00:01.000Z/PT1M"
       val job = ScheduleBasedJob(schedule = startTime, name = "sample-name",
@@ -26,7 +26,7 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
 
     }
 
-    "Writing and reading DependencyBasedJob a job works" in {
+    "Writing and reading a DependencyBasedJob works" in {
       val store = new MesosStatePersistenceStore(null, null)
       val startTime = "R1/2012-01-01T00:00:01.000Z/PT1M"
       val schedJob = ScheduleBasedJob(schedule = startTime, name = "sample-name",
