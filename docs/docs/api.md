@@ -35,9 +35,9 @@ The leader is the only node that responds to API requests, but if you attempt to
 
 To get the current leader you can hit the following endpoint.
 
-* Endpoint: __/leader__
+* Endpoint: __/v1/scheduler/leader__
 * Method: __GET__
-* Example: `curl -L chronos-node:8080/leader`
+* Example: `curl -L chronos-node:8080/v1/schedulerleader`
 * Response: A JSON dict containing a single `leader` key.
 
 ## Listing Jobs
