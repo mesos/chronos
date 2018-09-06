@@ -14,6 +14,7 @@ import org.apache.mesos.Protos._
 
 import scala.collection.JavaConverters._
 import scala.collection.Map
+import scala.math.pow
 
 /**
  * Helpers for dealing dealing with tasks such as generating taskIds based on jobs, parsing them and ensuring that their
@@ -125,6 +126,13 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       if (job.container != null) {
         taskInfo.setContainer(createContainerInfo(job))
       }
+    }
+
+    // Add maxCompletionTime
+    if (job.maxCompletionTime > 0L) {
+      val maxCompletionTime = DurationInfo.newBuilder().setNanoseconds(job.maxCompletionTime * pow(10, 9).toLong).build()
+      taskInfo.setMaxCompletionTime(maxCompletionTime)
+      taskInfo.setMaxCompletionTime(maxCompletionTime)
     }
 
     val mem = if (job.mem > 0) job.mem else conf.mesosTaskMem()
