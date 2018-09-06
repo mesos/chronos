@@ -59,6 +59,8 @@ trait BaseJob {
 
   def errorsSinceLastSuccess: Long = 0L
 
+  def maxCompletionTime: Long = 0L
+
   @Deprecated
   def uris: Seq[String] = List()
 
@@ -118,7 +120,8 @@ case class ScheduleBasedJob(
                              @JsonProperty override val softError: Boolean = false,
                              @JsonProperty override val dataProcessingJobType: Boolean = false,
                              @JsonProperty override val constraints: Seq[Constraint] = List(),
-                             @JsonProperty override val concurrent: Boolean = false)
+                             @JsonProperty override val concurrent: Boolean = false,
+                             @JsonProperty override val maxCompletionTime: Long = 0L)
   extends BaseJob
 
 
@@ -154,5 +157,6 @@ case class DependencyBasedJob(
                                @JsonProperty override val softError: Boolean = false,
                                @JsonProperty override val dataProcessingJobType: Boolean = false,
                                @JsonProperty override val constraints: Seq[Constraint] = List(),
-                               @JsonProperty override val concurrent: Boolean = false)
+                               @JsonProperty override val concurrent: Boolean = false,
+                               @JsonProperty override val maxCompletionTime: Long = 0L)
   extends BaseJob

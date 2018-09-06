@@ -144,6 +144,13 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         JobDeserializer.config.mesosTaskMem()
       else 0
 
+
+    val maxCompletionTime =
+      if (node.has("maxCompletionTime") && node.get("maxCompletionTime") != null && node
+            .get("maxCompletionTime")
+            .asLong != 0L) node.get("maxCompletionTime").asLong
+      else 0L
+
     val errorsSinceLastSuccess =
       if (node.has("errorsSinceLastSuccess") && node.get(
             "errorsSinceLastSuccess") != null)
@@ -409,7 +416,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         arguments = arguments,
         softError = softError,
         dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints
+        constraints = constraints,
+        maxCompletionTime = maxCompletionTime 
       )
     } else if (node.has("schedule")) {
       val scheduleTimeZone =
@@ -447,7 +455,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         arguments = arguments,
         softError = softError,
         dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints
+        constraints = constraints,
+        maxCompletionTime = maxCompletionTime 
       )
     } else {
       /* schedule now */
@@ -481,7 +490,8 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         arguments = arguments,
         softError = softError,
         dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints
+        constraints = constraints,
+        maxCompletionTime = maxCompletionTime 
       )
     }
   }

@@ -13,7 +13,8 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
       val startTime = "R1/2012-01-01T00:00:01.000Z/PT1M"
       val job = ScheduleBasedJob(schedule = startTime, name = "sample-name",
         command = "sample-command", successCount = 1L,
-        executor = "fooexecutor", executorFlags = "args", taskInfoData = "SomeData")
+        executor = "fooexecutor", executorFlags = "args", taskInfoData = "SomeData",
+        maxCompletionTime = 1L)
 
       store.persistJob(job)
       val job2 = store.getJob(job.name)
@@ -23,6 +24,7 @@ class PersistenceStoreSpec extends SpecificationWithJUnit with Mockito {
       job2.taskInfoData must_== job.taskInfoData
       job2.successCount must_== job.successCount
       job2.command must_== job.command
+      job2.maxCompletionTime must_== job.maxCompletionTime
 
     }
 
