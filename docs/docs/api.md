@@ -344,6 +344,7 @@ When specifying the `command` field in your job hash, use `url-runner.bash` (mak
 | `executor`            | Mesos executor.  By default Chronos uses the Mesos command executor.                                     | -                              |
 | `executorFlags`       | Flags to pass to Mesos executor.                                                                         | -                              |
 | `taskInfoData`        | Data to pass to the taskInfo data field.  If set, this overrides the default data set by Chronos.   | -                              |
+| `maxCompletionTime`   | Maximum time, in seconds, that this task can run before being killed.                                    | -                              |
 | `retries`             | Number of retries to attempt if a command returns a non-zero status                                      | `2`                            |
 | `owner`               | Email address(es) to send job failure notifications.  Use comma-separated list for multiple addresses.     | -                              |
 | `ownerName`           | Name of the individual responsible for the job.                                                          | -                              |

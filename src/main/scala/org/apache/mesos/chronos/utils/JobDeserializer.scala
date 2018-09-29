@@ -112,6 +112,13 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
       else if (JobDeserializer.config != null) JobDeserializer.config.mesosTaskMem()
       else 0
 
+
+    val maxCompletionTime =
+      if (node.has("maxCompletionTime") && node.get("maxCompletionTime") != null && node
+            .get("maxCompletionTime")
+            .asLong != 0L) node.get("maxCompletionTime").asLong
+      else 0L
+
     val errorsSinceLastSuccess =
       if (node.has("errorsSinceLastSuccess") && node.get("errorsSinceLastSuccess") != null)
         node.get("errorsSinceLastSuccess").asLong
@@ -227,7 +234,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris, highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints)
+        constraints = constraints, maxCompletionTime = maxCompletionTime)
     } else if (node.has("schedule")) {
       val scheduleTimeZone = if (node.has("scheduleTimeZone")) node.get("scheduleTimeZone").asText else ""
       new ScheduleBasedJob(node.get("schedule").asText, name = name, command = command,
@@ -238,7 +245,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, scheduleTimeZone = scheduleTimeZone,
         environmentVariables = environmentVariables, shell = shell, arguments = arguments, softError = softError,
-        dataProcessingJobType = dataProcessingJobType, constraints = constraints)
+        dataProcessingJobType = dataProcessingJobType, constraints = constraints, maxCompletionTime = maxCompletionTime)
     } else {
       /* schedule now */
       new ScheduleBasedJob("R1//PT24H", name = name, command = command, epsilon = epsilon, successCount = successCount,
@@ -248,7 +255,7 @@ class JobDeserializer extends JsonDeserializer[BaseJob] {
         errorsSinceLastSuccess = errorsSinceLastSuccess, fetch = fetch, uris = uris,  highPriority = highPriority,
         runAsUser = runAsUser, container = container, environmentVariables = environmentVariables, shell = shell,
         arguments = arguments, softError = softError, dataProcessingJobType = dataProcessingJobType,
-        constraints = constraints)
+        constraints = constraints, maxCompletionTime = maxCompletionTime)
     }
   }
 }

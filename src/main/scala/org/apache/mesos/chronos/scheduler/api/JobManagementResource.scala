@@ -93,7 +93,8 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
                       softError = childJob.softError,
                       uris = childJob.uris,
                       fetch = childJob.fetch,
-                      highPriority = childJob.highPriority
+                      highPriority = childJob.highPriority,
+                      maxCompletionTime = childJob.maxCompletionTime
                     )
                     jobScheduler.updateJob(childJob, newChild)
                   case _ =>
