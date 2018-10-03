@@ -1,8 +1,10 @@
 package org.apache.mesos.chronos.scheduler.mesos
 
+import java.util.concurrent.TimeUnit
+
 import mesosphere.mesos.protos._
 import mesosphere.mesos.util.FrameworkIdUtil
-import org.apache.mesos.Protos.Offer
+import org.apache.mesos.Protos.{DurationInfo, Offer, TimeInfo, Unavailability}
 import org.apache.mesos.chronos.ChronosTestHelper._
 import org.apache.mesos.chronos.scheduler.jobs.{BaseJob, JobScheduler, MockJobUtils, TaskManager}
 import org.apache.mesos.{Protos, SchedulerDriver}
@@ -71,6 +73,33 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       doNothing.when(mesosJobFramework).reconcile(any)
 
       val offer: Offer = makeBasicOffer
+      mesosJobFramework.resourceOffers(mockSchedulerDriver, Seq[Protos.Offer](offer).asJava)
+
+      there was one(mockSchedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
+    }
+
+    "Reject unavailable offer" in {
+      import mesosphere.mesos.protos.Implicits._
+
+      import scala.collection.JavaConverters._
+
+      val mockDriverFactory = MockJobUtils.mockDriverFactory
+      val mockSchedulerDriver = mockDriverFactory.get
+
+      val mesosJobFramework = spy(
+        new MesosJobFramework(
+          mockDriverFactory,
+          mock[JobScheduler],
+          mock[TaskManager],
+          makeConfig(),
+          mock[FrameworkIdUtil],
+          mock[MesosTaskBuilder],
+          mock[MesosOfferReviver]))
+
+      val tasks = mutable.Buffer[(String, BaseJob, Offer)]()
+      doReturn(tasks).when(mesosJobFramework).generateLaunchableTasks(any)
+
+      val offer: Offer = makeUnavailableOffer
       mesosJobFramework.resourceOffers(mockSchedulerDriver, Seq[Protos.Offer](offer).asJava)
 
       there was one(mockSchedulerDriver).declineOffer(OfferID("1"), Protos.Filters.getDefaultInstance)
@@ -176,6 +205,22 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
   }
 
   private[this] def makeBasicOffer: Offer = {
+
+    makeBasicOfferBuilder
+      .build()
+  }
+
+  private[this] def makeUnavailableOffer: Offer = {
+
+    makeBasicOfferBuilder.setUnavailability(
+      Unavailability.newBuilder()
+        .setStart(TimeInfo.newBuilder().setNanoseconds(System.nanoTime()))
+        .setDuration(DurationInfo.newBuilder().setNanoseconds(TimeUnit.DAYS.toNanos(1)))
+        .build())
+      .build()
+  }
+
+  private[this] def makeBasicOfferBuilder: Offer.Builder = {
     import mesosphere.mesos.protos.Implicits._
 
     Protos.Offer.newBuilder()
@@ -186,7 +231,6 @@ class MesosJobFrameworkSpec extends SpecificationWithJUnit with Mockito {
       .addResources(ScalarResource(Resource.CPUS, 1, "*"))
       .addResources(ScalarResource(Resource.MEM, 100, "*"))
       .addResources(ScalarResource(Resource.DISK, 100, "*"))
-      .build()
   }
 
 
