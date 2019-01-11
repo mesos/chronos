@@ -33,6 +33,7 @@ app.get('/', function(req, res) {
       <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
       <link rel="stylesheet" href="assets/css/react-select.min.css" />
       <link rel="stylesheet" href="assets/css/jsoneditor.min.css" />
+      <link rel="stylesheet" href="assets/css/styles.css" />
       <title>CHRONOS</title>
     </head>
     <body>

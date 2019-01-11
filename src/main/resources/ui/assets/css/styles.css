@@ -1,0 +1,9 @@
+.job-details-modal .panel-group .keyVal .control-label{
+  height: 34px !important;
+  line-height: 34px !important;
+}
+
+ span.jobName:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
