@@ -563,6 +563,7 @@ class JobStats @Inject()(clusterBuilder: Option[Cluster.Builder], config: Cassan
 
           query.setConsistencyLevel(ConsistencyLevel.valueOf(config.cassandraConsistency()))
             .asInstanceOf[RegularStatement]
+          query.using(QueryBuilder.ttl(config.cassandraTtl()))
 
           session.executeAsync(query)
       }
