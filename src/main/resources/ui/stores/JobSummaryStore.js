@@ -1,5 +1,6 @@
 import {observable, computed, autorun} from 'mobx';
 import JobSummaryModel from '../models/JobSummaryModel'
+import Constants from '../services/Constants'
 import $ from 'jquery'
 
 export class JobSummaryStore {
@@ -80,7 +81,7 @@ export class JobSummaryStore {
   loadJobSummarys() {
     this.isLoading = true;
     var otherThis = this;
-    $.getJSON('v1/scheduler/jobs/summary').done(function(resp) {
+    $.getJSON(Constants.chronos.apiUrl + 'v1/scheduler/jobs/summary').done(function(resp) {
       var serverJobNames = new Set();
       resp.jobs.forEach(json => {
         serverJobNames.add(json.name)
