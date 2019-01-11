@@ -37,7 +37,7 @@ class MesosTaskBuilder @Inject()(val conf: SchedulerConfiguration) {
       .setName(name)
       .setType(Value.Type.SCALAR)
       .setScalar(Value.Scalar.newBuilder.setValue(value))
-      .setRole("*")
+      .setRole(conf.mesosRole())
       .build
   }
 
