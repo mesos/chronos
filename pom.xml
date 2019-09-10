@@ -16,12 +16,12 @@
     <assets.dir>${basedir}/src/main/resources/assets</assets.dir>
 
     <!-- language versions -->
-    <java.abi>1.7</java.abi>
-    <scala.version>2.11.2</scala.version>
-    <scala.abi>2.11.2</scala.abi>
+    <java.abi>11</java.abi>
+    <scala.version>2.11.12</scala.version>
+    <scala.abi>2.11.12</scala.abi>
 
     <!-- runtime deps versions -->
-    <akka.version>2.3.16</akka.version>
+    <akka.version>2.4.12</akka.version>
     <cassandra-driver-core.version>3.1.2</cassandra-driver-core.version>
     <chaos.version>0.6.7</chaos.version>
     <commons-math3.version>3.2</commons-math3.version>
@@ -36,20 +36,20 @@
     <raven.version>7.8.0</raven.version>
 
     <!-- test deps versions -->
-    <akka-testkit.version>2.3.16</akka-testkit.version>
-    <junit.version>4.11</junit.version>
-    <mockito.version>1.9.5</mockito.version>
-    <specs2.version>3.6.4-20150927082714-7cac887</specs2.version>
+    <akka-testkit.version>2.4.12</akka-testkit.version>
+    <junit.version>4.12</junit.version>
+    <mockito.version>2.0.2-beta</mockito.version>
+    <specs2.version>3.8.6</specs2.version>
 
     <!-- maven versions-->
-    <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
-    <maven-clean-plugin.version>2.5</maven-clean-plugin.version>
-    <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
-    <maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
-    <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-    <maven-shade-plugin.version>2.3</maven-shade-plugin.version>
-    <maven-surefire-plugins.version>2.14.1</maven-surefire-plugins.version>
-    <scala-maven-plugin.version>3.1.0</scala-maven-plugin.version>
+    <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+    <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+    <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+    <maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
+    <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+    <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
+    <maven-surefire-plugins.version>3.0.0-M3</maven-surefire-plugins.version>
+    <scala-maven-plugin.version>4.0.1</scala-maven-plugin.version>
   </properties>
 
   <repositories>
@@ -67,6 +67,10 @@
       <id>libs-folder</id>
       <name>libs-folder</name>
       <url>file:${project.basedir}/lib</url>
+    </repository>
+    <repository>
+      <id>clojars.org</id>
+      <url>http://clojars.org/repo</url>
     </repository>
   </repositories>
   <pluginRepositories>
@@ -237,6 +241,26 @@
       <artifactId>specs2-mock_2.11</artifactId>
       <version>${specs2.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.2.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-core</artifactId>
+      <version>2.2.11</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.bind</groupId>
+      <artifactId>jaxb-impl</artifactId>
+      <version>2.2.11</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.specs2</groupId>
