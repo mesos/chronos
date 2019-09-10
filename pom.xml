@@ -68,10 +68,6 @@
       <name>libs-folder</name>
       <url>file:${project.basedir}/lib</url>
     </repository>
-    <repository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
-    </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
