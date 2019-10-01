@@ -30,7 +30,7 @@ if [ "${1:-absent}" == "absent" ] || [ "${1:0:1}" == '-' ]; then
     echo "Starting Zookeeer.."
     service zookeeper start
   fi
-  set -- java -Xmx"$heap" -Xms"$heap" -cp "${jar_files[0]}" \
+  set -- java -Xmx"$heap" -Xms"$heap" -cp "${jar_files[0]}" -Dlog4j.configuration=file:$chronos_home/log4j.properties \
      org.apache.mesos.chronos.scheduler.Main \
      "${flags[@]}"
 fi
