@@ -24,7 +24,7 @@ object JobsObserver {
 
   def composite(observers: List[Observer]): Observer = {
     case event => observers.foreach(observer => observer.lift.apply(event).orElse {
-      log.info(s"$observer does not handle $event")
+      log.warning(s"$observer does not handle $event")
       Some(Unit)
     })
   }
