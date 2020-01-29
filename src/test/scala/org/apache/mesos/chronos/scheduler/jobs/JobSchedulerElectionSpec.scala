@@ -9,7 +9,7 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.{InstanceSpec, TestingCluster}
-import org.apache.curator.utils.{CloseableUtils, EnsurePath}
+import org.apache.curator.utils.CloseableUtils
 import org.joda.time.Period
 import org.junit.Assert.{assertFalse, assertTrue}
 import org.junit.Test
@@ -135,8 +135,11 @@ class JobSchedulerElectionSpec
       jobsObserver = mock[JobsObserver.Observer]
     )
 
-    val ensurePath: EnsurePath = new EnsurePath(leaderPath)
-    ensurePath.ensure(curator.getZookeeperClient)
+    if (curator.checkExists().forPath(leaderPath) != null) {
+      curator.checkExists().creatingParentContainersIfNeeded()
+    } else {
+      curator.create().creatingParentContainersIfNeeded()
+    }
 
     (scheduler, curator, leaderLatch)
   }
