@@ -60,7 +60,9 @@ class MesosStatePersistenceStore @Inject()(val zk: CuratorFramework,
   }
 
   def persistJob(job: BaseJob): Boolean = {
-    log.info("Persisting job '%s' with data '%s'" format(job.name, job.toString))
+    log.info("Persisting job: '%s' with description: '%s' , docker container info: '%s', job arguments as: " +
+      "and task info data as: '%s'" format(job.name, job.description, job.container, job.arguments, job.taskInfoData))
+    log.fine("Persisting job '%s' with data '%s'" format(job.name, job.toString))
     persistData(jobName(job.name), JobUtils.toBytes(job))
   }
 

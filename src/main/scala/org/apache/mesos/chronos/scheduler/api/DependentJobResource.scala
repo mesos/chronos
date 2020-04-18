@@ -74,7 +74,8 @@ class DependentJobResource @Inject()(
         jobScheduler.updateJob(oldJob, newJob)
 
         log.info("Job parent: [ %s ], name: %s, command: %s".format(newJob.parents.mkString(","), newJob.name, newJob.command))
-        log.info("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
+        log.info("Replaced job: '%s'".format(newJob.name))
+        log.fine("Replaced job: '%s', oldJob: '%s', newJob: '%s'".format(
           newJob.name,
           new String(JobUtils.toBytes(oldJob), Charsets.UTF_8),
           new String(JobUtils.toBytes(newJob), Charsets.UTF_8)))

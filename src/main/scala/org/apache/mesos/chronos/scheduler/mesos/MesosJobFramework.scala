@@ -2,20 +2,18 @@ package org.apache.mesos.chronos.scheduler.mesos
 
 import java.util.logging.Logger
 
-import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
-import org.apache.mesos.chronos.scheduler.jobs._
-import org.apache.mesos.chronos.scheduler.jobs.constraints.Constraint
-import org.apache.mesos.chronos.utils.JobDeserializer
 import com.google.inject.Inject
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.Protos._
+import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.apache.mesos.chronos.scheduler.jobs._
+import org.apache.mesos.chronos.utils.JobDeserializer
 import org.apache.mesos.{Protos, Scheduler, SchedulerDriver}
 import org.joda.time.DateTime
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.collection.mutable.{Buffer, HashMap, HashSet}
 
 /**
  * Provides the interface to chronos. Receives callbacks from chronos when resources are offered, declined etc.
@@ -175,7 +173,9 @@ class MesosJobFramework @Inject()(
       val mesosTasks = subTasks.map(task => {
         taskBuilder.getMesosTaskInfoBuilder(task._1, task._2, task._3).setSlaveId(task._3.getSlaveId).build()
       })
-      log.info("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
+      log.info("Launching tasks from offer with id: " + offer.getId + "with url info: " + offer.getUrl +
+        "for slave id: " + offer.getSlaveId)
+      log.fine("Launching tasks from offer: " + offer + " with tasks: " + mesosTasks)
       val status: Protos.Status = mesosDriver.get().launchTasks(
         List(offer.getId).asJava,
         mesosTasks.asJava
