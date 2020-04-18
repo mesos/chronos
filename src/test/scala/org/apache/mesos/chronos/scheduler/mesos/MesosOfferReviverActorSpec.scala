@@ -2,15 +2,17 @@ package org.apache.mesos.chronos.scheduler.mesos
 
 import akka.actor._
 import akka.testkit.TestProbe
-import com.codahale.metrics.{ Counter, MetricRegistry }
+import com.codahale.metrics.{Counter, MetricRegistry}
 import mesosphere.chaos.http.HttpConf
 import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.mesos.SchedulerDriver
 import org.apache.mesos.chronos.scheduler.config.SchedulerConfiguration
+import org.specs2.matcher.ThrownExpectations
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
-import scala.concurrent.duration.FiniteDuration
-import org.specs2.matcher.ThrownExpectations
+
+import scala.concurrent.Await
+import scala.concurrent.duration.{FiniteDuration, _}
 
 class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
   "MesosOfferReviverActor" should {
@@ -39,8 +41,8 @@ class MesosOfferReviverActorSpec extends SpecificationWithJUnit with Mockito {
       probe.watch(actorRef)
       probe.expectMsgAnyClassOf(classOf[Terminated])
 
-      actorSystem.shutdown()
-      actorSystem.awaitTermination()
+      actorSystem.terminate()
+      Await.result(actorSystem.whenTerminated, Duration.Inf)
 
       there was one(reviveOffersCounter).inc()
     }
@@ -98,8 +100,8 @@ trait context extends BeforeAfter with Mockito with ThrownExpectations {
   }
 
   def after = {
-    actorSystem.shutdown()
-    actorSystem.awaitTermination()
+    actorSystem.terminate()
+    Await.result(actorSystem.whenTerminated, Duration.Inf)
   }
 
   def startActor(props: Props = MesosOfferReviverActor.props(conf, driverFactory, metrics)): ActorRef = {

@@ -11,7 +11,6 @@ import mesosphere.mesos.util.FrameworkIdUtil
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.curator.utils.EnsurePath
 import org.apache.mesos.state.{State, ZooKeeperState}
 
 /**
@@ -72,8 +71,11 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideStore(zk: CuratorFramework, state: State): PersistenceStore = {
-    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperStatePath)
-    ensurePath.ensure(zk.getZookeeperClient)
+    if (zk.checkExists().forPath(config.zooKeeperStatePath) != null) {
+      zk.checkExists().creatingParentContainersIfNeeded()
+    } else {
+      zk.create().creatingParentContainersIfNeeded()
+    }
 
     new MesosStatePersistenceStore(zk, config, state)
   }
@@ -88,8 +90,11 @@ class ZookeeperModule(val config: SchedulerConfiguration with HttpConf)
   @Singleton
   @Provides
   def provideLeaderLatch(curator: CuratorFramework): LeaderLatch = {
-    val ensurePath: EnsurePath = new EnsurePath(config.zooKeeperCandidatePath)
-    ensurePath.ensure(curator.getZookeeperClient)
+    if (curator.checkExists().forPath(config.zooKeeperCandidatePath) != null) {
+      curator.checkExists().creatingParentContainersIfNeeded()
+    } else {
+      curator.create().creatingParentContainersIfNeeded()
+    }
 
     val id = "%s:%d".format(config.hostname(), config.httpPort())
     new LeaderLatch(curator, config.zooKeeperCandidatePath, id)
