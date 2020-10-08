@@ -16,7 +16,8 @@
     "start": "node bin/server.js",
     "dev": "webpack --progress --colors",
     "build": "webpack --progress --colors --optimize-minimize --optimize-occurrence-order --optimize-dedupe --config webpack-release.config.js --bail",
-    "lint": "eslint --fix ./"
+    "lint": "eslint --fix ./",
+    "postinstall": "opencollective-postinstall"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",
@@ -40,7 +41,7 @@
     "mobx-react": "^3.5.9",
     "mobx-react-form": "^1.13.28",
     "react": "^15.4.0",
-    "react-ace": "^4.1.0",
+    "react-ace": "^6.0.0",
     "react-dom": "^15.4.0",
     "react-select": "^1.0.0-rc.2",
     "validatorjs": "^3.8.0",
